@@ -34,3 +34,20 @@ jobs:
         with:
           name: plugin-release-candidate
           path: dist/*.zip
+  minimum-wordpress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install -g @wordpress/env
+      - name: Start WordPress 6.6 with PHP 8.2
+        run: |
+          node -e 'require("fs").writeFileSync(".wp-env.json", JSON.stringify({core:"https://wordpress.org/wordpress-6.6.zip",phpVersion:"8.2",plugins:["."]}))'
+          wp-env start
+          wp-env run cli wp plugin activate ashbi-mega-menu
+      - name: Minimum-version database test
+        run: |
+          wp-env run cli wp core version
+          wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-smoke.php
