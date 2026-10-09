@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "ashbi-mega-menu/mega-menu",
+  "version": "1.0.0",
+  "title": "Ashbi Mega Menu",
+  "category": "widgets",
+  "icon": "menu",
+  "description": "Display a mega menu built visually in the Ashbi Mega Menu admin.",
+  "attributes": {
+    "menuId": {
+      "type": "string",
+      "default": ""
+    },
+    "context": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "supports": {
+    "align": [
+      "wide",
+      "full"
+    ],
+    "html": false
+  },
+  "textdomain": "ashbi-mega-menu",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "render": "file:./render.php"
+}

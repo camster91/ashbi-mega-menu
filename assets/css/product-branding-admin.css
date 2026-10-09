@@ -1,0 +1,335 @@
+.abmm-branding-admin {
+	max-width: 1280px;
+}
+
+.abmm-branding-admin__hero,
+.abmm-branding-admin__summary,
+.abmm-branding-admin__layout,
+.abmm-branding-admin__form-head,
+.abmm-branding-admin__grid,
+.abmm-branding-admin__media-field > div,
+.abmm-branding-admin__hero-actions {
+	display: flex;
+}
+
+.abmm-branding-admin__hero {
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 24px;
+	margin: 24px 0 18px;
+}
+
+.abmm-branding-admin__hero h1,
+.abmm-branding-admin__form-head h2 {
+	margin: 3px 0 8px;
+}
+
+.abmm-branding-admin__hero p,
+.abmm-branding-admin__form-head p {
+	margin: 0;
+}
+
+.abmm-branding-admin__eyebrow,
+.abmm-branding-admin__form-head p {
+	color: #646970;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+}
+
+.abmm-branding-admin__hero-actions {
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.abmm-branding-admin__summary {
+	gap: 12px;
+	margin: 0 0 18px;
+	flex-wrap: wrap;
+}
+
+.abmm-branding-admin__summary span {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 12px 16px;
+	min-width: 120px;
+}
+
+.abmm-branding-admin__summary strong {
+	display: block;
+	font-size: 20px;
+	line-height: 1.2;
+}
+
+.abmm-branding-admin__layout {
+	align-items: flex-start;
+	gap: 20px;
+}
+
+.abmm-branding-admin__profiles {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	box-sizing: border-box;
+	flex: 0 0 260px;
+	overflow: hidden;
+}
+
+.abmm-branding-admin__profiles h2 {
+	font-size: 14px;
+	margin: 0;
+	padding: 16px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.abmm-branding-admin__profiles ul,
+.abmm-branding-admin__profiles li {
+	margin: 0;
+}
+
+.abmm-branding-admin__profiles a {
+	align-items: center;
+	border-bottom: 1px solid #f0f0f1;
+	color: #1d2327;
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+	padding: 12px 16px;
+	text-decoration: none;
+}
+
+.abmm-branding-admin__profiles a:hover,
+.abmm-branding-admin__profiles a:focus,
+.abmm-branding-admin__profiles a.is-current {
+	background: #f6f7f7;
+	color: #135e96;
+}
+
+.abmm-branding-admin__profiles a:focus {
+	box-shadow: inset 0 0 0 2px #2271b1;
+	outline: 0;
+}
+
+.abmm-branding-admin__profiles a span,
+.abmm-branding-admin__profiles small {
+	display: block;
+}
+
+.abmm-branding-admin__profiles small {
+	color: #646970;
+	margin-top: 3px;
+}
+
+.abmm-branding-status {
+	background: #a7aaad;
+	border-radius: 50%;
+	display: block;
+	height: 9px;
+	width: 9px;
+}
+
+.abmm-branding-status--ready {
+	background: #00a32a;
+}
+
+.abmm-branding-status--warning {
+	background: #dba617;
+}
+
+.abmm-branding-admin__form {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	box-sizing: border-box;
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.abmm-branding-admin__form-head {
+	align-items: center;
+	border-bottom: 1px solid #dcdcde;
+	justify-content: space-between;
+	padding: 18px 22px;
+}
+
+.abmm-branding-admin__form-head > span {
+	background: #e7f5ed;
+	border-radius: 999px;
+	color: #006b2e;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 5px 9px;
+}
+
+.abmm-branding-admin__toggle {
+	align-items: flex-start;
+	background: #f6f7f7;
+	border-bottom: 1px solid #dcdcde;
+	display: flex;
+	gap: 10px;
+	padding: 16px 22px;
+}
+
+.abmm-branding-admin__toggle input {
+	margin-top: 2px;
+}
+
+.abmm-branding-admin__toggle strong,
+.abmm-branding-admin__toggle small {
+	display: block;
+}
+
+.abmm-branding-admin__toggle small {
+	color: #646970;
+	margin-top: 3px;
+}
+
+.abmm-branding-admin fieldset {
+	border: 0;
+	border-bottom: 1px solid #dcdcde;
+	margin: 0;
+	padding: 20px 22px 22px;
+}
+
+.abmm-branding-admin legend {
+	font-size: 15px;
+	font-weight: 600;
+	padding-top: 20px;
+}
+
+.abmm-branding-admin fieldset > label,
+.abmm-branding-admin__grid label,
+.abmm-branding-admin__media-field > label {
+	display: block;
+	font-weight: 600;
+}
+
+.abmm-branding-admin select,
+.abmm-branding-admin input[type="url"],
+.abmm-branding-admin input[type="text"] {
+	max-width: 100%;
+	width: 100%;
+}
+
+.abmm-branding-admin__media-field {
+	margin-top: 16px;
+}
+
+.abmm-branding-admin__media-field > div {
+	align-items: center;
+	gap: 8px;
+	margin-top: 6px;
+}
+
+.abmm-branding-admin__media-field .regular-text {
+	flex: 1 1 auto;
+}
+
+.abmm-branding-admin__preview {
+	align-items: center;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	display: flex;
+	gap: 18px;
+	margin: 8px 0 18px;
+	min-height: 72px;
+	padding: 14px 16px;
+}
+
+.abmm-branding-admin__preview[hidden] {
+	display: none;
+}
+
+.abmm-branding-admin__preview img {
+	max-height: 52px;
+	max-width: 260px;
+	object-fit: contain;
+}
+
+.abmm-branding-admin__preview span {
+	color: #646970;
+	font-size: 12px;
+}
+
+.abmm-branding-admin__grid {
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.abmm-branding-admin__grid > label {
+	flex: 1 1 0;
+}
+
+.abmm-branding-admin__grid small {
+	color: #646970;
+	display: block;
+	font-weight: 400;
+	margin-top: 4px;
+}
+
+.abmm-branding-admin__number {
+	align-items: center;
+	display: flex;
+	gap: 6px;
+	margin-top: 5px;
+}
+
+.abmm-branding-admin__number input {
+	width: 92px;
+}
+
+.abmm-branding-admin__inheritance {
+	background: #f0f6fc;
+	border-left: 4px solid #72aee6;
+	margin: 18px 22px 0;
+	padding: 14px 16px;
+}
+
+.abmm-branding-admin__inheritance p {
+	margin: 4px 0 0;
+}
+
+.abmm-branding-admin__footer {
+	padding: 18px 22px 22px;
+}
+
+.abmm-branding-admin__empty {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	padding: 28px;
+	text-align: center;
+}
+
+@media (max-width: 900px) {
+	.abmm-branding-admin__hero,
+	.abmm-branding-admin__layout,
+	.abmm-branding-admin__grid {
+		flex-direction: column;
+	}
+
+	.abmm-branding-admin__profiles {
+		flex-basis: auto;
+		width: 100%;
+	}
+
+	.abmm-branding-admin__form {
+		width: 100%;
+	}
+}
+
+@media (max-width: 600px) {
+	.abmm-branding-admin__media-field > div {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.abmm-branding-admin__media-field .button,
+	.abmm-branding-admin__media-field .button-link-delete {
+		align-self: flex-start;
+	}
+}

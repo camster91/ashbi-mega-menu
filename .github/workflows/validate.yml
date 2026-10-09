@@ -1,0 +1,36 @@
+name: Validate plugin
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - run: npm ci
+      - run: npm run build:icons && npm run build && npm test && npm run test:php
+      - name: PHP syntax
+        run: find admin includes src build -name '*.php' -exec php -l {} \; && php -l ashbi-mega-menu.php && php -l uninstall.php
+      - run: npm run package && unzip dist/ashbi-mega-menu-1.0.0.zip -d release
+      - uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e
+        with:
+          build-dir: release/ashbi-mega-menu
+          slug: ashbi-mega-menu
+      - name: WordPress database smoke test
+        if: always()
+        run: |
+          mkdir -p release/ashbi-mega-menu/tests
+          cp tests/wordpress-smoke.php release/ashbi-mega-menu/tests/
+          wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-smoke.php
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plugin-release-candidate
+          path: dist/*.zip

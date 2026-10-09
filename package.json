@@ -1,0 +1,35 @@
+{
+  "name": "ashbi-mega-menu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Visual WordPress navigation builder with local mobile search and reusable product menus.",
+  "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/camster91/ashbi-mega-menu.git"
+  },
+  "scripts": {
+    "build": "wp-scripts build --webpack-src-dir=src",
+    "build:icons": "node scripts/build-icons.js",
+    "package": "node scripts/package.js",
+    "test": "node tests/mobile-enhancements.test.js",
+    "test:php": "php tests/menu-save-cache.php"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "36.1.0",
+    "adm-zip": "0.5.18",
+    "jsdom": "26.1.0",
+    "lucide-static": "1.54.0"
+  },
+  "dependencies": {
+    "@wordpress/block-editor": "18.1.0",
+    "@wordpress/blocks": "16.2.0",
+    "@wordpress/components": "42.0.0",
+    "@wordpress/element": "9.0.0",
+    "@wordpress/i18n": "6.30.0",
+    "@wordpress/server-side-render": "6.33.0"
+  }
+}

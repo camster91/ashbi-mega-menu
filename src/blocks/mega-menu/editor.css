@@ -1,0 +1,26 @@
+/**
+ * Ashbi Mega Menu Block — Editor Styles
+ */
+.wp-block-ashbi-mega-menu-mega-menu {
+	position: relative;
+}
+
+.wp-block-ashbi-mega-menu-mega-menu .components-placeholder {
+	min-height: 120px;
+}
+
+.wp-block-ashbi-mega-menu-mega-menu .components-placeholder__label svg {
+	fill: currentColor;
+}
+
+.abmm-block-preview-placeholder {
+	padding: 1rem;
+	background: #f0f0f1;
+	border: 1px dashed #c3c4c7;
+	text-align: center;
+	color: #3c434a;
+}
+
+.abmm-block-preview-placeholder p {
+	margin: 0;
+}
