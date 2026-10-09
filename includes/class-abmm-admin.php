@@ -198,6 +198,7 @@ class ABMM_Admin {
 			update_user_meta( $user_id, ABMM_ONBOARDING_META, 'returning-user' );
 		}
 		$show_onboarding = empty( $menus ) && ( ! $user_id || ! get_user_meta( $user_id, ABMM_ONBOARDING_META, true ) );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$edit_id = isset( $_GET['edit'] ) ? sanitize_text_field( wp_unslash( $_GET['edit'] ) ) : '';
 
 		if ( $edit_id && isset( $menus[ $edit_id ] ) ) {
@@ -215,7 +216,7 @@ class ABMM_Admin {
 		$this->verify_ajax();
 
 		$id  = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
-		$raw = isset( $_POST['menu_data'] ) ? wp_unslash( $_POST['menu_data'] ) : '';
+		$raw = isset( $_POST['menu_data'] ) ? wp_unslash( $_POST['menu_data'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Structured input is validated and sanitized field by field before persistence; upload paths are verified with is_uploaded_file().
 		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid menu data.', 'ashbi-mega-menu' ) ), 400 );
 		}
@@ -516,7 +517,7 @@ class ABMM_Admin {
 			wp_send_json_error( array( 'message' => __( 'No file uploaded or upload error.', 'ashbi-mega-menu' ) ), 400 );
 		}
 
-		$file = $_FILES['import_file'];
+		$file = $_FILES['import_file']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Structured input is validated and sanitized field by field before persistence; upload paths are verified with is_uploaded_file().
 		$mode = isset( $_POST['mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mode'] ) ) : 'merge';
 
 		if ( ! in_array( $mode, array( 'merge', 'replace', 'copy' ), true ) ) {

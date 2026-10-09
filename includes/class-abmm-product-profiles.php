@@ -199,6 +199,7 @@ class ABMM_Product_Profiles {
 			return;
 		}
 		$profiles = $this->get_all();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$edit_id  = isset( $_GET['profile'] ) ? sanitize_key( wp_unslash( $_GET['profile'] ) ) : '';
 		$profile  = $profiles[ $edit_id ] ?? $this->sanitize_profile( array() );
 		$pages    = get_pages( array( 'post_status' => 'publish', 'sort_column' => 'post_title' ) );
@@ -212,7 +213,8 @@ class ABMM_Product_Profiles {
 				</div>
 				<a class="button button-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-coverage' ) ); ?>"><?php esc_html_e( 'Review coverage', 'ashbi-mega-menu' ); ?></a>
 			</div>
-			<?php if ( isset( $_GET['updated'] ) ) : ?>
+			<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
+ if ( isset( $_GET['updated'] ) ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Product navigation saved.', 'ashbi-mega-menu' ); ?></p></div>
 			<?php endif; ?>
 			<ol class="abmm-profile-admin__steps" aria-label="<?php esc_attr_e( 'Product navigation workflow', 'ashbi-mega-menu' ); ?>">
@@ -260,11 +262,14 @@ esc_html__( 'Link %d destination', 'ashbi-mega-menu' ), esc_html( $index + 1 ) )
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$source_filter = isset( $_GET['abmm_source'] ) && is_scalar( $_GET['abmm_source'] ) ? sanitize_key( wp_unslash( $_GET['abmm_source'] ) ) : 'all';
 		if ( ! in_array( $source_filter, array( 'all', 'page', 'ancestor', 'fallback' ), true ) ) {
 			$source_filter = 'all';
 		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$search = isset( $_GET['abmm_search'] ) && is_scalar( $_GET['abmm_search'] ) ? sanitize_text_field( wp_unslash( $_GET['abmm_search'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$page_number = isset( $_GET['abmm_page'] ) && is_scalar( $_GET['abmm_page'] ) ? max( 1, absint( wp_unslash( $_GET['abmm_page'] ) ) ) : 1;
 		$per_page = 50;
 		$post_types = get_post_types( array( 'public' => true ), 'names' );
@@ -360,7 +365,7 @@ __( 'Page %1$d of %2$d', 'ashbi-mega-menu' ), $page_number, $page_count ) ); ?><
 			wp_die( esc_html__( 'You do not have permission to manage product navigation.', 'ashbi-mega-menu' ) );
 		}
 		check_admin_referer( 'abmm_save_product_profile' );
-		$raw      = isset( $_POST['profile'] ) ? wp_unslash( $_POST['profile'] ) : array();
+		$raw      = isset( $_POST['profile'] ) ? wp_unslash( $_POST['profile'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Structured input is validated and sanitized field by field before persistence; upload paths are verified with is_uploaded_file().
 		$profile  = $this->sanitize_profile( $raw );
 		$profiles = $this->get_all();
 		$id       = isset( $_POST['profile_id'] ) ? sanitize_key( wp_unslash( $_POST['profile_id'] ) ) : '';

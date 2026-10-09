@@ -141,7 +141,7 @@ class ABMM_Data {
 		}
 
 		$lock_name = 'abmm_menus_save_' . md5( (string) ( $wpdb->options ?? '' ) . '|' . ABMM_OPTION_KEY );
-		$acquired  = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock_name ) );
+		$acquired  = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory locks must run on this database connection and cannot be cached; the name is prepared.
 		if ( null === $acquired || false === $acquired ) {
 			return new WP_Error( 'abmm_save_lock_unavailable', __( 'The database could not provide the menu save lock. Your changes were not saved. This installation requires a database that supports MySQL advisory locks.', 'ashbi-mega-menu' ) );
 		}
@@ -152,7 +152,7 @@ class ABMM_Data {
 		try {
 			return call_user_func( $callback );
 		} finally {
-			$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) );
+			$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory locks must run on this database connection and cannot be cached; the name is prepared.
 		}
 	}
 

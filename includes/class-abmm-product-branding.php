@@ -313,6 +313,7 @@ class ABMM_Product_Branding {
 
 		$profiles = ABMM_Product_Profiles::instance()->get_all();
 		$menus    = ABMM_Data::instance()->get_all();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$selected = isset( $_GET['profile'] ) ? sanitize_key( wp_unslash( $_GET['profile'] ) ) : '';
 		if ( '' === $selected && ! empty( $profiles ) ) {
 			$selected = (string) array_key_first( $profiles );
@@ -339,11 +340,14 @@ class ABMM_Product_Branding {
 				</div>
 			</div>
 
-			<?php if ( isset( $_GET['updated'] ) ) : ?>
+			<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
+ if ( isset( $_GET['updated'] ) ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Product branding saved.', 'ashbi-mega-menu' ); ?></p></div>
 			<?php endif; ?>
-			<?php if ( isset( $_GET['error'] ) ) : ?>
-				<div class="notice notice-error"><p><?php echo esc_html( $this->error_message( sanitize_key( wp_unslash( $_GET['error'] ) ) ) ); ?></p></div>
+			<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
+ if ( isset( $_GET['error'] ) ) : ?>
+				<div class="notice notice-error"><p><?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
+ echo esc_html( $this->error_message( sanitize_key( wp_unslash( $_GET['error'] ) ) ) ); ?></p></div>
 			<?php endif; ?>
 
 			<?php if ( empty( $profiles ) ) : ?>
@@ -512,7 +516,7 @@ class ABMM_Product_Branding {
 			$this->redirect_with_error( $profile_id, 'profile' );
 		}
 
-		$raw    = isset( $_POST['branding'] ) ? wp_unslash( $_POST['branding'] ) : array();
+		$raw    = isset( $_POST['branding'] ) ? wp_unslash( $_POST['branding'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Structured input is validated and sanitized field by field before persistence; upload paths are verified with is_uploaded_file().
 		$config = $this->sanitize_config( $raw );
 		$menus  = ABMM_Data::instance()->get_all();
 		if ( ! empty( $config['enabled'] ) ) {
@@ -552,6 +556,7 @@ class ABMM_Product_Branding {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$profile_id = isset( $_GET['profile'] ) ? sanitize_key( wp_unslash( $_GET['profile'] ) ) : '';
 		if ( '' === $profile_id ) {
 			return;
@@ -569,6 +574,7 @@ class ABMM_Product_Branding {
 	 * Add a discoverable path from Product Navigation to Product Branding.
 	 */
 	public function product_navigation_notice() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 		if ( ! current_user_can( 'manage_options' ) || 'ashbi-mega-menu-products' !== $page ) {
 			return;

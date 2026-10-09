@@ -25,4 +25,10 @@ abmm_test_assert( $before === get_option( ABMM_OPTION_KEY ), 'Reactivation must 
 abmm_test_assert( count( ABMM_Icons::instance()->all() ) === 40, 'All licensed icons load.' );
 $html = do_shortcode( '[ashbi_mega_menu id="' . $id . '"]' );
 abmm_test_assert( false !== strpos( $html, 'abmm-' ), 'Shortcode renders navigation.' );
-WP_CLI::success( 'Create, locked save, reload, stale revision, reactivation, icons and render passed.' );
+$exporter = ABMM_Import_Export::instance();
+$export = $exporter->export_single_menu( $id );
+abmm_test_assert( ! is_wp_error( $export ) && empty( $exporter->validate_payload( $export ) ), 'Export produces a valid portable payload.' );
+wp_set_current_user( 0 );
+$response = rest_do_request( '/ashbi-mega-menu/v1/menus' );
+abmm_test_assert( in_array( $response->get_status(), array( 401, 403 ), true ), 'Anonymous REST access is denied.' );
+WP_CLI::success( 'Create, locked save, reload, stale revision, reactivation, icons, render, export and REST protection passed.' );

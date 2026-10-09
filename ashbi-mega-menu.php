@@ -4,7 +4,7 @@
  * Plugin URI:  https://github.com/camster91/ashbi-mega-menu
  * Description: Create beautiful mega menus like corporate platforms menus — managed visually from the admin panel. No coding required.
  * Version:     1.0.0
- * Author:      Cameron
+ * Author:      Cameron Ashley
  * Author URI:  https://github.com/camster91
  * License:     GPL-2.0-or-later
  * Text Domain: ashbi-mega-menu
