@@ -75,6 +75,7 @@ class ABMM_Admin {
 			array(),
 			ABMM_VERSION
 		);
+		wp_enqueue_style( 'abmm-brand-admin', ABMM_PLUGIN_URL . 'assets/css/brand-admin.css', array( 'abmm-admin' ), ABMM_VERSION );
 		if ( ! $is_builder_page ) {
 			return;
 		}

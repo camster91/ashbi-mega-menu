@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="wrap abmm-wrap">
 	<div class="abmm-admin-header">
 		<div>
-			<h1><?php esc_html_e( 'Ashbi Mega Menu', 'ashbi-mega-menu' ); ?></h1>
+			<div class="abmm-logo-title"><img src="<?php echo esc_url( ABMM_PLUGIN_URL . 'assets/brand/icon.svg' ); ?>" width="52" height="52" alt="" /><h1><?php esc_html_e( 'Ashbi Mega Menu', 'ashbi-mega-menu' ); ?></h1></div>
 			<p class="abmm-admin-intro"><?php esc_html_e( 'Build professional mega menus visually — no coding needed. Edit a menu, then place it on your site with a shortcode.', 'ashbi-mega-menu' ); ?></p>
 		</div>
 		<div class="abmm-admin-header__actions">

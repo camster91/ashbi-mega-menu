@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Ashbi Mega Menu
  * Plugin URI:  https://github.com/camster91/ashbi-mega-menu
- * Description: Create beautiful mega menus like corporate platforms menus — managed visually from the admin panel. No coding required.
- * Version:     1.0.0
+ * Description: Build responsive navigation with a visual editor, local previews, reusable product menus and portable exports.
+ * Version:     1.0.1
  * Author:      Cameron Ashley
  * Author URI:  https://github.com/camster91
  * License:     GPL-2.0-or-later
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ABMM_VERSION', '1.0.0' );
+define( 'ABMM_VERSION', '1.0.1' );
 define( 'ABMM_PLUGIN_FILE', __FILE__ );
 define( 'ABMM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ABMM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

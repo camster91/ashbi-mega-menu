@@ -1,5 +1,7 @@
 # Ashbi Mega Menu
 
+![Ashbi Mega Menu — Navigation, made clear.](.wordpress-org/banner-1544x500.png)
+
 An open-source WordPress plugin for building responsive navigation with a visual editor. Licensed under GPL-2.0-or-later.
 
 **Status:** the [1.0.0 review candidate](https://github.com/camster91/ashbi-mega-menu/releases/tag/v1.0.0) is available. WordPress.org submission is pending account login; directory approval has not been granted.
@@ -29,6 +31,7 @@ This plugin uses independent `abmm_` storage and identifiers. It is a separate p
 
 ```sh
 npm ci
+npm run build:brand
 npm run build:icons
 npm run build
 npm test
@@ -36,7 +39,13 @@ npm run test:php
 npm run package
 ```
 
-Use Node.js 24.18 or later and PHP 8.2 or later. Block source lives in `src/`; compiled files are in `build/`. Packaging uses an explicit runtime allowlist and produces `dist/ashbi-mega-menu-1.0.0.zip`. Build dependencies and CI configuration are available here, and are excluded from the install ZIP.
+Use Node.js 24.18 or later and PHP 8.2 or later. Block source lives in `src/`; compiled files are in `build/`. Packaging uses an explicit runtime allowlist and produces `dist/ashbi-mega-menu-1.0.1.zip`. Build dependencies and CI configuration are available here, and are excluded from the install ZIP.
+
+## Visual identity and directory assets
+
+The original editable SVG artwork and palette are in [the brand kit](design/brand/README.md). Directory icons, banners and genuine local WordPress screenshots live in [.wordpress-org](.wordpress-org); see [asset deployment instructions](docs/wordpress-directory-assets.md). The banner uses a conceptual illustration; numbered screenshots show the actual plugin. Directory publication remains pending review and approval.
+
+![Visual builder in WordPress with generic sample content](.wordpress-org/screenshot-2.png)
 
 CI builds the block, runs regression tests and invokes the official WordPress Plugin Check action against the packaged files. A successful CI run does not guarantee WordPress.org approval or compatibility with every theme.
 

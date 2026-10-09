@@ -328,6 +328,7 @@ class ABMM_Product_Branding {
 		$wordmark_dark = $this->attachment_url( $config['wordmark_dark_attachment_id'], $config['wordmark_dark_url'] );
 		?>
 		<div class="wrap abmm-branding-admin">
+			<?php require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php'; ?>
 			<div class="abmm-branding-admin__hero">
 				<div>
 					<p class="abmm-branding-admin__eyebrow"><?php esc_html_e( 'Shared-header product system', 'ashbi-mega-menu' ); ?></p>

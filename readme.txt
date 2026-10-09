@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,7 +46,18 @@ Standard MySQL and MariaDB WordPress installations are supported. SQLite is not 
 = What happens when I delete the plugin? =
 Uninstallation removes the plugin's stored menus, archived menus, product profiles, branding and settings. Export your menus before deleting it. Deactivation keeps stored data.
 
+== Screenshots ==
+
+1. Menu dashboard with the optional generic sample in a local WordPress installation.
+2. Visual builder with desktop preview and menu settings for the generic sample.
+3. Responsive editor at a mobile viewport, with menu settings collapsed.
+
 == Changelog ==
+
+= 1.0.1 =
+* Original Ashbi identity, branded admin screens and block icon.
+* Improved sidebar link field sizing and preview control contrast.
+* WordPress directory artwork and screenshots from the actual plugin.
 
 = 1.0.0 =
 * Initial independent open-source release; directory review pending.
@@ -55,5 +66,5 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 
 == Upgrade Notice ==
 
-= 1.0.0 =
+= 1.0.1 =
 Review candidate. Back up and test on staging before use. Existing mobile enhancement settings default to disabled.

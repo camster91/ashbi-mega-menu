@@ -15,10 +15,10 @@ jobs:
         with:
           php-version: '8.2'
       - run: npm ci
-      - run: npm run build:icons && npm run build && npm test && npm run test:php
+      - run: npm run build:brand && npm run build:icons && npm run build && npm test && npm run test:php
       - name: PHP syntax
         run: find admin includes src build -name '*.php' -exec php -l {} \; && php -l ashbi-mega-menu.php && php -l uninstall.php
-      - run: npm run package && unzip dist/ashbi-mega-menu-1.0.0.zip -d release
+      - run: npm run package && unzip dist/ashbi-mega-menu-1.0.1.zip -d release
       - uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e
         with:
           build-dir: release/ashbi-mega-menu

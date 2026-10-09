@@ -41,6 +41,7 @@ $menu['context'] = wp_parse_args(
 $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 ?>
 <div class="wrap abmm-wrap abmm-builder-wrap">
+	<?php require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php'; ?>
 	<div class="abmm-builder-load-error" id="abmm-builder-load-error" role="alert" tabindex="-1" hidden>
 		<h2 id="abmm-builder-load-error-title" tabindex="-1"><?php esc_html_e( 'This menu could not be loaded safely', 'ashbi-mega-menu' ); ?></h2>
 		<p id="abmm-builder-load-error-message"><?php esc_html_e( 'Editing and saving are disabled. Your stored menu content was not changed.', 'ashbi-mega-menu' ); ?></p>

@@ -205,6 +205,7 @@ class ABMM_Product_Profiles {
 		$pages    = get_pages( array( 'post_status' => 'publish', 'sort_column' => 'post_title' ) );
 		?>
 		<div class="wrap abmm-profile-admin">
+			<?php require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php'; ?>
 			<div class="abmm-profile-admin__hero">
 				<div>
 					<p class="abmm-profile-admin__eyebrow"><?php esc_html_e( 'Shared-header system', 'ashbi-mega-menu' ); ?></p>

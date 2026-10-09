@@ -1,0 +1,32 @@
+/* Product identity stays scoped to this plugin's admin screens. */
+/* A row-oriented flex basis otherwise becomes a 180px height in the sidebar. */
+.abmm-builder__sidebar .abmm-nav-item-row__fields .abmm-wp-link {flex-basis:auto;min-height:32px}
+.abmm-wrap .abmm-editor-chrome .abmm-builder-panel-toggle {color:#fff;border-color:#ffffff80;background:#ffffff14}
+.abmm-wrap .abmm-editor-chrome .abmm-builder-panel-toggle:hover {color:#fff;background:#ffffff26}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-nav__list {align-items:flex-start}
+:where(.abmm-wrap, .abmm-profile-admin, .abmm-profile-coverage, .abmm-branding-admin) {
+ --abmm-brand-blue:#2457ff;
+ --abmm-brand-ink:#192238;
+ --abmm-brand-muted:#57657e;
+ --abmm-brand-line:#dce2ef;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.abmm-brand-strip {display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 0;border-bottom:1px solid var(--abmm-brand-line);color:var(--abmm-brand-ink)}
+.abmm-brand-strip img {width:32px;height:32px;flex:none}
+.abmm-brand-strip strong {font-size:15px;font-weight:700;letter-spacing:-.2px}
+.abmm-brand-strip span {color:var(--abmm-brand-muted);font-size:12px;margin-inline-start:auto}
+.abmm-logo-title {display:flex;align-items:center;gap:14px}
+.abmm-logo-title img {width:52px;height:52px;flex:none}
+.abmm-wrap .abmm-admin-header {padding:24px;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:16px;align-items:center;box-shadow:0 3px 14px #19223805}
+.abmm-wrap .abmm-admin-header h1 {font-size:25px;font-weight:700;letter-spacing:-.6px;color:var(--abmm-brand-ink)}
+.abmm-wrap .abmm-admin-intro {color:var(--abmm-brand-muted);line-height:1.6;max-width:650px;margin-top:8px}
+.abmm-wrap :where(.abmm-onboarding,.abmm-empty-state,.abmm-archives,.abmm-builder-panel) {border-color:var(--abmm-brand-line);border-radius:12px}
+.abmm-wrap .abmm-onboarding {background:linear-gradient(110deg,#eef3ff 0%,#fff9f2 100%);border-color:#d4defb}
+.abmm-wrap .abmm-onboarding h2 {color:var(--abmm-brand-ink);font-size:20px;letter-spacing:-.3px}
+.abmm-wrap .abmm-builder-topbar {border-radius:12px;border-color:var(--abmm-brand-line)}
+:is(.abmm-wrap,.abmm-profile-admin,.abmm-branding-admin) .button {border-radius:7px}
+:is(.abmm-wrap,.abmm-profile-admin,.abmm-branding-admin) .button-primary {background:var(--abmm-brand-blue);border-color:var(--abmm-brand-blue);color:#fff;box-shadow:none;text-shadow:none}
+:is(.abmm-wrap,.abmm-profile-admin,.abmm-branding-admin) .button-primary:hover {background:#1744df;border-color:#1744df;color:#fff}
+:is(.abmm-wrap,.abmm-profile-admin,.abmm-branding-admin) .button:focus-visible {outline:3px solid #ffb568;outline-offset:3px;box-shadow:0 0 0 1px #192238}
+@media(max-width:782px){.abmm-brand-strip span{display:none}.abmm-wrap .abmm-admin-header{padding:18px;flex-wrap:wrap}.abmm-wrap .abmm-admin-header__actions{width:100%}.abmm-wrap .abmm-admin-header__actions .button{width:100%}.abmm-logo-title{gap:10px}.abmm-wrap .abmm-admin-header h1{font-size:22px}}
+@media(forced-colors:active){.abmm-wrap .abmm-onboarding{background:Canvas}.abmm-brand-strip{border-color:CanvasText}}
