@@ -25,7 +25,7 @@ Activation starts with an empty menu list. The generic sample is optional and do
 
 The plugin contains no external updater. It contains no client starter data or client icon collection and does not require an external service account. Menu search runs locally in the browser. URLs and images entered by administrators may point to external services; use assets you have permission to display.
 
-The complete block source is included in the src directory of this package. Build it with npm ci and npm run build. The maintained source and build tools are available at https://github.com/camster91/ashbi-mega-menu.
+The complete block source is included in the src directory of this package. To rebuild, clone the source repository and run npm ci and npm run build. The maintained source and build tools are available at https://github.com/camster91/ashbi-mega-menu.
 
 == Installation ==
 
