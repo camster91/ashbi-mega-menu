@@ -21,4 +21,4 @@ Use system sans-serif typography in the admin: Segoe UI on Windows, the platform
 
 The banner's navigation illustration is conceptual. Directory screenshots are genuine captures of the plugin running in a disposable local WordPress site with generic sample content. They are visual demonstrations; SQLite-backed preview saving is unsupported, while release save tests run on WordPress/MySQL in CI.
 
-The public repository may use the banner in README. `social-preview.png` can be uploaded as GitHub's social preview when that setting is explicitly requested. Creating the file does not apply that repository setting.
+The public repository uses the banner in README. `social-preview.png` was applied as GitHub's social preview on October 9, 2026 and verified after reloading the repository settings. Regenerating the local file does not update that setting automatically.
