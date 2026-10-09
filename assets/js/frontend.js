@@ -10,8 +10,6 @@
 	var OVERFLOW_HYSTERESIS = 16;
 	var STACK_HOST_CLASS = 'abmm-stack-host--active';
 	var OBSCURED_HEADER_CLASS = 'abmm-obscured-by-open-menu';
-	var EXTERNAL_DRAWER_CLASS = 'abmm-external-drawer-open';
-	var EXTERNAL_MEGA_CLASS = 'abmm-external-mega-open';
 
 	function closest(el, sel) {
 		while (el && el.nodeType === 1) {
@@ -572,23 +570,12 @@
 		if (trigger && typeof trigger.focus === 'function') trigger.focus();
 	}
 
-	function closeExternalProductDrawers() {
-		if (window.abmmRuntime && window.abmmRuntime.publicDistribution) return;
-		document.querySelectorAll('.elementskit-menu-container.active').forEach(function (container) {
-			var closeButton = container.querySelector('.elementskit-menu-close');
-			if (closeButton && typeof closeButton.click === 'function') closeButton.click();
-			// Keep a deterministic fallback for Elementor/ElementsKit releases whose
-			// close control is absent or whose listener has not initialized yet.
-			container.classList.remove('active');
-		});
-	}
 
 	function setDrawerOpen(header, open, restoreFocus) {
 		var toggle = header.querySelector('.abmm-nav__toggle');
 		var backdrop = header.querySelector('[data-abmm-backdrop]');
 		var drawer = header.querySelector('.abmm-nav__drawer');
 		if (open && isMobile(header)) {
-			closeExternalProductDrawers();
 			document.querySelectorAll('.abmm-header.is-mobile-open').forEach(function (otherHeader) {
 				if (otherHeader !== header) setDrawerOpen(otherHeader, false, false);
 			});
@@ -1092,54 +1079,10 @@
 
 	function init() {
 		initWithin(document);
-		syncExternalProductDrawerState();
-		fitExternalMegaPanels();
 	}
 
-	function syncExternalProductDrawerState() {
-		if (window.abmmRuntime && window.abmmRuntime.publicDistribution) return;
-		var open = !!document.querySelector('.elementskit-menu-container.active');
-		document.documentElement.classList.toggle(EXTERNAL_DRAWER_CLASS, open);
-	}
 
-	function fitExternalMegaPanels() {
-		if (window.abmmRuntime && window.abmmRuntime.publicDistribution) return;
-		var panels = document.querySelectorAll('.elementskit-megamenu-panel');
-		var hasVisiblePanel = false;
-		panels.forEach(function (panel) {
-			if (window.matchMedia(MOBILE_MQ).matches) {
-				panel.style.removeProperty('--abmm-external-panel-shift');
-				return;
-			}
 
-			panel.style.setProperty('--abmm-external-panel-shift', '0px');
-			var rect = panel.getBoundingClientRect();
-			if (rect.width <= 0 || rect.height <= 0) return;
-			hasVisiblePanel = true;
-
-			var gutter = 16;
-			var shift = 0;
-			if (rect.right > window.innerWidth - gutter) {
-				shift -= rect.right - (window.innerWidth - gutter);
-			}
-			if (rect.left + shift < gutter) {
-				shift += gutter - (rect.left + shift);
-			}
-			panel.style.setProperty('--abmm-external-panel-shift', Math.round(shift) + 'px');
-		});
-		document.documentElement.classList.toggle(EXTERNAL_MEGA_CLASS, hasVisiblePanel);
-	}
-
-	function scheduleExternalPanelFit() {
-		window.requestAnimationFrame(function () {
-			fitExternalMegaPanels();
-		});
-		/* ElementsKit may reveal its panel after the click/hover handler returns.
-		 * Recheck after both its short transition and its delayed inline-style
-		 * update so viewport fitting and chatbot suppression use the final state. */
-		window.setTimeout(fitExternalMegaPanels, 120);
-		window.setTimeout(fitExternalMegaPanels, 360);
-	}
 
 	function observeDynamicHeaders() {
 		if (!window.MutationObserver || document.__ashbiMegaMenuObserverActive === true) return;
@@ -1153,35 +1096,11 @@
 		observer.observe(document.documentElement, { childList: true, subtree: true });
 	}
 
-	function observeExternalProductDrawers() {
-		if (!window.MutationObserver || document.__ashbiMegaMenuExternalDrawerObserverActive === true) return;
-		document.__ashbiMegaMenuExternalDrawerObserverActive = true;
-
-		var observer = new MutationObserver(function (records) {
-			var shouldSync = records.some(function (record) {
-				return record.type === 'attributes' || record.addedNodes.length > 0 || record.removedNodes.length > 0;
-			});
-			if (shouldSync) {
-				syncExternalProductDrawerState();
-				scheduleExternalPanelFit();
-			}
-		});
-		observer.observe(document.documentElement, {
-			attributes: true,
-			attributeFilter: ['class'],
-			childList: true,
-			subtree: true
-		});
-	}
 
 	window.ABMMMenuSearch = { init: initMenuSearch };
 	// The builder reuses search while retaining its own preview interactions.
 	if (window.abmmRuntime && window.abmmRuntime.adminPreview) return;
 	observeDynamicHeaders();
-	observeExternalProductDrawers();
-	document.addEventListener('click', scheduleExternalPanelFit, true);
-	document.addEventListener('pointerover', scheduleExternalPanelFit, true);
-	window.addEventListener('resize', scheduleExternalPanelFit);
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', init);

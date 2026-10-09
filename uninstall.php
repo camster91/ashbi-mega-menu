@@ -31,9 +31,6 @@ $option_keys = array(
 	'abmm_product_branding',
 	'abmm_plugin_version',
 	'abmm_import_backups',
-	'abmm_updater_last_check',
-	'abmm_updater_latest_version',
-	'abmm_updater_latest_url',
 );
 
 foreach ( $option_keys as $key ) {
@@ -46,18 +43,4 @@ foreach ( $option_keys as $key ) {
    ------------------------------------------------------------------ */
 if ( function_exists( 'delete_metadata' ) ) {
 	delete_metadata( 'user', 0, 'abmm_onboarding_complete', '', true );
-}
-
-/* ------------------------------------------------------------------
-   Remove transients
-   ------------------------------------------------------------------ */
-$transient_keys = array(
-	'abmm_github_release',
-	'abmm_plugin_info',
-	'abmm_github_update_error',
-);
-
-foreach ( $transient_keys as $key ) {
-	delete_transient( $key );
-	delete_site_transient( $key ); // multisite
 }
