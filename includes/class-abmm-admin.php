@@ -211,6 +211,7 @@ class ABMM_Admin {
 	 * AJAX: save menu.
 	 */
 	public function ajax_save_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 
 		$id  = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
@@ -284,6 +285,7 @@ class ABMM_Admin {
 	 * AJAX: delete menu.
 	 */
 	public function ajax_delete_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
@@ -301,6 +303,7 @@ class ABMM_Admin {
 	 * AJAX: fetch a verified menu for load recovery.
 	 */
 	public function ajax_get_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$id   = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
 		$data        = ABMM_Data::instance();
@@ -322,6 +325,7 @@ class ABMM_Admin {
 	 * AJAX: complete or dismiss first-run onboarding.
 	 */
 	public function ajax_onboarding() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$choice = isset( $_POST['choice'] ) ? sanitize_key( wp_unslash( $_POST['choice'] ) ) : '';
 		$data   = ABMM_Data::instance();
@@ -349,6 +353,7 @@ class ABMM_Admin {
 	 * AJAX: return known placement references before archive.
 	 */
 	public function ajax_menu_references() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
 		wp_send_json_success( $this->reference_summary( $id ) );
@@ -358,6 +363,7 @@ class ABMM_Admin {
 	 * AJAX: restore an archived menu.
 	 */
 	public function ajax_restore_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
 		if ( ! ABMM_Data::instance()->restore( $id ) ) {
@@ -370,6 +376,7 @@ class ABMM_Admin {
 	 * AJAX: permanently remove an archived menu.
 	 */
 	public function ajax_permanently_delete_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
 		if ( ! ABMM_Data::instance()->permanently_delete( $id ) ) {
@@ -447,6 +454,7 @@ class ABMM_Admin {
 	 * AJAX: create menu.
 	 */
 	public function ajax_create_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 
 		$title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
@@ -467,6 +475,7 @@ class ABMM_Admin {
 	 * AJAX: duplicate a menu and open its independent copy.
 	 */
 	public function ajax_duplicate_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$id     = isset( $_POST['menu_id'] ) ? sanitize_key( wp_unslash( $_POST['menu_id'] ) ) : '';
 		$new_id = ABMM_Data::instance()->duplicate( $id );
@@ -480,6 +489,7 @@ class ABMM_Admin {
 	 * AJAX: export a single menu as JSON.
 	 */
 	public function ajax_export_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
@@ -499,6 +509,7 @@ class ABMM_Admin {
 	 * AJAX: import a single menu from JSON file upload.
 	 */
 	public function ajax_import_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 
 		if ( empty( $_FILES['import_file'] ) || ! empty( $_FILES['import_file']['error'] ) ) {
@@ -520,7 +531,10 @@ class ABMM_Admin {
 		if ( 0 === $size || $size > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
 			wp_send_json_error( array( 'message' => __( 'The import file is empty or exceeds the 1 MB limit.', 'ashbi-mega-menu' ) ), 400 );
 		}
-		$tmp = $file['tmp_name'];
+		$tmp = $file['tmp_name'] ?? '';
+		if ( ! is_string( $tmp ) || ! is_uploaded_file( $tmp ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid upload.', 'ashbi-mega-menu' ) ), 400 );
+		}
 		$raw = file_get_contents( $tmp, false, null, 0, ABMM_Import_Export::MAX_IMPORT_BYTES + 1 );
 		if ( false === $raw || strlen( $raw ) > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
 			wp_send_json_error( array( 'message' => __( 'The import file could not be read safely.', 'ashbi-mega-menu' ) ), 400 );
@@ -559,7 +573,6 @@ class ABMM_Admin {
 	 * Verify nonce and capability.
 	 */
 	private function verify_ajax() {
-		check_ajax_referer( 'abmm_admin', 'nonce' );
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => 'Forbidden' ), 403 );
 		}

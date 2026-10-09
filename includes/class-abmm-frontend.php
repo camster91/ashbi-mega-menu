@@ -401,7 +401,9 @@ class ABMM_Frontend {
 		}
 		$rail_style = in_array( $profile['rail_style'] ?? '', array( 'underline', 'pills' ), true ) ? $profile['rail_style'] : 'underline';
 		$class     = ( $is_drawer ? 'abmm-product-nav abmm-product-nav--drawer' : ( $is_unified ? 'abmm-product-nav abmm-product-nav--unified' : 'abmm-product-nav abmm-product-nav--rail' ) ) . ' abmm-product-nav--' . $rail_style;
-		$label     = sprintf( __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
+		$label     = sprintf(
+/* translators: %s: Product name. */
+__( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 		$show_cta  = ! $is_unified && $this->should_render_product_cta( $profile, $shared_cta );
 		ob_start();
 		?>
@@ -514,7 +516,7 @@ class ABMM_Frontend {
 			return false;
 		}
 
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
 		$current = wp_parse_url( home_url( $request_uri ) );
 		$target_path = '/' . trim( $target['path'] ?? '/', '/' );
 		$current_path = '/' . trim( $current['path'] ?? '/', '/' );

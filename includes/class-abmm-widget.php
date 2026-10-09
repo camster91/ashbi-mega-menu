@@ -45,15 +45,15 @@ class ABMM_Widget extends WP_Widget {
 			return;
 		}
 
-		echo $args['before_widget'];
+		echo wp_kses_post( $args['before_widget'] );
 
 		if ( $title ) {
-			echo $args['before_title'] . esc_html( $title ) . $args['after_title'];
+			echo wp_kses_post( $args['before_title'] ) . esc_html( $title ) . wp_kses_post( $args['after_title'] );
 		}
 
 		echo ABMM_Frontend::instance()->render( $menu_id, array( 'context' => $context ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
-		echo $args['after_widget'];
+		echo wp_kses_post( $args['after_widget'] );
 	}
 
 	/**

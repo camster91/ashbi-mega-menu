@@ -561,7 +561,9 @@ class ABMM_Data {
 		if ( null === $menu ) {
 			return new WP_Error( 'abmm_menu_not_found', __( 'Menu not found.', 'ashbi-mega-menu' ) );
 		}
-		$copy   = $this->duplicate_menu_data( $menu, sprintf( __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
+		$copy   = $this->duplicate_menu_data( $menu, sprintf(
+/* translators: %s: Original menu title. */
+__( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
 		$new_id = $this->unique_menu_id( $id . '-copy' );
 		return $this->save( $new_id, $copy ) ? $new_id : new WP_Error( 'abmm_duplicate_failed', __( 'The menu copy could not be saved.', 'ashbi-mega-menu' ) );
 	}

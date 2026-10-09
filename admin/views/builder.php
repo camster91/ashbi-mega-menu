@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $menu          = $menus[ $edit_id ];
-$menu_revision = ABMM_Data::instance()->revision( $menu );
+$abmm_menu_revision = ABMM_Data::instance()->revision( $menu );
 $menu['settings'] = wp_parse_args( $menu['settings'] ?? array(), ABMM_Data::default_settings() );
 $menu['brand'] = wp_parse_args(
 	$menu['brand'] ?? array(),
@@ -38,7 +38,7 @@ $menu['context'] = wp_parse_args(
 		'url'   => '',
 	)
 );
-$menu_readiness = ABMM_Data::instance()->readiness( $menu );
+$abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 ?>
 <div class="wrap abmm-wrap abmm-builder-wrap">
 	<div class="abmm-builder-load-error" id="abmm-builder-load-error" role="alert" tabindex="-1" hidden>
@@ -80,7 +80,7 @@ $menu_readiness = ABMM_Data::instance()->readiness( $menu );
 	<script type="application/json" id="abmm-menu-data"><?php echo wp_json_encode( $menu, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
 	<div class="abmm-builder" id="abmm-builder"
 		data-menu-id="<?php echo esc_attr( $edit_id ); ?>"
-		data-menu-revision="<?php echo esc_attr( $menu_revision ); ?>">
+		data-menu-revision="<?php echo esc_attr( $abmm_menu_revision ); ?>">
 
 		<aside class="abmm-builder__sidebar" id="abmm-builder-sidebar" aria-label="<?php esc_attr_e( 'Menu settings', 'ashbi-mega-menu' ); ?>">
 			<div class="abmm-builder-sidebar__mobile-head">
@@ -177,15 +177,15 @@ $menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<p class="description"><?php esc_html_e( 'Pick a preset, then fine-tune colors and layout. Preview updates live.', 'ashbi-mega-menu' ); ?></p>
 
 				<?php
-				$settings = wp_parse_args( $menu['settings'] ?? array(), ABMM_Data::default_settings() );
-				$presets  = ABMM_Data::design_presets();
+				$abmm_settings = wp_parse_args( $menu['settings'] ?? array(), ABMM_Data::default_settings() );
+				$abmm_presets  = ABMM_Data::design_presets();
 				?>
 
 				<label class="abmm-field">
 					<span><?php esc_html_e( 'Header composition', 'ashbi-mega-menu' ); ?></span>
 					<select id="abmm-presentation">
-						<option value="stacked" <?php selected( $settings['presentation'], 'stacked' ); ?>><?php esc_html_e( 'Classic stacked (default)', 'ashbi-mega-menu' ); ?></option>
-						<option value="unified" <?php selected( $settings['presentation'], 'unified' ); ?>><?php esc_html_e( 'Unified product row', 'ashbi-mega-menu' ); ?></option>
+						<option value="stacked" <?php selected( $abmm_settings['presentation'], 'stacked' ); ?>><?php esc_html_e( 'Classic stacked (default)', 'ashbi-mega-menu' ); ?></option>
+						<option value="unified" <?php selected( $abmm_settings['presentation'], 'unified' ); ?>><?php esc_html_e( 'Unified product row', 'ashbi-mega-menu' ); ?></option>
 					</select>
 					<span class="description"><?php esc_html_e( 'Unified product row is used only on a contextual product draft or preview. Published pages safely retain the Classic stacked header until release approval.', 'ashbi-mega-menu' ); ?></span>
 				</label>
@@ -193,39 +193,39 @@ $menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<div class="abmm-field">
 					<span><?php esc_html_e( 'Style preset', 'ashbi-mega-menu' ); ?></span>
 					<div class="abmm-preset-grid" id="abmm-preset-grid">
-						<?php foreach ( $presets as $key => $preset ) : ?>
-							<?php $v = $preset['values']; ?>
+						<?php foreach ( $abmm_presets as $abmm_key => $abmm_preset ) : ?>
+							<?php $abmm_v = $abmm_preset['values']; ?>
 							<button
 								type="button"
-								class="abmm-preset-card<?php echo ( $settings['preset'] === $key ) ? ' is-active' : ''; ?>"
-								data-preset="<?php echo esc_attr( $key ); ?>"
-								data-values="<?php echo esc_attr( wp_json_encode( $v ) ); ?>"
-								title="<?php echo esc_attr( $preset['label'] ); ?>"
+								class="abmm-preset-card<?php echo ( $abmm_settings['preset'] === $abmm_key ) ? ' is-active' : ''; ?>"
+								data-preset="<?php echo esc_attr( $abmm_key ); ?>"
+								data-values="<?php echo esc_attr( wp_json_encode( $abmm_v ) ); ?>"
+								title="<?php echo esc_attr( $abmm_preset['label'] ); ?>"
 							>
 								<span class="abmm-preset-card__swatches" aria-hidden="true">
-									<span style="background:<?php echo esc_attr( $v['header_bg'] ); ?>"></span>
-									<span style="background:<?php echo esc_attr( $v['sidebar_bg'] ); ?>"></span>
-									<span style="background:<?php echo esc_attr( $v['accent'] ); ?>"></span>
+									<span style="background:<?php echo esc_attr( $abmm_v['header_bg'] ); ?>"></span>
+									<span style="background:<?php echo esc_attr( $abmm_v['sidebar_bg'] ); ?>"></span>
+									<span style="background:<?php echo esc_attr( $abmm_v['accent'] ); ?>"></span>
 								</span>
-								<span class="abmm-preset-card__label"><?php echo esc_html( $preset['label'] ); ?></span>
+								<span class="abmm-preset-card__label"><?php echo esc_html( $abmm_preset['label'] ); ?></span>
 							</button>
 						<?php endforeach; ?>
-						<div class="abmm-preset-card abmm-preset-card--custom<?php echo ( 'custom' === $settings['preset'] ) ? ' is-active' : ''; ?>" data-preset="custom" title="<?php esc_attr_e( 'Custom styling appears after you edit preset colors.', 'ashbi-mega-menu' ); ?>">
+						<div class="abmm-preset-card abmm-preset-card--custom<?php echo ( 'custom' === $abmm_settings['preset'] ) ? ' is-active' : ''; ?>" data-preset="custom" title="<?php esc_attr_e( 'Custom styling appears after you edit preset colors.', 'ashbi-mega-menu' ); ?>">
 							<span class="abmm-preset-card__swatches abmm-preset-card__swatches--custom" aria-hidden="true">
 								<span></span><span></span><span></span>
 							</span>
 							<span class="abmm-preset-card__label"><?php esc_html_e( 'Custom', 'ashbi-mega-menu' ); ?></span>
 						</div>
 					</div>
-					<input type="hidden" id="abmm-preset" value="<?php echo esc_attr( $settings['preset'] ); ?>" />
+					<input type="hidden" id="abmm-preset" value="<?php echo esc_attr( $abmm_settings['preset'] ); ?>" />
 				</div>
 
 				<label class="abmm-field">
 					<span><?php esc_html_e( 'Category bar position', 'ashbi-mega-menu' ); ?></span>
 					<select id="abmm-layout">
-						<option value="sidebar-left" <?php selected( $settings['layout'], 'sidebar-left' ); ?>><?php esc_html_e( 'Left (classic Platforms)', 'ashbi-mega-menu' ); ?></option>
-						<option value="sidebar-right" <?php selected( $settings['layout'], 'sidebar-right' ); ?>><?php esc_html_e( 'Right', 'ashbi-mega-menu' ); ?></option>
-						<option value="stacked" <?php selected( $settings['layout'], 'stacked' ); ?>><?php esc_html_e( 'Top (horizontal tabs)', 'ashbi-mega-menu' ); ?></option>
+						<option value="sidebar-left" <?php selected( $abmm_settings['layout'], 'sidebar-left' ); ?>><?php esc_html_e( 'Left (classic Platforms)', 'ashbi-mega-menu' ); ?></option>
+						<option value="sidebar-right" <?php selected( $abmm_settings['layout'], 'sidebar-right' ); ?>><?php esc_html_e( 'Right', 'ashbi-mega-menu' ); ?></option>
+						<option value="stacked" <?php selected( $abmm_settings['layout'], 'stacked' ); ?>><?php esc_html_e( 'Top (horizontal tabs)', 'ashbi-mega-menu' ); ?></option>
 					</select>
 					<span class="description"><?php esc_html_e( 'Only applies to Platforms mega items. For a simple 2/3-column mega with no category bar, open Edit Mega Content and choose "Simple columns".', 'ashbi-mega-menu' ); ?></span>
 				</label>
@@ -233,17 +233,17 @@ $menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<label class="abmm-field">
 					<span><?php esc_html_e( 'Nav link alignment', 'ashbi-mega-menu' ); ?></span>
 					<select id="abmm-nav-align">
-						<option value="left" <?php selected( $settings['nav_align'], 'left' ); ?>><?php esc_html_e( 'Left', 'ashbi-mega-menu' ); ?></option>
-						<option value="center" <?php selected( $settings['nav_align'], 'center' ); ?>><?php esc_html_e( 'Center', 'ashbi-mega-menu' ); ?></option>
-						<option value="right" <?php selected( $settings['nav_align'], 'right' ); ?>><?php esc_html_e( 'Right', 'ashbi-mega-menu' ); ?></option>
+						<option value="left" <?php selected( $abmm_settings['nav_align'], 'left' ); ?>><?php esc_html_e( 'Left', 'ashbi-mega-menu' ); ?></option>
+						<option value="center" <?php selected( $abmm_settings['nav_align'], 'center' ); ?>><?php esc_html_e( 'Center', 'ashbi-mega-menu' ); ?></option>
+						<option value="right" <?php selected( $abmm_settings['nav_align'], 'right' ); ?>><?php esc_html_e( 'Right', 'ashbi-mega-menu' ); ?></option>
 					</select>
 				</label>
 
 				<label class="abmm-field">
 					<span><?php esc_html_e( 'Default grid columns', 'ashbi-mega-menu' ); ?></span>
 					<select id="abmm-grid-cols">
-						<?php for ( $i = 1; $i <= 4; $i++ ) : ?>
-							<option value="<?php echo (int) $i; ?>" <?php selected( (int) $settings['grid_columns'], $i ); ?>><?php echo (int) $i; ?></option>
+						<?php for ( $abmm_i = 1; $abmm_i <= 4; $abmm_i++ ) : ?>
+							<option value="<?php echo (int) $abmm_i; ?>" <?php selected( (int) $abmm_settings['grid_columns'], $abmm_i ); ?>><?php echo (int) $abmm_i; ?></option>
 						<?php endfor; ?>
 					</select>
 					<span class="description"><?php esc_html_e( 'Fallback default. Each mega item can override columns in Edit Mega Content.', 'ashbi-mega-menu' ); ?></span>
@@ -253,11 +253,11 @@ $menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<summary><?php esc_html_e( 'Top menu item colors', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Menu link color', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-nav-link-color" value="<?php echo esc_attr( $settings['nav_link_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-nav-link-color" value="<?php echo esc_attr( $abmm_settings['nav_link_color'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Menu hover / open color', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-nav-hover-color" value="<?php echo esc_attr( $settings['nav_hover_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-nav-hover-color" value="<?php echo esc_attr( $abmm_settings['nav_hover_color'] ); ?>" />
 					</label>
 				</details>
 
@@ -265,35 +265,35 @@ $menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<summary><?php esc_html_e( 'Icon styling', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field abmm-field--toggle">
 						<span><?php esc_html_e( 'Inherit menu text colour', 'ashbi-mega-menu' ); ?></span>
-						<input type="checkbox" id="abmm-icon-inherit-text" <?php checked( ! empty( $settings['icon_inherit_text'] ) ); ?> />
+						<input type="checkbox" id="abmm-icon-inherit-text" <?php checked( ! empty( $abmm_settings['icon_inherit_text'] ) ); ?> />
 					</label>
 					<label class="abmm-field" id="abmm-icon-color-field">
 						<span><?php esc_html_e( 'Default icon colour', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-icon-color" value="<?php echo esc_attr( $settings['icon_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-icon-color" value="<?php echo esc_attr( $abmm_settings['icon_color'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Hover / focus colour', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-icon-hover-color" value="<?php echo esc_attr( $settings['icon_hover_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-icon-hover-color" value="<?php echo esc_attr( $abmm_settings['icon_hover_color'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Current / active colour', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-icon-active-color" value="<?php echo esc_attr( $settings['icon_active_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-icon-active-color" value="<?php echo esc_attr( $abmm_settings['icon_active_color'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Icon size (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" id="abmm-icon-size" min="12" max="64" step="1" value="<?php echo esc_attr( $settings['icon_size'] ); ?>" />
+						<input type="number" id="abmm-icon-size" min="12" max="64" step="1" value="<?php echo esc_attr( $abmm_settings['icon_size'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Icon background', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-icon-background" value="<?php echo esc_attr( $settings['icon_background'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-icon-background" value="<?php echo esc_attr( $abmm_settings['icon_background'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Icon border colour', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-icon-border-color" value="<?php echo esc_attr( $settings['icon_border_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-icon-border-color" value="<?php echo esc_attr( $abmm_settings['icon_border_color'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Icon corner radius (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" id="abmm-icon-radius" min="0" max="24" step="1" value="<?php echo esc_attr( $settings['icon_radius'] ); ?>" />
+						<input type="number" id="abmm-icon-radius" min="0" max="24" step="1" value="<?php echo esc_attr( $abmm_settings['icon_radius'] ); ?>" />
 					</label>
 					<p class="description"><?php esc_html_e( 'SVG icons use these colours. Uploaded PNG, JPG and WebP artwork keeps its original pixels while using the shared size, background, border and radius.', 'ashbi-mega-menu' ); ?></p>
 				</details>
@@ -302,39 +302,39 @@ $menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<summary><?php esc_html_e( 'Panel & brand colors', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Header background', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-header-bg" value="<?php echo esc_attr( $settings['header_bg'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-header-bg" value="<?php echo esc_attr( $abmm_settings['header_bg'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Sidebar background', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-sidebar-bg" value="<?php echo esc_attr( $settings['sidebar_bg'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-sidebar-bg" value="<?php echo esc_attr( $abmm_settings['sidebar_bg'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Active category background', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-active-bg" value="<?php echo esc_attr( $settings['active_bg'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-active-bg" value="<?php echo esc_attr( $abmm_settings['active_bg'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Panel background', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-panel-bg" value="<?php echo esc_attr( $settings['panel_bg'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-panel-bg" value="<?php echo esc_attr( $abmm_settings['panel_bg'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Accent / button color', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-accent" value="<?php echo esc_attr( $settings['accent'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-accent" value="<?php echo esc_attr( $abmm_settings['accent'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Button text color', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-cta-text" value="<?php echo esc_attr( $settings['cta_text'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-cta-text" value="<?php echo esc_attr( $abmm_settings['cta_text'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Panel text color', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-text-color" value="<?php echo esc_attr( $settings['text_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-text-color" value="<?php echo esc_attr( $abmm_settings['text_color'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Muted / description color', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-muted-color" value="<?php echo esc_attr( $settings['muted_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-muted-color" value="<?php echo esc_attr( $abmm_settings['muted_color'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Border color', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" class="abmm-color" id="abmm-border-color" value="<?php echo esc_attr( $settings['border_color'] ); ?>" />
+						<input type="text" class="abmm-color" id="abmm-border-color" value="<?php echo esc_attr( $abmm_settings['border_color'] ); ?>" />
 					</label>
 				</details>
 
@@ -342,68 +342,68 @@ $menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<summary><?php esc_html_e( 'Layout & style', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field abmm-field--toggle">
 						<span><?php esc_html_e( 'Full width mega menu', 'ashbi-mega-menu' ); ?></span>
-						<input type="checkbox" id="abmm-full-width" <?php checked( ! empty( $settings['full_width'] ) ); ?> />
+						<input type="checkbox" id="abmm-full-width" <?php checked( ! empty( $abmm_settings['full_width'] ) ); ?> />
 					</label>
 					<label class="abmm-field abmm-field--toggle">
 						<span><?php esc_html_e( 'Transparent header surface', 'ashbi-mega-menu' ); ?></span>
-						<input type="checkbox" id="abmm-header-transparent" <?php checked( ! empty( $settings['header_transparent'] ) ); ?> />
+						<input type="checkbox" id="abmm-header-transparent" <?php checked( ! empty( $abmm_settings['header_transparent'] ) ); ?> />
 					</label>
 					<p class="description"><?php esc_html_e( 'Use a transparent surface when this menu sits inside an existing hero or product-header background.', 'ashbi-mega-menu' ); ?></p>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Header stacking order', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" id="abmm-header-z-index" min="0" max="99999" step="1" value="<?php echo esc_attr( $settings['header_z_index'] ); ?>" />
+						<input type="number" id="abmm-header-z-index" min="0" max="99999" step="1" value="<?php echo esc_attr( $abmm_settings['header_z_index'] ); ?>" />
 						<small class="description"><?php esc_html_e( 'Use a lower value for a secondary product menu so the main site navigation opens above it.', 'ashbi-mega-menu' ); ?></small>
 					</label>
 					<label class="abmm-field" id="abmm-panel-width-field">
 						<span><?php esc_html_e( 'Panel width (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" id="abmm-panel-width" min="640" max="1400" step="20" value="<?php echo esc_attr( $settings['panel_width'] ); ?>" <?php disabled( ! empty( $settings['full_width'] ) ); ?> />
+						<input type="number" id="abmm-panel-width" min="640" max="1400" step="20" value="<?php echo esc_attr( $abmm_settings['panel_width'] ); ?>" <?php disabled( ! empty( $abmm_settings['full_width'] ) ); ?> />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Sidebar width (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" id="abmm-sidebar-width" min="180" max="420" step="10" value="<?php echo esc_attr( $settings['sidebar_width'] ); ?>" />
+						<input type="number" id="abmm-sidebar-width" min="180" max="420" step="10" value="<?php echo esc_attr( $abmm_settings['sidebar_width'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Corner radius (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" id="abmm-border-radius" min="0" max="24" step="1" value="<?php echo esc_attr( $settings['border_radius'] ); ?>" />
+						<input type="number" id="abmm-border-radius" min="0" max="24" step="1" value="<?php echo esc_attr( $abmm_settings['border_radius'] ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Shadow', 'ashbi-mega-menu' ); ?></span>
 						<select id="abmm-shadow">
-							<option value="none" <?php selected( $settings['shadow'], 'none' ); ?>><?php esc_html_e( 'None', 'ashbi-mega-menu' ); ?></option>
-							<option value="soft" <?php selected( $settings['shadow'], 'soft' ); ?>><?php esc_html_e( 'Soft', 'ashbi-mega-menu' ); ?></option>
-							<option value="medium" <?php selected( $settings['shadow'], 'medium' ); ?>><?php esc_html_e( 'Medium', 'ashbi-mega-menu' ); ?></option>
-							<option value="strong" <?php selected( $settings['shadow'], 'strong' ); ?>><?php esc_html_e( 'Strong', 'ashbi-mega-menu' ); ?></option>
+							<option value="none" <?php selected( $abmm_settings['shadow'], 'none' ); ?>><?php esc_html_e( 'None', 'ashbi-mega-menu' ); ?></option>
+							<option value="soft" <?php selected( $abmm_settings['shadow'], 'soft' ); ?>><?php esc_html_e( 'Soft', 'ashbi-mega-menu' ); ?></option>
+							<option value="medium" <?php selected( $abmm_settings['shadow'], 'medium' ); ?>><?php esc_html_e( 'Medium', 'ashbi-mega-menu' ); ?></option>
+							<option value="strong" <?php selected( $abmm_settings['shadow'], 'strong' ); ?>><?php esc_html_e( 'Strong', 'ashbi-mega-menu' ); ?></option>
 						</select>
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'CTA button shape', 'ashbi-mega-menu' ); ?></span>
 						<select id="abmm-cta-style">
-							<option value="square" <?php selected( $settings['cta_style'], 'square' ); ?>><?php esc_html_e( 'Square', 'ashbi-mega-menu' ); ?></option>
-							<option value="rounded" <?php selected( $settings['cta_style'], 'rounded' ); ?>><?php esc_html_e( 'Rounded', 'ashbi-mega-menu' ); ?></option>
-							<option value="pill" <?php selected( $settings['cta_style'], 'pill' ); ?>><?php esc_html_e( 'Pill', 'ashbi-mega-menu' ); ?></option>
+							<option value="square" <?php selected( $abmm_settings['cta_style'], 'square' ); ?>><?php esc_html_e( 'Square', 'ashbi-mega-menu' ); ?></option>
+							<option value="rounded" <?php selected( $abmm_settings['cta_style'], 'rounded' ); ?>><?php esc_html_e( 'Rounded', 'ashbi-mega-menu' ); ?></option>
+							<option value="pill" <?php selected( $abmm_settings['cta_style'], 'pill' ); ?>><?php esc_html_e( 'Pill', 'ashbi-mega-menu' ); ?></option>
 						</select>
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Panel title alignment', 'ashbi-mega-menu' ); ?></span>
 						<select id="abmm-panel-title-align">
-							<option value="left" <?php selected( $settings['panel_title_align'], 'left' ); ?>><?php esc_html_e( 'Left', 'ashbi-mega-menu' ); ?></option>
-							<option value="center" <?php selected( $settings['panel_title_align'], 'center' ); ?>><?php esc_html_e( 'Center', 'ashbi-mega-menu' ); ?></option>
+							<option value="left" <?php selected( $abmm_settings['panel_title_align'], 'left' ); ?>><?php esc_html_e( 'Left', 'ashbi-mega-menu' ); ?></option>
+							<option value="center" <?php selected( $abmm_settings['panel_title_align'], 'center' ); ?>><?php esc_html_e( 'Center', 'ashbi-mega-menu' ); ?></option>
 						</select>
 					</label>
 					<label class="abmm-field abmm-field--toggle">
 						<span><?php esc_html_e( 'Uppercase category titles', 'ashbi-mega-menu' ); ?></span>
-						<input type="checkbox" id="abmm-uppercase-cats" <?php checked( ! empty( $settings['uppercase_cats'] ) ); ?> />
+						<input type="checkbox" id="abmm-uppercase-cats" <?php checked( ! empty( $abmm_settings['uppercase_cats'] ) ); ?> />
 					</label>
 					<label class="abmm-field abmm-field--toggle">
 						<span><?php esc_html_e( 'Show category descriptions', 'ashbi-mega-menu' ); ?></span>
-						<input type="checkbox" id="abmm-show-cat-desc" <?php checked( ! empty( $settings['show_cat_desc'] ) ); ?> />
+						<input type="checkbox" id="abmm-show-cat-desc" <?php checked( ! empty( $abmm_settings['show_cat_desc'] ) ); ?> />
 					</label>
 				</details>
 			</section>
 			</div>
 
 			<div class="abmm-builder-section-group" id="abmm-section-panel-help" data-abmm-builder-section-panel="help" role="tabpanel" aria-labelledby="abmm-section-tab-help" hidden>
-			<section class="abmm-builder-panel abmm-builder-panel--hint abmm-placement-panel" <?php echo ! empty( $menu_readiness['ready'] ) ? '' : 'hidden'; ?>>
+			<section class="abmm-builder-panel abmm-builder-panel--hint abmm-placement-panel" <?php echo ! empty( $abmm_menu_readiness['ready'] ) ? '' : 'hidden'; ?>>
 				<h2><?php esc_html_e( 'Ready to place', 'ashbi-mega-menu' ); ?></h2>
 				<code class="abmm-shortcode-block">[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]</code>
 				<p><?php esc_html_e( 'Use this shortcode, the Ashbi Mega Menu block, or the widget.', 'ashbi-mega-menu' ); ?></p>

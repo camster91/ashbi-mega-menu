@@ -24,7 +24,7 @@ define( 'ABMM_UNINSTALLING', true );
 /* ------------------------------------------------------------------
    Remove all plugin options / transients
    ------------------------------------------------------------------ */
-$option_keys = array(
+$abmm_option_keys = array(
 	'abmm_menus',
 	'abmm_archived_menus',
 	'abmm_product_profiles',
@@ -33,9 +33,9 @@ $option_keys = array(
 	'abmm_import_backups',
 );
 
-foreach ( $option_keys as $key ) {
-	delete_option( $key );
-	delete_site_option( $key ); // multisite
+foreach ( $abmm_option_keys as $abmm_key ) {
+	delete_option( $abmm_key );
+	delete_site_option( $abmm_key ); // multisite
 }
 
 /* ------------------------------------------------------------------

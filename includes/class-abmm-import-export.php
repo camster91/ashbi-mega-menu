@@ -353,7 +353,9 @@ class ABMM_Import_Export {
 			if ( 'copy' === $mode ) {
 				$original_id = $id;
 				$id          = ABMM_Data::instance()->unique_menu_id( $id . '-copy' );
-				$title       = sprintf( __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] ?? $original_id ) );
+				$title       = sprintf(
+/* translators: %s: Original menu title. */
+__( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] ?? $original_id ) );
 				$menu_data   = ABMM_Data::instance()->duplicate_menu_data( $menu_data, $title );
 			}
 			$prepared[ $id ] = ABMM_Data::instance()->sanitize_menu( $menu_data );
@@ -615,7 +617,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI_Command' ) ) {
 		 * ## OPTIONS
 		 *
 		 * [--file=<file>]
-		 * : Path to the output JSON file. Defaults to wp-content/ashbi-mega-menu-export.json
+		 * : Path to the output JSON file. Defaults to the WordPress uploads directory.
 		 *
 		 * [--id=<id>]
 		 * : Export a single menu by ID. If omitted, exports all menus.
@@ -629,7 +631,9 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI_Command' ) ) {
 		 * @param array $assoc_args
 		 */
 		public function export( $args, $assoc_args ) {
-			$file = $assoc_args['file'] ?? WP_CONTENT_DIR . '/ashbi-mega-menu-export.json';
+			$uploads = wp_upload_dir();
+			if ( ! empty( $uploads['error'] ) ) { WP_CLI::error( $uploads['error'] ); }
+			$file = $assoc_args['file'] ?? trailingslashit( $uploads['basedir'] ) . 'ashbi-mega-menu-export.json';
 			$id   = $assoc_args['id'] ?? null;
 
 			$exporter = ABMM_Import_Export::instance();

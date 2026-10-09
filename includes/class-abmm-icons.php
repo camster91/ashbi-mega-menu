@@ -204,7 +204,7 @@ class ABMM_Icons {
 
 		$icons = $this->all();
 		$key = $key && isset( $icons[ $key ] ) ? $key : 'link';
-		$plugin_path = parse_url( ABMM_PLUGIN_URL, PHP_URL_PATH );
+		$plugin_path = wp_parse_url( ABMM_PLUGIN_URL, PHP_URL_PATH );
 		$plugin_path = is_string( $plugin_path ) ? rtrim( $plugin_path, '/' ) . '/' : '/wp-content/plugins/ashbi-mega-menu/';
 		$sprite_reference = $plugin_path . 'assets/icons/abmm-sprite.svg?ver=' . rawurlencode( ABMM_VERSION ) . '#abmm-icon-' . sanitize_key( $key );
 

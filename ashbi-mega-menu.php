@@ -79,13 +79,6 @@ function abmm_init() {
 }
 add_action( 'plugins_loaded', 'abmm_init' );
 
-/**
- * Load plugin textdomain for translations.
- */
-function abmm_load_textdomain() {
-	load_plugin_textdomain( 'ashbi-mega-menu', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-}
-add_action( 'plugins_loaded', 'abmm_load_textdomain', 5 );
 
 /* ==================================================================
    Activation

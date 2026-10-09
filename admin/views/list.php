@@ -50,7 +50,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php else : ?>
 		<div class="abmm-menu-cards">
 			<?php foreach ( $menus as $id => $menu ) : ?>
-				<?php $menu_readiness = $readiness[ $id ] ?? array( 'ready' => false, 'issues' => array() ); ?>
+				<?php $abmm_menu_readiness = $readiness[ $id ] ?? array( 'ready' => false, 'issues' => array() ); ?>
 				<div class="abmm-menu-card" data-menu-id="<?php echo esc_attr( $id ); ?>">
 					<div class="abmm-menu-card__body">
 						<h2 class="abmm-menu-card__title">
@@ -58,21 +58,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<?php if ( ! empty( $menu['starter_source'] ) ) : ?>
 								<span class="abmm-badge abmm-badge--sample"><?php esc_html_e( 'Sample', 'ashbi-mega-menu' ); ?></span>
 							<?php endif; ?>
-							<span class="abmm-badge <?php echo ! empty( $menu_readiness['ready'] ) ? 'abmm-badge--ready' : 'abmm-badge--draft'; ?>">
-								<?php echo ! empty( $menu_readiness['ready'] ) ? esc_html__( 'Ready', 'ashbi-mega-menu' ) : esc_html__( 'Draft', 'ashbi-mega-menu' ); ?>
+							<span class="abmm-badge <?php echo ! empty( $abmm_menu_readiness['ready'] ) ? 'abmm-badge--ready' : 'abmm-badge--draft'; ?>">
+								<?php echo ! empty( $abmm_menu_readiness['ready'] ) ? esc_html__( 'Ready', 'ashbi-mega-menu' ) : esc_html__( 'Draft', 'ashbi-mega-menu' ); ?>
 							</span>
 						</h2>
 						<p class="abmm-menu-card__meta">
 							<?php
-							$count = count( $menu['items'] ?? array() );
+							$abmm_count = count( $menu['items'] ?? array() );
 							printf(
 								/* translators: %d: number of top-level items */
-								esc_html( _n( '%d menu item', '%d menu items', $count, 'ashbi-mega-menu' ) ),
-								(int) $count
+								esc_html( _n( '%d menu item', '%d menu items', $abmm_count, 'ashbi-mega-menu' ) ),
+								(int) $abmm_count
 							);
 							?>
 						</p>
-						<?php if ( ! empty( $menu_readiness['ready'] ) ) : ?>
+						<?php if ( ! empty( $abmm_menu_readiness['ready'] ) ) : ?>
 							<div class="abmm-menu-card__shortcode">
 								<code>[ashbi_mega_menu id="<?php echo esc_attr( $id ); ?>"]</code>
 								<button type="button" class="button button-small abmm-copy-shortcode" data-shortcode='[ashbi_mega_menu id="<?php echo esc_attr( $id ); ?>"]' title="<?php esc_attr_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?>">
@@ -107,9 +107,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<section class="abmm-archives" aria-labelledby="abmm-archives-title">
 			<h2 id="abmm-archives-title"><?php esc_html_e( 'Archived menus', 'ashbi-mega-menu' ); ?></h2>
 			<p><?php esc_html_e( 'Archived menus keep their original IDs so known placements work again after Restore.', 'ashbi-mega-menu' ); ?></p>
-			<?php foreach ( $archives as $id => $entry ) : ?>
+			<?php foreach ( $archives as $id => $abmm_entry ) : ?>
 				<div class="abmm-archive-row" data-menu-id="<?php echo esc_attr( $id ); ?>">
-					<strong><?php echo esc_html( $entry['menu']['title'] ?? $id ); ?></strong>
+					<strong><?php echo esc_html( $abmm_entry['menu']['title'] ?? $id ); ?></strong>
 					<code><?php echo esc_html( $id ); ?></code>
 					<button type="button" class="button abmm-restore-menu" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Restore', 'ashbi-mega-menu' ); ?></button>
 					<button type="button" class="button-link-delete abmm-permanent-delete" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Permanently delete', 'ashbi-mega-menu' ); ?></button>

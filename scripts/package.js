@@ -3,7 +3,7 @@ const path=require('node:path');
 const Zip=require('adm-zip');
 const root=path.resolve(__dirname,'..');
 const version=JSON.parse(fs.readFileSync(path.join(root,'package.json'))).version;
-const files=['ashbi-mega-menu.php','uninstall.php','readme.txt','LICENSE','THIRD-PARTY-NOTICES.md'];
+const files=['ashbi-mega-menu.php','uninstall.php','readme.txt','LICENSE'];
 const dirs=['admin','assets','build','includes','languages','src'];
 function walk(dir){for(const e of fs.readdirSync(path.join(root,dir),{withFileTypes:true})){const p=dir+'/'+e.name;if(e.isDirectory())walk(p);else files.push(p);}}
 dirs.forEach(walk);
