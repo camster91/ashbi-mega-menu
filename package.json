@@ -12,7 +12,7 @@
     "build": "wp-scripts build --webpack-src-dir=src",
     "build:icons": "node scripts/build-icons.js",
     "package": "node scripts/package.js",
-    "test": "node tests/mobile-enhancements.test.js",
+    "test": "node tests/mobile-enhancements.test.js && node tests/frontend-interactions.test.js",
     "test:php": "php tests/menu-save-cache.php"
   },
   "engines": {
