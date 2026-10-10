@@ -17,13 +17,15 @@ An open-source WordPress plugin for building responsive navigation with a visual
 - Product navigation profiles for a hub page and its child pages.
 - Revision checks prevent a stale editor from silently replacing newer changes.
 
-Activation starts with an empty menu list. An optional generic sample helps you get started; replace its placeholder links before using it. The plugin never automatically replaces your theme's header.
+Activation starts with an empty menu list. An optional generic sample helps you get started; replace its placeholder links before using it. The plugin never automatically replaces your theme's header. Start with [the user guide](docs/user-guide.md) for placement, duplicate-header prevention and recovery.
 
 ## Requirements and installation
 
 WordPress 6.6 or later, PHP 8.2 or later, and a standard MySQL/MariaDB WordPress database. SQLite installations are not supported because saving uses database advisory locks.
 
 Upload the release ZIP through **Plugins → Add New → Upload Plugin**, activate it, then open **Ashbi Mega Menu**. Create a menu and place it with the provided shortcode, block or widget. Test placement, keyboard navigation and mobile links on staging before enabling it on a client site.
+
+Follow the [block-theme and classic-theme placement recipes](docs/user-guide.md#put-it-in-a-header). Theme-specific interactive testing remains pending; see the [verification matrix](docs/compatibility.md) for the limits of current evidence. Export menus and take a full-site backup before replacement imports or upgrades. Retained import backups restore the active menu collection; they do not restore header templates or the complete site.
 
 This plugin uses independent `abmm_` storage and identifiers. It is a separate plugin, not an automatic migration or replacement for another menu plugin.
 
@@ -43,9 +45,9 @@ Use Node.js 24.18 or later and PHP 8.2 or later. Block source lives in `src/`; c
 
 ## Visual identity and directory assets
 
-The original editable SVG artwork and palette are in [the brand kit](design/brand/README.md). Directory icons, banners and genuine local WordPress screenshots live in [.wordpress-org](.wordpress-org); see [asset deployment instructions](docs/wordpress-directory-assets.md). The banner uses a conceptual illustration; numbered screenshots show the actual plugin. Directory publication remains pending review and approval.
+The original editable SVG artwork and palette are in [the brand kit](design/brand/README.md). Directory icons, banners and the local WordPress dashboard capture live in [.wordpress-org](.wordpress-org); see [asset deployment instructions](docs/wordpress-directory-assets.md). The banner uses a conceptual illustration. Editor screenshots were withdrawn because they did not show a complete loaded state; new interactive captures remain pending. Directory publication remains pending review and approval.
 
-![Visual builder in WordPress with generic sample content](.wordpress-org/screenshot-2.png)
+![Menu dashboard in local WordPress with generic sample content](.wordpress-org/screenshot-1.png)
 
 CI builds the block, runs regression tests and invokes the official WordPress Plugin Check action against the packaged files. A successful CI run does not guarantee WordPress.org approval or compatibility with every theme.
 
@@ -55,4 +57,4 @@ No telemetry, external updater or service account is included. Search runs in th
 
 ## Contributing and support
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Report reproducible problems through [GitHub issues](https://github.com/camster91/ashbi-mega-menu/issues). Never include credentials, private menu exports or client information.
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and [support expectations](docs/support-policy.md). Report reproducible problems through [GitHub issues](https://github.com/camster91/ashbi-mega-menu/issues). Support has no guaranteed response time or SLA. Never include credentials, private menu exports or client information.

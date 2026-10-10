@@ -182,14 +182,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				$abmm_presets  = ABMM_Data::design_presets();
 				?>
 
-				<label class="abmm-field">
-					<span><?php esc_html_e( 'Header composition', 'ashbi-mega-menu' ); ?></span>
-					<select id="abmm-presentation">
-						<option value="stacked" <?php selected( $abmm_settings['presentation'], 'stacked' ); ?>><?php esc_html_e( 'Classic stacked (default)', 'ashbi-mega-menu' ); ?></option>
-						<option value="unified" <?php selected( $abmm_settings['presentation'], 'unified' ); ?>><?php esc_html_e( 'Unified product row', 'ashbi-mega-menu' ); ?></option>
-					</select>
-					<span class="description"><?php esc_html_e( 'Unified product row is used only on a contextual product draft or preview. Published pages safely retain the Classic stacked header until release approval.', 'ashbi-mega-menu' ); ?></span>
-				</label>
+				<p class="description"><?php esc_html_e( 'The preview shows the stacked header used on your published pages.', 'ashbi-mega-menu' ); ?></p>
 
 				<div class="abmm-field">
 					<span><?php esc_html_e( 'Style preset', 'ashbi-mega-menu' ); ?></span>
@@ -423,7 +416,12 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				</p>
 				<details>
 					<summary><?php esc_html_e( 'Place this menu', 'ashbi-mega-menu' ); ?></summary>
-					<p><?php esc_html_e( 'Use the shortcode above, the Ashbi Mega Menu block, the widget, or the PHP helper documented on the All Menus screen.', 'ashbi-mega-menu' ); ?></p>
+					<ol>
+						<li><?php esc_html_e( 'Save your menu and check every destination.', 'ashbi-mega-menu' ); ?></li>
+						<li><?php esc_html_e( 'For a block theme, open Appearance → Editor → Patterns → Header and insert the Ashbi Mega Menu block. For a classic theme, use a header widget area or add the shortcode in your page builder header.', 'ashbi-mega-menu' ); ?></li>
+						<li><?php esc_html_e( 'Choose this saved menu, preview your header on desktop and mobile, then remove the old navigation only after the replacement works.', 'ashbi-mega-menu' ); ?></li>
+					</ol>
+					<p><a href="<?php echo esc_url( 'https://github.com/camster91/ashbi-mega-menu/blob/main/docs/user-guide.md' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Read the header placement guide', 'ashbi-mega-menu' ); ?></a></p>
 				</details>
 				<details>
 					<summary><?php esc_html_e( 'Recover from a load or save problem', 'ashbi-mega-menu' ); ?></summary>

@@ -1,6 +1,16 @@
 /* Product identity stays scoped to this plugin's admin screens. */
 /* A row-oriented flex basis otherwise becomes a 180px height in the sidebar. */
-.abmm-builder__sidebar .abmm-nav-item-row__fields .abmm-wp-link {flex-basis:auto;min-height:32px}
+.abmm-wrap .abmm-field > .abmm-wp-link,
+.abmm-wrap .abmm-nav-item-row__fields > .abmm-wp-link,
+.abmm-wrap .abmm-cat-row__fields > .abmm-wp-link {flex:0 0 auto;min-height:32px;width:100%}
+.abmm-wrap .abmm-wp-link .abmm-url-field {height:32px;min-height:32px;box-sizing:border-box}
+.abmm-wrap .abmm-wp-link .abmm-pick-url {height:32px;min-height:32px}
+.abmm-wrap .abmm-preview-shell {max-width:100%;box-sizing:border-box}
+.abmm-wrap .abmm-preview-shell .abmm-preview {min-width:0}
+.abmm-backup-row {display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 0;border-bottom:1px solid #dce2ef}
+.abmm-backup-row strong {flex:1 1 240px}
+.abmm-backup-confirm {flex:1 0 100%;padding:12px;background:#fff9f2;border:1px solid #ffb568;border-radius:8px}
+.abmm-backup-confirm .button {margin-inline-end:8px}
 .abmm-wrap .abmm-editor-chrome .abmm-builder-panel-toggle {color:#fff;border-color:#ffffff80;background:#ffffff14}
 .abmm-wrap .abmm-editor-chrome .abmm-builder-panel-toggle:hover {color:#fff;background:#ffffff26}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-nav__list {align-items:flex-start}

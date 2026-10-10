@@ -1,6 +1,6 @@
 {
   "name": "ashbi-mega-menu",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Visual WordPress navigation builder with local mobile search and reusable product menus.",
   "license": "GPL-2.0-or-later",
@@ -12,8 +12,8 @@
     "build": "wp-scripts build --webpack-src-dir=src",
     "build:icons": "node scripts/build-icons.js",
     "package": "node scripts/package.js",
-    "test": "node tests/mobile-enhancements.test.js && node tests/frontend-interactions.test.js",
-    "test:php": "php tests/menu-save-cache.php",
+    "test": "node tests/mobile-enhancements.test.js && node tests/frontend-interactions.test.js && node tests/admin-interactions.test.js",
+    "test:php": "php tests/menu-save-cache.php && php tests/backup-access.php",
     "build:brand": "node scripts/build-brand.js"
   },
   "engines": {
@@ -22,6 +22,7 @@
   "devDependencies": {
     "@wordpress/scripts": "36.1.0",
     "adm-zip": "0.5.18",
+    "jquery": "3.7.1",
     "jsdom": "26.1.0",
     "lucide-static": "1.54.0",
     "sharp": "0.35.5"

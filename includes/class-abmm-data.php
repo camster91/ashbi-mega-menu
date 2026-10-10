@@ -18,6 +18,9 @@ class ABMM_Data {
 	 */
 	private static $instance = null;
 
+	/** @var bool Whether this instance owns the collection lock. */
+	private $lock_owned = false;
+
 	/**
 	 * @return ABMM_Data
 	 */
@@ -59,9 +62,15 @@ class ABMM_Data {
 	 *
 	 * @param string $id   Menu ID.
 	 * @param array  $data Menu data.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function save( $id, $data ) {
+		return $this->with_collection_lock( function () use ( $id, $data ) {
+			return $this->save_unlocked( $id, $data );
+		} );
+	}
+
+	private function save_unlocked( $id, $data ) {
 		$menus     = $this->get_all();
 		$sanitized = $this->sanitize_menu( $data );
 
@@ -90,7 +99,7 @@ class ABMM_Data {
 			return new WP_Error( 'abmm_menu_revision_required', __( 'Reload this menu before saving so changes are not overwritten.', 'ashbi-mega-menu' ) );
 		}
 
-		return $this->with_save_lock(
+		return $this->with_collection_lock(
 			function () use ( $id, $data, $expected_revision ) {
 				// Another request may have saved after this request populated its
 				// options cache but before it acquired the database lock.
@@ -133,8 +142,12 @@ class ABMM_Data {
 	 * @param callable $callback Write operation.
 	 * @return mixed
 	 */
-	private function with_save_lock( $callback ) {
+	public function with_collection_lock( $callback ) {
 		global $wpdb;
+
+		if ( $this->lock_owned ) {
+			return call_user_func( $callback );
+		}
 
 		if ( ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_var' ) || ! method_exists( $wpdb, 'prepare' ) ) {
 			return new WP_Error( 'abmm_save_lock_unavailable', __( 'The menu save lock is unavailable.', 'ashbi-mega-menu' ) );
@@ -149,9 +162,15 @@ class ABMM_Data {
 			return new WP_Error( 'abmm_save_lock_timeout', __( 'Another menu save is in progress. Please try again.', 'ashbi-mega-menu' ) );
 		}
 
+		$this->lock_owned = true;
+		// Refresh every option participating in a collection mutation after acquiring the lock.
+		foreach ( array( ABMM_OPTION_KEY, ABMM_ARCHIVE_OPTION, 'abmm_import_backups', 'alloptions', 'notoptions' ) as $option ) {
+			wp_cache_delete( $option, 'options' );
+		}
 		try {
 			return call_user_func( $callback );
 		} finally {
+			$this->lock_owned = false;
 			$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory locks must run on this database connection and cannot be cached; the name is prepared.
 		}
 	}
@@ -160,9 +179,15 @@ class ABMM_Data {
 	 * Replace the complete menu collection.
 	 *
 	 * @param array $menus Menu ID => menu data map.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function replace_all( $menus ) {
+		return $this->with_collection_lock( function () use ( $menus ) {
+			return $this->replace_all_unlocked( $menus );
+		} );
+	}
+
+	private function replace_all_unlocked( $menus ) {
 		$sanitized = array();
 		foreach ( $menus as $id => $menu ) {
 			$sanitized[ $id ] = $this->sanitize_menu( $menu );
@@ -179,9 +204,15 @@ class ABMM_Data {
 	 * Delete a menu.
 	 *
 	 * @param string $id Menu ID.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function delete( $id ) {
+		return $this->with_collection_lock( function () use ( $id ) {
+			return $this->delete_unlocked( $id );
+		} );
+	}
+
+	private function delete_unlocked( $id ) {
 		$menus = $this->get_all();
 		if ( ! isset( $menus[ $id ] ) ) {
 			return false;
@@ -194,15 +225,22 @@ class ABMM_Data {
 	 * Move a menu into recoverable archive storage.
 	 *
 	 * @param string $id Menu ID.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function archive( $id ) {
+		return $this->with_collection_lock( function () use ( $id ) {
+			return $this->archive_unlocked( $id );
+		} );
+	}
+
+	private function archive_unlocked( $id ) {
 		$menus = $this->get_all();
 		if ( ! isset( $menus[ $id ] ) ) {
 			return false;
 		}
 
-		$archives        = $this->get_archived();
+		$original_archives = $this->get_archived();
+		$archives        = $original_archives;
 		$archives[ $id ] = array(
 			'menu'        => $menus[ $id ],
 			'archived_at' => time(),
@@ -217,7 +255,7 @@ class ABMM_Data {
 			return true;
 		}
 
-		update_option( ABMM_ARCHIVE_OPTION, array_diff_key( $archives, array( $id => true ) ) );
+		update_option( ABMM_ARCHIVE_OPTION, $original_archives );
 		update_option( ABMM_OPTION_KEY, $original_menus );
 		return false;
 	}
@@ -236,9 +274,15 @@ class ABMM_Data {
 	 * Restore an archived menu using its original ID.
 	 *
 	 * @param string $id Menu ID.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function restore( $id ) {
+		return $this->with_collection_lock( function () use ( $id ) {
+			return $this->restore_unlocked( $id );
+		} );
+	}
+
+	private function restore_unlocked( $id ) {
 		$archives = $this->get_archived();
 		$menus    = $this->get_all();
 		if ( ! isset( $archives[ $id ]['menu'] ) || isset( $menus[ $id ] ) ) {
@@ -250,7 +294,7 @@ class ABMM_Data {
 		if ( ! update_option( ABMM_OPTION_KEY, $menus ) ) {
 			return false;
 		}
-		if ( update_option( ABMM_ARCHIVE_OPTION, $archives ) || empty( $archives ) ) {
+		if ( update_option( ABMM_ARCHIVE_OPTION, $archives ) ) {
 			return true;
 		}
 
@@ -263,23 +307,35 @@ class ABMM_Data {
 	 * Permanently delete an archived menu.
 	 *
 	 * @param string $id Menu ID.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function permanently_delete( $id ) {
+		return $this->with_collection_lock( function () use ( $id ) {
+			return $this->permanently_delete_unlocked( $id );
+		} );
+	}
+
+	private function permanently_delete_unlocked( $id ) {
 		$archives = $this->get_archived();
 		if ( ! isset( $archives[ $id ] ) ) {
 			return false;
 		}
 		unset( $archives[ $id ] );
-		return update_option( ABMM_ARCHIVE_OPTION, $archives ) || empty( $archives );
+		return update_option( ABMM_ARCHIVE_OPTION, $archives );
 	}
 
 	/**
 	 * Create a unique user-owned copy of the bundled starter.
 	 *
-	 * @return string|false New menu ID or false.
+	 * @return string|false|WP_Error New menu ID, write failure, or lock error.
 	 */
 	public function create_from_starter() {
+		return $this->with_collection_lock( function () {
+			return $this->create_from_starter_unlocked();
+		} );
+	}
+
+	private function create_from_starter_unlocked() {
 		$demo = self::demo_menus();
 		$menu = $demo['menu_demo'] ?? array();
 		if ( ! is_array( $menu ) ) {
@@ -304,44 +360,47 @@ class ABMM_Data {
 		if ( '' === trim( (string) ( $menu['title'] ?? '' ) ) ) {
 			$issues[] = array( 'field' => 'abmm-menu-title', 'message' => __( 'Add a menu name.', 'ashbi-mega-menu' ) );
 		}
-
 		$usable = 0;
-		foreach ( $menu['items'] ?? array() as $item ) {
-			if ( '' === trim( (string) ( $item['label'] ?? '' ) ) ) {
-				continue;
+		$labels = array();
+		$usable_link = function ( $link ) {
+			return '' !== trim( (string) ( $link['label'] ?? '' ) ) && $this->is_usable_destination( $link['url'] ?? '' );
+		};
+		foreach ( $menu['items'] ?? array() as $index => $item ) {
+			$label = trim( (string) ( $item['label'] ?? '' ) );
+			if ( '' === $label ) {
+				/* translators: %d: item position. */
+				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Add a label to top menu item %d.', 'ashbi-mega-menu' ), $index + 1 ) );
+			} else {
+				$key = function_exists( 'mb_strtolower' ) ? mb_strtolower( $label, 'UTF-8' ) : strtolower( $label );
+				$labels[ $key ] = ( $labels[ $key ] ?? 0 ) + 1;
 			}
 			if ( 'mega' !== ( $item['type'] ?? 'link' ) ) {
-				if ( $this->is_usable_destination( $item['url'] ?? '' ) ) {
-					++$usable;
-				}
+				if ( $usable_link( $item ) ) { ++$usable; }
 				continue;
 			}
-			foreach ( $item['links'] ?? array() as $link ) {
-				if ( ! empty( $link['label'] ) && $this->is_usable_destination( $link['url'] ?? '' ) ) {
-					++$usable;
-				}
-			}
+			$before = $usable;
+			foreach ( $item['links'] ?? array() as $link ) { if ( $usable_link( $link ) ) { ++$usable; } }
 			foreach ( $item['categories'] ?? array() as $category ) {
 				foreach ( $category['groups'] ?? array() as $group ) {
-					foreach ( $group['links'] ?? array() as $link ) {
-						if ( ! empty( $link['label'] ) && $this->is_usable_destination( $link['url'] ?? '' ) ) {
-							++$usable;
-						}
-					}
+					foreach ( $group['links'] ?? array() as $link ) { if ( $usable_link( $link ) ) { ++$usable; } }
 				}
 			}
+			if ( $usable === $before ) {
+				/* translators: %s: mega menu label. */
+				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Add at least one labelled link with a real destination to %s.', 'ashbi-mega-menu' ), $label ?: __( 'this mega menu', 'ashbi-mega-menu' ) ) );
+			}
 		}
-		if ( 0 === $usable ) {
-			$issues[] = array( 'field' => 'abmm-nav-items', 'message' => __( 'Add at least one labelled item with a real destination.', 'ashbi-mega-menu' ) );
+		foreach ( $labels as $label => $count ) {
+			if ( $count > 1 ) {
+				/* translators: %s: duplicated label. */
+				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Rename duplicate top menu item "%s".', 'ashbi-mega-menu' ), $label ) );
+			}
 		}
-		if ( ! empty( $menu['cta']['show'] ) && ( empty( $menu['cta']['label'] ) || ! $this->is_usable_destination( $menu['cta']['url'] ?? '' ) ) ) {
+		if ( 0 === $usable ) { $issues[] = array( 'field' => 'abmm-nav-items', 'message' => __( 'Add at least one labelled item with a real destination.', 'ashbi-mega-menu' ) ); }
+		if ( ! empty( $menu['cta']['show'] ) && ! $usable_link( $menu['cta'] ) ) {
 			$issues[] = array( 'field' => 'abmm-cta-url', 'message' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ) );
 		}
-
-		return array(
-			'ready'  => empty( $issues ),
-			'issues' => $issues,
-		);
+		return array( 'ready' => empty( $issues ), 'issues' => $issues );
 	}
 
 	/**
@@ -515,10 +574,16 @@ class ABMM_Data {
 	 * Create a new empty menu and return its ID.
 	 *
 	 * @param string $title Menu title.
-	 * @return string|false New menu ID, or false when storage failed.
+	 * @return string|false|WP_Error New menu ID, write failure, or lock error.
 	 */
 	public function create( $title = '' ) {
-		$id    = 'menu_' . wp_generate_password( 8, false, false );
+		return $this->with_collection_lock( function () use ( $title ) {
+			return $this->create_unlocked( $title );
+		} );
+	}
+
+	private function create_unlocked( $title = '' ) {
+		$id    = $this->unique_menu_id( 'menu_' . wp_generate_password( 8, false, false ) );
 		$menus = $this->get_all();
 
 		$menus[ $id ] = $this->sanitize_menu(
@@ -557,6 +622,12 @@ class ABMM_Data {
 	 * @return string|WP_Error New menu ID or an error.
 	 */
 	public function duplicate( $id ) {
+		return $this->with_collection_lock( function () use ( $id ) {
+			return $this->duplicate_unlocked( $id );
+		} );
+	}
+
+	private function duplicate_unlocked( $id ) {
 		$menu = $this->get( $id );
 		if ( null === $menu ) {
 			return new WP_Error( 'abmm_menu_not_found', __( 'Menu not found.', 'ashbi-mega-menu' ) );
@@ -565,7 +636,9 @@ class ABMM_Data {
 /* translators: %s: Original menu title. */
 __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
 		$new_id = $this->unique_menu_id( $id . '-copy' );
-		return $this->save( $new_id, $copy ) ? $new_id : new WP_Error( 'abmm_duplicate_failed', __( 'The menu copy could not be saved.', 'ashbi-mega-menu' ) );
+		$saved = $this->save( $new_id, $copy );
+		if ( is_wp_error( $saved ) ) { return $saved; }
+		return $saved ? $new_id : new WP_Error( 'abmm_duplicate_failed', __( 'The menu copy could not be saved.', 'ashbi-mega-menu' ) );
 	}
 
 	/**

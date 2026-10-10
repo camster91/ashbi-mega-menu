@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div class="abmm-admin-header">
 		<div>
 			<div class="abmm-logo-title"><img src="<?php echo esc_url( ABMM_PLUGIN_URL . 'assets/brand/icon.svg' ); ?>" width="52" height="52" alt="" /><h1><?php esc_html_e( 'Ashbi Mega Menu', 'ashbi-mega-menu' ); ?></h1></div>
-			<p class="abmm-admin-intro"><?php esc_html_e( 'Build professional mega menus visually — no coding needed. Edit a menu, then place it on your site with a shortcode.', 'ashbi-mega-menu' ); ?></p>
+			<p class="abmm-admin-intro"><?php esc_html_e( 'Build your navigation, save it, then place it with a block, shortcode or widget. Creating a menu does not change your theme header.', 'ashbi-mega-menu' ); ?></p>
 		</div>
 		<div class="abmm-admin-header__actions">
 			<button type="button" class="button button-primary button-hero abmm-create-menu">
@@ -168,13 +168,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<details class="abmm-import-panel" id="abmm-backup-panel">
+		<summary><strong><?php esc_html_e( 'Import backups', 'ashbi-mega-menu' ); ?></strong></summary>
+		<p><?php esc_html_e( 'Export a retained snapshot before restoring it. Restore replaces all active menus with that snapshot and first saves the current collection in another backup. Only the latest five collection backups are retained; theme templates and other settings are not included.', 'ashbi-mega-menu' ); ?></p>
+		<button type="button" class="button abmm-load-backups"><?php esc_html_e( 'Refresh backups', 'ashbi-mega-menu' ); ?></button>
+		<div id="abmm-backup-status" role="status" aria-live="polite" tabindex="-1"></div>
+		<div id="abmm-backup-list"></div>
+	</details>
+
 	<div class="abmm-help-box">
 		<h3><?php esc_html_e( 'How to use', 'ashbi-mega-menu' ); ?></h3>
 		<ol>
 			<li><?php esc_html_e( 'Create or edit a menu in this panel.', 'ashbi-mega-menu' ); ?></li>
 			<li><?php esc_html_e( 'Set a top-level item to "Mega Menu", then pick "With category bar" or "Simple columns (no category bar)".', 'ashbi-mega-menu' ); ?></li>
-			<li><?php esc_html_e( 'Copy the shortcode and paste it into a page, header template, or widget.', 'ashbi-mega-menu' ); ?></li>
-			<li><?php esc_html_e( 'Or add this in your theme: <?php abmm_render_menu( \'menu_demo\' ); ?>', 'ashbi-mega-menu' ); ?></li>
+			<li><?php esc_html_e( 'Save and reload the menu. Add the Ashbi Mega Menu block to a test page and select this menu, or paste its exact copied shortcode into a Shortcode block.', 'ashbi-mega-menu' ); ?></li>
+			<li><?php esc_html_e( 'Test desktop and mobile links on staging. Place the verified menu in your header, then remove duplicate theme navigation deliberately. Keep the original header or a backup for rollback.', 'ashbi-mega-menu' ); ?></li>
 		</ol>
+		<p><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/user-guide.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Placement, recovery and troubleshooting guide (opens in a new tab)', 'ashbi-mega-menu' ); ?></a></p>
+		<p><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/compatibility.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Verified compatibility and pending checks (opens in a new tab)', 'ashbi-mega-menu' ); ?></a></p>
 	</div>
 </div>

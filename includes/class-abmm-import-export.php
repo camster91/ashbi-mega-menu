@@ -47,10 +47,87 @@ class ABMM_Import_Export {
 
 	private function __construct() {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+		add_action( 'wp_ajax_abmm_list_backups', array( $this, 'ajax_list_backups' ) );
+		add_action( 'wp_ajax_abmm_export_backup', array( $this, 'ajax_export_backup' ) );
+		add_action( 'wp_ajax_abmm_restore_backup', array( $this, 'ajax_restore_backup' ) );
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			$this->register_wp_cli();
 		}
+	}
+
+
+	/** Return recovery points, including deterministic identifiers for older backups. */
+	public function get_backups() {
+		$backups = get_option( 'abmm_import_backups', array() );
+		if ( ! is_array( $backups ) ) { return array(); }
+		foreach ( $backups as &$backup ) {
+			if ( empty( $backup['id'] ) ) { $backup['id'] = hash( 'sha256', wp_json_encode( $backup ) ); }
+		}
+		unset( $backup );
+		return $backups;
+	}
+
+	/** Export one recovery point as a portable plugin export. */
+	public function export_backup( $id ) {
+		foreach ( $this->get_backups() as $backup ) {
+			if ( (string) $backup['id'] === (string) $id ) {
+				return array( 'format' => 'ashbi-mega-menu', 'format_version' => self::FORMAT_VERSION, 'plugin_version' => ABMM_VERSION, 'exported_at' => $backup['created_at'], 'menus' => $backup['menus'] );
+			}
+		}
+		return new WP_Error( 'abmm_backup_not_found', __( 'This backup is no longer available. Refresh the recovery list.', 'ashbi-mega-menu' ) );
+	}
+
+	/** Restore with a collection revision check and preserve the current state first. */
+	public function restore_backup( $id, $revision ) {
+		return ABMM_Data::instance()->with_collection_lock( function () use ( $id, $revision ) {
+			$store = ABMM_Data::instance();
+			$current_revision = $store->revision( $store->get_all() );
+			if ( ! is_string( $revision ) || '' === $revision || ! hash_equals( $current_revision, $revision ) ) {
+				return new WP_Error( 'abmm_backup_conflict', __( 'Menus changed since this recovery list loaded. Refresh and review before restoring.', 'ashbi-mega-menu' ) );
+			}
+			$payload = $this->export_backup( $id );
+			if ( is_wp_error( $payload ) ) { return $payload; }
+			$backup = $this->backup_current_menus();
+			if ( is_wp_error( $backup ) ) { return $backup; }
+			$saved = $store->replace_all( $payload['menus'] );
+			if ( is_wp_error( $saved ) ) { return $saved; }
+			return $saved ? true : new WP_Error( 'abmm_restore_failed', __( 'The backup could not be restored.', 'ashbi-mega-menu' ) );
+		} );
+	}
+
+	/** All backup endpoints require an administrator and a valid admin nonce. */
+	private function check_backup_access() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to manage backups.', 'ashbi-mega-menu' ) ), 403 );
+		}
+	}
+
+	public function ajax_list_backups() {
+		$this->check_backup_access();
+		$items = array();
+		foreach ( $this->get_backups() as $backup ) {
+			$items[] = array( 'id' => $backup['id'], 'created_at' => $backup['created_at'], 'menu_count' => count( $backup['menus'] ) );
+		}
+		wp_send_json_success( array( 'backups' => $items, 'revision' => ABMM_Data::instance()->revision( ABMM_Data::instance()->get_all() ) ) );
+	}
+
+	public function ajax_export_backup() {
+		$this->check_backup_access();
+		$id = isset( $_POST['backup_id'] ) ? sanitize_text_field( wp_unslash( $_POST['backup_id'] ) ) : '';
+		$result = $this->export_backup( $id );
+		if ( is_wp_error( $result ) ) { wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 ); }
+		wp_send_json_success( $result );
+	}
+
+	public function ajax_restore_backup() {
+		$this->check_backup_access();
+		$id = isset( $_POST['backup_id'] ) ? sanitize_text_field( wp_unslash( $_POST['backup_id'] ) ) : '';
+		$revision = isset( $_POST['revision'] ) ? sanitize_text_field( wp_unslash( $_POST['revision'] ) ) : '';
+		$result = $this->restore_backup( $id, $revision );
+		if ( is_wp_error( $result ) ) { wp_send_json_error( array( 'message' => $result->get_error_message() ), 'abmm_backup_conflict' === $result->get_error_code() ? 409 : 400 ); }
+		wp_send_json_success( array( 'message' => __( 'Backup restored. The previous menu collection was preserved as a recovery point.', 'ashbi-mega-menu' ), 'revision' => ABMM_Data::instance()->revision( ABMM_Data::instance()->get_all() ) ) );
 	}
 
 	/* ================================================================
@@ -216,7 +293,7 @@ class ABMM_Import_Export {
 		$raw = $request->get_body();
 		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
 			$body = null;
-		} elseif ( strlen( $raw ) > self::MAX_IMPORT_BYTES ) {
+		} elseif ( strlen( $raw ) > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
 			return new WP_Error( 'abmm_import_too_large', __( 'Import files must be 1 MB or smaller.', 'ashbi-mega-menu' ), array( 'status' => 413 ) );
 		} else {
 			$body = json_decode( $raw, true, 32 );
@@ -311,6 +388,12 @@ class ABMM_Import_Export {
 	 * @return array|WP_Error Results per menu.
 	 */
 	public function import_json( $payload, $mode = 'merge' ) {
+		return ABMM_Data::instance()->with_collection_lock( function () use ( $payload, $mode ) {
+			return $this->import_json_locked( $payload, $mode );
+		} );
+	}
+
+	private function import_json_locked( $payload, $mode ) {
 		$errors = $this->validate_payload( $payload );
 		if ( ! empty( $errors ) ) {
 			return new WP_Error( 'abmm_invalid_import', implode( ' ', $errors ) );
@@ -365,10 +448,12 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 			return $results;
 		}
 
-		$this->backup_current_menus();
+		$backup = $this->backup_current_menus();
+		if ( is_wp_error( $backup ) ) { return $backup; }
 
 		$next  = 'replace' === $mode ? $prepared : array_merge( $existing, $prepared );
 		$saved = ABMM_Data::instance()->replace_all( $next );
+		if ( is_wp_error( $saved ) ) { return $saved; }
 
 		foreach ( $prepared as $id => $menu_data ) {
 			$results[ $id ] = $saved
@@ -433,7 +518,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 	 * Snapshots are deliberately kept separate from the live menu option so an
 	 * import failure or accidental replace does not overwrite its own backup.
 	 *
-	 * @return void
+	 * @return bool|WP_Error
 	 */
 	private function backup_current_menus() {
 		$backups = get_option( 'abmm_import_backups', array() );
@@ -444,6 +529,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 		array_unshift(
 			$backups,
 			array(
+				'id'         => wp_generate_uuid4(),
 				'created_at' => gmdate( 'c' ),
 				'menus'      => ABMM_Data::instance()->get_all(),
 			)
@@ -451,7 +537,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 
 		// Keep recent recovery points without growing the options table forever.
 		$backups = array_slice( $backups, 0, 5 );
-		update_option( 'abmm_import_backups', $backups );
+		return update_option( 'abmm_import_backups', $backups ) ? true : new WP_Error( 'abmm_backup_failed', __( 'The recovery backup could not be saved. No menus were changed.', 'ashbi-mega-menu' ) );
 	}
 
 	/**
@@ -699,12 +785,12 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI_Command' ) ) {
 			if ( false === $size ) {
 				WP_CLI::error( 'Could not determine the import file size.' );
 			}
-			if ( self::MAX_IMPORT_BYTES < $size ) {
+			if ( ABMM_Import_Export::MAX_IMPORT_BYTES < $size ) {
 				WP_CLI::error( 'Import files must be 1 MB or smaller.' );
 			}
 
-			$raw = file_get_contents( $file, false, null, 0, self::MAX_IMPORT_BYTES + 1 );
-			if ( false === $raw || strlen( $raw ) > self::MAX_IMPORT_BYTES ) {
+			$raw = file_get_contents( $file, false, null, 0, ABMM_Import_Export::MAX_IMPORT_BYTES + 1 );
+			if ( false === $raw || strlen( $raw ) > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
 				WP_CLI::error( 'Import files must be 1 MB or smaller.' );
 			}
 			$payload = json_decode( $raw, true, 32 );

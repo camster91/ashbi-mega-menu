@@ -295,7 +295,11 @@ class ABMM_Admin {
 			wp_send_json_error( array( 'message' => 'Missing ID' ), 400 );
 		}
 
-		if ( ! ABMM_Data::instance()->archive( $id ) ) {
+		$result = ABMM_Data::instance()->archive( $id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ), 503 );
+		}
+		if ( ! $result ) {
 			wp_send_json_error( array( 'message' => __( 'The menu was not archived. Nothing was removed.', 'ashbi-mega-menu' ) ), 500 );
 		}
 		wp_send_json_success( array( 'message' => __( 'Menu archived. It can be restored below.', 'ashbi-mega-menu' ) ) );
@@ -339,6 +343,9 @@ class ABMM_Admin {
 		} elseif ( 'dismiss' !== $choice ) {
 			wp_send_json_error( array( 'message' => __( 'Choose a valid first-run option.', 'ashbi-mega-menu' ) ), 400 );
 		}
+		if ( is_wp_error( $id ) ) {
+			wp_send_json_error( array( 'message' => $id->get_error_message() ), 503 );
+		}
 		if ( in_array( $choice, array( 'blank', 'starter' ), true ) && ! $id ) {
 			wp_send_json_error( array( 'message' => __( 'The first menu could not be created.', 'ashbi-mega-menu' ) ), 500 );
 		}
@@ -368,7 +375,11 @@ class ABMM_Admin {
 		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
-		if ( ! ABMM_Data::instance()->restore( $id ) ) {
+		$result = ABMM_Data::instance()->restore( $id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ), 503 );
+		}
+		if ( ! $result ) {
 			wp_send_json_error( array( 'message' => __( 'The menu could not be restored. Its ID may already be in use.', 'ashbi-mega-menu' ) ), 409 );
 		}
 		wp_send_json_success( array( 'message' => __( 'Menu restored with its original ID.', 'ashbi-mega-menu' ) ) );
@@ -381,7 +392,11 @@ class ABMM_Admin {
 		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
-		if ( ! ABMM_Data::instance()->permanently_delete( $id ) ) {
+		$result = ABMM_Data::instance()->permanently_delete( $id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ), 503 );
+		}
+		if ( ! $result ) {
 			wp_send_json_error( array( 'message' => __( 'Permanent deletion failed.', 'ashbi-mega-menu' ) ), 500 );
 		}
 		wp_send_json_success( array( 'message' => __( 'Archived menu permanently deleted.', 'ashbi-mega-menu' ) ) );
@@ -461,6 +476,9 @@ class ABMM_Admin {
 
 		$title = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
 		$id    = ABMM_Data::instance()->create( $title );
+		if ( is_wp_error( $id ) ) {
+			wp_send_json_error( array( 'message' => $id->get_error_message() ), 503 );
+		}
 		if ( ! $id ) {
 			wp_send_json_error( array( 'message' => __( 'Database create failed.', 'ashbi-mega-menu' ) ), 500 );
 		}

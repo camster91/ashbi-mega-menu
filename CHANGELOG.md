@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.2
+
+- Serialize all menu collection mutations and refresh caches inside the shared lock.
+- Fix CLI import limits and stop imports if a recovery backup cannot be saved.
+- Add administrator backup export and explicitly confirmed, revision-checked restoration.
+- Align dashboard/editor readiness and hide the unpublished composition choice.
+- Correct URL controls across stacked editor fields; add save/retry and interaction regressions.
+- Add placement, recovery, compatibility and maintenance documentation.
+- Remove unloaded/clipped editor screenshots pending fresh browser captures.
+
 ## 1.0.1
 
 - Add a consistent navigation mark and scoped admin identity.
