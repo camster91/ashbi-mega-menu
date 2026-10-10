@@ -30,10 +30,10 @@ async function fixture(narrow = false, malformed = false) {
  await new Promise(resolve=>window.setTimeout(resolve,20));
  return {window,$,requests,close:()=>window.close()};
 }
-async function backupFixture() {
+async function backupFixture(strings = {}) {
  const dom=new JSDOM('<body><button class="abmm-load-backups">Load</button><div id="abmm-backup-list"></div><div id="abmm-backup-status"></div></body>',{url:'http://localhost/',runScripts:'outside-only'});
  const {window}=dom; const $=require('jquery')(window); window.jQuery=$;
- window.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:{}};
+ window.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings};
  const requests=[]; $.post=(_,data)=>{const d=$.Deferred();requests.push({data,d});return d.promise();};
  window.eval(source); window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
  await new Promise(resolve=>window.setTimeout(resolve,20));
@@ -99,5 +99,11 @@ async function backupFixture() {
  assert.equal($('#abmm-backup-status').attr('role'),'alert');
  assert.match($('#abmm-backup-status').text(),/Menus changed/);
  assert.equal($('.abmm-load-backups').prop('disabled'),false); f.close();
+ f=await backupFixture({backupLoading:'Chargement',backupExport:'<b>Exporter</b>',backupSummary:'%2$s menus — %1$s'}); $=f.$;
+ $('.abmm-load-backups').trigger('click'); assert.equal($('#abmm-backup-status').text(),'Chargement');
+ f.requests[0].d.resolve({success:true,data:{backups:[{id:'backup-1',created_at:'2026-10-10',menu_count:2}],revision:'collection-1'}});
+ assert.equal($('.abmm-backup-row strong').text(),'2 menus — 2026-10-10');
+ assert.equal($('.abmm-export-backup').text(),'<b>Exporter</b>');
+ assert.equal($('.abmm-export-backup b').length,0,'translated labels are text, never HTML'); f.close();
  console.log('Admin viewport, drawer, keyboard tabs, sheet, save/retry, malformed load and explicit backup restore tests passed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

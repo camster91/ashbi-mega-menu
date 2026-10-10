@@ -162,6 +162,21 @@ class ABMM_Admin {
 					'importPreview'   => __( 'Review these changes before importing:', 'ashbi-mega-menu' ),
 					'importConfirm'   => __( 'Confirm Import', 'ashbi-mega-menu' ),
 					'importCancel'    => __( 'Cancel', 'ashbi-mega-menu' ),
+					'backupLoading'   => __( 'Loading recovery snapshots…', 'ashbi-mega-menu' ),
+					'backupLoadError' => __( 'Snapshots could not be loaded.', 'ashbi-mega-menu' ),
+					/* translators: 1: snapshot date, 2: number of menus. */
+					'backupSummary'   => __( '%1$s — %2$s menu(s)', 'ashbi-mega-menu' ),
+					'backupExport'    => __( 'Export snapshot', 'ashbi-mega-menu' ),
+					'backupRestore'   => __( 'Restore snapshot', 'ashbi-mega-menu' ),
+					'backupGuidance'  => __( 'Export a snapshot before restoring. Restore replaces every current menu.', 'ashbi-mega-menu' ),
+					'backupEmpty'     => __( 'No recovery snapshots are available yet.', 'ashbi-mega-menu' ),
+					'backupExportError' => __( 'Snapshot export failed.', 'ashbi-mega-menu' ),
+					'backupExported'  => __( 'Snapshot exported. Keep the downloaded JSON file for recovery.', 'ashbi-mega-menu' ),
+					'backupConfirmWarning' => __( 'Replace ALL current menus with this snapshot? Current menus will be backed up first. Published placements may change. Export your current menus before continuing.', 'ashbi-mega-menu' ),
+					'backupConfirm'   => __( 'Replace menus with snapshot', 'ashbi-mega-menu' ),
+					'backupRestoring' => __( 'Restoring snapshot…', 'ashbi-mega-menu' ),
+					'backupRestoreError' => __( 'Snapshot restore failed. Reload snapshots before retrying.', 'ashbi-mega-menu' ),
+					'backupRestored'  => __( 'Snapshot restored. Reloading menus…', 'ashbi-mega-menu' ),
 				),
 			)
 		);

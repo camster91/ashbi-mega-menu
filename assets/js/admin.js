@@ -759,21 +759,21 @@
 		}
 		$('.abmm-load-backups').on('click', function () {
 			var $button = $(this).prop('disabled', true);
-			status('Loading recovery snapshots…', false);
+			status(S.backupLoading || 'Loading recovery snapshots…', false);
 			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_list_backups', nonce: abmmAdmin.nonce })
 				.done(function (res) {
-					if (!res || !res.success || !res.data) { status(responseMessage(res, 'Snapshots could not be loaded.'), true); return; }
+					if (!res || !res.success || !res.data) { status(responseMessage(res, S.backupLoadError || 'Snapshots could not be loaded.'), true); return; }
 					revision = String(res.data.revision || '');
 					$list.empty();
 					(res.data.backups || []).forEach(function (backup) {
 						var $row = $('<div class="abmm-backup-row" />').attr('data-backup-id', backup.id);
-						$('<strong />').text(backup.created_at + ' — ' + backup.menu_count + ' menu(s)').appendTo($row);
-						$('<button type="button" class="button abmm-export-backup">Export snapshot</button>').attr('data-backup-id', backup.id).appendTo($row);
-						$('<button type="button" class="button abmm-restore-backup">Restore snapshot</button>').attr('data-backup-id', backup.id).appendTo($row);
+						$('<strong />').text((S.backupSummary || '%1$s — %2$s menu(s)').replace('%1$s', String(backup.created_at)).replace('%2$s', String(backup.menu_count))).appendTo($row);
+						$('<button type="button" class="button abmm-export-backup" />').text(S.backupExport || 'Export snapshot').attr('data-backup-id', backup.id).appendTo($row);
+						$('<button type="button" class="button abmm-restore-backup" />').text(S.backupRestore || 'Restore snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$row.appendTo($list);
 					});
-					status($list.children().length ? 'Export a snapshot before restoring. Restore replaces every current menu.' : 'No recovery snapshots are available yet.', false);
-				}).fail(function (xhr) { status(requestErrorMessage(xhr, 'Snapshots could not be loaded.'), true); })
+					status($list.children().length ? (S.backupGuidance || 'Export a snapshot before restoring. Restore replaces every current menu.') : (S.backupEmpty || 'No recovery snapshots are available yet.'), false);
+				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupLoadError || 'Snapshots could not be loaded.'), true); })
 				.always(function () { $button.prop('disabled', false); });
 		});
 		$list.on('click', '.abmm-export-backup', function () {
@@ -781,19 +781,19 @@
 			var id = String($button.attr('data-backup-id'));
 			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_export_backup', nonce: abmmAdmin.nonce, backup_id: id })
 				.done(function (res) {
-					if (!res || !res.success || !res.data || !res.data.menus) { status(responseMessage(res, 'Snapshot export failed.'), true); return; }
+					if (!res || !res.success || !res.data || !res.data.menus) { status(responseMessage(res, S.backupExportError || 'Snapshot export failed.'), true); return; }
 					downloadMenuJson('snapshot-' + id, JSON.stringify(res.data, null, 2));
-					status('Snapshot exported. Keep the downloaded JSON file for recovery.', false);
-				}).fail(function (xhr) { status(requestErrorMessage(xhr, 'Snapshot export failed.'), true); })
+					status(S.backupExported || 'Snapshot exported. Keep the downloaded JSON file for recovery.', false);
+				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupExportError || 'Snapshot export failed.'), true); })
 				.always(function () { $button.prop('disabled', false); });
 		});
 		$list.on('click', '.abmm-restore-backup', function () {
 			$list.find('.abmm-backup-confirm').remove();
 			var $row = $(this).closest('.abmm-backup-row');
 			var $confirm = $('<div class="abmm-backup-confirm" role="alert" />').appendTo($row);
-			$('<p />').text('Replace ALL current menus with this snapshot? Current menus will be backed up first. Published placements may change. Export your current menus before continuing.').appendTo($confirm);
-			$('<button type="button" class="button button-primary abmm-confirm-backup">Replace menus with snapshot</button>').appendTo($confirm).trigger('focus');
-			$('<button type="button" class="button abmm-cancel-backup">Cancel</button>').appendTo($confirm);
+			$('<p />').text(S.backupConfirmWarning || 'Replace ALL current menus with this snapshot? Current menus will be backed up first. Published placements may change. Export your current menus before continuing.').appendTo($confirm);
+			$('<button type="button" class="button button-primary abmm-confirm-backup" />').text(S.backupConfirm || 'Replace menus with snapshot').appendTo($confirm).trigger('focus');
+			$('<button type="button" class="button abmm-cancel-backup" />').text(S.cancel || 'Cancel').appendTo($confirm);
 		});
 		$list.on('click', '.abmm-cancel-backup', function () {
 			var $row = $(this).closest('.abmm-backup-row');
@@ -803,13 +803,13 @@
 		$list.on('click', '.abmm-confirm-backup', function () {
 			var $row = $(this).closest('.abmm-backup-row');
 			var $buttons = $list.find('button').add('.abmm-load-backups').prop('disabled', true);
-			status('Restoring snapshot…', false);
+			status(S.backupRestoring || 'Restoring snapshot…', false);
 			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_restore_backup', nonce: abmmAdmin.nonce, backup_id: $row.attr('data-backup-id'), revision: revision })
 				.done(function (res) {
-					if (!res || !res.success) { status(responseMessage(res, 'Snapshot restore failed. Reload snapshots before retrying.'), true); return; }
-					status(responseMessage(res, 'Snapshot restored. Reloading menus…'), false);
+					if (!res || !res.success) { status(responseMessage(res, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); return; }
+					status(responseMessage(res, S.backupRestored || 'Snapshot restored. Reloading menus…'), false);
 					setTimeout(function () { window.location.reload(); }, 700);
-				}).fail(function (xhr) { status(requestErrorMessage(xhr, 'Restore failed. Reload snapshots before retrying.'), true); })
+				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); })
 				.always(function () { $buttons.prop('disabled', false); $row.find('.abmm-backup-confirm').remove(); });
 		});
 	}

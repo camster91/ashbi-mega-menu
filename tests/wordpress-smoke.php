@@ -3,6 +3,7 @@
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
  exit;
 }
+global $wpdb;
 function abmm_test_assert( $condition, $message ) {
  if ( ! $condition ) { WP_CLI::error( $message ); }
 }

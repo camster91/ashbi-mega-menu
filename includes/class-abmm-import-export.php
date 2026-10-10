@@ -98,13 +98,13 @@ class ABMM_Import_Export {
 
 	/** All backup endpoints require an administrator and a valid admin nonce. */
 	private function check_backup_access() {
-		check_ajax_referer( 'abmm_admin', 'nonce' );
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'You do not have permission to manage backups.', 'ashbi-mega-menu' ) ), 403 );
 		}
 	}
 
 	public function ajax_list_backups() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->check_backup_access();
 		$items = array();
 		foreach ( $this->get_backups() as $backup ) {
@@ -114,6 +114,7 @@ class ABMM_Import_Export {
 	}
 
 	public function ajax_export_backup() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->check_backup_access();
 		$id = isset( $_POST['backup_id'] ) ? sanitize_text_field( wp_unslash( $_POST['backup_id'] ) ) : '';
 		$result = $this->export_backup( $id );
@@ -122,6 +123,7 @@ class ABMM_Import_Export {
 	}
 
 	public function ajax_restore_backup() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->check_backup_access();
 		$id = isset( $_POST['backup_id'] ) ? sanitize_text_field( wp_unslash( $_POST['backup_id'] ) ) : '';
 		$revision = isset( $_POST['revision'] ) ? sanitize_text_field( wp_unslash( $_POST['revision'] ) ) : '';
