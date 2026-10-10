@@ -58,4 +58,3 @@ No telemetry, external updater or service account is included. Search runs in th
 ## Contributing and support
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and [support expectations](docs/support-policy.md). Report reproducible problems through [GitHub issues](https://github.com/camster91/ashbi-mega-menu/issues). Support has no guaranteed response time or SLA. Never include credentials, private menu exports or client information.
-
