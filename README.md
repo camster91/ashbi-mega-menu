@@ -4,9 +4,9 @@
 
 An open-source WordPress plugin for building responsive navigation with a visual editor. Licensed under GPL-2.0-or-later.
 
-**Status:** the [1.0.1 branded review candidate](https://github.com/camster91/ashbi-mega-menu/releases/tag/v1.0.1) is available, with a separate downloadable visual kit. WordPress.org submission is pending account login; directory approval has not been granted.
+**Status:** the [1.0.2 review candidate](https://github.com/camster91/ashbi-mega-menu/releases/tag/v1.0.2) is available, with a separate downloadable visual kit. WordPress.org submission is pending account login; directory approval has not been granted.
 
-[Release validation](https://github.com/camster91/ashbi-mega-menu/actions/runs/37983883613) passed: build, regressions, official Plugin Check and WordPress database tests, including WordPress 6.6/PHP 8.2. Plugin Check has zero errors and one reviewed read-only status-notice warning. See [security review](docs/security-review.md).
+[Release validation](https://github.com/camster91/ashbi-mega-menu/actions/runs/38067219278) passed: build, regressions, official Plugin Check and WordPress database tests, including WordPress 6.6/PHP 8.2. Plugin Check has zero errors and one reviewed read-only status-notice warning. See [security review](docs/security-review.md).
 
 ## Features
 
@@ -41,7 +41,7 @@ npm run test:php
 npm run package
 ```
 
-Use Node.js 24.18 or later and PHP 8.2 or later. Block source lives in `src/`; compiled files are in `build/`. Packaging uses an explicit runtime allowlist and produces `dist/ashbi-mega-menu-1.0.1.zip`. Build dependencies and CI configuration are available here, and are excluded from the install ZIP.
+Use Node.js 24.18 or later and PHP 8.2 or later. Block source lives in `src/`; compiled files are in `build/`. Packaging uses an explicit runtime allowlist and produces `dist/ashbi-mega-menu-1.0.2.zip`. Build dependencies and CI configuration are available here, and are excluded from the install ZIP.
 
 ## Visual identity and directory assets
 
@@ -58,3 +58,4 @@ No telemetry, external updater or service account is included. Search runs in th
 ## Contributing and support
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and [support expectations](docs/support-policy.md). Report reproducible problems through [GitHub issues](https://github.com/camster91/ashbi-mega-menu/issues). Support has no guaranteed response time or SLA. Never include credentials, private menu exports or client information.
+
