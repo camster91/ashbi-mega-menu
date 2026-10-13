@@ -15,7 +15,7 @@ Requirements: WordPress 6.6+, PHP 8.2+, standard MySQL/MariaDB. SQLite editing i
 | Desktop/mobile browsers, keyboard and screen reader | Chrome desktop and responsive viewport checks completed | Other browser engines and screen readers pending; no WCAG conformance claim |
 | Multisite, translated/RTL sites, caching/page builders | No verified matrix yet | Test on the intended installation; no blanket compatibility claim |
 
-Release validation: [1.0.4 CI](https://github.com/camster91/ashbi-mega-menu/actions/runs/38440570036), runtime commit `9f398d1cf61c6baed7a91fc6f1e9cb2a79279a2c`. Local backup-handler regressions also exercise denied capability and nonce access; these are PHP harness tests, not authenticated browser/HTTP tests. Broader theme, browser and accessibility verification remain pending.
+Release validation: [1.0.4 CI](https://github.com/camster91/ashbi-mega-menu/actions/runs/38441103680), runtime commit `9f398d1cf61c6baed7a91fc6f1e9cb2a79279a2c`. Local backup-handler regressions also exercise denied capability and nonce access; these are PHP harness tests, not authenticated browser/HTTP tests. Broader theme, browser and accessibility verification remain pending.
 
 ## Record a verified configuration
 
