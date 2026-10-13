@@ -4,7 +4,7 @@
 
 An open-source WordPress plugin for building responsive navigation with a visual editor. Licensed under GPL-2.0-or-later.
 
-**Status:** the [1.0.3 review candidate](https://github.com/camster91/ashbi-mega-menu/releases/tag/v1.0.3) is available, with a separate downloadable visual kit. WordPress.org submission is pending account login; directory approval has not been granted.
+**Status:** the [1.0.3 review candidate](https://github.com/camster91/ashbi-mega-menu/releases/tag/v1.0.3) was submitted to WordPress.org on October 13, 2026. The directory's automated scan passed; status is Awaiting Review, with initial slug `ashbi-mega-menu`. Directory approval has not been granted. A separate downloadable visual kit is available.
 
 [Release validation](https://github.com/camster91/ashbi-mega-menu/actions/runs/38401452659) passed: build, regressions, official Plugin Check and WordPress database tests, including WordPress 6.6/PHP 8.2. Plugin Check has zero errors and zero warnings. See [security review](docs/security-review.md).
 
