@@ -312,6 +312,7 @@ class ABMM_Product_Branding {
 		}
 
 		$profiles = ABMM_Product_Profiles::instance()->get_all();
+		$notice = $this->notice_state();
 		$menus    = ABMM_Data::instance()->get_all();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$selected = isset( $_GET['profile'] ) ? sanitize_key( wp_unslash( $_GET['profile'] ) ) : '';
@@ -341,14 +342,11 @@ class ABMM_Product_Branding {
 				</div>
 			</div>
 
-			<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
- if ( isset( $_GET['updated'] ) ) : ?>
+			<?php if ( $notice['updated'] ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Product branding saved.', 'ashbi-mega-menu' ); ?></p></div>
 			<?php endif; ?>
-			<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
- if ( isset( $_GET['error'] ) ) : ?>
-				<div class="notice notice-error"><p><?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
- echo esc_html( $this->error_message( sanitize_key( wp_unslash( $_GET['error'] ) ) ) ); ?></p></div>
+			<?php if ( '' !== $notice['error'] ) : ?>
+				<div class="notice notice-error"><p><?php echo esc_html( $this->error_message( $notice['error'] ) ); ?></p></div>
 			<?php endif; ?>
 
 			<?php if ( empty( $profiles ) ) : ?>
@@ -546,7 +544,7 @@ class ABMM_Product_Branding {
 		$all[ $profile_id ] = $config;
 		update_option( self::OPTION_KEY, $all, false );
 
-		wp_safe_redirect( admin_url( 'admin.php?page=ashbi-mega-menu-product-branding&profile=' . rawurlencode( $profile_id ) . '&updated=1' ) );
+		wp_safe_redirect( add_query_arg( '_abmm_notice', wp_create_nonce( 'abmm_branding_notice' ), admin_url( 'admin.php?page=ashbi-mega-menu-product-branding&profile=' . rawurlencode( $profile_id ) . '&updated=1' ) ) );
 		exit;
 	}
 
@@ -660,8 +658,20 @@ class ABMM_Product_Branding {
 		if ( '' !== $profile_id ) {
 			$url .= '&profile=' . rawurlencode( $profile_id );
 		}
-		wp_safe_redirect( $url );
+		wp_safe_redirect( add_query_arg( '_abmm_notice', wp_create_nonce( 'abmm_branding_notice' ), $url ) );
 		exit;
+	}
+
+	/** Read save notices only when they belong to the current administrator session. */
+	private function notice_state() {
+		$empty = array( 'updated' => false, 'error' => '' );
+		if ( ! current_user_can( 'manage_options' ) || ! isset( $_GET['_abmm_notice'] ) || ! is_string( $_GET['_abmm_notice'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_abmm_notice'] ) ), 'abmm_branding_notice' ) ) {
+			return $empty;
+		}
+		return array(
+			'updated' => isset( $_GET['updated'] ) && '1' === $_GET['updated'],
+			'error'   => isset( $_GET['error'] ) && is_string( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '',
+		);
 	}
 
 	/**

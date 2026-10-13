@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,10 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 
 == Changelog ==
 
+= 1.0.3 =
+* Verify product-branding save notices against the current administrator session.
+* Ignore malformed notice values and add WordPress regressions for signed notices.
+
 = 1.0.2 =
 * Serialize menu collection changes and prevent imports when recovery backups fail.
 * Add administrator backup export/restore with stale-state protection.
@@ -82,5 +86,5 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 
 == Upgrade Notice ==
 
-= 1.0.2 =
+= 1.0.3 =
 Review candidate. Back up and test on staging before use. Existing mobile enhancement settings default to disabled.

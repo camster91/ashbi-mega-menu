@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- Product-branding save redirects now carry a session nonce; unsigned or invalid status notices are ignored while the editor remains usable.
+- Reject structured query values and verify notice handling in real WordPress regression tests.
+
 ## 1.0.2
 
 - Serialize all menu collection mutations and refresh caches inside the shared lock.

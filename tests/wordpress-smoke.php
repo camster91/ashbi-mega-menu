@@ -63,7 +63,26 @@ add_filter( 'pre_update_option_abmm_import_backups', $fail_backup_write, 10, 2 )
 $failed = $exporter->import_json( $export, 'replace' );
 remove_filter( 'pre_update_option_abmm_import_backups', $fail_backup_write, 10 );
 abmm_test_assert( is_wp_error( $failed ) && $data->get_all() === $collection_before_import, 'Failed recovery point aborts import.' );
+// Status notices must be signed for the current administrator session.
+wp_set_current_user( 1 );
+$notice_method = new ReflectionMethod( 'ABMM_Product_Branding', 'notice_state' );
+$branding = ABMM_Product_Branding::instance();
+$original_get = $_GET;
+$_GET = array( 'updated' => '1', 'error' => 'alt' );
+abmm_test_assert( array( 'updated' => false, 'error' => '' ) === $notice_method->invoke( $branding ), 'Unsigned notices are ignored.' );
+$_GET['_abmm_notice'] = 'invalid';
+abmm_test_assert( array( 'updated' => false, 'error' => '' ) === $notice_method->invoke( $branding ), 'Invalid notice nonce is ignored.' );
+$_GET['_abmm_notice'] = wp_create_nonce( 'abmm_branding_notice' );
+abmm_test_assert( array( 'updated' => true, 'error' => 'alt' ) === $notice_method->invoke( $branding ), 'Signed admin notices are preserved.' );
+$_GET['error'] = array( 'alt' );
+$_GET['updated'] = array( '1' );
+abmm_test_assert( array( 'updated' => false, 'error' => '' ) === $notice_method->invoke( $branding ), 'Structured notice values are ignored.' );
+$_GET['_abmm_notice'] = array( 'invalid' );
+abmm_test_assert( array( 'updated' => false, 'error' => '' ) === $notice_method->invoke( $branding ), 'Structured nonce is ignored.' );
+$_GET = array( 'updated' => '1', '_abmm_notice' => wp_create_nonce( 'abmm_branding_notice' ) );
 wp_set_current_user( 0 );
+abmm_test_assert( array( 'updated' => false, 'error' => '' ) === $notice_method->invoke( $branding ), 'Anonymous notices are ignored.' );
+$_GET = $original_get;
 $response = rest_do_request( '/ashbi-mega-menu/v1/menus' );
 abmm_test_assert( in_array( $response->get_status(), array( 401, 403 ), true ), 'Anonymous REST access is denied.' );
-WP_CLI::success( 'Create, locked save, reload, stale revision, reactivation, icons, render, export, collection contention, import backups, recovery and REST protection passed.' );
+WP_CLI::success( 'Create, locked save, reload, stale revision, reactivation, icons, render, export, collection contention, import backups, recovery, signed notices and REST protection passed.' );
