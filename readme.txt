@@ -60,11 +60,16 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 
 == Screenshots ==
 
-1. Menu dashboard with the optional generic sample in a local WordPress installation.
+1. Menu dashboard with the guided setup flow and optional modules collapsed.
+2. Blank menu editor with neutral, empty call-to-action defaults.
+3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
 
 = 1.0.4 =
+* Start ordinary sites with neutral defaults and make contextual navigation an optional module.
+* Generalize contextual navigation for products, services, departments, documentation and locations.
+* Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.
 * Preserve numeric menu IDs through imports, editing and placement.
 * Verify export recoverability within bounded limits: 500 menus, 10 MiB total and 1 MiB per menu.
 * Protect product profiles and branding from stale edits, concurrent writes and false save confirmations.

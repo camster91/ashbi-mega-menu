@@ -17,4 +17,4 @@ Export menus and take a full-site/database backup before upgrading. Test on stag
 
 Deactivation keeps stored plugin data. Deletion through WordPress removes plugin settings, menus, archives, backups, profiles and branding; export and back up first. Removing the plugin does not recreate theme navigation previously removed from a header.
 
-WordPress.org submission and approval remain pending. GitHub release availability is distinct from directory approval. Claims about user adoption, accessibility conformance and theme compatibility require their own evidence.
+The existing WordPress.org submission is awaiting review; directory approval remains pending. GitHub release availability is distinct from directory approval. Claims about user adoption, accessibility conformance and theme compatibility require their own evidence.

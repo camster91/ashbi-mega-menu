@@ -4,9 +4,9 @@
 
 An open-source WordPress plugin for building responsive navigation with a visual editor. Licensed under GPL-2.0-or-later.
 
-**Status:** the [1.0.3 review candidate](https://github.com/camster91/ashbi-mega-menu/releases/tag/v1.0.3) was submitted to WordPress.org on October 13, 2026. The directory's automated scan passed; status is Awaiting Review, with initial slug `ashbi-mega-menu`. Directory approval has not been granted. A separate downloadable visual kit is available.
+**Status:** version 1.0.4 is the current release candidate for the existing WordPress.org submission under slug `ashbi-mega-menu`. Directory approval has not been granted.
 
-[Release validation](https://github.com/camster91/ashbi-mega-menu/actions/runs/38401452659) passed: build, regressions, official Plugin Check and WordPress database tests, including WordPress 6.6/PHP 8.2. Plugin Check has zero errors and zero warnings. See [security review](docs/security-review.md).
+[Release validation](https://github.com/camster91/ashbi-mega-menu/actions/runs/38440570036) covers the build, regression suite, official Plugin Check and WordPress database tests, including WordPress 6.6/PHP 8.2. See [security review](docs/security-review.md).
 
 ## Features
 
@@ -14,7 +14,7 @@ An open-source WordPress plugin for building responsive navigation with a visual
 - Desktop and mobile previews, plus optional browser-local mobile menu search.
 - Shortcode, block and widget placement.
 - Menu import, export and archives.
-- Product navigation profiles for a hub page and its child pages.
+- Optional contextual navigation for products, services, departments, documentation or locations.
 - Revision checks prevent a stale editor from silently replacing newer changes.
 
 Activation starts with an empty menu list. An optional generic sample helps you get started; replace its placeholder links before using it. The plugin never automatically replaces your theme's header. Start with [the user guide](docs/user-guide.md) for placement, duplicate-header prevention and recovery.
@@ -25,7 +25,7 @@ WordPress 6.6 or later, PHP 8.2 or later, and a standard MySQL/MariaDB WordPress
 
 Upload the release ZIP through **Plugins → Add New → Upload Plugin**, activate it, then open **Ashbi Mega Menu**. Create a menu and place it with the provided shortcode, block or widget. Test placement, keyboard navigation and mobile links on staging before enabling it on a client site.
 
-Follow the [block-theme and classic-theme placement recipes](docs/user-guide.md#put-it-in-a-header). Theme-specific interactive testing remains pending; see the [verification matrix](docs/compatibility.md) for the limits of current evidence. Export menus and take a full-site backup before replacement imports or upgrades. Retained import backups restore the active menu collection; they do not restore header templates or the complete site.
+Follow the [block-theme and classic-theme placement recipes](docs/user-guide.md#put-it-in-a-header). Chrome testing on a local WordPress installation covers the core create, edit, placement and responsive-navigation journey; see the [verification matrix](docs/compatibility.md) for its limits. Export menus and take a full-site backup before replacement imports or upgrades. Retained import backups restore the active menu collection; they do not restore header templates or the complete site.
 
 This plugin uses independent `abmm_` storage and identifiers. It is a separate plugin, not an automatic migration or replacement for another menu plugin.
 
@@ -41,13 +41,13 @@ npm run test:php
 npm run package
 ```
 
-Use Node.js 24.18 or later and PHP 8.2 or later. Block source lives in `src/`; compiled files are in `build/`. Packaging uses an explicit runtime allowlist and produces `dist/ashbi-mega-menu-1.0.3.zip`. Build dependencies and CI configuration are available here, and are excluded from the install ZIP.
+Use Node.js 24.18 or later and PHP 8.2 or later. Block source lives in `src/`; compiled files are in `build/`. Packaging uses an explicit runtime allowlist and produces `dist/ashbi-mega-menu-1.0.4.zip`. Build dependencies and CI configuration are available here, and are excluded from the install ZIP.
 
 ## Visual identity and directory assets
 
-The original editable SVG artwork and palette are in [the brand kit](design/brand/README.md). Directory icons, banners and the local WordPress dashboard capture live in [.wordpress-org](.wordpress-org); see [asset deployment instructions](docs/wordpress-directory-assets.md). The banner uses a conceptual illustration. Editor screenshots were withdrawn because they did not show a complete loaded state; new interactive captures remain pending. Directory publication remains pending review and approval.
+The original editable SVG artwork and palette are in [the brand kit](design/brand/README.md). Directory icons, banners and genuine local WordPress captures live in [.wordpress-org](.wordpress-org); see [asset deployment instructions](docs/wordpress-directory-assets.md). The banner uses a conceptual illustration. Directory publication remains pending review and approval.
 
-![Menu dashboard in local WordPress with generic sample content](.wordpress-org/screenshot-1.png)
+![Menu dashboard in local WordPress](.wordpress-org/screenshot-1.png)
 
 CI builds the block, runs regression tests and invokes the official WordPress Plugin Check action against the packaged files. A successful CI run does not guarantee WordPress.org approval or compatibility with every theme.
 

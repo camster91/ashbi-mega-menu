@@ -42,7 +42,7 @@ foreach ( $abmm_option_keys as $abmm_key ) {
 // Recovery drafts use unpredictable transient keys; remove every plugin-owned key.
 global $wpdb;
 $abmm_transient_prefix = $wpdb->esc_like( '_transient_abmm_product_draft_' ) . '%';
-$abmm_recovery_options = $wpdb->get_col(
+$abmm_recovery_options = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall must enumerate unpredictable plugin-owned transient keys once; results must not be cached.
 	$wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $abmm_transient_prefix ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core-owned table name.
 );
 foreach ( $abmm_recovery_options as $abmm_recovery_option ) {

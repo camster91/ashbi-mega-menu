@@ -2,6 +2,10 @@
 
 ## 1.0.4
 
+- Start ordinary sites with neutral defaults: blank menus have no visible call to action, and contextual navigation is an optional module.
+- Generalize contextual navigation for products, services, departments, documentation and locations without inferring behavior from menu labels.
+- Preserve the contextual module automatically for upgrades that already contain profile or branding data.
+- Complete removal of dynamic recovery drafts and package third-party notices in the WordPress.org-compatible text format.
 - Preserve numeric menu IDs, including zero, across imports, administration, block/widget and shortcode placement.
 - Validate every portable export against bounded importer limits (500 menus, 10 MiB overall, 1 MiB per menu, 100,000 nodes, depth 32). Oversized downloads fail clearly; stored recovery snapshots still restore in place.
 - Serialize product-profile and branding mutations, refresh option caches under lock, reject stale revisions, and verify saved data before confirming success.
