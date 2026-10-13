@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( empty( $attributes['menuId'] ) ) {
+if ( ! isset( $attributes['menuId'] ) || ! is_scalar( $attributes['menuId'] ) || '' === (string) $attributes['menuId'] ) {
 	return;
 }
 

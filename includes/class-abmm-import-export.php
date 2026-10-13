@@ -31,9 +31,11 @@ class ABMM_Import_Export {
 	/**
 	 * Defensive limits for admin, REST, and CLI imports.
 	 */
-	const MAX_IMPORT_BYTES = 1048576;
-	const MAX_IMPORT_MENUS = 50;
-	const MAX_IMPORT_NODES = 5000;
+	const MAX_IMPORT_BYTES = 10485760;
+	const MAX_MENU_BYTES = 1048576;
+	const MAX_IMPORT_MENUS = 500;
+	const MAX_IMPORT_NODES = 100000;
+	const MAX_JSON_DEPTH = 32;
 
 	/**
 	 * @return ABMM_Import_Export
@@ -70,6 +72,12 @@ class ABMM_Import_Export {
 
 	/** Export one recovery point as a portable plugin export. */
 	public function export_backup( $id ) {
+		$payload = $this->get_backup_payload( $id );
+		return is_wp_error( $payload ) ? $payload : $this->validate_export( $payload );
+	}
+
+	/** In-place recovery retains exact stored state, including legacy collections above portable limits. */
+	private function get_backup_payload( $id ) {
 		foreach ( $this->get_backups() as $backup ) {
 			if ( (string) $backup['id'] === (string) $id ) {
 				return array( 'format' => 'ashbi-mega-menu', 'format_version' => self::FORMAT_VERSION, 'plugin_version' => ABMM_VERSION, 'exported_at' => $backup['created_at'], 'menus' => $backup['menus'] );
@@ -86,7 +94,7 @@ class ABMM_Import_Export {
 			if ( ! is_string( $revision ) || '' === $revision || ! hash_equals( $current_revision, $revision ) ) {
 				return new WP_Error( 'abmm_backup_conflict', __( 'Menus changed since this recovery list loaded. Refresh and review before restoring.', 'ashbi-mega-menu' ) );
 			}
-			$payload = $this->export_backup( $id );
+			$payload = $this->get_backup_payload( $id );
 			if ( is_wp_error( $payload ) ) { return $payload; }
 			$backup = $this->backup_current_menus();
 			if ( is_wp_error( $backup ) ) { return $backup; }
@@ -296,9 +304,9 @@ class ABMM_Import_Export {
 		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
 			$body = null;
 		} elseif ( strlen( $raw ) > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
-			return new WP_Error( 'abmm_import_too_large', __( 'Import files must be 1 MB or smaller.', 'ashbi-mega-menu' ), array( 'status' => 413 ) );
+			return new WP_Error( 'abmm_import_too_large', __( 'Import files must be 10 MB or smaller.', 'ashbi-mega-menu' ), array( 'status' => 413 ) );
 		} else {
-			$body = json_decode( $raw, true, 32 );
+			$body = json_decode( $raw, true, ABMM_Import_Export::MAX_JSON_DEPTH );
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				return new WP_Error( 'abmm_invalid_json', __( 'The request body is not valid JSON.', 'ashbi-mega-menu' ), array( 'status' => 400 ) );
 			}
@@ -336,6 +344,7 @@ class ABMM_Import_Export {
 			return $ids;
 		}
 		$data = $this->export_json( $ids );
+		if ( is_wp_error( $data ) ) { return $data; }
 
 		return new WP_REST_Response(
 			array(
@@ -366,20 +375,20 @@ class ABMM_Import_Export {
 		$menus = array();
 
 		foreach ( $all as $id => $menu ) {
-			if ( null !== $ids && ! in_array( $id, $ids, true ) ) {
+			if ( null !== $ids && ! in_array( (string) $id, $ids, true ) ) {
 				continue;
 			}
 			$menus[ $id ] = $menu;
 		}
 
-		return array(
+		return $this->validate_export( array(
 			'format'      => 'ashbi-mega-menu',
 			'format_version' => self::FORMAT_VERSION,
 			'plugin_version' => ABMM_VERSION,
 			'version'     => ABMM_VERSION,
 			'exported_at' => gmdate( 'c' ),
 			'menus'       => $menus,
-		);
+		) );
 	}
 
 	/**
@@ -430,7 +439,7 @@ class ABMM_Import_Export {
 		foreach ( $menus as $id => $menu_data ) {
 			$id = sanitize_key( $id );
 
-			if ( empty( $id ) || ! is_array( $menu_data ) ) {
+			if ( '' === $id || ! is_array( $menu_data ) ) {
 				$results[ $id ] = array( 'status' => 'skipped', 'reason' => 'invalid_data' );
 				continue;
 			}
@@ -453,7 +462,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 		$backup = $this->backup_current_menus();
 		if ( is_wp_error( $backup ) ) { return $backup; }
 
-		$next  = 'replace' === $mode ? $prepared : array_merge( $existing, $prepared );
+		$next  = 'replace' === $mode ? $prepared : array_replace( $existing, $prepared );
 		$saved = ABMM_Data::instance()->replace_all( $next );
 		if ( is_wp_error( $saved ) ) { return $saved; }
 
@@ -554,14 +563,23 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 			return new WP_Error( 'abmm_menu_not_found', __( 'Menu not found.', 'ashbi-mega-menu' ) );
 		}
 
-		return array(
+		return $this->validate_export( array(
 			'format'      => 'ashbi-mega-menu',
 			'format_version' => self::FORMAT_VERSION,
 			'plugin_version' => ABMM_VERSION,
 			'version'     => ABMM_VERSION,
 			'exported_at' => gmdate( 'c' ),
 			'menus'       => array( $id => $menu ),
-		);
+		) );
+	}
+
+	/** Refuse exports that cannot be read back through the supported importer. */
+	private function validate_export( $payload ) {
+		$errors = $this->validate_payload( $payload );
+		if ( ! empty( $errors ) ) {
+			return new WP_Error( 'abmm_export_not_recoverable', implode( ' ', $errors ) . ' ' . __( 'Export fewer menus at a time, or reduce an oversized menu before exporting.', 'ashbi-mega-menu' ), array( 'status' => 413 ) );
+		}
+		return $payload;
 	}
 
 	/**
@@ -575,6 +593,18 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 
 		if ( ! is_array( $payload ) ) {
 			$errors[] = __( 'Import data must be a JSON object.', 'ashbi-mega-menu' );
+			return $errors;
+		}
+
+		// Match the downloadable representation, including indentation and Unicode escaping.
+		$json = wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES, self::MAX_JSON_DEPTH );
+		if ( ! is_string( $json ) || strlen( $json ) > self::MAX_IMPORT_BYTES ) {
+			$errors[] = __( 'The import exceeds the 10 MB recovery limit or the supported nesting depth.', 'ashbi-mega-menu' );
+			return $errors;
+		}
+		json_decode( $json, true, self::MAX_JSON_DEPTH );
+		if ( JSON_ERROR_NONE !== json_last_error() ) {
+			$errors[] = __( 'The import exceeds the supported JSON nesting depth.', 'ashbi-mega-menu' );
 			return $errors;
 		}
 
@@ -612,7 +642,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 		$normalized_ids = array();
 		foreach ( $menus as $id => $menu ) {
 			$normalized_id = sanitize_key( $id );
-			if ( empty( $normalized_id ) ) {
+			if ( '' === $normalized_id ) {
 				$errors[] = __( 'Every imported menu must have a valid ID.', 'ashbi-mega-menu' );
 				continue;
 			}
@@ -633,6 +663,14 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 					$id
 				);
 				continue;
+			}
+			$menu_json = wp_json_encode( $menu, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES, self::MAX_JSON_DEPTH );
+			if ( ! is_string( $menu_json ) || strlen( $menu_json ) > self::MAX_MENU_BYTES ) {
+				$errors[] = sprintf(
+					/* translators: %s: menu ID */
+					__( 'Menu "%s" exceeds the 1 MB per-menu recovery limit. Reduce its content before exporting or importing.', 'ashbi-mega-menu' ),
+					$id
+				);
 			}
 			if ( empty( $menu['title'] ) ) {
 				$errors[] = sprintf(
@@ -726,7 +764,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI_Command' ) ) {
 
 			$exporter = ABMM_Import_Export::instance();
 
-			if ( $id ) {
+			if ( null !== $id && '' !== (string) $id ) {
 				$data = $exporter->export_single_menu( $id );
 			} else {
 				$data = $exporter->export_json();
@@ -788,14 +826,14 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI_Command' ) ) {
 				WP_CLI::error( 'Could not determine the import file size.' );
 			}
 			if ( ABMM_Import_Export::MAX_IMPORT_BYTES < $size ) {
-				WP_CLI::error( 'Import files must be 1 MB or smaller.' );
+				WP_CLI::error( 'Import files must be 10 MB or smaller.' );
 			}
 
 			$raw = file_get_contents( $file, false, null, 0, ABMM_Import_Export::MAX_IMPORT_BYTES + 1 );
 			if ( false === $raw || strlen( $raw ) > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
-				WP_CLI::error( 'Import files must be 1 MB or smaller.' );
+				WP_CLI::error( 'Import files must be 10 MB or smaller.' );
 			}
-			$payload = json_decode( $raw, true, 32 );
+			$payload = json_decode( $raw, true, ABMM_Import_Export::MAX_JSON_DEPTH );
 
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				WP_CLI::error( 'Invalid JSON in import file.' );

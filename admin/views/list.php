@@ -25,6 +25,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<section class="abmm-setup-flow" aria-labelledby="abmm-setup-title">
+		<h2 id="abmm-setup-title"><?php esc_html_e( 'Your menu, from first link to live header', 'ashbi-mega-menu' ); ?></h2>
+		<ol class="abmm-setup-steps">
+			<li><strong><?php esc_html_e( '1. Create', 'ashbi-mega-menu' ); ?></strong><span><?php esc_html_e( 'Start blank or use the sample.', 'ashbi-mega-menu' ); ?></span></li>
+			<li><strong><?php esc_html_e( '2. Edit & save', 'ashbi-mega-menu' ); ?></strong><span><?php esc_html_e( 'Add destinations and resolve configuration checks.', 'ashbi-mega-menu' ); ?></span></li>
+			<li><strong><?php esc_html_e( '3. Place', 'ashbi-mega-menu' ); ?></strong><span><?php esc_html_e( 'Select the saved menu in a block, widget or shortcode.', 'ashbi-mega-menu' ); ?></span></li>
+			<li><strong><?php esc_html_e( '4. Verify', 'ashbi-mega-menu' ); ?></strong><span><?php esc_html_e( 'Test the real header on desktop and mobile.', 'ashbi-mega-menu' ); ?></span></li>
+		</ol>
+		<p class="description"><?php esc_html_e( 'Configuration checks do not confirm placement or live-site testing. Your existing header stays in place until you change it.', 'ashbi-mega-menu' ); ?></p>
+	</section>
+
 	<div class="abmm-list-status" id="abmm-list-status" role="status" aria-live="polite" tabindex="-1"></div>
 
 	<?php if ( ! empty( $show_onboarding ) ) : ?>
@@ -59,7 +70,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 								<span class="abmm-badge abmm-badge--sample"><?php esc_html_e( 'Sample', 'ashbi-mega-menu' ); ?></span>
 							<?php endif; ?>
 							<span class="abmm-badge <?php echo ! empty( $abmm_menu_readiness['ready'] ) ? 'abmm-badge--ready' : 'abmm-badge--draft'; ?>">
-								<?php echo ! empty( $abmm_menu_readiness['ready'] ) ? esc_html__( 'Ready', 'ashbi-mega-menu' ) : esc_html__( 'Draft', 'ashbi-mega-menu' ); ?>
+								<?php echo ! empty( $abmm_menu_readiness['ready'] ) ? esc_html__( 'Configured', 'ashbi-mega-menu' ) : esc_html__( 'Draft', 'ashbi-mega-menu' ); ?>
 							</span>
 						</h2>
 						<p class="abmm-menu-card__meta">
@@ -80,13 +91,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 								</button>
 							</div>
 						<?php else : ?>
-							<p class="abmm-readiness-hint"><?php esc_html_e( 'Saved as a draft. Complete the readiness items in the editor before placement.', 'ashbi-mega-menu' ); ?></p>
+							<p class="abmm-readiness-hint"><?php esc_html_e( 'Saved as a draft. Complete the configuration checks in the editor before placement.', 'ashbi-mega-menu' ); ?></p>
 						<?php endif; ?>
 					</div>
 					<div class="abmm-menu-card__actions">
 						<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) ) ); ?>">
 							<?php esc_html_e( 'Edit Menu', 'ashbi-mega-menu' ); ?>
 						</a>
+						<?php if ( ! empty( $abmm_menu_readiness['ready'] ) ) : ?><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) . '#placement' ) ); ?>"><?php esc_html_e( 'Place & verify', 'ashbi-mega-menu' ); ?></a><?php endif; ?>
+						<details class="abmm-menu-tools"><summary><?php esc_html_e( 'More: export, duplicate, archive', 'ashbi-mega-menu' ); ?></summary><div>
 						<button type="button" class="button abmm-export-menu" data-menu-id="<?php echo esc_attr( $id ); ?>" title="<?php esc_attr_e( 'Export as JSON', 'ashbi-mega-menu' ); ?>">
 							<span class="dashicons dashicons-download" style="margin-top:3px"></span>
 							<?php esc_html_e( 'Export', 'ashbi-mega-menu' ); ?>
@@ -97,6 +110,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<button type="button" class="button abmm-delete-menu" data-menu-id="<?php echo esc_attr( $id ); ?>" data-menu-title="<?php echo esc_attr( $menu['title'] ?: __( 'Untitled', 'ashbi-mega-menu' ) ); ?>">
 							<?php esc_html_e( 'Archive', 'ashbi-mega-menu' ); ?>
 						</button>
+						</div></details>
 					</div>
 				</div>
 			<?php endforeach; ?>
@@ -119,12 +133,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php endif; ?>
 
 	<!-- Import Panel -->
-	<div class="abmm-import-panel">
-		<h3><?php esc_html_e( 'Import / Export', 'ashbi-mega-menu' ); ?></h3>
+	<details class="abmm-import-panel" id="abmm-transfer-panel">
+		<summary><strong><?php esc_html_e( 'Import / Export & developer tools', 'ashbi-mega-menu' ); ?></strong></summary>
 		<div class="abmm-import-panel__body">
 			<div class="abmm-import-upload">
 				<h4><?php esc_html_e( 'Import from JSON file', 'ashbi-mega-menu' ); ?></h4>
-				<p class="description"><?php esc_html_e( 'Upload a .json file to import menus. You can also use the REST API or WP-CLI for automated imports.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Upload a .json file to preview changes before importing. Your current menus are backed up before replacement.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php printf( /* translators: %s: maximum formatted import size. */ esc_html__( 'Maximum import file size: %s.', 'ashbi-mega-menu' ), esc_html( size_format( ABMM_Import_Export::MAX_IMPORT_BYTES ) ) ); ?></p>
 				<form class="abmm-import-form" id="abmm-import-form" enctype="multipart/form-data">
 					<?php wp_nonce_field( 'abmm_admin', 'abmm_import_nonce' ); ?>
 					<div class="abmm-import-form__row">
@@ -166,10 +181,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</div>
 			</div>
 		</div>
-	</div>
+	</details>
 
 	<details class="abmm-import-panel" id="abmm-backup-panel">
-		<summary><strong><?php esc_html_e( 'Import backups', 'ashbi-mega-menu' ); ?></strong></summary>
+		<summary><strong><?php esc_html_e( 'Recovery snapshots', 'ashbi-mega-menu' ); ?></strong></summary>
 		<p><?php esc_html_e( 'Export a retained snapshot before restoring it. Restore replaces all active menus with that snapshot and first saves the current collection in another backup. Only the latest five collection backups are retained; theme templates and other settings are not included.', 'ashbi-mega-menu' ); ?></p>
 		<button type="button" class="button abmm-load-backups"><?php esc_html_e( 'Refresh backups', 'ashbi-mega-menu' ); ?></button>
 		<div id="abmm-backup-status" role="status" aria-live="polite" tabindex="-1"></div>

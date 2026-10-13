@@ -38,10 +38,10 @@ class ABMM_Widget extends WP_Widget {
 	 */
 	public function widget( $args, $instance ) {
 		$title   = ! empty( $instance['title'] ) ? $instance['title'] : '';
-		$menu_id = ! empty( $instance['menu_id'] ) ? $instance['menu_id'] : '';
+		$menu_id = isset( $instance['menu_id'] ) && is_scalar( $instance['menu_id'] ) ? (string) $instance['menu_id'] : '';
 		$context = 'page' === ( $instance['context'] ?? '' ) ? 'page' : '';
 
-		if ( ! $menu_id ) {
+		if ( '' === $menu_id ) {
 			return;
 		}
 
@@ -63,7 +63,7 @@ class ABMM_Widget extends WP_Widget {
 	 */
 	public function form( $instance ) {
 		$title   = ! empty( $instance['title'] ) ? $instance['title'] : '';
-		$menu_id = ! empty( $instance['menu_id'] ) ? $instance['menu_id'] : '';
+		$menu_id = isset( $instance['menu_id'] ) && is_scalar( $instance['menu_id'] ) ? (string) $instance['menu_id'] : '';
 		$context = 'page' === ( $instance['context'] ?? '' );
 		$menus   = ABMM_Data::instance()->get_all();
 		?>

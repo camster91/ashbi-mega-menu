@@ -1,5 +1,9 @@
 # Using Ashbi Mega Menu
 
+Portable imports/exports are limited to 500 menus and 10 MiB total, with a 1 MiB limit for each menu. A successful export is checked against the importer before downloading. If a complete export exceeds a limit, export smaller selections through the API/CLI or individual menus from More actions; reduce an oversized individual menu before exporting. These limits protect processing resources. Retained on-site import recovery points are separate and can restore their original stored collection in place.
+
+Product profiles and branding reject edits from stale tabs. After a failed or conflicting save, entered fields are retained in a private recovery form for 30 minutes. Review the latest saved values before retrying. Editors opened before an upgrade should be reloaded; an unchanged save is allowed, while a failed database write never produces a saved confirmation.
+
 Start on a staging copy of your site. Creating a menu does not change the theme header; placement is a separate step. Use a standard MySQL/MariaDB WordPress installation. SQLite is unsupported for editing.
 
 ## Build and verify a menu
@@ -105,3 +109,16 @@ Use authenticated administration only. See source/tests for automation contracts
 | Block does not list a newly created menu | Save the menu and reload the page editor; confirm your account has the required management capability. |
 
 Before launch, test keyboard opening/closing, visible focus, phone menu back/close, link destinations and search if enabled. Keep an accessible alternative navigation until these checks pass. See [support](support-policy.md) for a useful bug report.
+
+
+## Follow the setup path
+
+The dashboard and editor use **Create → Edit & save → Place → Verify**. A **Configured** badge means the saved menu passes content checks; it does not mean a header was installed or its links were tested. Use **Place & verify** on a configured menu to open placement instructions. The editor has the same steps above the save bar. Save before copying a shortcode: published placements read the saved version, not the preview or an unsaved draft.
+
+The Place step includes the exact menu shortcode, a block-theme recipe, a classic header/widget recipe, and a guarded child-theme PHP call. The Verify step is a manual checklist for actual pages: follow each destination, operate panels with keyboard, and confirm the mobile drawer closes before navigation. Use a staging page first and keep the original header until the replacement passes.
+
+Per-menu export, duplicate and archive live under **More**. Collection import and developer examples live under **Import / Export & developer tools**; **Recovery snapshots** remains a separate clearly labelled section. Existing product profiles and branding pages remain available for reusable product navigation.
+
+### Recover a stale browser draft
+
+If the saved menu changed after a browser draft was created, download the local draft first. Restoring a stale draft allows review but disables saving to protect the newer saved menu. **Reload saved version** fetches current content and retains the draft for recovery. Reapply selected changes to the current saved version, or use **Discard local draft** only after retaining the download. If you discard a restored stale draft, the editor returns to the saved content and revision; it never silently assigns the newer revision to old draft content.

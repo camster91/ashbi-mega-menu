@@ -63,8 +63,8 @@ class ABMM_Block {
 	 * @return string
 	 */
 	public function render_block( $attributes, $content, $block ) {
-		$menu_id = $attributes['menuId'] ?? '';
-		if ( ! $menu_id ) {
+		$menu_id = isset( $attributes['menuId'] ) && is_scalar( $attributes['menuId'] ) ? (string) $attributes['menuId'] : '';
+		if ( '' === $menu_id ) {
 			return '';
 		}
 		$context = 'page' === ( $attributes['context'] ?? '' ) ? 'page' : '';

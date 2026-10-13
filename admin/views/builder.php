@@ -55,9 +55,17 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 		<h2><?php esc_html_e( 'Unsaved local draft found', 'ashbi-mega-menu' ); ?></h2>
 		<p class="abmm-draft-recovery__message"></p>
 		<button type="button" class="button button-primary abmm-restore-draft"><?php esc_html_e( 'Restore local draft', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" class="button abmm-download-draft"><?php esc_html_e( 'Download local draft', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" class="button abmm-reload-server"><?php esc_html_e( 'Reload saved version', 'ashbi-mega-menu' ); ?></button>
 		<button type="button" class="button abmm-discard-draft"><?php esc_html_e( 'Discard local draft', 'ashbi-mega-menu' ); ?></button>
 	</div>
 
+	<nav class="abmm-setup-flow abmm-workflow-nav" aria-label="<?php esc_attr_e( 'Menu setup steps', 'ashbi-mega-menu' ); ?>">
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>" class="abmm-guarded-exit"><?php esc_html_e( '1. Create', 'ashbi-mega-menu' ); ?></a>
+		<button type="button" data-abmm-workflow="content"><?php esc_html_e( '2. Edit & save', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" data-abmm-workflow="help"><?php esc_html_e( '3. Place', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" data-abmm-workflow="verify"><?php esc_html_e( '4. Verify', 'ashbi-mega-menu' ); ?></button>
+	</nav>
 	<div class="abmm-builder-topbar">
 		<a class="abmm-back abmm-guarded-exit" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>">
 			← <?php esc_html_e( 'All Menus', 'ashbi-mega-menu' ); ?>
@@ -166,7 +174,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			</section>
 
 			<section class="abmm-builder-panel abmm-readiness-panel" id="abmm-readiness-panel" aria-labelledby="abmm-readiness-title">
-				<h2 id="abmm-readiness-title"><?php esc_html_e( 'Menu readiness', 'ashbi-mega-menu' ); ?></h2>
+				<h2 id="abmm-readiness-title"><?php esc_html_e( 'Configuration checks', 'ashbi-mega-menu' ); ?></h2>
 				<p class="abmm-readiness-summary" role="status" aria-live="polite"></p>
 				<ul class="abmm-readiness-issues"></ul>
 			</section>
@@ -398,9 +406,19 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 
 			<div class="abmm-builder-section-group" id="abmm-section-panel-help" data-abmm-builder-section-panel="help" role="tabpanel" aria-labelledby="abmm-section-tab-help" hidden>
 			<section class="abmm-builder-panel abmm-builder-panel--hint abmm-placement-panel" <?php echo ! empty( $abmm_menu_readiness['ready'] ) ? '' : 'hidden'; ?>>
-				<h2><?php esc_html_e( 'Ready to place', 'ashbi-mega-menu' ); ?></h2>
+				<h2><?php esc_html_e( 'Place this saved menu', 'ashbi-mega-menu' ); ?></h2>
+				<p class="abmm-placement-save-hint" role="status"></p>
 				<code class="abmm-shortcode-block">[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]</code>
-				<p><?php esc_html_e( 'Use this shortcode, the Ashbi Mega Menu block, or the widget.', 'ashbi-mega-menu' ); ?></p>
+				<p><button type="button" class="button abmm-copy-placement" data-shortcode='[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]'><?php esc_html_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?></button></p>
+				<p><?php esc_html_e( 'Block theme: insert Ashbi Mega Menu in your Header template and select this menu. Classic theme: use the widget in a header area or paste this shortcode in your header builder.', 'ashbi-mega-menu' ); ?></p>
+				<details><summary><?php esc_html_e( 'Child-theme PHP placement', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Ask your developer to add this guarded call to the child-theme header, after saving a rollback copy.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
+			</section>
+
+			<section class="abmm-builder-panel abmm-verification-panel" id="abmm-verification-panel" tabindex="-1" aria-labelledby="abmm-verification-title">
+				<h2 id="abmm-verification-title"><?php esc_html_e( 'Verify the real header', 'ashbi-mega-menu' ); ?></h2>
+				<p><?php esc_html_e( 'The editor preview is a design aid. These checks must be completed on a real page; the plugin does not mark them complete automatically.', 'ashbi-mega-menu' ); ?></p>
+				<ol><li><?php esc_html_e( 'Save and reload, then place the menu on a staging page or header.', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Desktop: open every panel and follow every link. Test Tab, Enter and Escape.', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Mobile: open the drawer and nested panels. Follow a link and confirm the drawer closes and the destination loads.', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Check narrow screens, browser zoom, and duplicate navigation before replacing the original header.', 'ashbi-mega-menu' ); ?></li></ol>
+				<a class="button" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open site in a new tab', 'ashbi-mega-menu' ); ?></a>
 			</section>
 
 			<section class="abmm-builder-panel abmm-builder-help" aria-labelledby="abmm-builder-help-title">

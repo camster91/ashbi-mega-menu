@@ -202,6 +202,13 @@ class ABMM_Product_Profiles {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$edit_id  = isset( $_GET['profile'] ) ? sanitize_key( wp_unslash( $_GET['profile'] ) ) : '';
 		$profile  = $profiles[ $edit_id ] ?? $this->sanitize_profile( array() );
+		$revision = ABMM_Option_Store::revision( $profiles[ $edit_id ] ?? null );
+		$draft = ABMM_Option_Store::draft( 'ashbi-mega-menu-products' );
+		if ( $draft ) {
+			$edit_id = $draft['id'];
+			$profile = $this->recovery_profile( $draft['record'] );
+			$revision = ABMM_Option_Store::revision( $profiles[ $edit_id ] ?? null );
+		}
 		$pages    = get_pages( array( 'post_status' => 'publish', 'sort_column' => 'post_title' ) );
 		?>
 		<div class="wrap abmm-profile-admin">
@@ -214,8 +221,8 @@ class ABMM_Product_Profiles {
 				</div>
 				<a class="button button-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-coverage' ) ); ?>"><?php esc_html_e( 'Review coverage', 'ashbi-mega-menu' ); ?></a>
 			</div>
-			<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
- if ( isset( $_GET['updated'] ) ) : ?>
+			<?php if ( $draft ) : ?><div class="notice notice-error"><p><?php echo esc_html( $draft['error'] ); ?> <?php esc_html_e( 'Your entered values are retained below. Review them against the latest saved profile before retrying.', 'ashbi-mega-menu' ); ?></p></div><?php endif; ?>
+			<?php if ( isset( $_GET['updated'], $_GET['_abmm_notice'] ) && is_string( $_GET['_abmm_notice'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_abmm_notice'] ) ), 'abmm_profile_notice' ) ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Product navigation saved.', 'ashbi-mega-menu' ); ?></p></div>
 			<?php endif; ?>
 			<ol class="abmm-profile-admin__steps" aria-label="<?php esc_attr_e( 'Product navigation workflow', 'ashbi-mega-menu' ); ?>">
@@ -231,7 +238,7 @@ class ABMM_Product_Profiles {
 					<?php else : ?>
 						<ul class="abmm-profile-admin__cards">
 						<?php foreach ( $profiles as $profile_id => $item ) : ?>
-							<?php $delete_url = wp_nonce_url( admin_url( 'admin-post.php?action=abmm_delete_product_profile&profile=' . rawurlencode( $profile_id ) ), 'abmm_delete_product_profile_' . $profile_id ); $profile_url = admin_url( 'admin.php?page=ashbi-mega-menu-products&profile=' . rawurlencode( $profile_id ) ); $is_selected = $edit_id === $profile_id; ?>
+							<?php $delete_url = wp_nonce_url( admin_url( 'admin-post.php?action=abmm_delete_product_profile&profile=' . rawurlencode( $profile_id ) . '&revision=' . ABMM_Option_Store::revision( $item ) . '&branding_revision=' . ABMM_Option_Store::revision( ABMM_Product_Branding::instance()->get_all()[ $profile_id ] ?? null ) ), 'abmm_delete_product_profile_' . $profile_id ); $profile_url = admin_url( 'admin.php?page=ashbi-mega-menu-products&profile=' . rawurlencode( $profile_id ) ); $is_selected = $edit_id === $profile_id; ?>
 							<li class="<?php echo $is_selected ? 'is-selected' : ''; ?>"><a class="abmm-profile-admin__card" href="<?php echo esc_url( $profile_url ); ?>"<?php echo $is_selected ? ' aria-current="page"' : ''; ?>><strong><?php echo esc_html( $item['title'] ?: $item['label'] ?: $profile_id ); ?></strong><span><?php printf( esc_html(
 /* translators: %d: Number of local navigation links. */
 _n( '%d local link', '%d local links', count( $item['links'] ?? array() ), 'ashbi-mega-menu' ) ), esc_html( count( $item['links'] ?? array() ) ) ); ?></span></a><a class="abmm-profile-admin__delete" href="<?php echo esc_url( $delete_url ); ?>" onclick="return window.confirm('<?php echo esc_js( __( 'Delete this product profile? Pages will use their inherited profile or the global fallback.', 'ashbi-mega-menu' ) ); ?>');"><?php esc_html_e( 'Delete', 'ashbi-mega-menu' ); ?></a></li>
@@ -243,6 +250,7 @@ _n( '%d local link', '%d local links', count( $item['links'] ?? array() ), 'ashb
 					<?php wp_nonce_field( 'abmm_save_product_profile' ); ?>
 					<input type="hidden" name="action" value="abmm_save_product_profile" />
 					<input type="hidden" name="profile_id" value="<?php echo esc_attr( $edit_id ); ?>" />
+					<input type="hidden" name="revision" value="<?php echo esc_attr( $revision ); ?>" />
 					<div class="abmm-profile-admin__form-head"><div><p class="abmm-profile-admin__kicker"><?php esc_html_e( 'Profile setup', 'ashbi-mega-menu' ); ?></p><h2><?php echo esc_html( $edit_id ? __( 'Edit product profile', 'ashbi-mega-menu' ) : __( 'Add product profile', 'ashbi-mega-menu' ) ); ?></h2></div><span><?php esc_html_e( 'Product-local only', 'ashbi-mega-menu' ); ?></span></div>
 					<fieldset class="abmm-profile-admin__fieldset"><legend><?php esc_html_e( '1. Product identity', 'ashbi-mega-menu' ); ?></legend><p><?php esc_html_e( 'This establishes the product name and the page that passes its local navigation to child pages.', 'ashbi-mega-menu' ); ?></p><div class="abmm-profile-admin__field-grid"><label><?php esc_html_e( 'Internal name', 'ashbi-mega-menu' ); ?><input class="regular-text" required name="profile[title]" value="<?php echo esc_attr( $profile['title'] ); ?>" placeholder="Example Product" /></label><label><?php esc_html_e( 'Product name visitors see', 'ashbi-mega-menu' ); ?><input class="regular-text" required name="profile[label]" value="<?php echo esc_attr( $profile['label'] ); ?>" placeholder="Example Product" /></label><label><?php esc_html_e( 'Product home URL', 'ashbi-mega-menu' ); ?><input class="regular-text" required type="url" name="profile[url]" value="<?php echo esc_attr( $profile['url'] ); ?>" placeholder="https://example.com/product/" /></label><label><?php esc_html_e( 'Product hub page', 'ashbi-mega-menu' ); ?><select name="profile[root_page_id]"><option value="0"><?php esc_html_e( 'Choose a product hub', 'ashbi-mega-menu' ); ?></option><?php foreach ( $pages as $page ) : ?><option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $profile['root_page_id'], $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option><?php endforeach; ?></select></label></div><span class="description"><?php esc_html_e( 'Child pages inherit this profile. Use a page override only for exceptions.', 'ashbi-mega-menu' ); ?></span></fieldset>
 					<fieldset class="abmm-profile-admin__fieldset"><legend><?php esc_html_e( '2. Local navigation', 'ashbi-mega-menu' ); ?></legend><p><?php esc_html_e( 'These links appear beneath the shared header only on this product and its child pages.', 'ashbi-mega-menu' ); ?></p><label class="abmm-profile-admin__style-field"><?php esc_html_e( 'Presentation', 'ashbi-mega-menu' ); ?><select name="profile[rail_style]"><option value="underline" <?php selected( $profile['rail_style'], 'underline' ); ?>><?php esc_html_e( 'Underlined links (recommended)', 'ashbi-mega-menu' ); ?></option><option value="pills" <?php selected( $profile['rail_style'], 'pills' ); ?>><?php esc_html_e( 'Pill links', 'ashbi-mega-menu' ); ?></option></select></label><div class="abmm-profile-admin__links"><div class="abmm-profile-admin__link-head"><span><?php esc_html_e( 'Label', 'ashbi-mega-menu' ); ?></span><span><?php esc_html_e( 'Destination', 'ashbi-mega-menu' ); ?></span></div><?php for ( $index = 0; $index < 6; $index++ ) : $link = $profile['links'][ $index ] ?? array( 'label' => '', 'url' => '' ); ?><div class="abmm-profile-admin__link-row"><label><span class="screen-reader-text"><?php printf(
@@ -370,21 +378,13 @@ __( 'Page %1$d of %2$d', 'ashbi-mega-menu' ), $page_number, $page_count ) ); ?><
 		check_admin_referer( 'abmm_save_product_profile' );
 		$raw      = isset( $_POST['profile'] ) ? wp_unslash( $_POST['profile'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Structured input is validated and sanitized field by field before persistence; upload paths are verified with is_uploaded_file().
 		$profile  = $this->sanitize_profile( $raw );
-		$profiles = $this->get_all();
-		$id       = isset( $_POST['profile_id'] ) ? sanitize_key( wp_unslash( $_POST['profile_id'] ) ) : '';
-		$is_new   = ! $id;
-		if ( $is_new ) {
-			$id = sanitize_title( $profile['title'] ?: $profile['label'] );
+		$id = isset( $_POST['profile_id'] ) && is_scalar( $_POST['profile_id'] ) ? sanitize_key( wp_unslash( $_POST['profile_id'] ) ) : '';
+		$revision = isset( $_POST['revision'] ) && is_string( $_POST['revision'] ) ? sanitize_text_field( wp_unslash( $_POST['revision'] ) ) : '';
+		$result = $this->store_profile( $id, $profile, $revision );
+		if ( is_wp_error( $result ) ) {
+			ABMM_Option_Store::recover( 'ashbi-mega-menu-products', $id, $this->recovery_profile( $raw ), $result->get_error_message() );
 		}
-		if ( ! $id || '' === $profile['label'] || '' === $profile['url'] ) {
-			wp_die( esc_html__( 'Add a product name and product home URL before saving.', 'ashbi-mega-menu' ) );
-		}
-		if ( $is_new && isset( $profiles[ $id ] ) ) {
-			wp_die( esc_html__( 'A product profile with this name already exists. Open the existing profile to edit it.', 'ashbi-mega-menu' ) );
-		}
-		$profiles[ $id ] = $profile;
-		update_option( self::OPTION_KEY, $profiles );
-		wp_safe_redirect( admin_url( 'admin.php?page=ashbi-mega-menu-products&profile=' . rawurlencode( $id ) . '&updated=1' ) );
+		wp_safe_redirect( add_query_arg( '_abmm_notice', wp_create_nonce( 'abmm_profile_notice' ), admin_url( 'admin.php?page=ashbi-mega-menu-products&profile=' . rawurlencode( $result ) . '&updated=1' ) ) );
 		exit;
 	}
 
@@ -395,13 +395,71 @@ __( 'Page %1$d of %2$d', 'ashbi-mega-menu' ), $page_number, $page_count ) ); ?><
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission to manage product navigation.', 'ashbi-mega-menu' ) );
 		}
-		$profile_id = isset( $_REQUEST['profile'] ) ? sanitize_key( wp_unslash( $_REQUEST['profile'] ) ) : '';
+		$profile_id = isset( $_REQUEST['profile'] ) && is_scalar( $_REQUEST['profile'] ) ? sanitize_key( wp_unslash( $_REQUEST['profile'] ) ) : '';
 		check_admin_referer( 'abmm_delete_product_profile_' . $profile_id );
-		$profiles = $this->get_all();
-		unset( $profiles[ $profile_id ] );
-		update_option( self::OPTION_KEY, $profiles );
+		$revision = isset( $_REQUEST['revision'] ) && is_string( $_REQUEST['revision'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['revision'] ) ) : '';
+		$branding_revision = isset( $_REQUEST['branding_revision'] ) && is_string( $_REQUEST['branding_revision'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['branding_revision'] ) ) : '';
+		$result = $this->remove_profile( $profile_id, $revision, $branding_revision );
+		if ( is_wp_error( $result ) ) {
+			ABMM_Option_Store::recover( 'ashbi-mega-menu-products', $profile_id, $this->get( $profile_id ) ?? array(), $result->get_error_message() );
+		}
 		wp_safe_redirect( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) );
 		exit;
+	}
+
+	/** Preserve incomplete link rows in an escaped recovery form, without publishing them. */
+	private function recovery_profile( $raw ) {
+		$profile = $this->sanitize_profile( $raw );
+		$profile['links'] = array();
+		foreach ( array_slice( is_array( $raw['links'] ?? null ) ? $raw['links'] : array(), 0, 6 ) as $link ) {
+			if ( ! is_array( $link ) ) { continue; }
+			$profile['links'][] = array( 'label' => $this->sanitize_text( $link['label'] ?? '' ), 'url' => $this->sanitize_url( $link['url'] ?? '' ) );
+		}
+		return $profile;
+	}
+
+	/** Save one record under the common collection lock, preserving other products. */
+	public function store_profile( $id, $profile, $revision ) {
+		return ABMM_Option_Store::locked( function () use ( $id, $profile, $revision ) {
+			$profiles = $this->get_all();
+			$is_new = '' === $id;
+			if ( ! hash_equals( ABMM_Option_Store::revision( $is_new ? null : ( $profiles[ $id ] ?? null ) ), $revision ) || ( ! $is_new && ! isset( $profiles[ $id ] ) ) ) {
+				return new WP_Error( 'abmm_product_conflict', __( 'This profile was changed or deleted by another administrator. Review the latest values before saving again.', 'ashbi-mega-menu' ) );
+			}
+			$profile = $this->sanitize_profile( $profile );
+			// Use the same key normalization as reads, requests and deletes before collision checks.
+			if ( $is_new ) { $id = sanitize_key( sanitize_title( $profile['title'] ?: $profile['label'] ) ); }
+			if ( ! $id || '' === $profile['label'] || '' === $profile['url'] ) {
+				return new WP_Error( 'abmm_product_invalid', __( 'Add a product name and product home URL before saving.', 'ashbi-mega-menu' ) );
+			}
+			if ( $is_new && isset( $profiles[ $id ] ) ) {
+				return new WP_Error( 'abmm_product_duplicate', __( 'A product with this name already exists. Open that profile to edit it.', 'ashbi-mega-menu' ) );
+			}
+			$profiles[ $id ] = $profile;
+			$result = ABMM_Option_Store::persist( self::OPTION_KEY, $profiles );
+			return is_wp_error( $result ) ? $result : $id;
+		} );
+	}
+
+	/** Delete the profile and its branding together; stale links never delete fresh edits. */
+	public function remove_profile( $id, $revision, $branding_revision ) {
+		return ABMM_Option_Store::locked( function () use ( $id, $revision, $branding_revision ) {
+			$profiles = $this->get_all();
+			$branding = ABMM_Product_Branding::instance()->get_all();
+			if ( ! isset( $profiles[ $id ] ) || ! hash_equals( ABMM_Option_Store::revision( $profiles[ $id ] ), $revision ) || ! hash_equals( ABMM_Option_Store::revision( $branding[ $id ] ?? null ), $branding_revision ) ) {
+				return new WP_Error( 'abmm_product_conflict', __( 'This product changed since the delete link was opened. Reload and review it before deleting.', 'ashbi-mega-menu' ) );
+			}
+			$previous = $profiles;
+			unset( $profiles[ $id ], $branding[ $id ] );
+			$result = ABMM_Option_Store::persist( self::OPTION_KEY, $profiles );
+			if ( is_wp_error( $result ) ) { return $result; }
+			$result = ABMM_Option_Store::persist( ABMM_Product_Branding::OPTION_KEY, $branding );
+			if ( is_wp_error( $result ) ) {
+				$rollback = ABMM_Option_Store::persist( self::OPTION_KEY, $previous );
+				return is_wp_error( $rollback ) ? new WP_Error( 'abmm_product_delete_incomplete', __( 'Deletion was interrupted and recovery failed. Check the product profile and branding before retrying.', 'ashbi-mega-menu' ) ) : $result;
+			}
+			return true;
+		} );
 	}
 
 	/**

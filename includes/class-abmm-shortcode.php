@@ -47,7 +47,9 @@ class ABMM_Shortcode {
 			'ashbi_mega_menu'
 		);
 
-		if ( empty( $atts['id'] ) ) {
+		if ( ! is_scalar( $atts['id'] ) && null !== $atts['id'] ) { return ''; }
+		$atts['id'] = (string) $atts['id'];
+		if ( '' === $atts['id'] ) {
 			$menus = ABMM_Data::instance()->get_all();
 			if ( empty( $menus ) ) {
 				return '';

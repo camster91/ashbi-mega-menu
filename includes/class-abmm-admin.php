@@ -105,6 +105,8 @@ class ABMM_Admin {
 				'nonce'     => wp_create_nonce( 'abmm_admin' ),
 				'icons'     => $icons->all(),
 				'iconLabels'=> $icons->labels(),
+				'importMaxBytes' => ABMM_Import_Export::MAX_IMPORT_BYTES,
+				'importMaxLabel' => size_format( ABMM_Import_Export::MAX_IMPORT_BYTES ),
 				'restUrl'   => rest_url( ABMM_Import_Export::REST_NAMESPACE ),
 				'restNonce' => wp_create_nonce( 'wp_rest' ),
 				'strings'   => array(
@@ -162,6 +164,27 @@ class ABMM_Admin {
 					'importPreview'   => __( 'Review these changes before importing:', 'ashbi-mega-menu' ),
 					'importConfirm'   => __( 'Confirm Import', 'ashbi-mega-menu' ),
 					'importCancel'    => __( 'Cancel', 'ashbi-mega-menu' ),
+					'draftStale' => __( 'This local draft is based on an older saved version. Download it before continuing. You may restore it for review, but saving is disabled; reload the saved version and reapply the changes you want.', 'ashbi-mega-menu' ),
+					'draftAvailable' => __( 'Restore the unsaved changes saved in this browser, or download them before discarding and continuing with the saved version.', 'ashbi-mega-menu' ),
+					'checkName' => __( 'Add a menu name.', 'ashbi-mega-menu' ),
+					/* translators: %s: item number, label, count, or formatted file size. */
+					'checkLabel' => __( 'Add a label to top menu item %s.', 'ashbi-mega-menu' ),
+					/* translators: %s: item number, label, count, or formatted file size. */
+					'checkMega' => __( 'Add at least one labelled link with a real destination to %s.', 'ashbi-mega-menu' ),
+					'thisMega' => __( 'this mega menu', 'ashbi-mega-menu' ),
+					/* translators: %s: item number, label, count, or formatted file size. */
+					'checkDuplicate' => __( 'Rename duplicate top menu item "%s".', 'ashbi-mega-menu' ),
+					'checkDestination' => __( 'Add at least one labelled item with a real destination.', 'ashbi-mega-menu' ),
+					'checkCta' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ),
+					'checkPassed' => __( 'Configuration checks passed. Placement and live-site testing still need verification.', 'ashbi-mega-menu' ),
+					/* translators: %s: item number, label, count, or formatted file size. */
+					'checkPending' => __( 'Draft: %s configuration check(s) need attention.', 'ashbi-mega-menu' ),
+					'placementUnsaved' => __( 'Save changes before placing this menu. Your shortcode currently uses the saved version.', 'ashbi-mega-menu' ),
+					'placementSaved' => __( 'This shortcode uses the saved version. Placement and real-page testing are still your next steps.', 'ashbi-mega-menu' ),
+					'importing' => __( 'Importing…', 'ashbi-mega-menu' ),
+					'preparingImport' => __( 'Preparing preview…', 'ashbi-mega-menu' ),
+					/* translators: %s: item number, label, count, or formatted file size. */
+					'importTooLarge' => __( 'The import file exceeds the %s limit.', 'ashbi-mega-menu' ),
 					'backupLoading'   => __( 'Loading recovery snapshots…', 'ashbi-mega-menu' ),
 					'backupLoadError' => __( 'Snapshots could not be loaded.', 'ashbi-mega-menu' ),
 					/* translators: 1: snapshot date, 2: number of menus. */
@@ -217,7 +240,7 @@ class ABMM_Admin {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$edit_id = isset( $_GET['edit'] ) ? sanitize_text_field( wp_unslash( $_GET['edit'] ) ) : '';
 
-		if ( $edit_id && isset( $menus[ $edit_id ] ) ) {
+		if ( '' !== $edit_id && isset( $menus[ $edit_id ] ) ) {
 			include ABMM_PLUGIN_DIR . 'admin/views/builder.php';
 		} else {
 			include ABMM_PLUGIN_DIR . 'admin/views/list.php';
@@ -236,7 +259,7 @@ class ABMM_Admin {
 		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid menu data.', 'ashbi-mega-menu' ) ), 400 );
 		}
-		if ( strlen( $raw ) > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
+		if ( strlen( $raw ) > ABMM_Import_Export::MAX_MENU_BYTES ) {
 			wp_send_json_error( array( 'message' => __( 'Menu data exceeds the 1 MB limit.', 'ashbi-mega-menu' ) ), 413 );
 		}
 		$data = json_decode( $raw, true, 32 );
@@ -306,7 +329,7 @@ class ABMM_Admin {
 		$this->verify_ajax();
 
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
-		if ( ! $id ) {
+		if ( '' === $id ) {
 			wp_send_json_error( array( 'message' => 'Missing ID' ), 400 );
 		}
 
@@ -494,7 +517,7 @@ class ABMM_Admin {
 		if ( is_wp_error( $id ) ) {
 			wp_send_json_error( array( 'message' => $id->get_error_message() ), 503 );
 		}
-		if ( ! $id ) {
+		if ( false === $id || '' === $id ) {
 			wp_send_json_error( array( 'message' => __( 'Database create failed.', 'ashbi-mega-menu' ) ), 500 );
 		}
 
@@ -528,7 +551,7 @@ class ABMM_Admin {
 		$this->verify_ajax();
 
 		$id = isset( $_POST['menu_id'] ) ? sanitize_text_field( wp_unslash( $_POST['menu_id'] ) ) : '';
-		if ( ! $id ) {
+		if ( '' === $id ) {
 			wp_send_json_error( array( 'message' => 'Missing ID' ), 400 );
 		}
 
@@ -564,7 +587,7 @@ class ABMM_Admin {
 			wp_send_json_error( array( 'message' => __( 'Choose a .json export file.', 'ashbi-mega-menu' ) ), 400 );
 		}
 		if ( 0 === $size || $size > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
-			wp_send_json_error( array( 'message' => __( 'The import file is empty or exceeds the 1 MB limit.', 'ashbi-mega-menu' ) ), 400 );
+			wp_send_json_error( array( 'message' => sprintf( /* translators: %s: maximum formatted import size. */ __( 'The import file is empty or exceeds the %s limit.', 'ashbi-mega-menu' ), size_format( ABMM_Import_Export::MAX_IMPORT_BYTES ) ) ), 400 );
 		}
 		$tmp = $file['tmp_name'] ?? '';
 		if ( ! is_string( $tmp ) || ! is_uploaded_file( $tmp ) ) {

@@ -36,7 +36,6 @@ class ABMM_Product_Branding {
 		add_action( 'admin_menu', array( $this, 'register_page' ), 25 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'admin_post_abmm_save_product_branding', array( $this, 'save' ) );
-		add_action( 'admin_post_abmm_delete_product_profile', array( $this, 'cleanup_deleted_profile' ), 1 );
 		add_action( 'admin_notices', array( $this, 'product_navigation_notice' ) );
 		add_filter( 'option_' . ABMM_OPTION_KEY, array( $this, 'filter_menus_for_product_brand' ), 20 );
 		add_filter( 'body_class', array( $this, 'body_class' ) );
@@ -322,6 +321,10 @@ class ABMM_Product_Branding {
 
 		$profile = $profiles[ $selected ] ?? null;
 		$config  = $this->get( $selected );
+		$revision = ABMM_Option_Store::revision( $this->get_all()[ $selected ] ?? null );
+		$profile_revision = ABMM_Option_Store::revision( $profile );
+		$draft = ABMM_Option_Store::draft( 'ashbi-mega-menu-product-branding' );
+		if ( $draft && $selected === $draft['id'] ) { $config = $this->sanitize_config( $draft['record'] ); }
 		$states  = $this->profile_states( $profiles, $menus );
 		$primary = $this->attachment_url( $config['logo_attachment_id'], $config['logo_url'] );
 		$dark    = $this->attachment_url( $config['logo_dark_attachment_id'], $config['logo_dark_url'] );
@@ -342,6 +345,7 @@ class ABMM_Product_Branding {
 				</div>
 			</div>
 
+			<?php if ( $draft ) : ?><div class="notice notice-error"><p><?php echo esc_html( $draft['error'] ); ?> <?php esc_html_e( 'Your draft is retained below. Review it against the latest settings before retrying.', 'ashbi-mega-menu' ); ?></p></div><?php endif; ?>
 			<?php if ( $notice['updated'] ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Product branding saved.', 'ashbi-mega-menu' ); ?></p></div>
 			<?php endif; ?>
@@ -384,6 +388,8 @@ class ABMM_Product_Branding {
 							<?php wp_nonce_field( 'abmm_save_product_branding' ); ?>
 							<input type="hidden" name="action" value="abmm_save_product_branding" />
 							<input type="hidden" name="profile_id" value="<?php echo esc_attr( $selected ); ?>" />
+							<input type="hidden" name="revision" value="<?php echo esc_attr( $revision ); ?>" />
+							<input type="hidden" name="profile_revision" value="<?php echo esc_attr( $profile_revision ); ?>" />
 
 							<div class="abmm-branding-admin__form-head">
 								<div><p><?php esc_html_e( 'Editing', 'ashbi-mega-menu' ); ?></p><h2><?php echo esc_html( $profile['label'] ?: $profile['title'] ); ?></h2></div>
@@ -509,64 +515,54 @@ class ABMM_Product_Branding {
 		}
 		check_admin_referer( 'abmm_save_product_branding' );
 
-		$profile_id = isset( $_POST['profile_id'] ) ? sanitize_key( wp_unslash( $_POST['profile_id'] ) ) : '';
-		$profiles   = ABMM_Product_Profiles::instance()->get_all();
-		if ( '' === $profile_id || empty( $profiles[ $profile_id ] ) ) {
-			$this->redirect_with_error( $profile_id, 'profile' );
-		}
-
-		$raw    = isset( $_POST['branding'] ) ? wp_unslash( $_POST['branding'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Structured input is validated and sanitized field by field before persistence; upload paths are verified with is_uploaded_file().
+		$profile_id = isset( $_POST['profile_id'] ) && is_scalar( $_POST['profile_id'] ) ? sanitize_key( wp_unslash( $_POST['profile_id'] ) ) : '';
+		$raw = isset( $_POST['branding'] ) ? wp_unslash( $_POST['branding'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized field by field below.
 		$config = $this->sanitize_config( $raw );
-		$menus  = ABMM_Data::instance()->get_all();
-		if ( ! empty( $config['enabled'] ) ) {
-			if ( '' === $config['shared_menu_id'] || empty( $menus[ $config['shared_menu_id'] ] ) ) {
-				$this->redirect_with_error( $profile_id, 'menu' );
-			}
-			$configured_logo = $this->attachment_url( $config['logo_attachment_id'], $config['logo_url'] );
-			if ( 'product_text' === $config['mode'] && '' === $configured_logo && ! $this->has_shared_brand( $menus[ $config['shared_menu_id'] ]['brand'] ?? array() ) ) {
-				$this->redirect_with_error( $profile_id, 'shared_brand' );
-			}
-			if ( 'product_text' === $config['mode'] && '' !== $configured_logo && '' === $config['alt'] ) {
-				$this->redirect_with_error( $profile_id, 'alt' );
-			}
-			if ( 'image' === $config['mode'] && '' === $this->attachment_url( $config['logo_attachment_id'], $config['logo_url'] ) ) {
-				$this->redirect_with_error( $profile_id, 'logo' );
-			}
-			if ( 'image' === $config['mode'] && '' === $config['alt'] ) {
-				$this->redirect_with_error( $profile_id, 'alt' );
-			}
-			if ( ! empty( $config['show_utility_links'] ) && ( '' === $config['about_url'] || '' === $config['contact_url'] ) ) {
-				$this->redirect_with_error( $profile_id, 'utility_links' );
-			}
+		$revision = isset( $_POST['revision'] ) && is_string( $_POST['revision'] ) ? sanitize_text_field( wp_unslash( $_POST['revision'] ) ) : '';
+		$profile_revision = isset( $_POST['profile_revision'] ) && is_string( $_POST['profile_revision'] ) ? sanitize_text_field( wp_unslash( $_POST['profile_revision'] ) ) : '';
+		$result = $this->store_config( $profile_id, $config, $revision, $profile_revision );
+		if ( is_wp_error( $result ) ) {
+			ABMM_Option_Store::recover( 'ashbi-mega-menu-product-branding', $profile_id, $config, $result->get_error_message() );
 		}
-
-		$all                = $this->get_all();
-		$all[ $profile_id ] = $config;
-		update_option( self::OPTION_KEY, $all, false );
-
 		wp_safe_redirect( add_query_arg( '_abmm_notice', wp_create_nonce( 'abmm_branding_notice' ), admin_url( 'admin.php?page=ashbi-mega-menu-product-branding&profile=' . rawurlencode( $profile_id ) . '&updated=1' ) ) );
 		exit;
 	}
 
-	/**
-	 * Remove orphaned branding before the existing profile deletion handler exits.
-	 */
-	public function cleanup_deleted_profile() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
-		$profile_id = isset( $_GET['profile'] ) ? sanitize_key( wp_unslash( $_GET['profile'] ) ) : '';
-		if ( '' === $profile_id ) {
-			return;
+	/** Save branding against the exact profile and branding revisions loaded by its editor. */
+	public function store_config( $profile_id, $config, $revision, $profile_revision ) {
+		return ABMM_Option_Store::locked( function () use ( $profile_id, $config, $revision, $profile_revision ) {
+			$profiles = ABMM_Product_Profiles::instance()->get_all();
+			$all = $this->get_all();
+			if ( ! isset( $profiles[ $profile_id ] ) || ! hash_equals( ABMM_Option_Store::revision( $profiles[ $profile_id ] ), $profile_revision ) || ! hash_equals( ABMM_Option_Store::revision( $all[ $profile_id ] ?? null ), $revision ) ) {
+				return new WP_Error( 'abmm_product_conflict', __( 'This product profile or its branding changed in another editor. Review the latest settings before saving again.', 'ashbi-mega-menu' ) );
+			}
+			$config = $this->sanitize_config( $config );
+		$menus  = ABMM_Data::instance()->get_all();
+		if ( ! empty( $config['enabled'] ) ) {
+			if ( '' === $config['shared_menu_id'] || empty( $menus[ $config['shared_menu_id'] ] ) ) {
+				return new WP_Error( 'abmm_branding_invalid', $this->error_message( 'menu' ) );
+			}
+			$configured_logo = $this->attachment_url( $config['logo_attachment_id'], $config['logo_url'] );
+			if ( 'product_text' === $config['mode'] && '' === $configured_logo && ! $this->has_shared_brand( $menus[ $config['shared_menu_id'] ]['brand'] ?? array() ) ) {
+				return new WP_Error( 'abmm_branding_invalid', $this->error_message( 'shared_brand' ) );
+			}
+			if ( 'product_text' === $config['mode'] && '' !== $configured_logo && '' === $config['alt'] ) {
+				return new WP_Error( 'abmm_branding_invalid', $this->error_message( 'alt' ) );
+			}
+			if ( 'image' === $config['mode'] && '' === $this->attachment_url( $config['logo_attachment_id'], $config['logo_url'] ) ) {
+				return new WP_Error( 'abmm_branding_invalid', $this->error_message( 'logo' ) );
+			}
+			if ( 'image' === $config['mode'] && '' === $config['alt'] ) {
+				return new WP_Error( 'abmm_branding_invalid', $this->error_message( 'alt' ) );
+			}
+			if ( ! empty( $config['show_utility_links'] ) && ( '' === $config['about_url'] || '' === $config['contact_url'] ) ) {
+				return new WP_Error( 'abmm_branding_invalid', $this->error_message( 'utility_links' ) );
+			}
 		}
 
-		check_admin_referer( 'abmm_delete_product_profile_' . $profile_id );
-		$all = $this->get_all();
-		if ( isset( $all[ $profile_id ] ) ) {
-			unset( $all[ $profile_id ] );
-			update_option( self::OPTION_KEY, $all, false );
-		}
+			$all[ $profile_id ] = $config;
+			return ABMM_Option_Store::persist( self::OPTION_KEY, $all );
+		} );
 	}
 
 	/**

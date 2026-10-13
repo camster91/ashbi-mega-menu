@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.4
+
+- Preserve numeric menu IDs, including zero, across imports, administration, block/widget and shortcode placement.
+- Validate every portable export against bounded importer limits (500 menus, 10 MiB overall, 1 MiB per menu, 100,000 nodes, depth 32). Oversized downloads fail clearly; stored recovery snapshots still restore in place.
+- Serialize product-profile and branding mutations, refresh option caches under lock, reject stale revisions, and verify saved data before confirming success.
+- Preserve administrator-specific recovery drafts on failures and prevent non-Latin duplicate profile IDs from replacing existing records.
+- Guide menu setup through Create, Edit & save, Place and Verify; separate configured content from actual live-site verification, collapse advanced tools, and preserve/download stale drafts.
+
 ## 1.0.3
 
 - Product-branding save redirects now carry a session nonce; unsigned or invalid status notices are ignored while the editor remains usable.

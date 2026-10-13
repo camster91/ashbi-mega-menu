@@ -6,10 +6,13 @@ const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 const menu = { title: 'Demo', items: [{ id: 'home', label: 'Home', type: 'link', url: '/' }], cta: {}, settings: { presentation:'unified' } };
 const sections = ['content', 'design', 'settings', 'help'];
-async function fixture(narrow = false, malformed = false) {
- const dom = new JSDOM(`<body><div class="abmm-builder-topbar"><button class="abmm-save-menu">Save</button><span class="abmm-save-status"></span></div>
+async function fixture(narrow = false, malformed = false, draft = null, menuId = 'demo') {
+ const dom = new JSDOM(`<body><div class="abmm-builder-topbar"><button class="abmm-save-menu">Save</button><button class="abmm-export-current-menu" data-menu-id="${menuId}">Export</button><span class="abmm-save-status"></span></div>
+ <div id="abmm-draft-recovery" hidden><p class="abmm-draft-recovery__message"></p><button class="abmm-restore-draft">Restore</button><button class="abmm-download-draft">Download</button><button class="abmm-reload-server">Reload</button><button class="abmm-discard-draft">Discard</button></div>
+ <button data-abmm-workflow="content">Edit</button><button data-abmm-workflow="help">Place</button><button data-abmm-workflow="verify">Verify</button>
+ <section class="abmm-placement-panel"><p class="abmm-placement-save-hint"></p><button class="abmm-copy-placement" data-shortcode='[ashbi_mega_menu id="demo"]'>Copy</button></section><div id="abmm-verification-panel" tabindex="-1"></div>
  <button class="abmm-builder-panel-toggle">Settings</button><div id="abmm-builder-panel-backdrop" hidden></div>
- <div id="abmm-builder" data-menu-id="demo" data-menu-revision="revision-1"><aside id="abmm-builder-sidebar"><button class="abmm-builder-panel-close">Close</button>
+ <div id="abmm-builder" data-menu-id="${menuId}" data-menu-revision="revision-1"><aside id="abmm-builder-sidebar"><button class="abmm-builder-panel-close">Close</button>
  <div class="abmm-builder-sections">${sections.map(s=>`<button data-abmm-builder-section="${s}">${s}</button>`).join('')}</div>
  ${sections.map(s=>`<div class="abmm-builder-section-group" data-abmm-builder-section-panel="${s}"></div>`).join('')}
  <input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></aside>
@@ -25,6 +28,7 @@ async function fixture(narrow = false, malformed = false) {
  window.abmmAdmin = { ajaxUrl:'/ajax', nonce:'test', strings: new Proxy({}, {get:(_,key)=>String(key)}), icons:[] };
  const requests = [];
  $.post = (_,data) => { const d=$.Deferred(); requests.push({data,d}); return d.promise(); };
+ if (draft) window.localStorage.setItem('abmmDraft:' + menuId, JSON.stringify(draft));
  window.eval(source);
  window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
  await new Promise(resolve=>window.setTimeout(resolve,20));
@@ -105,5 +109,57 @@ async function backupFixture(strings = {}) {
  assert.equal($('.abmm-backup-row strong').text(),'2 menus — 2026-10-10');
  assert.equal($('.abmm-export-backup').text(),'<b>Exporter</b>');
  assert.equal($('.abmm-export-backup b').length,0,'translated labels are text, never HTML'); f.close();
+ f=await fixture(false,false,{revision:'revision-old',menu:{...menu,title:'Recovered older draft'}}); $=f.$;
+ assert.equal($('#abmm-draft-recovery').prop('hidden'),false,'stale local draft offers explicit recovery');
+ const downloads=[];
+ f.window.URL.createObjectURL=blob=>{downloads.push(blob);return 'blob:local-draft';};
+ f.window.URL.revokeObjectURL=()=>{};
+ f.window.document.addEventListener('click',event=>{if(event.target.tagName==='A')event.preventDefault();});
+ $('.abmm-download-draft').trigger('click'); assert.equal(downloads.length,1,'stale draft remains downloadable before restoration');
+ $('.abmm-restore-draft').trigger('click');
+ assert.equal($('#abmm-menu-title').val(),'Recovered older draft');
+ assert.equal($('.abmm-save-menu').prop('disabled'),true,'stale restoration cannot silently overwrite newer content');
+ $('.abmm-save-menu').trigger('click'); assert.equal(f.requests.length,0);
+ assert.equal($('#abmm-draft-recovery').prop('hidden'),false,'recovery actions remain visible while reviewing stale content');
+ $('.abmm-discard-draft').trigger('click');
+ assert.equal($('#abmm-menu-title').val(),'Demo','discard returns to saved content');
+ assert.equal($('.abmm-save-menu').prop('disabled'),false);
+ $('#abmm-menu-title').val('New intentional change').trigger('input'); $('.abmm-save-menu').trigger('click');
+ assert.equal(f.requests[0].data.base_revision,'revision-1','discard preserves original saved revision rather than blessing stale content');
+ f.close();
+ f=await fixture(); $=f.$;
+ $('[data-abmm-workflow="help"]').trigger('click');
+ assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'Place step opens contextual placement');
+ $('[data-abmm-workflow="verify"]').trigger('click');
+ assert.equal(f.window.document.activeElement.id,'abmm-verification-panel','Verify step moves keyboard focus to real-page checklist');
+ $('.abmm-copy-placement').trigger('click');
+ assert.equal($('.abmm-copy-fallback').val(),'[ashbi_mega_menu id="demo"]','copy fallback selects exact saved-menu shortcode');
+ assert.equal(f.window.document.activeElement.className,'abmm-copy-fallback');
+ $('#abmm-menu-title').val('Unsaved').trigger('input');
+ assert.equal($('.abmm-placement-save-hint').text(),'placementUnsaved','placement distinguishes unsaved preview from saved version');
+ f.close();
+ f=await fixture(false,false,null,'0'); $=f.$;
+ const zeroDownloads=[];
+ f.window.URL.createObjectURL=blob=>{zeroDownloads.push(blob);return 'blob:zero-menu';};
+ f.window.URL.revokeObjectURL=()=>{};
+ let zeroFilename='';
+ f.window.document.addEventListener('click',event=>{if(event.target.tagName==='A'){zeroFilename=event.target.download;event.preventDefault();}});
+ $('#abmm-menu-title').val('Zero ID unsaved changes').trigger('input');
+ $('.abmm-save-menu').trigger('click');
+ assert.equal(f.requests[0].data.menu_id,'0','numeric zero menu ID stays a string during save');
+ f.requests[0].d.reject({responseJSON:{data:{message:'Connection lost'}}});
+ assert.ok(f.window.localStorage.getItem('abmmDraft:0'),'zero ID preserves failed-save draft');
+ assert.equal(JSON.parse(f.window.localStorage.getItem('abmmDraft:0')).menu.title,'Zero ID unsaved changes');
+ $('.abmm-export-current-menu').trigger('click');
+ assert.equal(zeroDownloads.length,1,'zero ID exports unsaved builder content locally');
+ assert.equal(zeroFilename,'0.abmm.json');
+ assert.equal(f.requests.length,1,'zero ID export never fetches an older saved server copy');
+ f.close();
+ f=await fixture(false,false,{revision:'revision-1',menu:{...menu,title:'Zero ID recovered draft'}},'0'); $=f.$;
+ $('.abmm-restore-draft').trigger('click'); assert.equal($('#abmm-menu-title').val(),'Zero ID recovered draft','zero ID draft recovery reads the correct local key');
+ $('.abmm-save-menu').trigger('click'); assert.equal(f.requests[0].data.menu_id,'0');
+ f.requests[0].d.resolve({success:true,data:{revision:'revision-2'}});
+ assert.equal(f.window.localStorage.getItem('abmmDraft:0'),null,'zero ID successful save clears recovery draft');
+ f.close();
  console.log('Admin viewport, drawer, keyboard tabs, sheet, save/retry, malformed load and explicit backup restore tests passed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

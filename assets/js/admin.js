@@ -20,6 +20,7 @@
 		saveMessage: '',
 		serverRevision: '',
 		draftTimer: null,
+		draftConflict: false,
 		pendingExitUrl: '',
 		previewViewport: 'desktop',
 		previewDrill: 'root',
@@ -278,24 +279,38 @@
 	function checkLocalDraft() {
 		var draft = readLocalDraft();
 		if (!draft || !validateBuilderMenu(draft.menu) || JSON.stringify(draft.menu) === state.savedSnapshot) return;
-		var conflict = draft.revision !== state.serverRevision;
+		var loadedRevision = state.serverRevision;
+		var conflict = state.draftConflict || draft.revision !== loadedRevision;
 		$('#abmm-draft-recovery').prop('hidden', false);
 		$('.abmm-draft-recovery__message').text(
 			conflict
-				? 'This draft was created from an older server version. Restoring it is safe to review, but saving will be blocked until the conflict is resolved.'
-				: 'Restore the unsaved changes saved in this browser, or discard them and continue with the server version.'
+				? S.draftStale
+				: S.draftAvailable
 		);
 		$('.abmm-restore-draft').off('click').on('click', function () {
 			state.menu = draft.menu;
+			state.draftConflict = conflict;
+			$('.abmm-save-menu').prop('disabled', conflict);
 			state.serverRevision = draft.revision || state.serverRevision;
 			populateFormFromMenu();
 			renderNavItems();
 			renderPreview();
-			$('#abmm-draft-recovery').prop('hidden', true);
+			$('#abmm-draft-recovery').prop('hidden', !conflict);
 			$('.abmm-save-menu').trigger('focus');
+		});
+		$('.abmm-download-draft').off('click').on('click', function () {
+			var local = readLocalDraft();
+			if (local && local.menu) downloadMenuJson(state.menuId + '-local-draft', JSON.stringify(local.menu, null, 2));
+		});
+		$('.abmm-reload-server').off('click').on('click', function () {
+			persistLocalDraft(); state.trackingChanges = false; window.location.reload();
 		});
 		$('.abmm-discard-draft').off('click').on('click', function () {
 			removeLocalDraft();
+			if (state.draftConflict) { state.menu = JSON.parse(state.savedSnapshot); populateFormFromMenu(); renderNavItems(); renderPreview(); }
+			state.draftConflict = false;
+			state.serverRevision = loadedRevision;
+			$('.abmm-save-menu').prop('disabled', false);
 			$('#abmm-draft-recovery').prop('hidden', true);
 			$('#abmm-menu-title').trigger('focus');
 		});
@@ -303,7 +318,7 @@
 
 	function menuReadiness(menu) {
 		var issues = [];
-		if (!String(menu.title || '').trim()) issues.push({ field: 'abmm-menu-title', message: 'Add a menu name.' });
+		if (!String(menu.title || '').trim()) issues.push({ field: 'abmm-menu-title', message: S.checkName });
 		var usable = 0;
 		var labels = {};
 		function usableLink(link) {
@@ -313,7 +328,7 @@
 		(menu.items || []).forEach(function (item, index) {
 			var label = String(item.label || '').trim();
 			if (!label) {
-				issues.push({ field: 'abmm-nav-items', message: 'Add a label to top menu item ' + (index + 1) + '.' });
+				issues.push({ field: 'abmm-nav-items', message: S.checkLabel.replace('%s', String(index + 1)) });
 			} else {
 				var normalizedLabel = label.toLowerCase();
 				labels[normalizedLabel] = (labels[normalizedLabel] || 0) + 1;
@@ -330,15 +345,15 @@
 				});
 			});
 			if (usable === usableBefore) {
-				issues.push({ field: 'abmm-nav-items', message: 'Add at least one labelled link with a real destination to ' + (label || 'this mega menu') + '.' });
+				issues.push({ field: 'abmm-nav-items', message: S.checkMega.replace('%s', label || S.thisMega) });
 			}
 		});
 		Object.keys(labels).forEach(function (label) {
-			if (labels[label] > 1) issues.push({ field: 'abmm-nav-items', message: 'Rename duplicate top menu item “' + label + '”.' });
+			if (labels[label] > 1) issues.push({ field: 'abmm-nav-items', message: S.checkDuplicate.replace('%s', label) });
 		});
-		if (!usable) issues.push({ field: 'abmm-nav-items', message: 'Add at least one labelled item with a real destination.' });
+		if (!usable) issues.push({ field: 'abmm-nav-items', message: S.checkDestination });
 		if (menu.cta && menu.cta.show && !usableLink(menu.cta)) {
-			issues.push({ field: 'abmm-cta-url', message: 'Complete the enabled call-to-action label and destination.' });
+			issues.push({ field: 'abmm-cta-url', message: S.checkCta });
 		}
 		return { ready: !issues.length, issues: issues };
 	}
@@ -348,7 +363,7 @@
 		var result = menuReadiness(getMenu());
 		var $list = $('.abmm-readiness-issues').empty();
 		$('.abmm-readiness-summary')
-			.text(result.ready ? 'Ready to place. Save changes before publishing.' : 'Draft — ' + result.issues.length + ' item(s) need attention.')
+			.text(result.ready ? S.checkPassed : S.checkPending.replace('%s', String(result.issues.length)))
 			.toggleClass('is-ready', result.ready);
 		result.issues.forEach(function (issue) {
 			$('<li><button type="button" class="button-link"></button></li>')
@@ -356,6 +371,8 @@
 				.appendTo($list);
 		});
 		$('.abmm-placement-panel').prop('hidden', !result.ready);
+		$('.abmm-placement-save-hint').text(hasUnsavedChanges() || state.draftConflict ? S.placementUnsaved : S.placementSaved);
+		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + (result.ready && !hasUnsavedChanges() ? 'help' : 'content') + '"]').attr('aria-current', 'step');
 		setBuilderSection(state.builderSection);
 	}
 
@@ -713,11 +730,12 @@
 	}
 
 	function showClipboardFallback($button, shortcode) {
-		var $fallback = $('<input type="text" class="abmm-copy-fallback" readonly />').val(shortcode);
-		$button.closest('.abmm-menu-card__shortcode').find('.abmm-copy-fallback').remove();
+		var $fallback = $('<input type="text" class="abmm-copy-fallback" readonly />').val(shortcode).attr('aria-label', S.copyError);
+		$button.closest('.abmm-menu-card__shortcode, .abmm-placement-panel').find('.abmm-copy-fallback').remove();
 		$button.after($fallback);
 		$fallback.trigger('focus').select();
-		setListStatus(S.copyError, true, false);
+		if (state.menuId) setStatus(S.copyError, true);
+		else setListStatus(S.copyError, true, false);
 	}
 
 	function setImportStatus(msg, isError) {
@@ -1073,6 +1091,9 @@
 				return;
 			}
 
+			if ($file[0].files[0].size > abmmAdmin.importMaxBytes) {
+				setImportStatus(S.importTooLarge.replace('%s', abmmAdmin.importMaxLabel), true); return;
+			}
 			var fd = new FormData();
 			fd.append('action', 'abmm_import_menu');
 			fd.append('nonce', abmmAdmin.nonce);
@@ -1081,7 +1102,7 @@
 			if (!importConfirmed) fd.append('preview', '1');
 
 			var $btn = $form.find('button[type="submit"]').prop('disabled', true);
-			setImportStatus(importConfirmed ? 'Importing…' : 'Preparing preview…', false);
+			setImportStatus(importConfirmed ? S.importing : S.preparingImport, false);
 
 			$.ajax({
 				url: abmmAdmin.ajaxUrl,
@@ -1243,19 +1264,19 @@
 
 	function restoreResponsiveSheetInertness() {
 		if ($('#abmm-builder-sidebar').hasClass('is-open')) {
-			$('.abmm-builder__main, .abmm-builder-topbar, .abmm-builder-load-error, #abmm-draft-recovery')
+			$('.abmm-builder__main, .abmm-builder-topbar, .abmm-workflow-nav, .abmm-builder-load-error, #abmm-draft-recovery')
 				.attr('aria-hidden', 'true')
 				.prop('inert', true);
 		}
 		if ($('#abmm-mega-editor').attr('role') === 'dialog') {
-			$('.abmm-builder-topbar, .abmm-builder__sidebar, .abmm-builder__main > *:not(#abmm-mega-editor), .abmm-builder-load-error, #abmm-draft-recovery')
+			$('.abmm-builder-topbar, .abmm-workflow-nav, .abmm-builder__sidebar, .abmm-builder__main > *:not(#abmm-mega-editor), .abmm-builder-load-error, #abmm-draft-recovery')
 				.attr('aria-hidden', 'true')
 				.prop('inert', true);
 		}
 	}
 
 	function setBuilderBackgroundInert(active) {
-		var $background = $('.abmm-builder, .abmm-builder-topbar, .abmm-builder-load-error, #abmm-draft-recovery');
+		var $background = $('.abmm-builder, .abmm-builder-topbar, .abmm-workflow-nav, .abmm-builder-load-error, #abmm-draft-recovery');
 		$background.each(function () {
 			var $element = $(this);
 			if (active) {
@@ -1360,7 +1381,7 @@
 	}
 
 	function setMegaEditorBackgroundInert(active) {
-		var $background = $('.abmm-builder-topbar, .abmm-builder__sidebar, .abmm-builder__main > *:not(#abmm-mega-editor), .abmm-builder-load-error, #abmm-draft-recovery');
+		var $background = $('.abmm-builder-topbar, .abmm-workflow-nav, .abmm-builder__sidebar, .abmm-builder__main > *:not(#abmm-mega-editor), .abmm-builder-load-error, #abmm-draft-recovery');
 		$background.each(function () {
 			var $element = $(this);
 			if (active) {
@@ -1376,7 +1397,7 @@
 	}
 
 	function setBuilderPanelBackgroundInert(active) {
-		var $background = $('.abmm-builder__main, .abmm-builder-topbar, .abmm-builder-load-error, #abmm-draft-recovery');
+		var $background = $('.abmm-builder__main, .abmm-builder-topbar, .abmm-workflow-nav, .abmm-builder-load-error, #abmm-draft-recovery');
 		$background.each(function () {
 			var $element = $(this);
 			if (active) {
@@ -1515,7 +1536,7 @@
 		var $builder = $('#abmm-builder');
 		if (!$builder.length) return;
 
-		state.menuId = $builder.data('menu-id');
+		state.menuId = $builder.attr('data-menu-id') || '';
 		state.serverRevision = String($builder.data('menu-revision') || '');
 		$('.abmm-retry-builder-load').on('click', function () {
 			refetchBuilderMenu();
@@ -1564,6 +1585,18 @@
 
 		initWpLink();
 		initBuilderSections();
+		$('[data-abmm-workflow]').on('click', function () {
+			var step = $(this).attr('data-abmm-workflow');
+			setBuilderSection(step === 'content' ? 'content' : 'help');
+			if (window.matchMedia('(max-width: 782px)').matches) openBuilderPanel(this);
+			if (step === 'verify') $('#abmm-verification-panel').trigger('focus');
+		});
+		$('.abmm-copy-placement').on('click', function () {
+			var $button = $(this), shortcode = String($button.attr('data-shortcode'));
+			if (navigator.clipboard && navigator.clipboard.writeText) {
+				navigator.clipboard.writeText(shortcode).then(function () { setStatus(S.copyShortcode, false); }, function () { showClipboardFallback($button, shortcode); });
+			} else showClipboardFallback($button, shortcode);
+		});
 		initBuilderPanel();
 
 		$('.abmm-preview-viewports').on('click', '[data-abmm-preview-viewport]', function () {
@@ -3193,7 +3226,7 @@
 	}
 
 	function saveMenu() {
-		if (state.loadFailed || state.isSaving) return;
+		if (state.loadFailed || state.isSaving || state.draftConflict) return;
 		syncSettingsFromForm();
 		var payload = JSON.stringify(getMenu());
 		var saveSucceeded = false;
@@ -3222,17 +3255,20 @@
 				var message = requestErrorMessage(xhr, S.saveError);
 				if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.conflict) {
 					message = S.conflictError;
+					state.draftConflict = true;
+					persistLocalDraft(); checkLocalDraft();
 				}
 				updateSaveState('failed', message);
 				persistLocalDraft();
 			})
 			.always(function () {
 				state.isSaving = false;
-				$btn.prop('disabled', false);
+				$btn.prop('disabled', state.draftConflict);
 				if (saveSucceeded) {
 					markDirtyState();
 					if (hasUnsavedChanges()) persistLocalDraft();
 					else removeLocalDraft();
+					renderReadiness();
 				}
 			});
 	}

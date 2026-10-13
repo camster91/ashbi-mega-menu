@@ -3,7 +3,7 @@
  * Plugin Name: Ashbi Mega Menu
  * Plugin URI:  https://github.com/camster91/ashbi-mega-menu
  * Description: Build responsive navigation with a visual editor, local previews, reusable product menus and portable exports.
- * Version:     1.0.3
+ * Version:     1.0.4
  * Author:      Cameron Ashley
  * Author URI:  https://github.com/camster91
  * License:     GPL-2.0-or-later
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ABMM_VERSION', '1.0.3' );
+define( 'ABMM_VERSION', '1.0.4' );
 define( 'ABMM_PLUGIN_FILE', __FILE__ );
 define( 'ABMM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ABMM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -28,6 +28,7 @@ define( 'ABMM_ONBOARDING_META', 'abmm_onboarding_complete' );
 define( 'ABMM_PUBLIC_DISTRIBUTION', true );
 
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-data.php';
+require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-option-store.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-icons.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-admin.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-product-profiles.php';
