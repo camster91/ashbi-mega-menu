@@ -191,6 +191,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div id="abmm-backup-list"></div>
 	</details>
 
+	<details class="abmm-import-panel" id="abmm-modules-panel">
+		<summary><strong><?php esc_html_e( 'Optional modules', 'ashbi-mega-menu' ); ?></strong></summary>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<?php wp_nonce_field( 'abmm_save_modules' ); ?>
+			<input type="hidden" name="action" value="abmm_save_modules" />
+			<label><input type="checkbox" name="contextual_navigation" value="1" <?php checked( $contextual_navigation_enabled ); ?> /> <strong><?php esc_html_e( 'Contextual navigation for multi-section sites', 'ashbi-mega-menu' ); ?></strong></label>
+			<p class="description"><?php esc_html_e( 'Advanced: add inherited local navigation and identity overrides for products, services, departments, documentation areas or locations. Leave disabled for a standard site menu.', 'ashbi-mega-menu' ); ?></p>
+			<?php submit_button( __( 'Save modules', 'ashbi-mega-menu' ), 'secondary', 'submit', false ); ?>
+		</form>
+	</details>
+
 	<div class="abmm-help-box">
 		<h3><?php esc_html_e( 'How to use', 'ashbi-mega-menu' ); ?></h3>
 		<ol>

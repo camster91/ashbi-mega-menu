@@ -2620,7 +2620,7 @@
 			'<div class="abmm-group-block__head">' +
 			'<input type="text" class="abmm-group-title" aria-label="Column heading" value="' +
 			esc(group.title || '') +
-			'" placeholder="Column heading (e.g. Finance)" />' +
+			'" placeholder="Column heading (e.g. Services)" />' +
 			reorderControlsHtml('column ' + (group.title || groupIndex + 1), groupIndex, groupLength) +
 			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="Remove column ' + esc(group.title || '') + '" title="Remove column">&times;</button>' +
 			'</div>' +
@@ -2757,7 +2757,7 @@
 			if (!m.context || !m.context.show || !m.context.label) return '';
 			var className = 'abmm-nav__context abmm-nav__context--' + location;
 			var content =
-				'<span class="screen-reader-text">Current product: </span>' +
+				'<span class="screen-reader-text">Current section: </span>' +
 				'<span class="abmm-nav__context-label">' +
 				 esc(m.context.label) +
 				'</span>';

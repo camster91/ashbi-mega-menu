@@ -40,6 +40,18 @@ class ABMM_Admin {
 		add_action( 'wp_ajax_abmm_menu_references', array( $this, 'ajax_menu_references' ) );
 		add_action( 'wp_ajax_abmm_restore_menu', array( $this, 'ajax_restore_menu' ) );
 		add_action( 'wp_ajax_abmm_permanently_delete_menu', array( $this, 'ajax_permanently_delete_menu' ) );
+		add_action( 'admin_post_abmm_save_modules', array( $this, 'save_modules' ) );
+	}
+
+	/** Save optional module visibility. */
+	public function save_modules() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage plugin modules.', 'ashbi-mega-menu' ) );
+		}
+		check_admin_referer( 'abmm_save_modules' );
+		update_option( ABMM_CONTEXTUAL_NAV_OPTION, isset( $_POST['contextual_navigation'] ) ? '1' : '0', false );
+		wp_safe_redirect( admin_url( 'admin.php?page=ashbi-mega-menu&modules-updated=1' ) );
+		exit;
 	}
 
 	/**
@@ -237,6 +249,7 @@ class ABMM_Admin {
 			update_user_meta( $user_id, ABMM_ONBOARDING_META, 'returning-user' );
 		}
 		$show_onboarding = empty( $menus ) && ( ! $user_id || ! get_user_meta( $user_id, ABMM_ONBOARDING_META, true ) );
+		$contextual_navigation_enabled = abmm_contextual_navigation_enabled();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$edit_id = isset( $_GET['edit'] ) ? sanitize_text_field( wp_unslash( $_GET['edit'] ) ) : '';
 

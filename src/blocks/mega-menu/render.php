@@ -17,4 +17,4 @@ if ( ! isset( $attributes['menuId'] ) || ! is_scalar( $attributes['menuId'] ) ||
 	return;
 }
 
-echo ABMM_Frontend::instance()->render( $attributes['menuId'], array( 'context' => 'page' === ( $attributes['context'] ?? '' ) ? 'page' : '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+echo ABMM_Frontend::instance()->render( $attributes['menuId'], array( 'context' => function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() && 'page' === ( $attributes['context'] ?? '' ) ? 'page' : '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

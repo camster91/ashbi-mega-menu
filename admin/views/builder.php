@@ -106,7 +106,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			<section class="abmm-builder-panel">
 				<h2><?php esc_html_e( 'Mobile navigation', 'ashbi-mega-menu' ); ?></h2>
 				<label class="abmm-field"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
-				<p class="description"><?php esc_html_e( 'Add menu search, full-width product rows, and a visible Back label. Disabled by default to preserve existing menus. Review your mobile preview before enabling.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Add menu search, full-width menu rows, and a visible Back label. Disabled by default to preserve existing menus. Review your mobile preview before enabling.', 'ashbi-mega-menu' ); ?></p>
 			</section>
 			<section class="abmm-builder-panel abmm-brand-panel">
 				<h2><?php esc_html_e( 'Brand Identity', 'ashbi-mega-menu' ); ?></h2>
@@ -121,11 +121,11 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<label class="abmm-field"><span><?php esc_html_e( 'Logo height (px)', 'ashbi-mega-menu' ); ?></span><input type="number" id="abmm-brand-logo-height" min="16" max="80" value="<?php echo esc_attr( $menu['brand']['logo_height'] ); ?>" /></label>
 				</div>
 			</section>
-			<section class="abmm-builder-panel abmm-product-navigation-panel">
+			<?php if ( abmm_contextual_navigation_enabled() ) : ?><section class="abmm-builder-panel abmm-product-navigation-panel">
 				<h2><?php esc_html_e( 'Product Navigation', 'ashbi-mega-menu' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'Keep this shared menu focused on site-wide navigation. Manage reusable product links and product hubs separately, then use the context-aware shortcode in one header placement.', 'ashbi-mega-menu' ); ?></p>
 				<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Manage product navigation', 'ashbi-mega-menu' ); ?></a></p>
-			</section>
+			</section><?php endif; ?>
 			</div>
 
 			<div class="abmm-builder-section-group" id="abmm-section-panel-content" data-abmm-builder-section-panel="content" role="tabpanel" aria-labelledby="abmm-section-tab-content">
@@ -225,11 +225,11 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<label class="abmm-field">
 					<span><?php esc_html_e( 'Category bar position', 'ashbi-mega-menu' ); ?></span>
 					<select id="abmm-layout">
-						<option value="sidebar-left" <?php selected( $abmm_settings['layout'], 'sidebar-left' ); ?>><?php esc_html_e( 'Left (classic Platforms)', 'ashbi-mega-menu' ); ?></option>
+						<option value="sidebar-left" <?php selected( $abmm_settings['layout'], 'sidebar-left' ); ?>><?php esc_html_e( 'Category bar on the left', 'ashbi-mega-menu' ); ?></option>
 						<option value="sidebar-right" <?php selected( $abmm_settings['layout'], 'sidebar-right' ); ?>><?php esc_html_e( 'Right', 'ashbi-mega-menu' ); ?></option>
 						<option value="stacked" <?php selected( $abmm_settings['layout'], 'stacked' ); ?>><?php esc_html_e( 'Top (horizontal tabs)', 'ashbi-mega-menu' ); ?></option>
 					</select>
-					<span class="description"><?php esc_html_e( 'Only applies to Platforms mega items. For a simple 2/3-column mega with no category bar, open Edit Mega Content and choose "Simple columns".', 'ashbi-mega-menu' ); ?></span>
+					<span class="description"><?php esc_html_e( 'Applies to mega items that use a category bar. For a simple 2/3-column mega, open Edit Mega Content and choose "Simple columns".', 'ashbi-mega-menu' ); ?></span>
 				</label>
 
 				<label class="abmm-field">
@@ -518,7 +518,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					</div>
 				</div>
 
-				<!-- Platforms layout editor -->
+				<!-- Category-bar layout editor -->
 				<div class="abmm-mega-editor__layout" id="abmm-editor-platforms">
 					<div class="abmm-mega-editor__cats">
 						<h3><?php esc_html_e( 'Left Sidebar Categories', 'ashbi-mega-menu' ); ?></h3>

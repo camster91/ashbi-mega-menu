@@ -67,7 +67,7 @@ class ABMM_Block {
 		if ( '' === $menu_id ) {
 			return '';
 		}
-		$context = 'page' === ( $attributes['context'] ?? '' ) ? 'page' : '';
+		$context = function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() && 'page' === ( $attributes['context'] ?? '' ) ? 'page' : '';
 		return ABMM_Frontend::instance()->render( $menu_id, array( 'context' => $context ) );
 	}
 

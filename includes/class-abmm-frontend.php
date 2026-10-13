@@ -127,7 +127,7 @@ class ABMM_Frontend {
 
 		// A context-aware placement always keeps the same shared menu. Only the
 		// small, reusable product profile changes for the current request.
-		$resolved_profile = 'page' === ( $args['context'] ?? '' )
+		$resolved_profile = function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() && 'page' === ( $args['context'] ?? '' )
 			? ABMM_Page_Context::instance()->resolve_profile()
 			: array( 'profile' => null, 'source' => 'static', 'post_id' => 0 );
 		$profile = $resolved_profile['profile'] ?? null;
@@ -165,7 +165,7 @@ class ABMM_Frontend {
 		$has_product_identity = $profile || ( ! empty( $brand['product_text'] ) && ! empty( $brand['show'] ) );
 		$brand['use_dark_logo'] = 'dark' === ( $settings['preset'] ?? '' );
 		$nav_items = $menu['items'] ?? array();
-		$unified_switcher_index = $is_unified ? $this->unified_switcher_index( $nav_items ) : -1;
+		$unified_switcher_index = $is_unified ? $this->unified_switcher_index() : -1;
 		$this->render_sequence++;
 		$instance_id = 'abmm-' . sanitize_html_class( $menu_id ) . '-' . $this->render_sequence;
 
@@ -694,29 +694,12 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 	}
 
 	/**
-	 * Pick the existing Platforms mega item as the product-family switcher.
+	 * Contextual layouts do not infer behavior from a user-visible label.
 	 *
-	 * The label match keeps the draft treatment aligned with the approved
-	 * information architecture. Falling back to the first mega item avoids a
-	 * brittle empty row when an editor renames that label.
-	 *
-	 * @param array $items Top-level shared navigation items.
 	 * @return int Item index, or -1 when no mega item exists.
 	 */
-	private function unified_switcher_index( $items ) {
-		$fallback = -1;
-		foreach ( $items as $index => $item ) {
-			if ( 'mega' !== ( $item['type'] ?? '' ) ) {
-				continue;
-			}
-			if ( -1 === $fallback ) {
-				$fallback = $index;
-			}
-			if ( 'platforms' === sanitize_key( $item['label'] ?? '' ) ) {
-				return $index;
-			}
-		}
-		return $fallback;
+	private function unified_switcher_index() {
+		return -1;
 	}
 
 	/**

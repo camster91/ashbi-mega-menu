@@ -6,7 +6,6 @@ import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
 import {
 	PanelBody,
 	SelectControl,
-	ToggleControl,
 	Placeholder,
 	Spinner,
 	Button,
@@ -21,7 +20,7 @@ import { megamenuIcon } from './icon';
 import './editor.css';
 
 export default function Edit({ attributes, setAttributes }) {
-	const { menuId, context } = attributes;
+	const { menuId } = attributes;
 	const blockProps = useBlockProps({
 		className: 'wp-block-ashbi-mega-menu-mega-menu',
 	});
@@ -50,12 +49,6 @@ export default function Edit({ attributes, setAttributes }) {
 						options={menuOptions}
 						onChange={(value) => setAttributes({ menuId: value })}
 					/>}
-					<ToggleControl
-						label={__('Use page product navigation', 'ashbi-mega-menu')}
-						help={__('Inherit a Product Navigation profile from the current page or its product hub.', 'ashbi-mega-menu')}
-						checked={context === 'page'}
-						onChange={(enabled) => setAttributes({ context: enabled ? 'page' : '' })}
-					/>
 				</PanelBody>
 			</InspectorControls>
 

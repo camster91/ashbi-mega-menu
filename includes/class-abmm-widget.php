@@ -39,7 +39,7 @@ class ABMM_Widget extends WP_Widget {
 	public function widget( $args, $instance ) {
 		$title   = ! empty( $instance['title'] ) ? $instance['title'] : '';
 		$menu_id = isset( $instance['menu_id'] ) && is_scalar( $instance['menu_id'] ) ? (string) $instance['menu_id'] : '';
-		$context = 'page' === ( $instance['context'] ?? '' ) ? 'page' : '';
+		$context = function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() && 'page' === ( $instance['context'] ?? '' ) ? 'page' : '';
 
 		if ( '' === $menu_id ) {
 			return;
@@ -67,6 +67,7 @@ class ABMM_Widget extends WP_Widget {
 		$context = 'page' === ( $instance['context'] ?? '' );
 		$menus   = ABMM_Data::instance()->get_all();
 		?>
+		<?php if ( function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() ) : ?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>">
 				<?php esc_html_e( 'Title:', 'ashbi-mega-menu' ); ?>
@@ -79,6 +80,7 @@ class ABMM_Widget extends WP_Widget {
 				value="<?php echo esc_attr( $title ); ?>"
 			/>
 		</p>
+		<?php endif; ?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'menu_id' ) ); ?>">
 				<?php esc_html_e( 'Mega Menu:', 'ashbi-mega-menu' ); ?>
@@ -117,7 +119,7 @@ class ABMM_Widget extends WP_Widget {
 
 		$instance['title']   = sanitize_text_field( $new_instance['title'] ?? '' );
 		$instance['menu_id'] = sanitize_text_field( $new_instance['menu_id'] ?? '' );
-		$instance['context'] = 'page' === ( $new_instance['context'] ?? '' ) ? 'page' : '';
+		$instance['context'] = function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() && 'page' === ( $new_instance['context'] ?? '' ) ? 'page' : '';
 
 		return $instance;
 	}

@@ -591,9 +591,9 @@ class ABMM_Data {
 				'title'    => $title ? $title : __( 'New Mega Menu', 'ashbi-mega-menu' ),
 				'items'    => array(),
 				'cta'      => array(
-					'label' => __( 'Get a Demo', 'ashbi-mega-menu' ),
-					'url'   => '#',
-					'show'  => true,
+					'label' => '',
+					'url'   => '',
+					'show'  => false,
 				),
 				'brand'    => array(
 					'show'          => false,

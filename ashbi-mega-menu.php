@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ashbi Mega Menu
  * Plugin URI:  https://github.com/camster91/ashbi-mega-menu
- * Description: Build responsive navigation with a visual editor, local previews, reusable product menus and portable exports.
+ * Description: Build responsive navigation with a visual editor, local previews and portable exports.
  * Version:     1.0.4
  * Author:      Cameron Ashley
  * Author URI:  https://github.com/camster91
@@ -24,8 +24,20 @@ define( 'ABMM_OPTION_KEY', 'abmm_menus' );
 define( 'ABMM_VERSION_OPTION', 'abmm_plugin_version' );
 define( 'ABMM_ARCHIVE_OPTION', 'abmm_archived_menus' );
 define( 'ABMM_ONBOARDING_META', 'abmm_onboarding_complete' );
+define( 'ABMM_CONTEXTUAL_NAV_OPTION', 'abmm_contextual_navigation_enabled' );
 
 define( 'ABMM_PUBLIC_DISTRIBUTION', true );
+
+/** Whether the optional contextual navigation module is enabled. */
+function abmm_contextual_navigation_enabled() {
+	$stored = get_option( ABMM_CONTEXTUAL_NAV_OPTION, null );
+	if ( null !== $stored ) {
+		return '1' === (string) $stored;
+	}
+
+	// Preserve existing installations that already created contextual data.
+	return ! empty( get_option( 'abmm_product_profiles', array() ) ) || ! empty( get_option( 'abmm_product_branding', array() ) );
+}
 
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-data.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-option-store.php';
@@ -48,7 +60,7 @@ require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-import-export.php';
 function abmm_menu_search_strings() {
 	return array(
 		'menu' => __( 'Menu', 'ashbi-mega-menu' ),
-		'label' => __( 'Find a product or page', 'ashbi-mega-menu' ),
+		'label' => __( 'Find a link or page', 'ashbi-mega-menu' ),
 		'placeholder' => __( 'Search this menu', 'ashbi-mega-menu' ),
 		'clear' => __( 'Clear', 'ashbi-mega-menu' ),
 		'clearLabel' => __( 'Clear menu search', 'ashbi-mega-menu' ),
@@ -65,9 +77,11 @@ function abmm_init() {
 	ABMM_Data::instance();
 	ABMM_Icons::instance();
 	ABMM_Import_Export::instance();
-	ABMM_Product_Profiles::instance();
-	ABMM_Product_Branding::instance();
-	ABMM_Page_Context::instance();
+	if ( abmm_contextual_navigation_enabled() ) {
+		ABMM_Product_Profiles::instance();
+		ABMM_Product_Branding::instance();
+		ABMM_Page_Context::instance();
+	}
 	abmm_maybe_upgrade();
 
 	if ( is_admin() ) {

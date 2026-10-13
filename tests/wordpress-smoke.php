@@ -12,6 +12,7 @@ $data = ABMM_Data::instance();
 $id = $data->create( 'Smoke test' );
 abmm_test_assert( is_string( $id ), 'Create a menu.' );
 $menu = $data->get( $id );
+abmm_test_assert( empty( $menu['cta']['show'] ) && '' === $menu['cta']['label'] && '' === $menu['cta']['url'], 'A blank menu has no visible CTA or placeholder destination.' );
 $revision = $data->revision( $menu );
 $menu['title'] = 'Updated smoke test';
 $saved = $data->save_if_revision( $id, $menu, $revision );

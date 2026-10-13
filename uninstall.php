@@ -31,11 +31,23 @@ $abmm_option_keys = array(
 	'abmm_product_branding',
 	'abmm_plugin_version',
 	'abmm_import_backups',
+	'abmm_contextual_navigation_enabled',
 );
 
 foreach ( $abmm_option_keys as $abmm_key ) {
 	delete_option( $abmm_key );
 	delete_site_option( $abmm_key ); // multisite
+}
+
+// Recovery drafts use unpredictable transient keys; remove every plugin-owned key.
+global $wpdb;
+$abmm_transient_prefix = $wpdb->esc_like( '_transient_abmm_product_draft_' ) . '%';
+$abmm_recovery_options = $wpdb->get_col(
+	$wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $abmm_transient_prefix ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core-owned table name.
+);
+foreach ( $abmm_recovery_options as $abmm_recovery_option ) {
+	delete_option( $abmm_recovery_option );
+	delete_option( str_replace( '_transient_', '_transient_timeout_', $abmm_recovery_option ) );
 }
 
 /* ------------------------------------------------------------------

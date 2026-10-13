@@ -8,18 +8,18 @@ Stable tag: 1.0.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Build responsive navigation with a visual editor, local previews, reusable product navigation and portable menu exports.
+Build responsive navigation with a visual editor, local previews and portable menu exports.
 
 == Description ==
 
-Ashbi Mega Menu provides a visual builder for multi-column menus and product navigation. Place a saved menu using a shortcode, the included block, or the included widget.
+Ashbi Mega Menu provides a visual builder for responsive multi-column navigation. Place a saved menu using a shortcode, the included block, or the included widget.
 
 * Build categories, links and calls to action.
 * Preview desktop and mobile layouts before placing a menu.
 * Use design presets and color controls.
-* Opt into mobile menu search, wider product rows and a visible Back label.
+* Opt into mobile menu search, wider menu rows and a visible Back label.
 * Export menus before changes; preview imports, recover retained import backups and archive menus from the management screen.
-* Use product profiles for navigation associated with a product hub and its child pages.
+* Optionally enable contextual navigation for multi-section sites with inherited local links.
 
 Activation starts with an empty menu list. The generic sample is optional and does not place content on your site. Replace all sample labels and destinations before use. Existing menus retain their mobile appearance unless enhanced mobile navigation is enabled.
 
