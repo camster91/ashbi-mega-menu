@@ -151,6 +151,12 @@ class ABMM_Admin {
 					'deleteSuccess'   => __( 'Menu deleted.', 'ashbi-mega-menu' ),
 					'deleteError'     => __( 'The menu could not be deleted. Nothing was removed. Try again.', 'ashbi-mega-menu' ),
 					'archiveMenu'     => __( 'Archive menu', 'ashbi-mega-menu' ),
+					'archiveChecking' => __( 'Checking placements…', 'ashbi-mega-menu' ),
+					/* translators: %1$s: menu title. */
+					'archiveConfirmTitle' => __( 'Archive “%1$s”?', 'ashbi-mega-menu' ),
+					/* translators: 1: number of block placements, 2: number of widget placements. */
+					'archivePlacements' => __( 'Known placements: %1$d block(s), %2$d widget(s).', 'ashbi-mega-menu' ),
+					'archiveConfirm'  => __( 'Archive and keep recoverable', 'ashbi-mega-menu' ),
 					'archiveSuccess'  => __( 'Menu archived. It can be restored below.', 'ashbi-mega-menu' ),
 					'restoreSuccess'  => __( 'Menu restored with its original ID.', 'ashbi-mega-menu' ),
 					'conflictError'   => __( 'This menu changed on the server. Your local draft was preserved; reload or export it before continuing.', 'ashbi-mega-menu' ),

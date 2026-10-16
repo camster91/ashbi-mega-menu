@@ -902,7 +902,7 @@
 			var title = $button.data('menu-title') || id;
 			var $card = $button.closest('.abmm-menu-card');
 			if ($card.find('.abmm-archive-confirm').length) return;
-			$button.prop('disabled', true).text('Checking placements…');
+			$button.prop('disabled', true).text(S.archiveChecking);
 			$.post(abmmAdmin.ajaxUrl, {
 				action: 'abmm_menu_references',
 				nonce: abmmAdmin.nonce,
@@ -910,13 +910,18 @@
 			}).done(function (res) {
 				if (res && res.success) {
 					var refs = res.data || {};
+					// Callback replacements preserve literal $ tokens in menu titles.
+					var confirmTitle = S.archiveConfirmTitle.replace(/%1\$s/g, function () { return title; });
+					var placements = S.archivePlacements.replace(/%([12])\$d/g, function (_, position) {
+						return position === '1' ? (refs.blocks || 0) : (refs.widgets || 0);
+					});
 					var $confirm = $(
 						'<div class="abmm-archive-confirm" role="alert">' +
-						'<strong>Archive “' + esc(title) + '”?</strong>' +
-						'<p>Known placements: ' + (refs.blocks || 0) + ' block(s), ' + (refs.widgets || 0) + ' widget(s).</p>' +
+						'<strong>' + esc(confirmTitle) + '</strong>' +
+						'<p>' + esc(placements) + '</p>' +
 						'<p>' + esc(refs.warning || '') + '</p>' +
-						'<button type="button" class="button button-primary abmm-confirm-archive">Archive and keep recoverable</button> ' +
-						'<button type="button" class="button abmm-cancel-archive">Cancel</button>' +
+						'<button type="button" class="button button-primary abmm-confirm-archive">' + esc(S.archiveConfirm) + '</button> ' +
+						'<button type="button" class="button abmm-cancel-archive">' + esc(S.cancel) + '</button>' +
 						'</div>'
 					);
 					$card.append($confirm);
