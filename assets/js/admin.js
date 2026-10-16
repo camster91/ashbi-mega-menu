@@ -1751,7 +1751,12 @@
 					($row.hasClass('abmm-cat-row') ? '#abmm-cat-list' :
 					($row.hasClass('abmm-group-block') ? '#abmm-group-list' :
 					($row.closest('.abmm-group-block').length ? '.abmm-group-block[data-id="' + $row.closest('.abmm-group-block').data('id') + '"] .abmm-group-link-list' : '#abmm-features-link-list')));
-				$(listSelector).children().eq(index + direction).find(selector).first().trigger('focus');
+				var $controls = $(listSelector).children().eq(index + direction)
+					.find('.abmm-reorder-controls').first().find('.abmm-move-item:not(:disabled)');
+				var $preferred = $controls.filter(selector);
+				// At the first/last position the clicked direction becomes disabled.
+				// Keep focus on this item's remaining move control after rerendering.
+				($preferred.length ? $preferred : $controls).first().trigger('focus');
 			}, 0);
 		});
 

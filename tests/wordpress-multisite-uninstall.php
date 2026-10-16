@@ -10,11 +10,18 @@ wp_set_current_user( 1 );
 $network = get_network();
 $site_ids = array( get_current_blog_id() );
 for ( $i = 1; $i <= 2; $i++ ) {
- $id = wpmu_create_blog( $network->domain, trailingslashit( $network->path ) . 'abmm-qa-' . $i . '/', 'Uninstall QA ' . $i, 1 );
+ $was_installing = wp_installing();
+ try {
+  $id = wpmu_create_blog( $network->domain, trailingslashit( $network->path ) . 'abmm-qa-' . $i . '/', 'Uninstall QA ' . $i, 1 );
+ } finally {
+  // wpmu_create_blog() leaves installation mode enabled, changing transient storage.
+  wp_installing( $was_installing );
+ }
  abmm_multisite_assert( ! is_wp_error( $id ), 'Create a disposable subsite.' );
  $site_ids[] = (int) $id;
 }
 $original_site = get_current_blog_id();
+abmm_multisite_assert( ! wp_installing() && ! wp_using_ext_object_cache(), 'Fixture must use normal database-backed transient storage.' );
 $keys = array( 'abmm_menus', 'abmm_archived_menus', 'abmm_product_profiles', 'abmm_product_branding', 'abmm_plugin_version', 'abmm_import_backups', 'abmm_contextual_navigation_enabled' );
 $menu_ids = array();
 foreach ( $site_ids as $site_id ) {
@@ -29,6 +36,7 @@ foreach ( $site_ids as $site_id ) {
    if ( 'abmm_menus' !== $key ) { update_option( $key, array( 'fixture' => 'private' ) ); }
   }
   set_transient( 'abmm_product_draft_uninstall_fixture', array( 'private' ), 600 );
+  abmm_multisite_assert( array( 'private' ) === get_option( '_transient_abmm_product_draft_uninstall_fixture' ), 'Private recovery draft exists in this site options table before uninstall.' );
   update_option( 'abmm_qa_unrelated', 'preserve' );
   set_transient( 'abmm_qa_unrelated', 'preserve', 600 );
  } finally { restore_current_blog(); }
