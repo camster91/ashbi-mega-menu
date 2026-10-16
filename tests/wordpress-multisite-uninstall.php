@@ -37,6 +37,9 @@ if ( $extra_network ) {
  update_network_option( $foreign_network_id, 'site_name', 'Foreign network QA' );
  update_network_option( $foreign_network_id, 'siteurl', 'http://' . $foreign_domain . '/' );
  update_network_option( $foreign_network_id, 'admin_email', 'admin@example.test' );
+ // Match modern network setup: missing metadata defaults to legacy rewriting,
+ // which expects UPLOADBLOGSDIR although this disposable install uses uploads.
+ update_network_option( $foreign_network_id, 'ms_files_rewriting', 0 );
  $was_installing = wp_installing();
  try {
   $foreign_site_id = wp_insert_site( array( 'domain' => $foreign_domain, 'path' => '/', 'network_id' => $foreign_network_id, 'title' => 'Foreign network site', 'user_id' => 1 ) );
