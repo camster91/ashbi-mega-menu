@@ -88,10 +88,15 @@ The **Import backups** panel lists the latest retained collection backups. Refre
 For developers using WP-CLI:
 
 ```sh
-wp abmm export --file=/safe/path/menu-backup.json
-wp abmm import --file=/safe/path/menu-backup.json --mode=copy --dry-run
-wp abmm import --file=/safe/path/menu-backup.json --mode=copy
+wp abmm export > /safe/private/path/menu-backup.json
+wp abmm import --file=/safe/private/path/menu-backup.json --mode=copy --dry-run
+wp abmm import --file=/safe/private/path/menu-backup.json --mode=copy
 ```
+
+CLI exports print only portable JSON. The former export `--file` option is rejected;
+use shell redirection and choose a private destination outside the public web directory.
+For shared servers, set restrictive permissions first (for example, `umask 077`).
+Existing JSON exports and the import `--file` option remain supported.
 
 Use authenticated administration only. See source/tests for automation contracts; do not expose credentials in command history or public reports.
 

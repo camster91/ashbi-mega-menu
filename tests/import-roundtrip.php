@@ -14,6 +14,7 @@ class WP_CLI {
  public static function success($message) {}
  public static function warning($message) {}
  public static function log($message) {}
+ public static function line($message) { echo $message . "\n"; }
  public static function error($message) { throw new Exception($message); }
 }
 
@@ -174,3 +175,11 @@ verify_roundtrip(strpos(implode(' ', $exporter->validate_payload($too_many_nodes
 $deep=array(); for($i=0;$i<40;++$i) { $deep=array('nested'=>$deep); }
 verify_roundtrip(!empty($exporter->validate_payload(array('menus'=>array('deep'=>array('title'=>'Deep','items'=>$deep))))), 'Recovery nesting cap was removed');
 echo "Numeric placement stability and bounded export/import recovery regressions passed.\n";
+
+foreach ( array( array(), array( 1 ), true, 1.5, '1bad' ) as $version ) {
+	verify_roundtrip( ! empty( $exporter->validate_payload( array( 'format_version' => $version, 'menus' => array( 'test' => array( 'title' => 'Test', 'items' => array() ) ) ) ) ), 'Malformed format version accepted.' );
+}
+foreach ( array( array( 'Title' ), true, new stdClass() ) as $title ) {
+	verify_roundtrip( ! empty( $exporter->validate_payload( array( 'menus' => array( 'test' => array( 'title' => $title, 'items' => array() ) ) ) ) ), 'Malformed menu title accepted.' );
+}
+echo "Malformed JSON metadata validation passed.\n";
