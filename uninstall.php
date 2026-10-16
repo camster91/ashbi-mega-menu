@@ -73,8 +73,9 @@ if ( is_multisite() ) {
 				restore_current_blog();
 			}
 		}
-		$abmm_offset += count( $abmm_site_ids );
-	} while ( 100 === count( $abmm_site_ids ) );
+		$abmm_batch_count = count( $abmm_site_ids );
+		$abmm_offset     += $abmm_batch_count;
+	} while ( 100 === $abmm_batch_count );
 } else {
 	$abmm_cleanup_site();
 }
