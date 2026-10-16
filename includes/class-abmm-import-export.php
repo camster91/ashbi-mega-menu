@@ -612,7 +612,9 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 			$errors[] = __( 'This file is not an Ashbi Mega Menu export.', 'ashbi-mega-menu' );
 		}
 
-		if ( isset( $payload['format_version'] ) && self::FORMAT_VERSION !== absint( $payload['format_version'] ) ) {
+		if ( array_key_exists( 'format_version', $payload )
+			&& self::FORMAT_VERSION !== $payload['format_version']
+			&& (string) self::FORMAT_VERSION !== $payload['format_version'] ) {
 			$errors[] = __( 'This export format version is not supported.', 'ashbi-mega-menu' );
 		}
 
@@ -672,7 +674,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 					$id
 				);
 			}
-			if ( empty( $menu['title'] ) ) {
+			if ( ! isset( $menu['title'] ) || ! is_string( $menu['title'] ) || '' === trim( sanitize_text_field( $menu['title'] ) ) ) {
 				$errors[] = sprintf(
 					/* translators: %s: menu ID */
 					__( 'Menu "%s" is missing a title.', 'ashbi-mega-menu' ),
@@ -738,29 +740,32 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI_Command' ) ) {
 	class ABMM_WP_CLI_Command extends WP_CLI_Command {
 
 		/**
-		 * Export mega menus to a JSON file.
+		 * Export mega menus as JSON to standard output, without server-side files.
 		 *
 		 * ## OPTIONS
 		 *
 		 * [--file=<file>]
-		 * : Path to the output JSON file. Defaults to the WordPress uploads directory.
+		 * : No longer supported. Use shell redirection to a private local file instead.
 		 *
 		 * [--id=<id>]
 		 * : Export a single menu by ID. If omitted, exports all menus.
 		 *
 		 * ## EXAMPLES
 		 *
-		 *     wp abmm export --file=/path/to/menu.json
-		 *     wp abmm export --id=menu_main --file=/path/to/menu.json
+		 *     wp abmm export > /private/path/menu.json
+		 *     wp abmm export --id=menu_main > /private/path/menu.json
 		 *
 		 * @param array $args
 		 * @param array $assoc_args
 		 */
 		public function export( $args, $assoc_args ) {
-			$uploads = wp_upload_dir();
-			if ( ! empty( $uploads['error'] ) ) { WP_CLI::error( $uploads['error'] ); }
-			$file = $assoc_args['file'] ?? trailingslashit( $uploads['basedir'] ) . 'ashbi-mega-menu-export.json';
-			$id   = $assoc_args['id'] ?? null;
+			if ( array_key_exists( 'file', $assoc_args ) ) {
+				WP_CLI::error( 'The export --file option is no longer supported. Use wp abmm export > /private/path/menu.json to save JSON outside the public web directory.' );
+			}
+			$id = $assoc_args['id'] ?? null;
+			if ( null !== $id && ! is_scalar( $id ) ) {
+				WP_CLI::error( 'The menu ID must be a string or number.' );
+			}
 
 			$exporter = ABMM_Import_Export::instance();
 
@@ -775,14 +780,11 @@ if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI_Command' ) ) {
 			}
 
 			$json = wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
-			$written = file_put_contents( $file, $json );
-
-			if ( false === $written ) {
-				WP_CLI::error( "Failed to write to {$file}" );
+			if ( false === $json ) {
+				WP_CLI::error( 'Could not encode menus as JSON.' );
 			}
-
-			$menu_count = count( $data['menus'] ?? array() );
-			WP_CLI::success( "Exported {$menu_count} menu(s) to {$file}" );
+			// WP-CLI raw output: do not HTML-escape JSON or append success prose.
+			WP_CLI::line( $json );
 		}
 
 		/**

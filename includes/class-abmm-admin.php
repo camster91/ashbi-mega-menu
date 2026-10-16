@@ -583,23 +583,31 @@ class ABMM_Admin {
 		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 
-		if ( empty( $_FILES['import_file'] ) || ! empty( $_FILES['import_file']['error'] ) ) {
+		if ( ! isset( $_FILES['import_file'] ) || ! is_array( $_FILES['import_file'] ) ) {
 			wp_send_json_error( array( 'message' => __( 'No file uploaded or upload error.', 'ashbi-mega-menu' ) ), 400 );
 		}
 
 		$file = $_FILES['import_file']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Structured input is validated and sanitized field by field before persistence; upload paths are verified with is_uploaded_file().
+		// A single PHP upload has string paths and integer size/error metadata.
+		// Reject nested/multi-file fields before any sanitizer or filesystem call.
+		if ( ! isset( $file['name'], $file['size'], $file['error'], $file['tmp_name'] )
+			|| ! is_string( $file['name'] ) || ! is_string( $file['tmp_name'] )
+			|| ! is_int( $file['size'] ) || ! is_int( $file['error'] )
+			|| UPLOAD_ERR_OK !== $file['error'] ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid upload metadata.', 'ashbi-mega-menu' ) ), 400 );
+		}
 		$mode = isset( $_POST['mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mode'] ) ) : 'merge';
 
 		if ( ! in_array( $mode, array( 'merge', 'replace', 'copy' ), true ) ) {
 			$mode = 'merge';
 		}
 
-		$filename = sanitize_file_name( $file['name'] ?? '' );
-		$size     = isset( $file['size'] ) ? absint( $file['size'] ) : 0;
+		$filename = sanitize_file_name( $file['name'] );
+		$size     = $file['size'];
 		if ( 'json' !== strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) ) ) {
 			wp_send_json_error( array( 'message' => __( 'Choose a .json export file.', 'ashbi-mega-menu' ) ), 400 );
 		}
-		if ( 0 === $size || $size > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
+		if ( $size <= 0 || $size > ABMM_Import_Export::MAX_IMPORT_BYTES ) {
 			wp_send_json_error( array( 'message' => sprintf( /* translators: %s: maximum formatted import size. */ __( 'The import file is empty or exceeds the %s limit.', 'ashbi-mega-menu' ), size_format( ABMM_Import_Export::MAX_IMPORT_BYTES ) ) ), 400 );
 		}
 		$tmp = $file['tmp_name'] ?? '';
