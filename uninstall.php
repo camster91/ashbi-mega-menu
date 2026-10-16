@@ -52,17 +52,30 @@ $abmm_cleanup_site = static function () use ( $abmm_option_keys ) {
 	}
 };
 
+$abmm_can_remove_onboarding = true;
 if ( is_multisite() ) {
+	$abmm_network_id = get_current_network_id();
+	// Onboarding user metadata is global, so retain it if another network exists.
+	$abmm_can_remove_onboarding = empty(
+		get_networks(
+			array(
+				'fields'          => 'ids',
+				'number'          => 1,
+				'network__not_in' => array( $abmm_network_id ),
+			)
+		)
+	);
 	// Bound memory use on large networks; never stop at get_sites()' default limit.
 	$abmm_offset = 0;
 	do {
 		$abmm_site_ids = get_sites(
 			array(
-				'fields'  => 'ids',
-				'number'  => 100,
-				'offset'  => $abmm_offset,
-				'orderby' => 'id',
-				'order'   => 'ASC',
+				'network_id' => $abmm_network_id,
+				'fields'     => 'ids',
+				'number'     => 100,
+				'offset'     => $abmm_offset,
+				'orderby'    => 'id',
+				'order'      => 'ASC',
 			)
 		);
 		foreach ( $abmm_site_ids as $abmm_site_id ) {
@@ -88,6 +101,6 @@ foreach ( $abmm_option_keys as $abmm_key ) {
 /* ------------------------------------------------------------------
    Remove user onboarding state
    ------------------------------------------------------------------ */
-if ( function_exists( 'delete_metadata' ) ) {
+if ( $abmm_can_remove_onboarding && function_exists( 'delete_metadata' ) ) {
 	delete_metadata( 'user', 0, 'abmm_onboarding_complete', '', true );
 }
