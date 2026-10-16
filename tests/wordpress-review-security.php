@@ -53,9 +53,9 @@ try {
 		'items' => array(
 			array( 'id' => 'plain', 'label' => 'Home <img src=x onerror=alert(1)>', 'url' => 'javascript:alert(1)', 'target' => '_blank', 'rel' => 'opener noopener', 'class' => 'safe " onclick="alert(1)' ),
 			array( 'id' => 'mega', 'type' => 'mega', 'label' => 'Products', 'categories' => array(
-				array( 'title' => 'Category <script>alert(1)</script>', 'icon_color' => array( 'bad' ), 'groups' => array(
-					array( 'title' => 'Group', 'links' => array(
-						array( 'label' => 'Safe link', 'url' => '/safe?x=1&y=2', 'description' => '<svg onload=alert(1)>Description</svg>', 'icon_url' => 'javascript:alert(1)', 'icon_size' => array( 99 ), 'rel' => array( 'bad' ), 'class' => array( 'bad' ) ),
+				array( 'id' => 'category', 'title' => 'Category <script>alert(1)</script>', 'icon_color' => array( 'bad' ), 'groups' => array(
+					array( 'id' => 'group', 'title' => 'Group', 'links' => array(
+						array( 'id' => 'safe-link', 'label' => 'Safe link', 'url' => '/safe?x=1&y=2', 'description' => '<svg onload=alert(1)>Description</svg>', 'icon_url' => 'javascript:alert(1)', 'icon_size' => array( 99 ), 'rel' => array( 'bad' ), 'class' => array( 'bad' ) ),
 					) ),
 				) ),
 			) ),
