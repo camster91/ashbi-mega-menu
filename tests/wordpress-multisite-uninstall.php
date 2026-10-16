@@ -37,9 +37,16 @@ if ( $extra_network ) {
  update_network_option( $foreign_network_id, 'site_name', 'Foreign network QA' );
  update_network_option( $foreign_network_id, 'siteurl', 'http://' . $foreign_domain . '/' );
  update_network_option( $foreign_network_id, 'admin_email', 'admin@example.test' );
- // Match modern network setup: missing metadata defaults to legacy rewriting,
- // which expects UPLOADBLOGSDIR although this disposable install uses uploads.
- update_network_option( $foreign_network_id, 'ms_files_rewriting', 0 );
+ // Missing metadata has a legacy true default, which prevents update from
+ // inserting the modern setting. Suppress that default only while adding it.
+ $legacy_upload_default = has_filter( 'default_site_option_ms_files_rewriting', '__return_true' );
+ if ( false !== $legacy_upload_default ) { remove_filter( 'default_site_option_ms_files_rewriting', '__return_true', $legacy_upload_default ); }
+ try {
+  abmm_multisite_assert( add_network_option( $foreign_network_id, 'ms_files_rewriting', 0 ), 'Persist modern foreign-network upload configuration.' );
+ } finally {
+  if ( false !== $legacy_upload_default ) { add_filter( 'default_site_option_ms_files_rewriting', '__return_true', $legacy_upload_default ); }
+ }
+ abmm_multisite_assert( 0 === (int) get_network_option( $foreign_network_id, 'ms_files_rewriting' ), 'Foreign network uses modern uploads before site initialization.' );
  $was_installing = wp_installing();
  try {
   $foreign_site_id = wp_insert_site( array( 'domain' => $foreign_domain, 'path' => '/', 'network_id' => $foreign_network_id, 'title' => 'Foreign network site', 'user_id' => 1 ) );
