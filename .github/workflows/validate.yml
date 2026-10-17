@@ -57,3 +57,22 @@ jobs:
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-products.php
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-import-roundtrip.php
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-review-security.php
+  multisite-uninstall:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        extra-network: ['0', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install -g @wordpress/env
+      - name: Start disposable WordPress multisite with PHP 8.2
+        run: |
+          node -e 'require("fs").writeFileSync(".wp-env.json", JSON.stringify({phpVersion:"8.2",multisite:true,plugins:["."]}))'
+          wp-env start
+          wp-env run cli wp plugin activate ashbi-mega-menu --network
+      - name: Verify site isolation and network uninstall
+        run: wp-env run cli env ABMM_DISPOSABLE_TEST=1 ABMM_EXTRA_NETWORK=${{ matrix.extra-network }} wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-multisite-uninstall.php

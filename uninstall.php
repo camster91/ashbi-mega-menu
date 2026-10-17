@@ -34,25 +34,73 @@ $abmm_option_keys = array(
 	'abmm_contextual_navigation_enabled',
 );
 
-foreach ( $abmm_option_keys as $abmm_key ) {
-	delete_option( $abmm_key );
-	delete_site_option( $abmm_key ); // multisite
+// Site options and recovery drafts belong to each site's own options table.
+$abmm_cleanup_site = static function () use ( $abmm_option_keys ) {
+	foreach ( $abmm_option_keys as $abmm_key ) {
+		delete_option( $abmm_key );
+	}
+
+	// Recovery drafts use unpredictable transient keys; remove every plugin-owned key.
+	global $wpdb;
+	$abmm_transient_prefix = $wpdb->esc_like( '_transient_abmm_product_draft_' ) . '%';
+	$abmm_recovery_options = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall must enumerate unpredictable plugin-owned transient keys once; results must not be cached.
+		$wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $abmm_transient_prefix ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core-owned table name.
+	);
+	foreach ( $abmm_recovery_options as $abmm_recovery_option ) {
+		delete_option( $abmm_recovery_option );
+		delete_option( str_replace( '_transient_', '_transient_timeout_', $abmm_recovery_option ) );
+	}
+};
+
+$abmm_can_remove_onboarding = true;
+if ( is_multisite() ) {
+	$abmm_network_id = get_current_network_id();
+	// Onboarding user metadata is global, so retain it if another network exists.
+	$abmm_can_remove_onboarding = empty(
+		get_networks(
+			array(
+				'fields'          => 'ids',
+				'number'          => 1,
+				'network__not_in' => array( $abmm_network_id ),
+			)
+		)
+	);
+	// Bound memory use on large networks; never stop at get_sites()' default limit.
+	$abmm_offset = 0;
+	do {
+		$abmm_site_ids = get_sites(
+			array(
+				'network_id' => $abmm_network_id,
+				'fields'     => 'ids',
+				'number'     => 100,
+				'offset'     => $abmm_offset,
+				'orderby'    => 'id',
+				'order'      => 'ASC',
+			)
+		);
+		foreach ( $abmm_site_ids as $abmm_site_id ) {
+			switch_to_blog( $abmm_site_id );
+			try {
+				$abmm_cleanup_site();
+			} finally {
+				restore_current_blog();
+			}
+		}
+		$abmm_batch_count = count( $abmm_site_ids );
+		$abmm_offset     += $abmm_batch_count;
+	} while ( 100 === $abmm_batch_count );
+} else {
+	$abmm_cleanup_site();
 }
 
-// Recovery drafts use unpredictable transient keys; remove every plugin-owned key.
-global $wpdb;
-$abmm_transient_prefix = $wpdb->esc_like( '_transient_abmm_product_draft_' ) . '%';
-$abmm_recovery_options = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall must enumerate unpredictable plugin-owned transient keys once; results must not be cached.
-	$wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $abmm_transient_prefix ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core-owned table name.
-);
-foreach ( $abmm_recovery_options as $abmm_recovery_option ) {
-	delete_option( $abmm_recovery_option );
-	delete_option( str_replace( '_transient_', '_transient_timeout_', $abmm_recovery_option ) );
+// Preserve cleanup of any legacy network-level plugin options.
+foreach ( $abmm_option_keys as $abmm_key ) {
+	delete_site_option( $abmm_key );
 }
 
 /* ------------------------------------------------------------------
    Remove user onboarding state
    ------------------------------------------------------------------ */
-if ( function_exists( 'delete_metadata' ) ) {
+if ( $abmm_can_remove_onboarding && function_exists( 'delete_metadata' ) ) {
 	delete_metadata( 'user', 0, 'abmm_onboarding_complete', '', true );
 }

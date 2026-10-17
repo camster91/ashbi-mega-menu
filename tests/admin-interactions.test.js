@@ -6,7 +6,7 @@ const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 const menu = { title: 'Demo', items: [{ id: 'home', label: 'Home', type: 'link', url: '/' }], cta: {}, settings: { presentation:'unified' } };
 const sections = ['content', 'design', 'settings', 'help'];
-async function fixture(narrow = false, malformed = false, draft = null, menuId = 'demo') {
+async function fixture(narrow = false, malformed = false, draft = null, menuId = 'demo', menuData = menu) {
  const dom = new JSDOM(`<body><div class="abmm-builder-topbar"><button class="abmm-save-menu">Save</button><button class="abmm-export-current-menu" data-menu-id="${menuId}">Export</button><span class="abmm-save-status"></span></div>
  <div id="abmm-draft-recovery" hidden><p class="abmm-draft-recovery__message"></p><button class="abmm-restore-draft">Restore</button><button class="abmm-download-draft">Download</button><button class="abmm-reload-server">Reload</button><button class="abmm-discard-draft">Discard</button></div>
  <button data-abmm-workflow="content">Edit</button><button data-abmm-workflow="help">Place</button><button data-abmm-workflow="verify">Verify</button>
@@ -17,7 +17,7 @@ async function fixture(narrow = false, malformed = false, draft = null, menuId =
  ${sections.map(s=>`<div class="abmm-builder-section-group" data-abmm-builder-section-panel="${s}"></div>`).join('')}
  <input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></aside>
  <main class="abmm-builder__main"><div class="abmm-preview-viewports">${['desktop','tablet','mobile'].map(s=>`<button data-abmm-preview-viewport="${s}">${s}</button>`).join('')}</div><div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div id="abmm-preview"></div></div></main></div>
- <script id="abmm-menu-data" type="application/json">${malformed ? '{invalid' : JSON.stringify(menu)}</script></body>`, { url:'http://localhost/', runScripts:'outside-only' });
+ <script id="abmm-menu-data" type="application/json">${malformed ? '{invalid' : JSON.stringify(menuData)}</script></body>`, { url:'http://localhost/', runScripts:'outside-only' });
  const { window } = dom;
  const $ = require('jquery')(window);
  window.jQuery = $;
@@ -44,6 +44,31 @@ async function backupFixture(strings = {}) {
  return {window,$,requests,close:()=>window.close()};
 }
 (async()=>{
+ const reorderMenu = {...menu, items:['a','b','c','d'].map(id=>({id,label:id.toUpperCase(),type:'link',url:'/'+id}))};
+ let reorderFixture = await fixture(false,false,null,'demo',reorderMenu);
+ try {
+  const rq = reorderFixture.$;
+  const row = id => rq('#abmm-nav-items > .abmm-nav-item-row').filter((_,el)=>rq(el).data('id')===id);
+  const order = () => rq('#abmm-nav-items > .abmm-nav-item-row').map((_,el)=>rq(el).data('id')).get();
+  const move = async(id,direction) => {
+   row(id).find('.abmm-move-'+direction).trigger('focus').trigger('click');
+   await new Promise(resolve=>reorderFixture.window.setTimeout(resolve,20));
+  };
+  await move('b','up');
+  assert.deepEqual(order(),['b','a','c','d'],'moving up into first position preserves other items');
+  assert.equal(reorderFixture.window.document.activeElement,row('b').find('.abmm-move-down')[0],'first-position move retains focus on the same item through its enabled control');
+  assert.equal(row('b').find('.abmm-move-up').prop('disabled'),true);
+  await move('b','down');
+  assert.deepEqual(order(),['a','b','c','d'],'moving into an interior position restores expected order');
+  assert.equal(reorderFixture.window.document.activeElement,row('b').find('.abmm-move-down')[0],'interior moves retain the requested direction control');
+  await move('c','down');
+  assert.deepEqual(order(),['a','b','d','c'],'moving down into last position preserves other items');
+  assert.equal(reorderFixture.window.document.activeElement,row('c').find('.abmm-move-up')[0],'last-position move retains focus on the same item through its enabled control');
+  assert.equal(row('c').find('.abmm-move-down').prop('disabled'),true);
+  assert.deepEqual(rq('#abmm-preview .abmm-nav__link').map((_,el)=>rq(el).text()).get(),['A','B','D','C'],'preview matches the reordered menu');
+  assert.equal(reorderFixture.requests.length,0,'keyboard reordering never implicitly saves or sends a mutation');
+  assert.equal(rq('#abmm-menu-title').val(),menu.title,'reordering does not change other menu fields');
+ } finally { reorderFixture.close(); }
  let f=await fixture(); let {$,requests}=f;
  assert.equal($('#abmm-preview .abmm-nav__link').text(),'Home','loaded transport renders actual preview');
  $('[data-abmm-preview-viewport="mobile"]').trigger('click');

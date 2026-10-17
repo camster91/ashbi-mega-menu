@@ -902,7 +902,7 @@
 			var title = $button.data('menu-title') || id;
 			var $card = $button.closest('.abmm-menu-card');
 			if ($card.find('.abmm-archive-confirm').length) return;
-			$button.prop('disabled', true).text('Checking placements…');
+			$button.prop('disabled', true).text(S.archiveChecking);
 			$.post(abmmAdmin.ajaxUrl, {
 				action: 'abmm_menu_references',
 				nonce: abmmAdmin.nonce,
@@ -910,13 +910,18 @@
 			}).done(function (res) {
 				if (res && res.success) {
 					var refs = res.data || {};
+					// Callback replacements preserve literal $ tokens in menu titles.
+					var confirmTitle = S.archiveConfirmTitle.replace(/%1\$s/g, function () { return title; });
+					var placements = S.archivePlacements.replace(/%([12])\$d/g, function (_, position) {
+						return position === '1' ? (refs.blocks || 0) : (refs.widgets || 0);
+					});
 					var $confirm = $(
 						'<div class="abmm-archive-confirm" role="alert">' +
-						'<strong>Archive “' + esc(title) + '”?</strong>' +
-						'<p>Known placements: ' + (refs.blocks || 0) + ' block(s), ' + (refs.widgets || 0) + ' widget(s).</p>' +
+						'<strong>' + esc(confirmTitle) + '</strong>' +
+						'<p>' + esc(placements) + '</p>' +
 						'<p>' + esc(refs.warning || '') + '</p>' +
-						'<button type="button" class="button button-primary abmm-confirm-archive">Archive and keep recoverable</button> ' +
-						'<button type="button" class="button abmm-cancel-archive">Cancel</button>' +
+						'<button type="button" class="button button-primary abmm-confirm-archive">' + esc(S.archiveConfirm) + '</button> ' +
+						'<button type="button" class="button abmm-cancel-archive">' + esc(S.cancel) + '</button>' +
 						'</div>'
 					);
 					$card.append($confirm);
@@ -1746,7 +1751,12 @@
 					($row.hasClass('abmm-cat-row') ? '#abmm-cat-list' :
 					($row.hasClass('abmm-group-block') ? '#abmm-group-list' :
 					($row.closest('.abmm-group-block').length ? '.abmm-group-block[data-id="' + $row.closest('.abmm-group-block').data('id') + '"] .abmm-group-link-list' : '#abmm-features-link-list')));
-				$(listSelector).children().eq(index + direction).find(selector).first().trigger('focus');
+				var $controls = $(listSelector).children().eq(index + direction)
+					.find('.abmm-reorder-controls').first().find('.abmm-move-item:not(:disabled)');
+				var $preferred = $controls.filter(selector);
+				// At the first/last position the clicked direction becomes disabled.
+				// Keep focus on this item's remaining move control after rerendering.
+				($preferred.length ? $preferred : $controls).first().trigger('focus');
 			}, 0);
 		});
 
