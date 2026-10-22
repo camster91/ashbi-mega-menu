@@ -91,9 +91,17 @@ class ABMM_Widget extends WP_Widget {
 				name="<?php echo esc_attr( $this->get_field_name( 'menu_id' ) ); ?>"
 			>
 				<option value=""><?php esc_html_e( '— Select a menu —', 'ashbi-mega-menu' ); ?></option>
+				<?php $title_counts = array_count_values( array_map( 'strval', wp_list_pluck( $menus, 'title' ) ) ); ?>
 				<?php foreach ( $menus as $id => $menu ) : ?>
+					<?php
+					$label = $menu['title'] ?: $id;
+					if ( $menu['title'] && ( $title_counts[ $menu['title'] ] ?? 0 ) > 1 ) {
+						/* translators: 1: menu name, 2: menu ID. Used when several menus share a name. */
+						$label = sprintf( __( '%1$s (%2$s)', 'ashbi-mega-menu' ), $menu['title'], $id );
+					}
+					?>
 					<option value="<?php echo esc_attr( $id ); ?>" <?php selected( $menu_id, $id ); ?>>
-						<?php echo esc_html( $menu['title'] ?: $id ); ?>
+						<?php echo esc_html( $label ); ?>
 					</option>
 				<?php endforeach; ?>
 			</select>

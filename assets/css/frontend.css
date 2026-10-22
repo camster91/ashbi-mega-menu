@@ -827,7 +827,7 @@ a.abmm-product-nav__identity:focus {
 	margin: 0;
 	padding: 0.65rem 0.75rem;
 	text-align: left;
-	background: transparent;
+	background: transparent !important;
 	border: 0;
 	border-bottom: 1px solid var(--abmm-border);
 	border-radius: 0;
@@ -884,8 +884,8 @@ a.abmm-product-nav__identity:focus {
 }
 .abmm-header .abmm-mega__cat:hover,
 .abmm-header .abmm-mega__cat:focus {
-	background: rgba(26, 115, 232, 0.06);
-	background: color-mix(in srgb, var(--abmm-accent) 6%, var(--abmm-sidebar-bg));
+	background: rgba(26, 115, 232, 0.06) !important;
+	background: color-mix(in srgb, var(--abmm-accent) 6%, var(--abmm-sidebar-bg)) !important;
 	box-shadow: none;
 	color: var(--abmm-text) !important;
 }
@@ -893,8 +893,8 @@ a.abmm-product-nav__identity:focus {
 .abmm-header .abmm-mega__cat.is-active,
 .abmm-header .abmm-mega__cat.is-active:hover,
 .abmm-header .abmm-mega__cat.is-active:focus {
-	background: rgba(26, 115, 232, 0.1);
-	background: color-mix(in srgb, var(--abmm-accent) 10%, var(--abmm-sidebar-bg));
+	background: rgba(26, 115, 232, 0.1) !important;
+	background: color-mix(in srgb, var(--abmm-accent) 10%, var(--abmm-sidebar-bg)) !important;
 	box-shadow: inset 3px 0 0 var(--abmm-accent);
 	color: var(--abmm-text) !important;
 	z-index: 1;
@@ -1915,7 +1915,7 @@ html.abmm-drawer-open {
 		border: none;
 		border-bottom: 1px solid var(--abmm-border);
 		border-radius: 0;
-		background: transparent;
+		background: transparent !important;
 		min-height: 56px;
 		grid-column: auto;
 		box-shadow: none;
@@ -1928,7 +1928,7 @@ html.abmm-drawer-open {
 
 	.abmm-mega__cat:hover,
 	.abmm-mega__cat.is-active {
-		background: rgba(0, 0, 0, 0.02);
+		background: rgba(0, 0, 0, 0.02) !important;
 		border-color: var(--abmm-border);
 		box-shadow: none;
 		border-radius: 0;
@@ -2269,7 +2269,7 @@ html.abmm-drawer-open {
 		border: none;
 		border-bottom: 1px solid var(--abmm-border);
 		border-radius: 0;
-		background: transparent;
+		background: transparent !important;
 		min-height: 56px;
 		box-shadow: none;
 	}
@@ -2419,4 +2419,104 @@ html.abmm-drawer-open {
 .abmm-header.abmm-mobile-enhanced.abmm-force-mobile :is(.abmm-nav__link, .abmm-mega__cat, .abmm-mega__col-link, .abmm-mega__grid-link):focus:not(:focus-visible) { outline: none; }
 .abmm-header.abmm-mobile-enhanced.abmm-force-mobile :is(.abmm-mega__col-link, .abmm-menu-search__results a)[aria-current="page"] { background: var(--abmm-active-bg, #edf2ff); color: var(--abmm-accent, #4264ff); font-weight: 600; }
 .abmm-header.abmm-mobile-enhanced.abmm-force-mobile .abmm-menu-search__results a:hover { background: var(--abmm-active-bg, #edf2ff); }
+}
+
+/* Theme button styles (for example Twenty Twenty-One's) must not repaint the
+   drawer's own Back and Close buttons. */
+.abmm-header .abmm-mobile-back,
+.abmm-header .abmm-nav__drawer-close {
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	color: var(--abmm-text) !important;
+}
+
+.abmm-header .abmm-mobile-back:hover,
+.abmm-header .abmm-mobile-back:focus-visible,
+.abmm-header .abmm-nav__drawer-close:hover,
+.abmm-header .abmm-nav__drawer-close:focus-visible {
+	background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* A narrow placement on a wide screen (a sidebar or footer widget) shows the
+   phone drawer, so it needs the phone drawer's header and button layout too. */
+@media (min-width: 901px) {
+	.abmm-header.abmm-force-mobile .abmm-nav__drawer-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.65rem 1rem;
+		border-bottom: 1px solid var(--abmm-border);
+		position: sticky;
+		top: 0;
+		background: var(--abmm-header-bg);
+		z-index: 3;
+	}
+
+	.abmm-header.abmm-force-mobile.abmm-is-drilling .abmm-nav__drawer-head {
+		display: none;
+	}
+
+	.abmm-header.abmm-force-mobile .abmm-nav__drawer-title {
+		font-size: 16px;
+		font-weight: 700;
+		color: var(--abmm-text);
+	}
+
+	.abmm-header.abmm-force-mobile .abmm-nav__drawer-close {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: 0 0 44px;
+		width: 44px;
+		min-width: 44px;
+		height: 44px;
+		min-height: 44px;
+		padding: 0;
+		margin: 0;
+		border-radius: 8px;
+		font-size: 24px;
+		line-height: 1;
+		cursor: pointer;
+		box-sizing: border-box;
+	}
+
+	.abmm-header.abmm-force-mobile .abmm-mobile-bar {
+		gap: 0.65rem;
+		padding: 0.65rem 1rem;
+		margin: 0;
+		border-bottom: 1px solid var(--abmm-border);
+		position: sticky;
+		top: 0;
+		background: var(--abmm-header-bg);
+		z-index: 2;
+	}
+
+	.abmm-header.abmm-force-mobile .abmm-mobile-back {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.2rem;
+		margin: 0;
+		border-radius: 8px;
+		font-family: inherit;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.abmm-header.abmm-force-mobile .abmm-mobile-title {
+		flex: 1;
+		font-weight: 700;
+		color: var(--abmm-text);
+		min-width: 0;
+		overflow-wrap: anywhere;
+		line-height: 1.35;
+		padding-block: 0.55rem;
+	}
+
+	.abmm-header.abmm-force-mobile .abmm-mobile-close {
+		flex-shrink: 0;
+	}
 }

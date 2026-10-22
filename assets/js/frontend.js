@@ -623,6 +623,12 @@
 
 		var bar = header.querySelector('.abmm-nav__bar');
 		var offset = bar ? Math.max(adminOffset, Math.round(bar.getBoundingClientRect().bottom)) : adminOffset;
+		// A bar low on the screen, such as a footer or sidebar widget, would
+		// leave no room for the drawer below it. Open from the top instead.
+		var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+		if (viewportHeight && offset > viewportHeight - Math.min(320, viewportHeight / 2)) {
+			offset = adminOffset;
+		}
 		header.style.setProperty('--abmm-mobile-offset', offset + 'px');
 	}
 
