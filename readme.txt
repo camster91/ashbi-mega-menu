@@ -71,6 +71,7 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Keep a desktop mega menu open when it is clicked after opening on hover.
 * Fix cramped reorder, icon size and category fields in the editor, and add the missing right margin.
 * Show one clear set of create options on a new install.
+* Make all menu editor text and the mobile menu's screen-reader labels translatable.
 * Start ordinary sites with neutral defaults and make contextual navigation an optional module.
 * Generalize contextual navigation for products, services, departments, documentation and locations.
 * Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.

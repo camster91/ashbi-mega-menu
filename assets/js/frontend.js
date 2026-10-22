@@ -183,6 +183,11 @@
 		return bar;
 	}
 
+	function runtimeString(key, fallback) {
+		var strings = (window.abmmRuntime && window.abmmRuntime.searchStrings) || {};
+		return strings[key] || fallback;
+	}
+
 	function setMobileBar(mega, title, visible) {
 		var bar = ensureMobileBar(mega);
 		bar.hidden = !visible;
@@ -193,8 +198,8 @@
 		var trigger = item && item.querySelector('[data-abmm-mega-trigger]');
 		var destination = item && item.getAttribute('data-drill') === 'links' &&
 			!mega.classList.contains('abmm-mega--columns-only') && mega.getAttribute('data-abmm-style') !== 'features'
-			? (trigger ? trigger.textContent.trim() : 'categories') : 'menu';
-		if (back) back.setAttribute('aria-label', 'Back to ' + destination);
+			? (trigger ? trigger.textContent.trim() : runtimeString('backToCategories', 'categories')) : runtimeString('backToMenu', 'menu');
+		if (back) back.setAttribute('aria-label', runtimeString('backTo', 'Back to %s').replace('%s', destination));
 	}
 
 	function initMenuSearch(header) {
@@ -584,7 +589,7 @@
 		syncActiveStackHost();
 		if (toggle) {
 			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-			toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+			toggle.setAttribute('aria-label', open ? runtimeString('closeMenu', 'Close menu') : runtimeString('openMenu', 'Open menu'));
 		}
 		if (backdrop) backdrop.hidden = !open;
 		document.documentElement.classList.toggle(

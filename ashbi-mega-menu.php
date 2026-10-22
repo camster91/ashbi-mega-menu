@@ -70,6 +70,12 @@ function abmm_menu_search_strings() {
 		/* translators: %d is the number of matching menu links. */
 		'manyResults' => __( '%d results', 'ashbi-mega-menu' ),
 		'empty' => __( 'No matches. Try another word or clear your search.', 'ashbi-mega-menu' ),
+		'openMenu' => __( 'Open menu', 'ashbi-mega-menu' ),
+		'closeMenu' => __( 'Close menu', 'ashbi-mega-menu' ),
+		/* translators: %s: where the Back button returns to, such as a section name. */
+		'backTo' => __( 'Back to %s', 'ashbi-mega-menu' ),
+		'backToCategories' => __( 'categories', 'ashbi-mega-menu' ),
+		'backToMenu' => __( 'menu', 'ashbi-mega-menu' ),
 	);
 }
 
