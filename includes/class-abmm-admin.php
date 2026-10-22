@@ -173,6 +173,14 @@ class ABMM_Admin {
 					'megaMenu'        => __( 'Mega Menu', 'ashbi-mega-menu' ),
 					'simpleLink'      => __( 'Simple Link', 'ashbi-mega-menu' ),
 					'dragHint'        => __( 'Drag to reorder', 'ashbi-mega-menu' ),
+					'moveUp'          => __( 'Move up', 'ashbi-mega-menu' ),
+					'moveDown'        => __( 'Move down', 'ashbi-mega-menu' ),
+					/* translators: %s: name of the item being moved. */
+					'moveUpLabel'     => __( 'Move %s up', 'ashbi-mega-menu' ),
+					/* translators: %s: name of the item being moved. */
+					'moveDownLabel'   => __( 'Move %s down', 'ashbi-mega-menu' ),
+					/* translators: %s: name of the item being moved. */
+					'positionControls' => __( '%s position controls', 'ashbi-mega-menu' ),
 					'exportSuccess'   => __( 'Menu exported successfully!', 'ashbi-mega-menu' ),
 					'exportError'     => __( 'Export failed.', 'ashbi-mega-menu' ),
 					'importSuccess'   => __( 'Menu imported successfully!', 'ashbi-mega-menu' ),

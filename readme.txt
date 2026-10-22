@@ -35,6 +35,7 @@ The complete block source is included in the src directory of this package. To r
 4. Add the Ashbi Mega Menu block to a test page and select your menu, or copy its exact shortcode into a Shortcode block or use the included widget.
 5. Verify links, keyboard navigation and mobile display on a staging site before placing it in your theme header. The theme's existing navigation remains until you remove it deliberately.
 
+Quick start guide: https://github.com/camster91/ashbi-mega-menu/blob/main/docs/getting-started.md
 Detailed placement, backup recovery and troubleshooting: https://github.com/camster91/ashbi-mega-menu/blob/main/docs/user-guide.md
 Verified coverage and pending interactive tests: https://github.com/camster91/ashbi-mega-menu/blob/main/docs/compatibility.md
 
@@ -67,6 +68,9 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 == Changelog ==
 
 = 1.0.4 =
+* Keep a desktop mega menu open when it is clicked after opening on hover.
+* Fix cramped reorder, icon size and category fields in the editor, and add the missing right margin.
+* Show one clear set of create options on a new install.
 * Start ordinary sites with neutral defaults and make contextual navigation an optional module.
 * Generalize contextual navigation for products, services, departments, documentation and locations.
 * Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.

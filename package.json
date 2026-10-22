@@ -12,7 +12,7 @@
     "build": "wp-scripts build --webpack-src-dir=src",
     "build:icons": "node scripts/build-icons.js",
     "package": "node scripts/package.js",
-    "test": "node tests/mobile-enhancements.test.js && node tests/frontend-interactions.test.js && node tests/admin-interactions.test.js && node tests/archive-interactions.test.js",
+    "test": "node tests/mobile-enhancements.test.js && node tests/frontend-interactions.test.js && node tests/admin-interactions.test.js && node tests/archive-interactions.test.js && node tests/desktop-hover-click.test.js",
     "test:php": "php tests/menu-save-cache.php && php tests/backup-access.php && php tests/import-roundtrip.php && php tests/product-persistence.php && php tests/menu-zero-entrypoints.php && php tests/upload-metadata.php && php tests/cli-export.php && php tests/uninstall-cleanup.php single && php tests/uninstall-cleanup.php multisite && php tests/uninstall-cleanup.php denied && php tests/uninstall-cleanup.php failure && php tests/uninstall-cleanup.php multi-network",
     "build:brand": "node scripts/build-brand.js"
   },
