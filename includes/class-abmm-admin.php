@@ -102,10 +102,11 @@ class ABMM_Admin {
 		wp_enqueue_script(
 			'abmm-admin',
 			ABMM_PLUGIN_URL . 'assets/js/admin.js',
-			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'abmm-menu-search-preview' ),
+			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview' ),
 			ABMM_VERSION,
 			true
 		);
+		wp_set_script_translations( 'abmm-admin', 'ashbi-mega-menu', ABMM_PLUGIN_DIR . 'languages' );
 
 		$icons = ABMM_Icons::instance();
 

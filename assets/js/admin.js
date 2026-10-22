@@ -5,6 +5,15 @@
 	'use strict';
 
 	var S = abmmAdmin.strings;
+	var wpI18n = (window.wp && window.wp.i18n) || {};
+	var __ = wpI18n.__ || function (text) { return text; };
+	var sprintf = wpI18n.sprintf || function (format) {
+		var args = Array.prototype.slice.call(arguments, 1);
+		var next = 0;
+		return String(format).replace(/%(\d+\$)?[sd]/g, function (match, position) {
+			return String(position ? args[parseInt(position, 10) - 1] : args[next++]);
+		});
+	};
 	var state = {
 		menuId: '',
 		menu: null,
@@ -41,7 +50,8 @@
 	function duplicateMenuItem(item) {
 		var copy = JSON.parse(JSON.stringify(item || {}));
 		copy.id = uid();
-		copy.label = String(copy.label || 'Menu item').trim() + ' copy';
+		/* translators: %s: name of the copied menu item. */
+		copy.label = sprintf(__('%s copy', 'ashbi-mega-menu'), String(copy.label || __('Menu item', 'ashbi-mega-menu')).trim());
 		(copy.links || []).forEach(function (link) { link.id = uid(); });
 		(copy.categories || []).forEach(function (category) {
 			category.id = uid();
@@ -80,14 +90,14 @@
 	function linkOptionsHtml(link) {
 		link = link || {};
 		return (
-			'<details class="abmm-link-options"><summary>Link options</summary>' +
+			'<details class="abmm-link-options"><summary>' + esc(__('Link options', 'ashbi-mega-menu')) + '</summary>' +
 			'<label><input type="checkbox" class="abmm-link-target"' +
 			(link.target === '_blank' ? ' checked' : '') +
-			' /> Open in new tab</label>' +
-			'<label>Relationship<input type="text" class="abmm-link-rel" value="' +
+			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
+			'<label>' + esc(__('Relationship', 'ashbi-mega-menu')) + '<input type="text" class="abmm-link-rel" value="' +
 			esc(link.rel || '') +
 			'" placeholder="nofollow sponsored" /></label>' +
-			'<label>CSS classes<input type="text" class="abmm-link-class" value="' +
+			'<label>' + esc(__('CSS classes', 'ashbi-mega-menu')) + '<input type="text" class="abmm-link-class" value="' +
 			esc(link.class || '') +
 			'" /></label></details>'
 		);
@@ -160,7 +170,7 @@
 
 	function openWpLink($url, $text) {
 		if (typeof wpLink === 'undefined' || !wpLink.open) {
-			setStatus('The WordPress link dialog is not available.', true);
+			setStatus(__('The WordPress link dialog is not available.', 'ashbi-mega-menu'), true);
 			return;
 		}
 
@@ -544,8 +554,8 @@
 
 	function syncOptionalFeatureFields() {
 		[
-			{ toggle: '#abmm-brand-show', panel: '#abmm-brand-show', label: 'Brand Identity' },
-			{ toggle: '#abmm-cta-show', panel: '#abmm-cta-show', label: 'Call-to-Action Button' },
+			{ toggle: '#abmm-brand-show', panel: '#abmm-brand-show', label: __('Brand Identity', 'ashbi-mega-menu') },
+			{ toggle: '#abmm-cta-show', panel: '#abmm-cta-show', label: __('Call-to-Action Button', 'ashbi-mega-menu') },
 		].forEach(function (entry) {
 			var $toggle = $(entry.toggle);
 			var $panel = $toggle.closest('.abmm-builder-panel');
@@ -700,7 +710,7 @@
 		clearTimeout(state.statusTimer);
 		$el.empty().removeClass('is-error').addClass('is-visible');
 		$('<span class="abmm-save-status__message" />').text(msg).appendTo($el);
-		$('<button type="button" class="button-link abmm-status-undo">Undo</button>').on('click', function () {
+		$('<button type="button" class="button-link abmm-status-undo" />').text(__('Undo', 'ashbi-mega-menu')).on('click', function () {
 			clearTimeout(state.statusTimer); onUndo(); markDirtyState();
 		}).appendTo($el);
 		state.statusTimer = setTimeout(renderSaveState, 6000);
@@ -753,11 +763,13 @@
 		$('<h4 />').text(S.importPreview).appendTo($preview);
 		var $list = $('<ul class="abmm-import-preview__list" />').appendTo($preview);
 		(preview.changes || []).forEach(function (change) {
-			var labels = { create: 'Create', update: 'Update', create_copy: 'Create independent copy' };
-			$('<li />').text((labels[change.action] || change.action) + ': ' + change.title + ' (' + change.item_count + ' items)').appendTo($list);
+			var labels = { create: __('Create', 'ashbi-mega-menu'), update: __('Update', 'ashbi-mega-menu'), create_copy: __('Create independent copy', 'ashbi-mega-menu') };
+			/* translators: 1: import action, 2: menu title, 3: number of menu items. */
+			$('<li />').text(sprintf(__('%1$s: %2$s (%3$s items)', 'ashbi-mega-menu'), labels[change.action] || change.action, change.title, change.item_count)).appendTo($list);
 		});
 		if (preview.remove_count) {
-			$('<p class="description is-warning" />').text(preview.remove_count + ' existing menu(s) will be removed by Replace mode.').appendTo($preview);
+			/* translators: %s: number of menus. */
+			$('<p class="description is-warning" />').text(sprintf(__('%s existing menu(s) will be removed by Replace mode.', 'ashbi-mega-menu'), preview.remove_count)).appendTo($preview);
 		}
 		var $actions = $('<div class="abmm-import-preview__actions" />').appendTo($preview);
 		$('<button type="button" class="button button-primary" />').text(S.importConfirm).on('click', onConfirm).appendTo($actions);
@@ -988,7 +1000,7 @@
 		$('.abmm-permanent-delete').on('click', function () {
 			var $button = $(this);
 			if (!$button.data('confirmed')) {
-				$button.data('confirmed', true).text('Click again to permanently delete');
+				$button.data('confirmed', true).text(__('Click again to permanently delete', 'ashbi-mega-menu'));
 				return;
 			}
 			$button.prop('disabled', true);
@@ -999,7 +1011,7 @@
 			}).done(function (res) {
 				if (res && res.success) {
 					$button.closest('.abmm-archive-row').remove();
-					setListStatus(responseMessage(res, 'Archived menu permanently deleted.'), false, false);
+					setListStatus(responseMessage(res, __('Archived menu permanently deleted.', 'ashbi-mega-menu')), false, false);
 					return;
 				}
 				$button.prop('disabled', false);
@@ -1253,7 +1265,7 @@
 		}).fail(function (xhr) {
 			$('#abmm-builder-load-error-message').text(requestErrorMessage(xhr, S.loadMalformed));
 		}).always(function () {
-			$button.prop('disabled', false).text('Retry authenticated load');
+			$button.prop('disabled', false).text(__('Retry authenticated load', 'ashbi-mega-menu'));
 		});
 	}
 
@@ -1719,26 +1731,26 @@
 			var index = $row.index();
 			var collection = null;
 			var rerender = null;
-			var label = 'Item';
+			var label = __('Item', 'ashbi-mega-menu');
 			if ($row.hasClass('abmm-nav-item-row')) {
-				collection = getMenu().items; rerender = renderNavItems; label = 'Navigation item';
+				collection = getMenu().items; rerender = renderNavItems; label = __('Navigation item', 'ashbi-mega-menu');
 			} else if ($row.hasClass('abmm-cat-row')) {
 				var current = getMenu().items[state.editingItemIndex];
-				collection = current && current.categories; rerender = renderCatList; label = 'Category';
+				collection = current && current.categories; rerender = renderCatList; label = __('Category', 'ashbi-mega-menu');
 			} else if ($row.hasClass('abmm-group-block')) {
 				var item = getMenu().items[state.editingItemIndex];
 				var category = item && item.categories[state.editingCatIndex];
-				collection = category && category.groups; rerender = renderCatDetail; label = 'Column';
+				collection = category && category.groups; rerender = renderCatDetail; label = __('Column', 'ashbi-mega-menu');
 			} else if ($row.hasClass('abmm-link-row')) {
 				var $group = $row.closest('.abmm-group-block');
 				if ($group.length) {
 					var itemForGroup = getMenu().items[state.editingItemIndex];
 					var catForGroup = itemForGroup && itemForGroup.categories[state.editingCatIndex];
 					var group = catForGroup && (catForGroup.groups || []).find(function (candidate) { return candidate.id === $group.data('id'); });
-					collection = group && group.links; rerender = renderCatDetail; label = 'Link';
+					collection = group && group.links; rerender = renderCatDetail; label = __('Link', 'ashbi-mega-menu');
 				} else {
 					var featureItem = getMenu().items[state.editingItemIndex];
-					collection = featureItem && featureItem.links; rerender = renderFeaturesLinkList; label = 'Feature link';
+					collection = featureItem && featureItem.links; rerender = renderFeaturesLinkList; label = __('Feature link', 'ashbi-mega-menu');
 				}
 			}
 			if (!moveCollectionItem(collection, index, direction)) return;
@@ -1771,7 +1783,7 @@
 		$('.abmm-add-nav-item').on('click', function () {
 			getMenu().items.push({
 				id: uid(),
-				label: 'New Item',
+				label: __('New Item', 'ashbi-mega-menu'),
 				url: '#',
 				type: 'link',
 			});
@@ -1786,7 +1798,7 @@
 			var index = items.findIndex(function (it) { return it.id === id; }); if (index < 0) return;
 			var removed = items.splice(index, 1)[0]; if (state.editingItemIndex >= 0) closeMegaEditor();
 			renderNavItems(); renderPreview();
-			setUndoStatus('Navigation item removed.', function () { getMenu().items.splice(index, 0, removed); renderNavItems(); renderPreview(); setStatus('Navigation item restored.', false); });
+			setUndoStatus(__('Navigation item removed.', 'ashbi-mega-menu'), function () { getMenu().items.splice(index, 0, removed); renderNavItems(); renderPreview(); setStatus(__('Navigation item restored.', 'ashbi-mega-menu'), false); });
 		});
 
 		$('#abmm-nav-items').on('change input', '.abmm-nav-label, .abmm-nav-url, .abmm-nav-type, .abmm-link-target, .abmm-link-rel, .abmm-link-class', function () {
@@ -1831,7 +1843,8 @@
 			items.splice(index + 1, 0, copy);
 			renderNavItems();
 			renderPreview();
-			setStatus('Duplicated ' + (items[index].label || 'menu item') + '. Review the copy before saving.', false);
+			/* translators: %s: name of the duplicated menu item. */
+			setStatus(sprintf(__('Duplicated %s. Review the copy before saving.', 'ashbi-mega-menu'), items[index].label || __('menu item', 'ashbi-mega-menu')), false);
 			setTimeout(function () {
 				$('#abmm-nav-items .abmm-nav-item-row').eq(index + 1).find('.abmm-nav-label').trigger('focus').select();
 			}, 0);
@@ -1880,7 +1893,7 @@
 			if (!item.links) item.links = [];
 			item.links.push({
 				id: uid(),
-				label: 'New Feature',
+				label: __('New Feature', 'ashbi-mega-menu'),
 				url: '#',
 				icon: 'link',
 				icon_url: '',
@@ -1895,7 +1908,7 @@
 			var item = getMenu().items[state.editingItemIndex], id = $(this).closest('.abmm-link-row').data('id');
 			var index = (item.links || []).findIndex(function (link) { return link.id === id; }); if (index < 0) return;
 			var removed = item.links.splice(index, 1)[0]; renderFeaturesLinkList(); renderPreview();
-			setUndoStatus('Feature link removed.', function () { item.links.splice(index, 0, removed); renderFeaturesLinkList(); renderPreview(); setStatus('Feature link restored.', false); });
+			setUndoStatus(__('Feature link removed.', 'ashbi-mega-menu'), function () { item.links.splice(index, 0, removed); renderFeaturesLinkList(); renderPreview(); setStatus(__('Feature link restored.', 'ashbi-mega-menu'), false); });
 		});
 
 		$('#abmm-features-link-list').on('input change', '.abmm-link-label, .abmm-link-url, .abmm-link-target, .abmm-link-rel, .abmm-link-class', function () {
@@ -1923,18 +1936,18 @@
 			if (!item.categories) item.categories = [];
 			item.categories.push({
 				id: uid(),
-				title: 'NEW',
+				title: __('NEW', 'ashbi-mega-menu'),
 				description: '',
 				icon: 'grid',
 				icon_url: '',
 				icon_color: '',
 				icon_size: 0,
-				panel_title: 'Overview',
+				panel_title: __('Overview', 'ashbi-mega-menu'),
 				panel_url: '',
 				groups: [
 					{
 						id: uid(),
-						title: 'Column 1',
+						title: __('Column 1', 'ashbi-mega-menu'),
 						url: '',
 						links: [],
 					},
@@ -1955,7 +1968,7 @@
 			e.stopPropagation(); var item = getMenu().items[state.editingItemIndex], idx = $(this).closest('.abmm-cat-row').index();
 			if (!item || !item.categories || !item.categories[idx]) return;
 			var removed = item.categories.splice(idx, 1)[0]; state.editingCatIndex = -1; renderCatList(); showCatPlaceholder(); renderPreview();
-			setUndoStatus('Category removed.', function () { item.categories.splice(idx, 0, removed); renderCatList(); renderCatDetail(); renderPreview(); setStatus('Category restored.', false); });
+			setUndoStatus(__('Category removed.', 'ashbi-mega-menu'), function () { item.categories.splice(idx, 0, removed); renderCatList(); renderCatDetail(); renderPreview(); setStatus(__('Category restored.', 'ashbi-mega-menu'), false); });
 		});
 
 		$('#abmm-cat-list').on('click', '.abmm-pick-icon', function (e) {
@@ -2060,23 +2073,23 @@
 		style = style || {};
 		var settings = (getMenu() && getMenu().settings) || {};
 		return (
-			'<details class="abmm-icon-style-editor"><summary>State & container overrides</summary>' +
+			'<details class="abmm-icon-style-editor"><summary>' + esc(__('State & container overrides', 'ashbi-mega-menu')) + '</summary>' +
 			'<div class="abmm-icon-style-editor__grid">' +
-			'<label>Hover<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_hover_color" value="' +
+			'<label>' + esc(__('Hover', 'ashbi-mega-menu')) + '<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_hover_color" value="' +
 			esc(style.icon_hover_color || settings.icon_hover_color || '#1a73e8') +
 			'" /></label>' +
-			'<label>Active<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_active_color" value="' +
+			'<label>' + esc(__('Active', 'ashbi-mega-menu')) + '<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_active_color" value="' +
 			esc(style.icon_active_color || settings.icon_active_color || '#1a73e8') +
 			'" /></label>' +
-			'<label>Background<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_background" value="' +
+			'<label>' + esc(__('Background', 'ashbi-mega-menu')) + '<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_background" value="' +
 			esc(style.icon_background || settings.icon_background || '#ffffff') +
 			'" /></label>' +
-			'<label>Border<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_border_color" value="' +
+			'<label>' + esc(__('Border', 'ashbi-mega-menu')) + '<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_border_color" value="' +
 			esc(style.icon_border_color || settings.icon_border_color || '#ffffff') +
 			'" /></label>' +
-			'<label>Radius<input type="number" min="0" max="24" class="abmm-icon-advanced-field" data-icon-field="icon_radius" value="' +
+			'<label>' + esc(__('Radius', 'ashbi-mega-menu')) + '<input type="number" min="0" max="24" class="abmm-icon-advanced-field" data-icon-field="icon_radius" value="' +
 			esc(style.icon_radius === '' || style.icon_radius == null ? '' : style.icon_radius) +
-			'" placeholder="Inherit" /></label>' +
+			'" placeholder="' + esc(__('Inherit', 'ashbi-mega-menu')) + '" /></label>' +
 			'</div></details>'
 		);
 	}
@@ -2084,7 +2097,7 @@
 	function showCatPlaceholder() {
 		$('#abmm-cat-detail').html(
 			'<p class="abmm-placeholder">' +
-				'Select a category on the left to edit its links.' +
+				esc(__('Select a category on the left to edit its links.', 'ashbi-mega-menu')) +
 				'</p>'
 		);
 	}
@@ -2106,7 +2119,8 @@
 	}
 
 	function announceReorder(label, position, length) {
-		setStatus(label + ' moved to position ' + position + ' of ' + length + '.', false);
+		/* translators: 1: item name, 2: new position, 3: total number of items. */
+		setStatus(sprintf(__('%1$s moved to position %2$s of %3$s.', 'ashbi-mega-menu'), label, position, length), false);
 	}
 
 	function renderNavItems() {
@@ -2114,7 +2128,7 @@
 		getMenu().items.forEach(function (item, itemIndex) {
 			var isMega = item.type === 'mega';
 			var styleLabel =
-				item.mega_style === 'features' ? 'Simple columns' : 'With categories';
+				item.mega_style === 'features' ? __('Simple columns', 'ashbi-mega-menu') : __('With categories', 'ashbi-mega-menu');
 			var $row = $(
 					'<li class="abmm-nav-item-row ' + (isMega ? 'is-mega' : 'is-link') + '" data-id="' +
 					esc(item.id) +
@@ -2125,11 +2139,11 @@
 					'<div class="abmm-nav-item-row__fields">' +
 					'<input type="text" class="abmm-nav-label" value="' +
 					esc(item.label) +
-					'" placeholder="Label" aria-label="Navigation item ' + esc(itemIndex + 1) + ' label" />' +
+					'" placeholder="' + esc(__('Label', 'ashbi-mega-menu')) + '" aria-label="' + /* translators: %s: item number. */ esc(sprintf(__('Navigation item %s label', 'ashbi-mega-menu'), itemIndex + 1)) + '" />' +
 						(!isMega ? wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false) : '') +
 						(!isMega ? linkOptionsHtml(item) : '') +
 						'<div class="abmm-nav-item-row__meta">' +
-						'<select class="abmm-nav-type" aria-label="Navigation item ' + esc(itemIndex + 1) + ' type">' +
+						'<select class="abmm-nav-type" aria-label="' + /* translators: %s: item number. */ esc(sprintf(__('Navigation item %s type', 'ashbi-mega-menu'), itemIndex + 1)) + '">' +
 					'<option value="link"' +
 					(!isMega ? ' selected' : '') +
 					'>' +
@@ -2142,12 +2156,13 @@
 					'</option>' +
 					'</select>' +
 						(isMega ? '<span class="abmm-mega-style-badge">' + esc(styleLabel) + '</span>' : '') +
-						(isMega ? '<button type="button" class="button button-small abmm-edit-mega">Edit content</button>' : '') +
-						'<button type="button" class="button button-small abmm-duplicate-nav" aria-label="Duplicate navigation item ' + esc(item.label || itemIndex + 1) + '">Duplicate</button>' +
+						(isMega ? '<button type="button" class="button button-small abmm-edit-mega">' + esc(__('Edit content', 'ashbi-mega-menu')) + '</button>' : '') +
+						'<button type="button" class="button button-small abmm-duplicate-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Duplicate navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1)) + '">' + esc(__('Duplicate', 'ashbi-mega-menu')) + '</button>' +
 						'</div>' +
 						'</div>' +
-					reorderControlsHtml('navigation item ' + (item.label || itemIndex + 1), itemIndex, getMenu().items.length) +
-					'<button type="button" class="button-link-delete abmm-remove-nav" aria-label="Remove navigation item ' + esc(item.label || itemIndex + 1) + '" title="Remove navigation item">&times;</button>' +
+					/* translators: %s: menu item name. */
+					reorderControlsHtml(sprintf(__('navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1), itemIndex, getMenu().items.length) +
+					'<button type="button" class="button-link-delete abmm-remove-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Remove navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1)) + '" title="' + esc(__('Remove navigation item', 'ashbi-mega-menu')) + '">&times;</button>' +
 					'</li>'
 			);
 			$list.append($row);
@@ -2178,7 +2193,8 @@
 		if (!item.columns) item.columns = item.mega_style === 'features' ? 2 : 3;
 		if (!item.categories) item.categories = [];
 		if (!item.links) item.links = [];
-		$('#abmm-mega-editor-title').text('Edit Mega Menu: ' + (item.label || ''));
+		/* translators: %s: mega menu item name. */
+		$('#abmm-mega-editor-title').text(sprintf(__('Edit Mega Menu: %s', 'ashbi-mega-menu'), item.label || ''));
 		$('#abmm-mega-editor').prop('hidden', false);
 		syncMegaEditorUI();
 		if (megaEditorIsNarrow()) {
@@ -2290,7 +2306,7 @@
 					esc(cat.id) +
 					'">' +
 					'<span class="abmm-drag-handle">⋮⋮</span>' +
-				'<button type="button" class="abmm-select-category" aria-pressed="' + (i === state.editingCatIndex ? 'true' : 'false') + '" aria-label="Edit category ' + esc(cat.title || i + 1) + '">Edit</button>' +
+				'<button type="button" class="abmm-select-category" aria-pressed="' + (i === state.editingCatIndex ? 'true' : 'false') + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Edit category %s', 'ashbi-mega-menu'), cat.title || i + 1)) + '">' + esc(__('Edit', 'ashbi-mega-menu')) + '</button>' +
 				'<button type="button" class="abmm-pick-icon" title="' +
 					esc(S.selectIcon) +
 					'">' +
@@ -2298,26 +2314,27 @@
 				'</button>' +
 				'<input type="color" class="abmm-icon-color abmm-cat-icon-color" value="' +
 				esc(cat.icon_color || '#2271b1') +
-				'" aria-label="Icon color" />' +
+				'" aria-label="' + esc(__('Icon color', 'ashbi-mega-menu')) + '" />' +
 				'<input type="number" class="abmm-icon-size abmm-cat-icon-size" min="12" max="64" value="' +
 				esc(cat.icon_size || '') +
-				'" placeholder="Size" aria-label="Icon size override" />' +
-				'<button type="button" class="button-link abmm-reset-icon-style" title="Reset icon style to inherited values">Inherit</button>' +
+				'" placeholder="' + esc(__('Size', 'ashbi-mega-menu')) + '" aria-label="' + esc(__('Icon size override', 'ashbi-mega-menu')) + '" />' +
+				'<button type="button" class="button-link abmm-reset-icon-style" title="' + esc(__('Reset icon style to inherited values', 'ashbi-mega-menu')) + '">' + esc(__('Inherit', 'ashbi-mega-menu')) + '</button>' +
 				iconAdvancedFieldsHtml(cat) +
 					'<div class="abmm-cat-row__fields">' +
-					'<input type="text" class="abmm-cat-title" aria-label="Category ' + esc(i + 1) + ' title" value="' +
+					'<input type="text" class="abmm-cat-title" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s title', 'ashbi-mega-menu'), i + 1)) + '" value="' +
 					esc(cat.title) +
 					'" placeholder="' +
 					esc(S.categoryTitle) +
 					'" />' +
-					'<input type="text" class="abmm-cat-desc" aria-label="Category ' + esc(i + 1) + ' description" value="' +
+					'<input type="text" class="abmm-cat-desc" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s description', 'ashbi-mega-menu'), i + 1)) + '" value="' +
 					esc(cat.description) +
 					'" placeholder="' +
 					esc(S.categoryDesc) +
 					'" />' +
 					'</div>' +
-					reorderControlsHtml('category ' + (cat.title || i + 1), i, item.categories.length) +
-					'<button type="button" class="button-link-delete abmm-remove-cat" aria-label="Remove category ' + esc(cat.title || i + 1) + '">&times;</button>' +
+					/* translators: %s: category name. */
+					reorderControlsHtml(sprintf(__('category %s', 'ashbi-mega-menu'), cat.title || i + 1), i, item.categories.length) +
+					'<button type="button" class="button-link-delete abmm-remove-cat" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Remove category %s', 'ashbi-mega-menu'), cat.title || i + 1)) + '">&times;</button>' +
 					'</li>'
 			);
 			$list.append($row);
@@ -2363,7 +2380,7 @@
 		}
 		cat.groups.push({
 			id: uid(),
-			title: 'Column 1',
+			title: __('Column 1', 'ashbi-mega-menu'),
 			url: '',
 			links: [],
 		});
@@ -2398,10 +2415,10 @@
 			'</div>' +
 			'<div class="abmm-col-editor-head">' +
 			'<div>' +
-			'<h3>Columns</h3>' +
-			'<p class="description">Split this category into labeled columns. Drag links between columns to reorganize them.</p>' +
+			'<h3>' + esc(__('Columns', 'ashbi-mega-menu')) + '</h3>' +
+			'<p class="description">' + esc(__('Split this category into labeled columns. Drag links between columns to reorganize them.', 'ashbi-mega-menu')) + '</p>' +
 			'</div>' +
-			'<button type="button" class="button abmm-add-group">+ Add column</button>' +
+			'<button type="button" class="button abmm-add-group">+ ' + esc(__('Add column', 'ashbi-mega-menu')) + '</button>' +
 			'</div>' +
 			'<div class="abmm-group-list" id="abmm-group-list"></div>' +
 			'</div>';
@@ -2435,7 +2452,8 @@
 		$detail.find('.abmm-add-group').on('click', function () {
 			cat.groups.push({
 				id: uid(),
-				title: 'Column ' + (cat.groups.length + 1),
+				/* translators: %s: column number. */
+				title: sprintf(__('Column %s', 'ashbi-mega-menu'), cat.groups.length + 1),
 				url: '',
 				links: [],
 			});
@@ -2445,13 +2463,13 @@
 
 		$detail.on('click.abmmCatDetail', '.abmm-remove-group', function () {
 			if (cat.groups.length <= 1) {
-				setStatus('Keep at least one column.', true);
+				setStatus(__('Keep at least one column.', 'ashbi-mega-menu'), true);
 				return;
 			}
 			var gid = $(this).closest('.abmm-group-block').data('id');
 			var index = cat.groups.findIndex(function (g) { return g.id === gid; }); if (index < 0) return;
 			var removed = cat.groups.splice(index, 1)[0]; renderCatDetail(); renderPreview();
-			setUndoStatus('Column removed.', function () { cat.groups.splice(index, 0, removed); renderCatDetail(); renderPreview(); setStatus('Column restored.', false); });
+			setUndoStatus(__('Column removed.', 'ashbi-mega-menu'), function () { cat.groups.splice(index, 0, removed); renderCatDetail(); renderPreview(); setStatus(__('Column restored.', 'ashbi-mega-menu'), false); });
 		});
 
 		$detail.on('input.abmmCatDetail', '.abmm-group-title', function () {
@@ -2494,7 +2512,7 @@
 			if (!group.links) group.links = [];
 			group.links.push({
 				id: uid(),
-				label: 'New Link',
+				label: __('New Link', 'ashbi-mega-menu'),
 				description: '',
 				url: '#',
 				icon: '',
@@ -2517,7 +2535,7 @@
 			if (!group) return;
 			var index = (group.links || []).findIndex(function (l) { return l.id === lid; }); if (index < 0) return;
 			var removed = group.links.splice(index, 1)[0]; renderCatDetail(); renderPreview();
-			setUndoStatus('Link removed.', function () { group.links.splice(index, 0, removed); renderCatDetail(); renderPreview(); setStatus('Link restored.', false); });
+			setUndoStatus(__('Link removed.', 'ashbi-mega-menu'), function () { group.links.splice(index, 0, removed); renderCatDetail(); renderPreview(); setStatus(__('Link restored.', 'ashbi-mega-menu'), false); });
 		});
 
 		$detail.on('input.abmmCatDetail change.abmmCatDetail', '.abmm-link-label, .abmm-link-description, .abmm-link-url, .abmm-link-target, .abmm-link-rel, .abmm-link-class', function () {
@@ -2628,11 +2646,12 @@
 			esc(group.id) +
 			'">' +
 			'<div class="abmm-group-block__head">' +
-			'<input type="text" class="abmm-group-title" aria-label="Column heading" value="' +
+			'<input type="text" class="abmm-group-title" aria-label="' + esc(__('Column heading', 'ashbi-mega-menu')) + '" value="' +
 			esc(group.title || '') +
-			'" placeholder="Column heading (e.g. Services)" />' +
-			reorderControlsHtml('column ' + (group.title || groupIndex + 1), groupIndex, groupLength) +
-			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="Remove column ' + esc(group.title || '') + '" title="Remove column">&times;</button>' +
+			'" placeholder="' + esc(__('Column heading (e.g. Services)', 'ashbi-mega-menu')) + '" />' +
+			/* translators: %s: column name. */
+			reorderControlsHtml(sprintf(__('column %s', 'ashbi-mega-menu'), group.title || groupIndex + 1), groupIndex, groupLength) +
+			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="' + /* translators: %s: column name. */ esc(sprintf(__('Remove column %s', 'ashbi-mega-menu'), group.title || '')) + '" title="' + esc(__('Remove column', 'ashbi-mega-menu')) + '">&times;</button>' +
 			'</div>' +
 			'<label class="abmm-field abmm-field--compact"><span>' +
 			esc(S.groupUrl) +
@@ -2665,24 +2684,25 @@
 			'</button>' +
 			'<input type="color" class="abmm-icon-color abmm-link-icon-color" value="' +
 			esc(link.icon_color || '#8a8a96') +
-			'" aria-label="Icon color" />' +
+			'" aria-label="' + esc(__('Icon color', 'ashbi-mega-menu')) + '" />' +
 			'<input type="number" class="abmm-icon-size abmm-link-icon-size" min="12" max="64" value="' +
 			esc(link.icon_size || '') +
-			'" placeholder="Size" aria-label="Icon size override" />' +
-			'<button type="button" class="button-link abmm-reset-icon-style" title="Reset icon style to inherited values">Inherit</button>' +
+			'" placeholder="' + esc(__('Size', 'ashbi-mega-menu')) + '" aria-label="' + esc(__('Icon size override', 'ashbi-mega-menu')) + '" />' +
+			'<button type="button" class="button-link abmm-reset-icon-style" title="' + esc(__('Reset icon style to inherited values', 'ashbi-mega-menu')) + '">' + esc(__('Inherit', 'ashbi-mega-menu')) + '</button>' +
 			iconAdvancedFieldsHtml(link) +
-			'<input type="text" class="abmm-link-label" aria-label="Link label" value="' +
+			'<input type="text" class="abmm-link-label" aria-label="' + esc(__('Link label', 'ashbi-mega-menu')) + '" value="' +
 			esc(link.label) +
 			'" placeholder="' +
 			esc(S.linkLabel) +
 			'" />' +
-			'<textarea class="abmm-link-description" aria-label="Link description" rows="2" placeholder="Short excerpt (optional)">' +
+			'<textarea class="abmm-link-description" aria-label="' + esc(__('Link description', 'ashbi-mega-menu')) + '" rows="2" placeholder="' + esc(__('Short excerpt (optional)', 'ashbi-mega-menu')) + '">' +
 			esc(link.description || '') +
 			'</textarea>' +
 			wpLinkFieldHtml(link.url || '', 'abmm-link-url', '.abmm-link-label', false) +
 			linkOptionsHtml(link) +
-			reorderControlsHtml('link ' + (link.label || linkIndex + 1), linkIndex, linkLength) +
-			'<button type="button" class="button-link-delete abmm-remove-link" aria-label="Remove link ' + esc(link.label || '') + '">&times;</button>' +
+			/* translators: %s: link name. */
+			reorderControlsHtml(sprintf(__('link %s', 'ashbi-mega-menu'), link.label || linkIndex + 1), linkIndex, linkLength) +
+			'<button type="button" class="button-link-delete abmm-remove-link" aria-label="' + /* translators: %s: link name. */ esc(sprintf(__('Remove link %s', 'ashbi-mega-menu'), link.label || '')) + '">&times;</button>' +
 			'</li>'
 		);
 	}
@@ -2767,7 +2787,7 @@
 			if (!m.context || !m.context.show || !m.context.label) return '';
 			var className = 'abmm-nav__context abmm-nav__context--' + location;
 			var content =
-				'<span class="screen-reader-text">Current section: </span>' +
+				'<span class="screen-reader-text">' + esc(__('Current section:', 'ashbi-mega-menu')) + ' </span>' +
 				'<span class="abmm-nav__context-label">' +
 				 esc(m.context.label) +
 				'</span>';
@@ -2786,11 +2806,11 @@
 		var mobileOpen = mobilePreview && state.previewMobileOpen;
 		var drillMarkup =
 			mobilePreview && state.previewDrill !== 'root'
-				? '<div class="abmm-preview-mobile-bar"><button type="button" data-abmm-preview-back aria-label="Back to menu">&larr; <span>Back</span></button><strong>' +
-				  esc(state.previewDrill === 'links' ? 'Choose a link' : 'Choose a section') +
+				? '<div class="abmm-preview-mobile-bar"><button type="button" data-abmm-preview-back aria-label="' + esc(__('Back to menu', 'ashbi-mega-menu')) + '">&larr; <span>' + esc(__('Back', 'ashbi-mega-menu')) + '</span></button><strong>' +
+				  esc(state.previewDrill === 'links' ? __('Choose a link', 'ashbi-mega-menu') : __('Choose a section', 'ashbi-mega-menu')) +
 				  '</strong></div>'
 				: '';
-		var mobileToggleLabel = mobileOpen ? 'Close menu' : 'Open menu';
+		var mobileToggleLabel = mobileOpen ? __('Close menu', 'ashbi-mega-menu') : __('Open menu', 'ashbi-mega-menu');
 
 		var html =
 			'<div class="' +
@@ -2801,7 +2821,7 @@
 			'" style="' +
 			esc(style) +
 			'">' +
-			'<nav class="abmm-nav" aria-label="' + esc(m.title || 'Menu') + '">' +
+			'<nav class="abmm-nav" aria-label="' + esc(m.title || __('Menu', 'ashbi-mega-menu')) + '">' +
 			'<div class="abmm-nav__bar">' +
 			previewBrandMarkup('bar') +
 			previewContextMarkup('bar') +
@@ -2817,7 +2837,7 @@
 			'<div class="abmm-nav__drawer" id="' +
 			previewDrawerId +
 			'">' +
-			'<div class="abmm-nav__drawer-head"><span class="abmm-nav__drawer-title">Menu</span><button type="button" class="abmm-nav__drawer-close" data-abmm-preview-drawer-close aria-label="Close menu"><span aria-hidden="true">&times;</span></button></div>' +
+			'<div class="abmm-nav__drawer-head"><span class="abmm-nav__drawer-title">' + esc(__('Menu', 'ashbi-mega-menu')) + '</span><button type="button" class="abmm-nav__drawer-close" data-abmm-preview-drawer-close aria-label="' + esc(__('Close menu', 'ashbi-mega-menu')) + '"><span aria-hidden="true">&times;</span></button></div>' +
 			drillMarkup +
 			'<div class="abmm-nav__inner">' +
 			previewBrandMarkup('drawer') +
@@ -2827,7 +2847,7 @@
 			'</ul>' +
 			previewCtaMarkup('drawer') +
 			'</div></div>' +
-			'<button type="button" class="abmm-nav__backdrop" data-abmm-preview-backdrop' + (mobileOpen ? '' : ' hidden') + ' aria-label="Close menu"></button>' +
+			'<button type="button" class="abmm-nav__backdrop" data-abmm-preview-backdrop' + (mobileOpen ? '' : ' hidden') + ' aria-label="' + esc(__('Close menu', 'ashbi-mega-menu')) + '"></button>' +
 			'</nav></div>';
 
 		var previewState = state.previewViewport + '-' + state.previewDrill;
@@ -2849,8 +2869,10 @@
 		var $editSelected = $('.abmm-open-selected-mega');
 		if (selectedItem && selectedItem.type === 'mega') {
 			$editSelected
-				.text('Edit ' + (selectedItem.label || 'selected') + ' content')
-				.attr('aria-label', 'Edit ' + (selectedItem.label || 'selected') + ' mega menu content')
+				/* translators: %s: mega menu item name. */
+				.text(sprintf(__('Edit %s content', 'ashbi-mega-menu'), selectedItem.label || __('selected', 'ashbi-mega-menu')))
+				/* translators: %s: mega menu item name. */
+				.attr('aria-label', sprintf(__('Edit %s mega menu content', 'ashbi-mega-menu'), selectedItem.label || __('selected', 'ashbi-mega-menu')))
 				.prop('hidden', false);
 		} else {
 			$editSelected.prop('hidden', true);
@@ -3157,7 +3179,7 @@
 		$('.abmm-upload-icon').on('click', function () {
 			var frame = wp.media({
 				title: S.uploadIcon,
-				button: { text: 'Use icon' },
+				button: { text: __('Use icon', 'ashbi-mega-menu') },
 				multiple: false,
 			});
 			frame.on('select', function () {
