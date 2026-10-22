@@ -3,3 +3,6 @@ dist/
 .wp-env.json
 .DS_Store
 *.log
+tests/e2e/.auth/
+test-results/
+playwright-report/

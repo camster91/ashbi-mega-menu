@@ -76,3 +76,36 @@ jobs:
           wp-env run cli wp plugin activate ashbi-mega-menu --network
       - name: Verify site isolation and network uninstall
         run: wp-env run cli env ABMM_DISPOSABLE_TEST=1 ABMM_EXTRA_NETWORK=${{ matrix.extra-network }} wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-multisite-uninstall.php
+  browsers:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm install -g @wordpress/env
+      - name: Start disposable WordPress with PHP 8.2
+        run: |
+          node -e 'require("fs").writeFileSync(".wp-env.json", JSON.stringify({phpVersion:"8.2",plugins:["."]}))'
+          wp-env start
+          wp-env run cli wp plugin activate ashbi-mega-menu
+          wp-env run cli env ABMM_DISPOSABLE_TEST=1 wp eval-file wp-content/plugins/ashbi-mega-menu/tests/e2e/seed.php
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Browser tests (${{ matrix.browser }})
+        run: npm run test:e2e -- --project=${{ matrix.browser }}
+        env:
+          WP_BASE_URL: http://localhost:8888
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            test-results/
