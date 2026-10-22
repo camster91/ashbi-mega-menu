@@ -2090,11 +2090,11 @@
 	}
 
 	function reorderControlsHtml(label, index, length) {
-		return '<span class="abmm-reorder-controls" role="group" aria-label="' + esc(label) + ' position controls">' +
-			'<button type="button" class="button-link abmm-move-item abmm-move-up" aria-label="Move ' + esc(label) + ' up"' +
-			(index === 0 ? ' disabled' : '') + '>Move up</button>' +
-			'<button type="button" class="button-link abmm-move-item abmm-move-down" aria-label="Move ' + esc(label) + ' down"' +
-			(index === length - 1 ? ' disabled' : '') + '>Move down</button></span>';
+		return '<span class="abmm-reorder-controls" role="group" aria-label="' + esc((S.positionControls || '%s position controls').replace('%s', label)) + '">' +
+			'<button type="button" class="button-link abmm-move-item abmm-move-up" aria-label="' + esc((S.moveUpLabel || 'Move %s up').replace('%s', label)) + '"' +
+			(index === 0 ? ' disabled' : '') + '>' + esc(S.moveUp || 'Move up') + '</button>' +
+			'<button type="button" class="button-link abmm-move-item abmm-move-down" aria-label="' + esc((S.moveDownLabel || 'Move %s down').replace('%s', label)) + '"' +
+			(index === length - 1 ? ' disabled' : '') + '>' + esc(S.moveDown || 'Move down') + '</button></span>';
 	}
 
 	function moveCollectionItem(collection, from, direction) {

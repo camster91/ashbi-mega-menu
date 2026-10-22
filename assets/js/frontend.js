@@ -855,6 +855,12 @@
 				}
 
 				if (item.classList.contains('is-open')) {
+					// Hovering already opened this panel. A click that follows
+					// should keep it open, not close it under the pointer.
+					if (desktopOpenMode === 'hover' && hoverMq.matches && item.__ashbiMegaMenuClickOpen !== true) {
+						item.__ashbiMegaMenuClickOpen = true;
+						return;
+					}
 					closeAllMegas(header);
 				} else {
 					openMegaDesktop(item);

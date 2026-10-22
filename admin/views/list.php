@@ -51,7 +51,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</section>
 	<?php endif; ?>
 
-	<?php if ( empty( $menus ) ) : ?>
+	<?php if ( empty( $menus ) && ! empty( $show_onboarding ) ) : ?>
+		<?php // The first-menu panel above already offers every create option. ?>
+	<?php elseif ( empty( $menus ) ) : ?>
 		<div class="abmm-empty-state">
 			<div class="abmm-empty-state__icon">☰</div>
 			<h2><?php esc_html_e( 'No menus yet', 'ashbi-mega-menu' ); ?></h2>

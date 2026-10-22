@@ -17,7 +17,7 @@ An open-source WordPress plugin for building responsive navigation with a visual
 - Optional contextual navigation for products, services, departments, documentation or locations.
 - Revision checks prevent a stale editor from silently replacing newer changes.
 
-Activation starts with an empty menu list. An optional generic sample helps you get started; replace its placeholder links before using it. The plugin never automatically replaces your theme's header. Start with [the user guide](docs/user-guide.md) for placement, duplicate-header prevention and recovery.
+Activation starts with an empty menu list. An optional generic sample helps you get started; replace its placeholder links before using it. The plugin never automatically replaces your theme's header. New here? Read the [10-minute getting started guide](docs/getting-started.md), then [the user guide](docs/user-guide.md) for placement, duplicate-header prevention and recovery.
 
 ## Requirements and installation
 

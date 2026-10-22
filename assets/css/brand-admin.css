@@ -47,6 +47,7 @@
 .abmm-setup-steps {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));list-style:none;gap:18px;margin:0;padding:0}
 .abmm-setup-steps li {margin:0;display:flex;flex-direction:column;gap:6px;border-inline-start:3px solid #2457ff;padding-inline-start:12px}
 .abmm-setup-steps span {color:var(--abmm-brand-muted);line-height:1.5}
+.abmm-setup-flow > .description {margin:16px 0 0}
 .abmm-workflow-nav {display:flex;flex-wrap:wrap;gap:10px;padding:12px 16px}
 .abmm-workflow-nav a,.abmm-workflow-nav button {font:inherit;color:#1744df;background:#fff;border:1px solid #c5cee3;border-radius:7px;padding:8px 12px;text-decoration:none;cursor:pointer}
 .abmm-workflow-nav [aria-current="step"] {background:#eef3ff;border-color:#2457ff;font-weight:600}

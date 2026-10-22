@@ -1,5 +1,7 @@
 # Using Ashbi Mega Menu
 
+New to the plugin? Start with the short [getting started guide](getting-started.md).
+
 Portable imports/exports are limited to 500 menus and 10 MiB total, with a 1 MiB limit for each menu. A successful export is checked against the importer before downloading. If a complete export exceeds a limit, export smaller selections through the API/CLI or individual menus from More actions; reduce an oversized individual menu before exporting. These limits protect processing resources. Retained on-site import recovery points are separate and can restore their original stored collection in place.
 
 Product profiles and branding reject edits from stale tabs. After a failed or conflicting save, entered fields are retained in a private recovery form for 30 minutes. Review the latest saved values before retrying. Editors opened before an upgrade should be reloaded; an unchanged save is allowed, while a failed database write never produces a saved confirmation.
