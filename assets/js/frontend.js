@@ -175,10 +175,14 @@
 		bar.innerHTML =
 			'<button type="button" class="abmm-mobile-back" data-abmm-back aria-label="Back">' +
 			'<svg width="18" height="18" viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-			'<span>Back</span></button>' +
+			'<span></span></button>' +
 			'<span class="abmm-mobile-title" data-abmm-mobile-title></span>' +
 			'<button type="button" class="abmm-nav__drawer-close abmm-mobile-close" data-abmm-drawer-close aria-label="Close menu">' +
 			'<span aria-hidden="true">&times;</span></button>';
+		// The visible label is shown in every drawer, so use the translated word when the page provides it.
+		var header = closest(mega, '.abmm-header');
+		bar.querySelector('.abmm-mobile-back span').textContent =
+			(header && header.getAttribute('data-abmm-back-label')) || runtimeString('back', 'Back');
 		mega.insertBefore(bar, mega.firstChild);
 		return bar;
 	}
