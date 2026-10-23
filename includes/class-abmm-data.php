@@ -458,6 +458,23 @@ class ABMM_Data {
 				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Shorten "%s" so it fits in the menu bar.', 'ashbi-mega-menu' ), $short ) );
 			}
 		}
+		$brand = is_array( $menu['brand'] ?? null ) ? $menu['brand'] : array();
+		if ( ! empty( $brand['show'] ) ) {
+			$logo      = trim( (string) ( $brand['logo_url'] ?? '' ) );
+			$logo_dark = trim( (string) ( $brand['logo_dark_url'] ?? '' ) );
+			if ( '' === $logo && '' === $logo_dark && '' === trim( (string) ( $brand['title'] ?? '' ) ) ) {
+				$issues[] = array( 'field' => 'abmm-brand-title', 'message' => __( 'Add a logo image or site title, or turn off "Show logo".', 'ashbi-mega-menu' ) );
+			} elseif ( $this->looks_like_broken_url( $logo ) || $this->looks_like_broken_url( $logo_dark ) ) {
+				$issues[] = array( 'field' => 'abmm-brand-logo-url', 'message' => __( 'Check the logo image link. It does not look like a web address.', 'ashbi-mega-menu' ) );
+			}
+		}
+		$samples = count( array_filter( $this->menu_links( $menu ), function ( $link ) {
+			return $this->is_sample_url( $link['url'] ?? '' );
+		} ) );
+		if ( $samples ) {
+			/* translators: %d: number of template links. */
+			$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( _n( 'Replace %d sample link with your own page.', 'Replace %d sample links with your own pages.', $samples, 'ashbi-mega-menu' ), $samples ) );
+		}
 		foreach ( $this->menu_links( $menu ) as $link ) {
 			if ( $this->looks_like_broken_url( $link['url'] ?? '' ) ) {
 				/* translators: %s: link label. */
@@ -577,9 +594,9 @@ class ABMM_Data {
 			'shadow'          => 'medium',
 			'nav_align'       => 'center',
 			'cta_style'       => 'rounded',
-			'uppercase_cats'  => true,
+			'uppercase_cats'  => false,
 			'show_cat_desc'   => true,
-			'panel_title_align' => 'center',
+			'panel_title_align' => 'left',
 		);
 	}
 
@@ -1260,22 +1277,70 @@ class ABMM_Data {
 	public static function generic_starter() {
 		$settings = self::default_settings();
 		$settings['mobile_enhancements'] = true;
+		$sample = '#' . self::SAMPLE_FRAGMENT;
+		$link   = function ( $label, $icon, $description ) use ( $sample ) {
+			return array( 'label' => $label, 'url' => $sample, 'icon' => $icon, 'description' => $description );
+		};
+		$site = trim( wp_strip_all_tags( (string) get_bloginfo( 'name' ) ) );
 		return array( 'menu_demo' => array(
 			'title' => __( 'Main navigation sample', 'ashbi-mega-menu' ),
 			'items' => array(
-				array( 'id' => 'home', 'label' => __( 'Home', 'ashbi-mega-menu' ), 'url' => home_url( '/' ), 'type' => 'link' ),
-				array( 'id' => 'products', 'label' => __( 'Products', 'ashbi-mega-menu' ), 'url' => '#', 'type' => 'mega', 'mega_style' => 'platforms', 'categories' => array(
-					array( 'id' => 'solutions', 'label' => __( 'Solutions', 'ashbi-mega-menu' ), 'title' => __( 'Explore your products', 'ashbi-mega-menu' ), 'groups' => array(
-						array( 'title' => __( 'Getting started', 'ashbi-mega-menu' ), 'links' => array(
-							array( 'label' => __( 'Replace with your product', 'ashbi-mega-menu' ), 'url' => '', 'icon' => 'package' ),
+				array( 'id' => 'products', 'label' => __( 'Products', 'ashbi-mega-menu' ), 'url' => '#', 'type' => 'mega', 'mega_style' => 'platforms', 'columns' => 2, 'categories' => array(
+					array( 'id' => 'core', 'title' => __( 'Core products', 'ashbi-mega-menu' ), 'description' => __( 'What most customers start with', 'ashbi-mega-menu' ), 'icon' => 'package', 'groups' => array(
+						array( 'title' => __( 'Popular', 'ashbi-mega-menu' ), 'links' => array(
+							$link( __( 'Product one', 'ashbi-mega-menu' ), 'rocket', __( 'A short line about what it does', 'ashbi-mega-menu' ) ),
+							$link( __( 'Product two', 'ashbi-mega-menu' ), 'chart', __( 'Who it is for, in a few words', 'ashbi-mega-menu' ) ),
+							$link( __( 'Product three', 'ashbi-mega-menu' ), 'shield', __( 'The main benefit, kept short', 'ashbi-mega-menu' ) ),
+						) ),
+						array( 'title' => __( 'Add-ons', 'ashbi-mega-menu' ), 'links' => array(
+							$link( __( 'Integrations', 'ashbi-mega-menu' ), 'grid', __( 'Connect the tools you use', 'ashbi-mega-menu' ) ),
+							$link( __( 'Support plans', 'ashbi-mega-menu' ), 'handshake', __( 'Help when you need it', 'ashbi-mega-menu' ) ),
+						) ),
+					) ),
+					array( 'id' => 'industries', 'title' => __( 'Industries', 'ashbi-mega-menu' ), 'description' => __( 'Solutions for your field', 'ashbi-mega-menu' ), 'icon' => 'building', 'groups' => array(
+						array( 'title' => __( 'Who we help', 'ashbi-mega-menu' ), 'links' => array(
+							$link( __( 'Retail', 'ashbi-mega-menu' ), 'tag', __( 'Stores and online shops', 'ashbi-mega-menu' ) ),
+							$link( __( 'Healthcare', 'ashbi-mega-menu' ), 'heart', __( 'Clinics and care teams', 'ashbi-mega-menu' ) ),
+						) ),
+						array( 'title' => __( 'By size', 'ashbi-mega-menu' ), 'links' => array(
+							$link( __( 'Small business', 'ashbi-mega-menu' ), 'briefcase', __( 'Get started quickly', 'ashbi-mega-menu' ) ),
+							$link( __( 'Enterprise', 'ashbi-mega-menu' ), 'globe', __( 'Scale with confidence', 'ashbi-mega-menu' ) ),
+						) ),
+					) ),
+					array( 'id' => 'learn', 'title' => __( 'Resources', 'ashbi-mega-menu' ), 'description' => __( 'Guides, stories and help', 'ashbi-mega-menu' ), 'icon' => 'lightbulb', 'groups' => array(
+						array( 'title' => __( 'Learn', 'ashbi-mega-menu' ), 'links' => array(
+							$link( __( 'Guides', 'ashbi-mega-menu' ), 'document', __( 'Step-by-step how-tos', 'ashbi-mega-menu' ) ),
+							$link( __( 'Customer stories', 'ashbi-mega-menu' ), 'star', __( 'See what others built', 'ashbi-mega-menu' ) ),
+						) ),
+						array( 'title' => __( 'Get help', 'ashbi-mega-menu' ), 'links' => array(
+							$link( __( 'Help center', 'ashbi-mega-menu' ), 'search-gear', __( 'Answers to common questions', 'ashbi-mega-menu' ) ),
+							$link( __( 'Contact support', 'ashbi-mega-menu' ), 'mail', __( 'Talk to a real person', 'ashbi-mega-menu' ) ),
 						) ),
 					) ),
 				) ),
-				array( 'id' => 'contact', 'label' => __( 'Add your contact page', 'ashbi-mega-menu' ), 'url' => '', 'type' => 'link' ),
+				array( 'id' => 'pricing', 'label' => __( 'Pricing', 'ashbi-mega-menu' ), 'url' => $sample, 'type' => 'link' ),
+				array( 'id' => 'about', 'label' => __( 'About', 'ashbi-mega-menu' ), 'url' => $sample, 'type' => 'link' ),
+				array( 'id' => 'contact', 'label' => __( 'Contact', 'ashbi-mega-menu' ), 'url' => $sample, 'type' => 'link' ),
 			),
-			'cta' => array( 'show' => false, 'label' => '', 'url' => '' ),
+			'brand' => array( 'show' => '' !== $site, 'title' => $site, 'url' => home_url( '/' ) ),
+			'cta' => array( 'show' => true, 'label' => __( 'Get started', 'ashbi-mega-menu' ), 'url' => $sample ),
 			'settings' => $settings,
 		) );
+	}
+
+	/**
+	 * Marks template links that still need a real destination.
+	 */
+	const SAMPLE_FRAGMENT = 'abmm-sample';
+
+	/**
+	 * Whether a URL is a starter-template placeholder.
+	 *
+	 * @param string $url URL.
+	 * @return bool
+	 */
+	public function is_sample_url( $url ) {
+		return (bool) preg_match( '/#' . self::SAMPLE_FRAGMENT . '$/', trim( (string) $url ) );
 	}
 
 	public static function demo_menus() {

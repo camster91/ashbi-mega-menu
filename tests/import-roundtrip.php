@@ -57,6 +57,9 @@ class ABMM_Test_DB {
 function __( $text ) {
 	return $text;
 }
+function _n( $single, $plural, $number ) {
+	return 1 === (int) $number ? $single : $plural;
+}
 
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 	return json_encode( $value, $flags, $depth );

@@ -28,4 +28,18 @@ check( false !== strpos( $messages, 'so it fits in the menu bar' ), 'Readiness f
 $menu['items'] = array( $menu['items'][2] );
 check( $checker->readiness( $menu )['ready'], 'A normal menu is ready' );
 
+$menu['brand'] = array( 'show' => true, 'title' => '', 'logo_url' => '', 'logo_dark_url' => '' );
+$messages = implode( "\n", array_column( $checker->readiness( $menu )['issues'], 'message' ) );
+check( false !== strpos( $messages, 'Add a logo image or site title' ), 'Readiness flags a logo with nothing to show' );
+$menu['brand']['logo_url'] = 'http://logo';
+$messages = implode( "\n", array_column( $checker->readiness( $menu )['issues'], 'message' ) );
+check( false !== strpos( $messages, 'Check the logo image link' ), 'Readiness flags a plain-text logo link' );
+$menu['brand']['logo_url'] = 'https://example.com/logo.svg';
+check( $checker->readiness( $menu )['ready'], 'A logo with a real image is ready' );
+
+$menu['brand'] = array();
+$menu['items'][] = array( 'type' => 'link', 'label' => 'Sample', 'url' => '#abmm-sample' );
+$messages = implode( "\n", array_column( $checker->readiness( $menu )['issues'], 'message' ) );
+check( false !== strpos( $messages, 'Replace 1 sample link' ), 'Readiness counts template links still to replace' );
+
 echo "Readiness flags plain-text links and long labels.\n";

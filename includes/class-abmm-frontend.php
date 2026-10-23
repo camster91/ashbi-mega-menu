@@ -199,7 +199,7 @@ class ABMM_Frontend {
 
 		ob_start();
 		?>
-		<header class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" id="<?php echo esc_attr( $instance_id ); ?>" style="<?php echo esc_attr( $this->css_vars( $settings ) ); ?>" data-abmm-id="<?php echo esc_attr( $menu_id ); ?>" data-abmm-instance="<?php echo esc_attr( $instance_id ); ?>" data-abmm-presentation="<?php echo esc_attr( $presentation ); ?>" data-abmm-desktop-open="<?php echo esc_attr( 'click' === ( $settings['desktop_interaction'] ?? '' ) ? 'click' : 'hover' ); ?>">
+		<header class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" id="<?php echo esc_attr( $instance_id ); ?>" style="<?php echo esc_attr( $this->css_vars( $settings ) ); ?>" data-abmm-id="<?php echo esc_attr( $menu_id ); ?>" data-abmm-instance="<?php echo esc_attr( $instance_id ); ?>" data-abmm-presentation="<?php echo esc_attr( $presentation ); ?>" data-abmm-desktop-open="<?php echo esc_attr( 'click' === ( $settings['desktop_interaction'] ?? '' ) ? 'click' : 'hover' ); ?>" data-abmm-back-label="<?php echo esc_attr_x( 'Back', 'mobile menu button', 'ashbi-mega-menu' ); ?>">
 			<?php echo $this->render_utility_links( $utility_links ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<nav class="abmm-nav" aria-label="<?php echo esc_attr( $menu['title'] ); ?>">
 				<div class="abmm-nav__bar">
@@ -524,11 +524,14 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 			return false;
 		}
 
-		if ( empty( $target['query'] ) ) {
-			return true;
-		}
-		parse_str( $target['query'], $target_query );
+		parse_str( $target['query'] ?? '', $target_query );
 		parse_str( $current['query'] ?? '', $current_query );
+		if ( empty( $target_query ) ) {
+			// With plain permalinks every page lives at "/?page_id=…", so a bare
+			// home link only matches when the request names no other content.
+			$routing = array( 'p', 'page_id', 'pagename', 'name', 'cat', 'tag', 'tag_id', 'category_name', 'author', 'author_name', 'post_type', 'attachment_id', 's', 'm', 'year', 'monthnum', 'day' );
+			return ! array_intersect_key( $current_query, array_flip( $routing ) );
+		}
 		ksort( $target_query );
 		ksort( $current_query );
 		return $target_query === $current_query;

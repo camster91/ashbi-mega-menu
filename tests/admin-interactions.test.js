@@ -69,12 +69,33 @@ async function backupFixture(strings = {}) {
   assert.equal(reorderFixture.requests.length,0,'keyboard reordering never implicitly saves or sends a mutation');
   assert.equal(rq('#abmm-menu-title').val(),menu.title,'reordering does not change other menu fields');
  } finally { reorderFixture.close(); }
+ let rowsFixture = await fixture(false,false,null,'demo',reorderMenu);
+ try {
+  const rq = rowsFixture.$;
+  const rows = () => rq('#abmm-nav-items > .abmm-nav-item-row');
+  const toggle = i => rows().eq(i).find('.abmm-nav-item-row__toggle');
+  assert.equal(toggle(0).attr('aria-expanded'),'true','the first item opens on load');
+  assert.equal(rows().eq(0).find('.abmm-nav-item-row__fields').prop('hidden'),false);
+  assert.equal(rows().eq(1).find('.abmm-nav-item-row__fields').prop('hidden'),true,'other items start collapsed');
+  assert.equal(rows().eq(0).find('.abmm-nav-item-row__fields label').first().text(),'Label','expanded form labels its fields');
+  toggle(1).trigger('click');
+  assert.equal(toggle(1).attr('aria-expanded'),'true');
+  assert.equal(toggle(0).attr('aria-expanded'),'false','one item is open at a time');
+  rows().eq(1).find('.abmm-nav-label').val('Renamed').trigger('input');
+  assert.equal(rows().eq(1).find('.abmm-nav-item-row__title').text(),'Renamed','collapsed title follows the label field');
+  rows().eq(1).find('.abmm-duplicate-nav').trigger('click');
+  assert.equal(toggle(2).attr('aria-expanded'),'true','a duplicated item opens straight away');
+  assert.equal(toggle(1).attr('aria-expanded'),'false');
+ } finally { rowsFixture.close(); }
  let f=await fixture(); let {$,requests}=f;
  assert.equal($('#abmm-preview .abmm-nav__link').text(),'Home','loaded transport renders actual preview');
  $('[data-abmm-preview-viewport="mobile"]').trigger('click');
  assert.equal($('.abmm-preview-shell').attr('data-abmm-preview-viewport'),'mobile');
  assert.equal($('[data-abmm-preview-viewport="mobile"]').attr('aria-pressed'),'true');
  assert.equal($('[data-abmm-preview-viewport="desktop"]').attr('aria-pressed'),'false');
+ assert.equal($('#abmm-preview .abmm-nav__toggle').attr('aria-expanded'),'true','phone preview opens with the drawer showing');
+ $('#abmm-preview .abmm-nav__toggle').trigger('click');
+ assert.equal($('#abmm-preview .abmm-nav__toggle').attr('aria-expanded'),'false','the preview toggle still closes the drawer');
  $('#abmm-preview .abmm-nav__toggle').trigger('click');
  assert.equal($('#abmm-preview .abmm-nav__toggle').attr('aria-expanded'),'true');
  $('[data-abmm-preview-viewport="desktop"]').trigger('click');

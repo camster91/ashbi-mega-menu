@@ -2,7 +2,7 @@
 
 New to the plugin? Start with the short [getting started guide](getting-started.md).
 
-Portable imports/exports are limited to 500 menus and 10 MiB total, with a 1 MiB limit for each menu. A successful export is checked against the importer before downloading. If a complete export exceeds a limit, export smaller selections through the API/CLI or individual menus from More actions; reduce an oversized individual menu before exporting. These limits protect processing resources. Retained on-site import recovery points are separate and can restore their original stored collection in place.
+Portable imports/exports are limited to 500 menus and 10 MiB total, with a 1 MiB limit for each menu. A successful export is checked against the importer before downloading. If a complete export exceeds a limit, export smaller selections through the API/CLI or individual menus from the ⋯ menu on their card; reduce an oversized individual menu before exporting. These limits protect processing resources. Retained on-site import recovery points are separate and can restore their original stored collection in place.
 
 Product profiles and branding reject edits from stale tabs. After a failed or conflicting save, entered fields are retained in a private recovery form for 30 minutes. Review the latest saved values before retrying. Editors opened before an upgrade should be reloaded; an unchanged save is allowed, while a failed database write never produces a saved confirmation.
 
@@ -120,11 +120,11 @@ Before launch, test keyboard opening/closing, visible focus, phone menu back/clo
 
 ## Follow the setup path
 
-The editor has three steps above the save bar: **Edit → Place → Check**. A **Configured** badge on the dashboard means the saved menu passes its checklist; it does not mean a header was installed or its links were tested. **Place & verify** on a configured menu opens the editor's **Place** tab. Save before copying a shortcode: published placements read the saved version, not the preview or an unsaved draft.
+The editor has three steps above the save bar: **Edit → Place → Check**. A **Ready** badge on the dashboard means the saved menu passes its checklist; it does not mean a header was installed or its links were tested. **Place & verify** on a ready menu opens the editor's **Place** tab. Save before copying a shortcode: published placements read the saved version, not the preview or an unsaved draft.
 
 The **Place** tab always shows the exact menu shortcode with a Copy button, plus short instructions for block themes, classic themes and page builders, and a child-theme PHP call for developers. If the menu still has checklist items, the tab reminds you to fix them first. **Check it on your site** is a manual checklist for real pages: follow each link, open dropdowns with the mouse and keyboard, and confirm the phone menu opens, goes back and closes. Use a staging page first and keep the original header until the replacement passes.
 
-Per-menu export, duplicate and archive live under **More actions** on each menu card. Under **Tools** on the main screen, **Import and export** holds collection import and developer examples, and **Recovery snapshots** restores automatic backups. Existing product profiles and branding pages remain available for reusable product navigation.
+Per-menu export, duplicate and archive live in the **⋯** menu on each menu card. Under **Tools** on the main screen, **Import and export** holds collection import and developer examples, and **Recovery snapshots** restores automatic backups. Existing product profiles and branding pages remain available for reusable product navigation.
 
 ### Recover a stale browser draft
 

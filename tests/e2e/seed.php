@@ -27,7 +27,10 @@ foreach ( array( 'chromium', 'firefox', 'webkit' ) as $browser ) {
 			'post_status'  => 'publish',
 			'post_title'   => 'E2E ' . $browser,
 			'post_name'    => $slug,
-			'post_content' => '<!-- wp:shortcode -->[ashbi_mega_menu id="' . $id . '"]<!-- /wp:shortcode --><!-- wp:paragraph --><p>Page content after the menu.</p><!-- /wp:paragraph -->',
+			// Full width, like a real header: the starter's site name, links and
+			// button do not fit a narrow content column and would switch to the
+			// phone layout, which desktop tests cannot hover.
+			'post_content' => '<!-- wp:group {"align":"full","layout":{"type":"default"}} --><div class="wp-block-group alignfull"><!-- wp:shortcode -->[ashbi_mega_menu id="' . $id . '"]<!-- /wp:shortcode --></div><!-- /wp:group --><!-- wp:paragraph --><p>Page content after the menu.</p><!-- /wp:paragraph -->',
 		),
 		true
 	);
