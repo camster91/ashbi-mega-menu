@@ -1044,9 +1044,32 @@ class ABMM_Data {
 					}
 				}
 			}
+
+			$out['featured'] = $this->sanitize_featured( $item['featured'] ?? array() );
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Sanitize the optional featured card of a mega item.
+	 *
+	 * Older menus have no card, so a missing or malformed value becomes an
+	 * empty, hidden card.
+	 *
+	 * @param mixed $featured Raw featured card data.
+	 * @return array
+	 */
+	private function sanitize_featured( $featured ) {
+		$featured = is_array( $featured ) ? $featured : array();
+		return array(
+			'show'      => ! empty( $featured['show'] ) && 'false' !== $featured['show'] && '0' !== $featured['show'],
+			'title'     => $this->sanitize_text( $featured['title'] ?? '' ),
+			'text'      => $this->sanitize_text( $featured['text'] ?? '' ),
+			'label'     => $this->sanitize_text( $featured['label'] ?? '' ),
+			'url'       => $this->sanitize_menu_url( $featured['url'] ?? '' ),
+			'image_url' => $this->sanitize_menu_url( $featured['image_url'] ?? '' ),
+		);
 	}
 
 	/**

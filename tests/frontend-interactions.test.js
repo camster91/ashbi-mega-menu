@@ -31,7 +31,8 @@ const dom = new JSDOM(
 												<span class="abmm-mega__cat-title">Finance</span>
 											</button>
 											<div class="abmm-mega__panel" id="finance-panel" hidden>
-												<a href="/accounts">Accounts</a>
+												<h3 class="abmm-mega__section-title"><button type="button" class="abmm-mega__section-toggle" aria-expanded="true" aria-controls="finance-links" data-abmm-section-toggle>Finance</button></h3>
+												<div class="abmm-mega__columns" id="finance-links"><a href="/accounts">Accounts</a></div>
 											</div>
 										</section>
 										<section class="abmm-mega__section" data-abmm-section="people">
@@ -39,7 +40,8 @@ const dom = new JSDOM(
 												<span class="abmm-mega__cat-title">People</span>
 											</button>
 											<div class="abmm-mega__panel" id="people-panel" hidden>
-												<a href="/people">People link</a>
+												<h3 class="abmm-mega__section-title"><button type="button" class="abmm-mega__section-toggle" aria-expanded="true" aria-controls="people-links" data-abmm-section-toggle>People</button></h3>
+												<div class="abmm-mega__columns" id="people-links"><a href="/people">People link</a></div>
 											</div>
 										</section>
 									</div>
@@ -166,6 +168,20 @@ for (const category of categories) {
 	assert.equal(category.closest('.abmm-mega__section').querySelector('.abmm-mega__panel').hidden, false);
 }
 assert.equal(window.document.activeElement, firstLink);
+
+// Phone accordion: the first category starts open and the others collapsed,
+// so a link in the first category stays two taps away. A heading toggles its links.
+const [financeToggle, peopleToggle] = header.querySelectorAll('[data-abmm-section-toggle]');
+assert.equal(financeToggle.getAttribute('aria-expanded'), 'true');
+assert.equal(peopleToggle.getAttribute('aria-expanded'), 'false');
+assert.equal(peopleToggle.closest('.abmm-mega__section').classList.contains('is-collapsed'), true);
+peopleToggle.click();
+assert.equal(peopleToggle.getAttribute('aria-expanded'), 'true');
+assert.equal(peopleToggle.closest('.abmm-mega__section').classList.contains('is-collapsed'), false);
+assert.equal(header.getAttribute('data-drill-level'), '2');
+financeToggle.click();
+assert.equal(financeToggle.getAttribute('aria-expanded'), 'false');
+financeToggle.click();
 
 window.document.body.click();
 assert.equal(header.classList.contains('is-mobile-open'), true);
