@@ -409,10 +409,19 @@
 		var saved = state.saveState === 'saved';
 		var saving = state.saveState === 'saving';
 		var label = saving ? __('Saving…', 'ashbi-mega-menu') : (saved ? __('Saved', 'ashbi-mega-menu') : __('Save changes', 'ashbi-mega-menu'));
-		$button.toggleClass('is-saved', saved).toggleClass('is-saving', saving)
-			.empty()
-			.append(saved ? '<span class="dashicons dashicons-yes" aria-hidden="true"></span>' : '')
-			.append($('<span class="abmm-save-menu__label" />').text(label));
+		// Update the existing nodes rather than rebuilding them: a blur that
+		// changes the state between mousedown and mouseup would otherwise remove
+		// the clicked element and the browser would drop the click.
+		var $icon = $button.children('.dashicons');
+		var $label = $button.children('.abmm-save-menu__label');
+		if (!$label.length) {
+			$button.empty();
+			$icon = $('<span class="dashicons dashicons-yes" aria-hidden="true"></span>').appendTo($button);
+			$label = $('<span class="abmm-save-menu__label" />').appendTo($button);
+		}
+		$icon.prop('hidden', !saved);
+		if ($label.text() !== label) $label.text(label);
+		$button.toggleClass('is-saved', saved).toggleClass('is-saving', saving);
 		$button.attr('title', saved ? __('All changes are saved', 'ashbi-mega-menu') : __('Save this menu', 'ashbi-mega-menu'));
 	}
 
@@ -3113,7 +3122,7 @@
 		stage.style.transform = scale === 1 ? '' : 'scale(' + scale + ')';
 		sizer.style.width = Math.round(width * scale) + 'px';
 		// Open panels hang below the bar, so measure them too.
-		var height = stage.offsetHeight;
+		var height = Math.max(stage.offsetHeight, stage.scrollHeight);
 		var stageTop = stage.getBoundingClientRect().top;
 		$(stage).find('.abmm-mega').filter(':visible').each(function () {
 			height = Math.max(height, (this.getBoundingClientRect().bottom - stageTop) / scale + 24);
@@ -3307,6 +3316,9 @@
 			$selected.addClass('is-open');
 			$selected.find('> .abmm-nav__link').attr('aria-expanded', 'true');
 		}
+		// The open panel changes the stage height, so size the canvas again.
+		applyPreviewZoom();
+
 		if (mobilePreview && state.previewDrill !== 'root') {
 			$selected.attr('data-drill', state.previewDrill);
 		}

@@ -770,6 +770,7 @@
 .abmm-wrap .abmm-builder-topbar .abmm-save-menu.is-saved {color:#0a6b30;background:#fff;border-color:var(--abmm-brand-line);box-shadow:none}
 .abmm-wrap .abmm-builder-topbar .abmm-save-menu.is-saved:hover {color:#0a6b30;background:#f4f8f5;border-color:#c9dccf}
 .abmm-wrap .abmm-builder-topbar .abmm-save-menu .dashicons {width:18px;height:18px;margin-inline-start:-4px;font-size:18px;line-height:1}
+.abmm-wrap .abmm-builder-topbar .abmm-save-menu .dashicons[hidden] {display:none}
 .abmm-wrap .abmm-builder-topbar .abmm-save-menu:disabled {opacity:.7}
 
 /* "More actions" menu. */
