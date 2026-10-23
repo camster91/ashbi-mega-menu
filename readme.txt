@@ -72,6 +72,10 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Fix cramped reorder, icon size and category fields in the editor, and add the missing right margin.
 * Show one clear set of create options on a new install.
 * Make all menu editor text and the mobile menu's screen-reader labels translatable.
+* Keep the mobile drawer on screen when the menu sits low on the page, such as in a footer widget.
+* Stop themes such as Twenty Twenty-One from repainting menu section buttons and drawer controls.
+* Tell menus with the same name apart in the block and widget menu lists.
+* Remove the widget's saved settings when the plugin is deleted.
 * Start ordinary sites with neutral defaults and make contextual navigation an optional module.
 * Generalize contextual navigation for products, services, departments, documentation and locations.
 * Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.

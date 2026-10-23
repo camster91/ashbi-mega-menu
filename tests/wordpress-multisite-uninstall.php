@@ -22,7 +22,7 @@ for ( $i = 1; $i <= 2; $i++ ) {
 }
 $original_site = get_current_blog_id();
 abmm_multisite_assert( ! wp_installing() && ! wp_using_ext_object_cache(), 'Fixture must use normal database-backed transient storage.' );
-$keys = array( 'abmm_menus', 'abmm_archived_menus', 'abmm_product_profiles', 'abmm_product_branding', 'abmm_plugin_version', 'abmm_import_backups', 'abmm_contextual_navigation_enabled' );
+$keys = array( 'abmm_menus', 'abmm_archived_menus', 'abmm_product_profiles', 'abmm_product_branding', 'abmm_plugin_version', 'abmm_import_backups', 'abmm_contextual_navigation_enabled', 'widget_abmm_widget' );
 $extra_network = '1' === getenv( 'ABMM_EXTRA_NETWORK' );
 $foreign_options = array();
 if ( $extra_network ) {

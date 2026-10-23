@@ -31,11 +31,18 @@ export default function Edit({ attributes, setAttributes }) {
 	const hasMenus = Object.keys(menus).length > 0;
 	const selectedMenuMissing = Boolean(menuId && isReady && !menus[menuId]);
 
+	// Menus can share a name (for example several copies of the sample), so
+	// add the menu ID to repeated names to tell them apart.
+	const titleCounts = Object.values(menus).reduce((counts, menu) => {
+		const title = menu.title || '';
+		counts[title] = (counts[title] || 0) + 1;
+		return counts;
+	}, {});
 	const menuOptions = [
 		{ value: '', label: __('— Select a menu —', 'ashbi-mega-menu') },
 		...Object.entries(menus).map(([id, menu]) => ({
 			value: id,
-			label: menu.title || id,
+			label: !menu.title ? id : titleCounts[menu.title] > 1 ? `${menu.title} (${id})` : menu.title,
 		})),
 	];
 
