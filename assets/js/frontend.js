@@ -1,7 +1,7 @@
 /**
  * Ashbi Mega Menu — Frontend interactions
  * Desktop: hover mega + category tabs
- * Mobile: drill-down screens (root → categories → links)
+ * Mobile: drill-down screens (root → one screen of category headings and their links)
  */
 (function () {
 	'use strict';
@@ -198,12 +198,8 @@
 		var titleEl = bar.querySelector('[data-abmm-mobile-title]');
 		if (titleEl) titleEl.textContent = title || '';
 		var back = bar.querySelector('[data-abmm-back]');
-		var item = closest(mega, '.abmm-nav__item');
-		var trigger = item && item.querySelector('[data-abmm-mega-trigger]');
-		var destination = item && item.getAttribute('data-drill') === 'links' &&
-			!mega.classList.contains('abmm-mega--columns-only') && mega.getAttribute('data-abmm-style') !== 'features'
-			? (trigger ? trigger.textContent.trim() : runtimeString('backToCategories', 'categories')) : runtimeString('backToMenu', 'menu');
-		if (back) back.setAttribute('aria-label', runtimeString('backTo', 'Back to %s').replace('%s', destination));
+		// A mega item opens straight to its links, so Back always returns to the menu.
+		if (back) back.setAttribute('aria-label', runtimeString('backTo', 'Back to %s').replace('%s', runtimeString('backToMenu', 'menu')));
 	}
 
 	function initMenuSearch(header) {
@@ -365,15 +361,31 @@
 			return;
 		}
 		// Use the tallest category so switching categories does not make the panel jump.
-		var height = Math.ceil(panel.getBoundingClientRect().height);
+		// The panel column stretches to the accordion's height so its footer strip
+		// sits on the bottom edge. Measure without the previous value, then use the
+		// taller of the category rail and the tallest category's content so
+		// switching categories does not make the panel jump.
+		accordion.style.removeProperty('--abmm-active-panel-height');
+		var height = Math.ceil(accordion.getBoundingClientRect().height);
 		mega.querySelectorAll('.abmm-mega__panel').forEach(function (other) {
-			if (other === panel) return;
 			var wasHidden = other.hidden;
 			other.hidden = false;
-			height = Math.max(height, Math.ceil(other.getBoundingClientRect().height));
+			height = Math.max(height, panelContentHeight(other));
 			other.hidden = wasHidden;
 		});
+		var maxHeight = window.getComputedStyle ? Number.parseFloat(window.getComputedStyle(panel).maxHeight) : NaN;
+		if (maxHeight > 0) height = Math.min(height, Math.ceil(maxHeight));
 		if (height > 0) accordion.style.setProperty('--abmm-active-panel-height', height + 'px');
+	}
+
+	function panelContentHeight(panel) {
+		var height = 0;
+		Array.prototype.forEach.call(panel.children, function (child) {
+			if (child.hidden || !child.getClientRects().length) return;
+			// scrollHeight includes content that a shrunken, scrolling column hides.
+			height += Math.max(child.scrollHeight || 0, Math.ceil(child.getBoundingClientRect().height));
+		});
+		return Math.max(height, Math.ceil(panel.getBoundingClientRect().height));
 	}
 
 	function positionDesktopPanel(panel, header) {
@@ -426,8 +438,17 @@
 		panel.style.transform = 'none';
 	}
 
+	// The optional desktop scrim starts below the menu bar so the bar stays bright.
+	function syncScrim(header) {
+		if (!header || !header.classList.contains('abmm-has-scrim')) return;
+		var nav = header.querySelector('.abmm-nav') || header;
+		var bottom = Math.max(0, Math.round(nav.getBoundingClientRect().bottom));
+		header.style.setProperty('--abmm-scrim-top', bottom + 'px');
+	}
+
 	function repositionOpenPanels(header) {
 		if (!header) return;
+		syncScrim(header);
 		header.querySelectorAll('[data-abmm-mega-panel]').forEach(function (panel) {
 			var open = closest(panel, '.abmm-nav__item--mega.is-open');
 			if (!open || isMobile(header)) {
@@ -446,7 +467,10 @@
 			closeAllMegas(menuHeader);
 		});
 		item.classList.add('is-open');
-		if (header) header.classList.add('abmm-has-open-menu');
+		if (header) {
+			syncScrim(header);
+			header.classList.add('abmm-has-open-menu');
+		}
 		syncOpenHeaderLayers();
 		var btn = item.querySelector('[data-abmm-mega-trigger]');
 		var panel = item.querySelector('[data-abmm-mega-panel]');
@@ -487,27 +511,17 @@
 		syncDesktopAccordionHeight(panel);
 		header.classList.add('abmm-is-drilling');
 
+		// One screen per mega item: every category is a heading followed by its
+		// links (a columns-only item has just the one category), so a link is
+		// two taps away instead of three.
 		var isFeatures = panel.getAttribute('data-abmm-style') === 'features';
 		var isColumnsOnly = panel.classList.contains('abmm-mega--columns-only');
-		var opensDirectlyToLinks = isFeatures || isColumnsOnly;
-		if (opensDirectlyToLinks) {
-			if (isColumnsOnly) {
-				var directSections = panel.querySelectorAll('.abmm-mega__section');
-				directSections.forEach(function (section, index) {
-					setSectionOpen(section, index === 0);
-				});
-			}
-			item.setAttribute('data-drill', 'links');
-			header.setAttribute('data-drill-level', '2');
-			setMobileBar(panel, label, true);
-		} else {
-			item.setAttribute('data-drill', 'cats');
-			header.setAttribute('data-drill-level', '1');
-			setMobileBar(panel, label, true);
-			panel.querySelectorAll('.abmm-mega__section').forEach(function (s) {
-				setSectionOpen(s, false);
-			});
-		}
+		panel.querySelectorAll('.abmm-mega__section').forEach(function (section, index) {
+			setSectionOpen(section, !isColumnsOnly || index === 0);
+		});
+		item.setAttribute('data-drill', 'links');
+		header.setAttribute('data-drill-level', '2');
+		setMobileBar(panel, label, true);
 
 		header.querySelector('.abmm-nav__drawer').scrollTop = 0;
 		window.requestAnimationFrame(function () {
@@ -515,39 +529,18 @@
 				focusFirst(panel, panel.querySelector('[data-abmm-back]'));
 				return;
 			}
-			if (isColumnsOnly) {
-				var directPanel = panel.querySelector('.abmm-mega__section.is-open .abmm-mega__panel');
-				focusFirst(directPanel, panel.querySelector('[data-abmm-back]'));
-				return;
-			}
-			focusFirst(panel.querySelector('.abmm-mega__accordion'), panel.querySelector('[data-abmm-back]'));
+			var firstPanel = panel.querySelector('.abmm-mega__section.is-open .abmm-mega__panel');
+			focusFirst(firstPanel, panel.querySelector('[data-abmm-back]'));
 		});
 	}
 
-	function drillIntoCategory(item, catBtn) {
-		var header = closest(item, '.abmm-header');
-		var mega = closest(catBtn, '.abmm-mega');
+	/** Mobile: a category button (normally hidden on the one-screen layout) moves to its links. */
+	function showCategoryMobile(catBtn) {
 		var section = closest(catBtn, '.abmm-mega__section');
-		if (!header || !mega || !section) return;
-
-		mega.querySelectorAll('.abmm-mega__section').forEach(function (s) {
-			setSectionOpen(s, s === section);
-		});
-
-		item.setAttribute('data-drill', 'links');
-		item._abmmLastCategoryTrigger = catBtn;
-		header.setAttribute('data-drill-level', '2');
-
-		var title =
-			(catBtn.querySelector('.abmm-mega__cat-title') || {}).textContent ||
-			catBtn.getAttribute('data-abmm-cat') ||
-			'';
-		setMobileBar(mega, title.trim(), true);
-		header.querySelector('.abmm-nav__drawer').scrollTop = 0;
-		window.requestAnimationFrame(function () {
-			var activePanel = section.querySelector('.abmm-mega__panel');
-			focusFirst(activePanel, mega.querySelector('[data-abmm-back]'));
-		});
+		var panel = section && section.querySelector('.abmm-mega__panel');
+		if (!panel) return;
+		if (typeof section.scrollIntoView === 'function') section.scrollIntoView({ block: 'start' });
+		focusFirst(panel, catBtn);
 	}
 
 	function drillBack(item) {
@@ -555,31 +548,7 @@
 		var panel = item.querySelector('[data-abmm-mega-panel]');
 		if (!header || !panel) return;
 
-		var drill = item.getAttribute('data-drill');
-		var isFeatures = panel.getAttribute('data-abmm-style') === 'features';
-		var isColumnsOnly = panel.classList.contains('abmm-mega--columns-only');
-		var opensDirectlyToLinks = isFeatures || isColumnsOnly;
 		var trigger = item.querySelector('[data-abmm-mega-trigger]');
-		var rootLabel = (trigger && trigger.textContent ? trigger.textContent : '').replace(/\s+/g, ' ').trim();
-
-		if (drill === 'links' && !opensDirectlyToLinks) {
-			item.setAttribute('data-drill', 'cats');
-			header.setAttribute('data-drill-level', '1');
-			panel.querySelectorAll('.abmm-mega__section').forEach(function (s) {
-				setSectionOpen(s, false);
-			});
-			setMobileBar(panel, rootLabel, true);
-			header.querySelector('.abmm-nav__drawer').scrollTop = 0;
-			window.requestAnimationFrame(function () {
-				var categoryTrigger = item._abmmLastCategoryTrigger;
-				if (categoryTrigger && typeof categoryTrigger.focus === 'function') {
-					categoryTrigger.focus();
-				} else {
-					focusFirst(panel.querySelector('.abmm-mega__accordion'), panel.querySelector('[data-abmm-back]'));
-				}
-			});
-			return;
-		}
 
 		// Back to root menu
 		closeAllMegas(header);
@@ -899,9 +868,8 @@
 			btn.addEventListener('click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var item = closest(btn, '.abmm-nav__item--mega');
 				if (isMobile(header)) {
-					if (item) drillIntoCategory(item, btn);
+					showCategoryMobile(btn);
 				} else {
 					activateCategoryDesktop(btn);
 				}
@@ -985,7 +953,10 @@
 			if (focusedHeader && focusedHeader !== header) return;
 			if (e.key === 'Tab' && isMobile(header) && header.classList.contains('is-mobile-open')) {
 				var drawer = header.querySelector('.abmm-nav__drawer');
-				var focusable = visibleFocusable(drawer);
+				// The bar stays above the open drawer and its toggle is the close
+				// button, so keep the bar's controls in the focus loop.
+				var bar = header.querySelector('.abmm-nav__bar');
+				var focusable = (bar ? visibleFocusable(bar) : []).concat(visibleFocusable(drawer));
 				if (!focusable.length) return;
 				var first = focusable[0];
 				var last = focusable[focusable.length - 1];
@@ -1064,6 +1035,10 @@
 			syncMode(header);
 			repositionOpenPanels(header);
 		});
+
+		window.addEventListener('scroll', function () {
+			if (header.classList.contains('abmm-has-open-menu') && !isMobile(header)) syncScrim(header);
+		}, { passive: true });
 
 		if (window.ResizeObserver) {
 			var geometryObserver = new ResizeObserver(function () {

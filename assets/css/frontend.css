@@ -1503,12 +1503,6 @@ html.abmm-drawer-open {
 		top: 0;
 		transform: rotate(-45deg);
 	}
-	.abmm-header.is-mobile-open .abmm-nav__toggle {
-		display: none !important;
-		visibility: hidden !important;
-		pointer-events: none !important;
-	}
-
 	.abmm-nav__cta--bar {
 		display: inline-flex;
 		padding: 0.5rem 1rem;
@@ -1614,7 +1608,7 @@ html.abmm-drawer-open {
 		-webkit-overflow-scrolling: touch;
 		overscroll-behavior: contain;
 		padding: 0 0 1.5rem;
-		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+		box-shadow: none;
 	}
 
 	.abmm-header.is-mobile-open .abmm-nav__drawer {
@@ -1961,9 +1955,6 @@ html.abmm-drawer-open {
 	.abmm-mega__cat-desc {
 		display: block;
 		font-size: 13px;
-	}
-	.abmm-mega__panel-title {
-		display: none !important;
 	}
 
 	.abmm-mega__columns {
@@ -2573,10 +2564,6 @@ html.abmm-drawer-open {
 /* Phone drawer: one CTA, a sheet that fills the screen, a light top row and
    the same drill-in header with or without the mobile enhancements. */
 @media (max-width: 900px) {
-	.abmm-header.is-mobile-open .abmm-nav__cta--bar {
-		visibility: hidden;
-	}
-
 	.abmm-header .abmm-nav__drawer {
 		bottom: 0;
 		min-height: calc(100vh - var(--abmm-mobile-offset));
@@ -2740,5 +2727,579 @@ html.abmm-drawer-open {
 	}
 	.abmm-header.abmm-force-mobile .abmm-mega__col-link {
 		border-radius: 0;
+	}
+}
+
+/* ------------------------------------------------------------------------
+   Desktop panel: roomier rhythm, a full-width rail-less layout for a single
+   category, a "see all" footer strip, a pill hover on the bar and an
+   optional page scrim.
+   ------------------------------------------------------------------------ */
+
+/* The category heading only appears in the one-screen mobile layout. */
+.abmm-mega__section-title {
+	display: none;
+}
+
+@media (min-width: 901px) {
+	.abmm-header:not(.abmm-force-mobile) {
+		--abmm-panel-pad-top: 28px;
+		--abmm-panel-pad-bottom: 32px;
+		--abmm-panel-pad-x: 32px;
+		--abmm-foot-h: 49px;
+		--abmm-subtle: color-mix(in srgb, var(--abmm-text) 3.5%, var(--abmm-panel-bg));
+	}
+
+	/* Bar: a soft rounded pill behind the hovered or open item. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__list {
+		gap: 2px;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link,
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link:link,
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link:visited {
+		padding: 8px 14px;
+		border-radius: 999px;
+		font-size: 16px;
+		transition: background-color 0.15s ease, color 0.15s ease;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link:hover,
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link:focus-visible,
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__item.is-open > .abmm-nav__link {
+		background: color-mix(in srgb, var(--abmm-nav-link) 7%, transparent) !important;
+	}
+
+	/* Panel edge: a hairline under the panel and a tighter, softer shadow. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__inner {
+		border-color: var(--abmm-border);
+		border-bottom: 1px solid var(--abmm-border);
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-shadow--soft .abmm-mega__inner {
+		box-shadow: 0 10px 20px -12px rgba(15, 23, 42, 0.14);
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-shadow--medium .abmm-mega__inner {
+		box-shadow: 0 16px 32px -16px rgba(15, 23, 42, 0.22), 0 2px 6px -2px rgba(15, 23, 42, 0.05);
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-shadow--strong .abmm-mega__inner {
+		box-shadow: 0 22px 44px -18px rgba(0, 0, 0, 0.4), 0 2px 8px -2px rgba(0, 0, 0, 0.12);
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__item.is-open .abmm-mega__inner {
+		animation: abmm-panel-in 0.18s cubic-bezier(0.2, 0.7, 0.3, 1);
+	}
+
+	@keyframes abmm-panel-in {
+		from {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	/* Rhythm: 28px above the first row, 32px below the last, rows 4px apart. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__accordion {
+		gap: 4px;
+		padding-block: var(--abmm-panel-pad-top) var(--abmm-panel-pad-bottom);
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__accordion:has(.abmm-mega__panel-title) {
+		padding-bottom: calc(var(--abmm-panel-pad-bottom) + var(--abmm-foot-h));
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat {
+		margin-block: 0;
+		padding: 10px 12px;
+	}
+
+	.abmm-header:not(.abmm-force-mobile):not(.abmm-layout--stacked) .abmm-mega__accordion::before {
+		top: var(--abmm-panel-pad-top);
+		bottom: var(--abmm-panel-pad-bottom);
+	}
+
+	.abmm-header:not(.abmm-force-mobile):not(.abmm-layout--stacked) .abmm-mega__accordion:has(.abmm-mega__panel.is-active > .abmm-mega__panel-title)::before {
+		bottom: calc(var(--abmm-foot-h) + 16px);
+	}
+
+	/* The panel column fills the accordion so its footer sits on the bottom
+	   edge; the link columns scroll inside it when they are very tall. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel {
+		display: flex;
+		flex-direction: column;
+		padding: 0;
+		overflow: visible;
+	}
+
+	.abmm-header:not(.abmm-force-mobile):not(.abmm-layout--stacked) .abmm-mega__panel {
+		bottom: 0;
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__panel {
+		right: 0;
+		padding: 0;
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__panel {
+		left: 0;
+		padding: 0;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__columns {
+		--abmm-col-gap: 32px;
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		padding: var(--abmm-panel-pad-top) var(--abmm-panel-pad-x) var(--abmm-panel-pad-bottom);
+		/* As many columns as there are groups, each at least 220px wide, so two
+		   groups share the width instead of leaving an empty third column. */
+		grid-template-columns: repeat(auto-fit, minmax(max(220px, calc((100% - (var(--abmm-col-count, 3) - 1) * var(--abmm-col-gap)) / var(--abmm-col-count, 3))), 1fr));
+		gap: 24px var(--abmm-col-gap);
+	}
+
+	/* Full width: columns end where the bar's CTA ends. */
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--sidebar-right) .abmm-mega__columns {
+		padding-right: 1.5rem;
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__columns {
+		padding-left: 1.5rem;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-title {
+		margin: 0 0 12px;
+		letter-spacing: 0.07em;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-list {
+		gap: 4px;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-link {
+		margin: 0 -10px;
+		padding: 8px 10px;
+		gap: 12px;
+		border-radius: 10px;
+	}
+
+	/* "See all" footer strip, full width along the bottom of the panel. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title {
+		position: relative;
+		z-index: 0;
+		top: auto;
+		order: 2;
+		flex: none;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		min-height: var(--abmm-foot-h);
+		margin: 0;
+		padding: 14px var(--abmm-panel-pad-x);
+		background: transparent;
+		font-size: 14px;
+		font-weight: 600;
+		line-height: 20px;
+		text-align: left;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title::before {
+		content: "";
+		position: absolute;
+		z-index: -1;
+		top: 0;
+		bottom: 0;
+		left: -100vw;
+		right: -100vw;
+		border-top: 1px solid var(--abmm-border);
+		background: var(--abmm-subtle);
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--sidebar-right) .abmm-mega__panel-title {
+		padding-right: 1.5rem;
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__panel-title {
+		padding-left: 1.5rem;
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-title--center .abmm-mega__panel-title {
+		justify-content: center;
+		text-align: center;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a {
+		display: inline-flex;
+		align-items: center;
+		border-radius: 6px;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a:hover {
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 3px;
+	}
+
+	/* One category (or a hidden category bar): no rail, full-width columns. */
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__inner,
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__accordion {
+		display: block;
+		min-height: 0;
+		background: var(--abmm-panel-bg);
+	}
+
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__accordion {
+		padding-block: 0;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__accordion::before {
+		display: none;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__section {
+		display: block;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__cat {
+		display: none;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__panel {
+		position: static;
+		margin: 0;
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width :is(.abmm-mega--single, .abmm-mega--columns-only) :is(.abmm-mega__columns, .abmm-mega__panel-title) {
+		padding-inline: 0;
+	}
+
+	/* Optional page scrim behind an open panel. It is purely visual: clicks
+	   pass through it and close the panel like any outside click. */
+	.abmm-header.abmm-has-scrim:not(.abmm-force-mobile)::after {
+		content: "";
+		position: fixed;
+		z-index: 1000;
+		left: 0;
+		right: 0;
+		top: var(--abmm-scrim-top, 0px);
+		bottom: 0;
+		background: var(--abmm-scrim, rgba(15, 23, 42, 0.14));
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+	}
+
+	.abmm-header.abmm-has-scrim.abmm-has-open-menu:not(.abmm-force-mobile)::after {
+		opacity: 1;
+		visibility: visible;
+		transition: opacity 0.2s ease;
+	}
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+	.abmm-header.abmm-has-scrim::after,
+	.abmm-header.abmm-has-scrim.abmm-has-open-menu::after {
+		transition: none;
+	}
+
+	.abmm-header .abmm-nav__item.is-open .abmm-mega__inner {
+		animation: none;
+	}
+}
+
+/* ------------------------------------------------------------------------
+   Phone and tablet: the bar keeps its place while the drawer is open (the
+   toggle turns into the close button where it was), and a mega item opens
+   to one screen where each category is a heading followed by its links.
+   ------------------------------------------------------------------------ */
+@media (max-width: 900px) {
+	.abmm-header .abmm-nav__bar {
+		gap: 8px;
+		border-bottom: 1px solid transparent;
+		background: var(--abmm-header-bg);
+	}
+
+	.abmm-header.is-mobile-open .abmm-nav__bar {
+		border-bottom-color: var(--abmm-border);
+	}
+
+	/* Brand, then the CTA, then the toggle at the far right. The negative
+	   margin lines the icon up with the page gutter. */
+	.abmm-header .abmm-nav__toggle {
+		order: 1;
+		margin-right: -10px;
+		color: var(--abmm-nav-link);
+	}
+
+	/* The bar's toggle is the close button, so the drawer needs no title row. */
+	.abmm-header .abmm-nav__drawer-head {
+		display: none;
+	}
+
+	/* One CTA: when the bar shows it, the drawer does not repeat it. */
+	.abmm-header:not(.abmm-has-product-profile):not(:has(.abmm-nav__identity--bar)):has(.abmm-nav__bar > .abmm-nav__cta--bar) .abmm-nav__cta--drawer {
+		display: none;
+	}
+
+	.abmm-header .abmm-nav__drawer {
+		box-shadow: none;
+	}
+
+	/* One 20px gutter for the bar, the menu rows and the category screens. */
+	.abmm-header .abmm-nav__bar {
+		padding-left: max(20px, env(safe-area-inset-left));
+		padding-right: max(20px, env(safe-area-inset-right));
+	}
+
+	.abmm-header .abmm-nav__drawer .abmm-nav__list {
+		padding-inline: 20px;
+	}
+
+	.abmm-header .abmm-nav__drawer .abmm-nav__link {
+		padding-inline: 0;
+	}
+
+	.abmm-header .abmm-nav__drawer .abmm-nav__item:last-child {
+		border-bottom: 0;
+	}
+
+	.abmm-header.abmm-is-drilling .abmm-nav__drawer .abmm-nav__list {
+		padding-inline: 0;
+	}
+
+	/* A tap leaves :hover and script focus behind; neither should look selected. */
+	.abmm-header .abmm-nav__toggle:hover:not(:focus-visible) {
+		background: transparent;
+	}
+
+	.abmm-header .abmm-nav__item:not(.is-current):not(.is-current-ancestor) > .abmm-nav__link:focus:not(:focus-visible) {
+		color: var(--abmm-nav-link) !important;
+	}
+
+	.abmm-header .abmm-mega__col-link:focus:not(:focus-visible):not([aria-current]) {
+		color: var(--abmm-text) !important;
+	}
+
+	/* Drilled-in row: Back and the item's name. Close stays on the bar. */
+	.abmm-header .abmm-nav__drawer .abmm-mobile-bar {
+		min-height: 52px;
+		padding: 4px 16px 4px 6px;
+		gap: 6px;
+	}
+
+	.abmm-header .abmm-nav__drawer .abmm-mobile-close {
+		display: none;
+	}
+
+	.abmm-header .abmm-nav__drawer .abmm-mobile-back {
+		color: var(--abmm-muted) !important;
+		font-size: 15px;
+		font-weight: 500;
+	}
+
+	.abmm-header .abmm-nav__drawer .abmm-mobile-title {
+		padding-left: 12px;
+		border-left: 1px solid var(--abmm-border);
+		font-size: 16px;
+		font-weight: 650;
+		line-height: 24px;
+	}
+}
+
+/* The one-screen layout. data-drill is only ever set by the mobile drawer. */
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section {
+	padding: 20px 20px 12px;
+	border-bottom: 1px solid var(--abmm-border);
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section:last-child {
+	border-bottom: 0;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 4px;
+	padding: 0;
+	color: var(--abmm-text);
+	font-family: inherit;
+	font-size: 18px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	line-height: 1.3;
+	text-transform: none;
+}
+
+.abmm-header.abmm-cats-upper .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-title {
+	font-size: 13px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__section-title {
+	display: none;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] :is(.abmm-mega--single, .abmm-mega--columns-only) .abmm-mega__section {
+	padding-top: 8px;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 22px;
+	height: 22px;
+	color: var(--abmm-accent);
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-icon:empty {
+	display: none;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-icon .abmm-icon {
+	font-size: 20px;
+	color: inherit;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__panel {
+	max-height: none;
+	overflow: visible;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__columns {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	padding: 0;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__col {
+	padding: 8px 0 0;
+	border: 0;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__col-title {
+	margin: 0;
+	padding: 8px 0 4px;
+	color: var(--abmm-muted);
+	font-size: 11px;
+	font-weight: 650;
+	letter-spacing: 0.07em;
+	text-transform: uppercase;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__col-link {
+	width: auto;
+	min-height: 48px;
+	margin: 0 -10px;
+	padding: 8px 10px;
+	align-items: center;
+	gap: 12px;
+	border: 0;
+	border-radius: 10px;
+	font-size: 16px;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] a.abmm-mega__col-link:active {
+	background: color-mix(in srgb, var(--abmm-accent) 7%, var(--abmm-panel-bg));
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__col-icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	margin: 0;
+	border-radius: 8px;
+	background: color-mix(in srgb, var(--abmm-accent) 10%, var(--abmm-panel-bg));
+	color: var(--abmm-accent);
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__col-icon .abmm-icon {
+	font-size: 18px;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__col-label {
+	font-weight: 500;
+	line-height: 1.3;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__col-description {
+	max-width: none;
+	font-size: 13px;
+	line-height: 1.35;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__panel-title {
+	position: static;
+	display: block;
+	margin: 4px 0 0;
+	padding: 10px 0 4px;
+	background: transparent;
+	font-size: 15px;
+	font-weight: 600;
+	text-align: left;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__panel-title a {
+	color: var(--abmm-accent);
+	text-decoration: none;
+}
+
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__panel-title a::after {
+	content: "\2192";
+	display: inline-block;
+	margin-left: 0.4em;
+}
+
+/* Tablet: a designed sheet rather than a stretched phone. The sheet drops
+   from the bar over a scrim, and its content sits in a comfortable column. */
+@media (min-width: 601px) and (max-width: 900px) {
+	.abmm-header .abmm-nav__bar {
+		min-height: 64px;
+		padding-inline: 24px;
+	}
+
+	.abmm-header .abmm-nav__drawer {
+		bottom: auto;
+		min-height: 0;
+		max-height: calc(100vh - var(--abmm-mobile-offset));
+		max-height: calc(100dvh - var(--abmm-mobile-offset));
+		padding: 0 max(24px, calc((100% - 680px) / 2)) 24px;
+		border-radius: 0 0 16px 16px;
+		box-shadow: 0 24px 40px -24px rgba(15, 23, 42, 0.45);
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section {
+		padding-inline: 12px;
+	}
+
+	.abmm-header .abmm-nav__drawer .abmm-mobile-bar {
+		padding-inline: 0 12px;
+	}
+
+	.abmm-header .abmm-nav__link {
+		padding-inline: 12px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__columns {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0 24px;
+	}
+
+	.abmm-header .abmm-nav__cta--drawer {
+		width: 100%;
+		margin: 20px 0 0;
 	}
 }

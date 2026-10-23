@@ -273,31 +273,40 @@
 .abmm-profile-admin .abmm-profile-admin__link-row input {padding:0 12px}
 
 /* Mirror the desktop panel styles from frontend.css. */
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__accordion {background:var(--abmm-panel-bg);padding:12px 0;position:relative}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__section-title {display:none}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__accordion {background:var(--abmm-panel-bg);padding:28px 0 32px;row-gap:4px;position:relative}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-full-width .abmm-mega__accordion {max-width:1200px;margin-inline:auto;padding-inline:1.5rem}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-nav__inner {max-width:1200px;margin-inline:auto;padding-inline:1.5rem}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat {width:calc(var(--abmm-sidebar-width) - 1.5rem);margin:1px 0.75rem;padding:0.6rem 0.75rem;border-bottom:0;border-radius:8px;gap:0.75rem}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-nav__link {padding:8px 14px;border-radius:999px;font-size:16px;transition:background-color 0.15s ease,color 0.15s ease}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-nav__link:hover,.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-nav__item.is-open > .abmm-nav__link {background:color-mix(in srgb,var(--abmm-nav-link) 7%,transparent)!important}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__inner {border-bottom:1px solid var(--abmm-border)}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat {width:calc(var(--abmm-sidebar-width) - 1.5rem);margin:0 0.75rem;padding:10px 12px;border-bottom:0;border-radius:8px;gap:0.75rem;align-self:start}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat:hover,.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat:focus {background:color-mix(in srgb,var(--abmm-accent) 6%,var(--abmm-panel-bg))!important}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat.is-active,.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat.is-active:hover,.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat.is-active:focus {background:color-mix(in srgb,var(--abmm-accent) 10%,var(--abmm-panel-bg))!important;box-shadow:none}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat-title {font-size:14px;font-weight:600;letter-spacing:0;text-transform:none}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-cats-upper .abmm-mega__cat-title {font-size:13px;letter-spacing:0.05em;text-transform:uppercase}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__cat-desc {font-size:12.5px}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__panel {padding:0.5rem 1.75rem 1.25rem;scrollbar-gutter:auto}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header:not(.abmm-layout--stacked) .abmm-mega__accordion::before {content:"";position:absolute;top:12px;bottom:12px;left:calc(var(--abmm-sidebar-width) + 0.25rem);width:1px;background:var(--abmm-border);z-index:2;pointer-events:none}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__panel {display:flex;flex-direction:column;margin-block:-28px -32px;padding:0;scrollbar-gutter:auto}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__panel[hidden] {display:none!important}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header:not(.abmm-layout--stacked) .abmm-mega__accordion::before {content:"";position:absolute;top:28px;bottom:32px;left:calc(var(--abmm-sidebar-width) + 0.25rem);width:1px;background:var(--abmm-border);z-index:2;pointer-events:none}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-layout--sidebar-right .abmm-mega__accordion::before {left:auto;right:calc(var(--abmm-sidebar-width) + 0.25rem)}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__cat {margin-inline:0}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__accordion::before {left:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem)}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__panel {margin-left:-0.75rem;margin-right:-0.6rem;padding-right:0.6rem}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-full-width .abmm-mega--columns-only .abmm-mega__panel {margin-inline:-0.6rem;padding-inline:0.6rem}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__columns {gap:1rem 2rem}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__panel-title {margin:0 0 1rem;padding-inline:0;font-size:14px;font-weight:600}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-title--left .abmm-mega__panel-title {margin-inline:0;text-align:left}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-title--center .abmm-mega__panel-title {text-align:center}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__panel {margin-left:-0.75rem}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__columns {padding:28px 32px 32px;gap:24px 32px;grid-template-columns:repeat(auto-fit,minmax(max(220px,calc((100% - (var(--abmm-col-count,3) - 1) * 32px) / var(--abmm-col-count,3))),1fr))}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__panel-title {order:2;display:flex;align-items:center;justify-content:space-between;gap:16px;margin:auto 0 0;padding:14px 32px;border-top:1px solid var(--abmm-border);background:color-mix(in srgb,var(--abmm-text) 3.5%,var(--abmm-panel-bg));font-size:14px;font-weight:600;line-height:20px;text-align:left}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-title--center .abmm-mega__panel-title {justify-content:center;text-align:center}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__panel-title a {color:var(--abmm-accent);text-decoration:none}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__panel-title a::after {content:"\2192";display:inline-block;margin-left:0.4em;transition:transform 0.15s ease}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__panel-title a:hover::after {transform:translateX(3px)}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__col-title {font-size:11px}
-.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__col-link {margin:0 -0.6rem;padding:0.5rem 0.6rem;border-radius:8px;gap:0.7rem;transition:background 0.15s ease,color 0.15s ease}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__accordion:not(:has(> .abmm-mega__section ~ .abmm-mega__section)),.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega--columns-only .abmm-mega__accordion {display:block;min-height:0;padding-block:0}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__accordion:not(:has(> .abmm-mega__section ~ .abmm-mega__section))::before,.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega--columns-only .abmm-mega__accordion::before {display:none}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__accordion:not(:has(> .abmm-mega__section ~ .abmm-mega__section)) .abmm-mega__cat {display:none}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__accordion:not(:has(> .abmm-mega__section ~ .abmm-mega__section)) .abmm-mega__panel,.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega--columns-only .abmm-mega__panel {margin:0;padding:0}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header.abmm-full-width .abmm-mega__accordion:not(:has(> .abmm-mega__section ~ .abmm-mega__section)) :is(.abmm-mega__columns,.abmm-mega__panel-title) {padding-inline:0}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__col-title {margin:0 0 12px;font-size:11px;letter-spacing:0.07em}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__col-list {gap:4px}
+.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__col-link {margin:0 -10px;padding:8px 10px;border-radius:10px;gap:12px;transition:background 0.15s ease,color 0.15s ease}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header a.abmm-mega__col-link:hover,.abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header a.abmm-mega__col-link:focus-visible {background:color-mix(in srgb,var(--abmm-accent) 6%,var(--abmm-panel-bg))}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__col-label {font-weight:500}
 .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview .abmm-header .abmm-mega__col-description {font-size:12.5px;max-width:40ch}
