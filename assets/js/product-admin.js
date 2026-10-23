@@ -283,6 +283,78 @@
 	});
 	syncBrandingMode();
 
+	/* ---- Product links: show used rows, reveal the rest one at a time ---- */
+
+	var links = document.querySelector('[data-abmm-links]');
+	if (links) {
+		var linkRows = Array.prototype.slice.call(links.querySelectorAll('[data-abmm-link-row]'));
+		var linksEmpty = links.querySelector('[data-abmm-links-empty]');
+		var linksActions = document.querySelector('[data-abmm-links-actions]');
+		var addLink = document.querySelector('[data-abmm-add-link]');
+		var linksNote = document.querySelector('[data-abmm-links-note]');
+
+		var syncLinks = function () {
+			var shown = linkRows.filter(function (row) { return !row.hidden; }).length;
+			links.classList.toggle('is-empty', shown === 0);
+			if (linksEmpty) {
+				linksEmpty.hidden = shown > 0;
+			}
+			if (addLink) {
+				addLink.hidden = shown >= linkRows.length;
+			}
+			if (linksNote) {
+				linksNote.textContent = shown === 0 ? '' : shown >= linkRows.length ?
+					__('That is the maximum of six links.', 'ashbi-mega-menu') :
+					/* translators: %d: Number of links that can still be added. */
+					sprintf(_n('%d more link available', '%d more links available', linkRows.length - shown, 'ashbi-mega-menu'), linkRows.length - shown);
+			}
+		};
+
+		linkRows.forEach(function (row, index) {
+			row.hidden = !row.hasAttribute('data-abmm-filled');
+			var remove = document.createElement('button');
+			remove.type = 'button';
+			remove.className = 'abmm-profile-admin__remove-link';
+			/* translators: %d: Link position. */
+			remove.setAttribute('aria-label', sprintf(__('Remove link %d', 'ashbi-mega-menu'), index + 1));
+			remove.title = __('Remove link', 'ashbi-mega-menu');
+			remove.innerHTML = '<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>';
+			remove.addEventListener('click', function () {
+				row.querySelectorAll('input').forEach(function (input) { input.value = ''; });
+				row.hidden = true;
+				// Empty rows are skipped on save, so moving this one last keeps the order tidy.
+				links.insertBefore(row, linksEmpty);
+				linkRows.splice(linkRows.indexOf(row), 1);
+				linkRows.push(row);
+				syncLinks();
+				if (addLink && !addLink.hidden) {
+					addLink.focus();
+				}
+			});
+			row.appendChild(remove);
+		});
+
+		if (addLink) {
+			addLink.addEventListener('click', function () {
+				var next = linkRows.filter(function (row) { return row.hidden; })[0];
+				if (!next) {
+					return;
+				}
+				next.hidden = false;
+				syncLinks();
+				var first = next.querySelector('input');
+				if (first) {
+					first.focus();
+				}
+			});
+		}
+		if (linksActions) {
+			linksActions.hidden = false;
+		}
+		links.classList.add('is-enhanced');
+		syncLinks();
+	}
+
 	/* ---- Navigation Coverage: live filter ---- */
 
 	var filters = document.querySelector('[data-abmm-coverage-filters]');
