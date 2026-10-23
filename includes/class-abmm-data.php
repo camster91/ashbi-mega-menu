@@ -449,7 +449,71 @@ class ABMM_Data {
 		if ( ! empty( $menu['cta']['show'] ) && ! $usable_link( $menu['cta'] ) ) {
 			$issues[] = array( 'field' => 'abmm-cta-url', 'message' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ) );
 		}
+		foreach ( $menu['items'] ?? array() as $item ) {
+			$label = trim( (string) ( $item['label'] ?? '' ) );
+			$length = function_exists( 'mb_strlen' ) ? mb_strlen( $label, 'UTF-8' ) : strlen( $label );
+			if ( $length > self::MAX_BAR_LABEL_LENGTH ) {
+				$short = ( function_exists( 'mb_substr' ) ? mb_substr( $label, 0, 24, 'UTF-8' ) : substr( $label, 0, 24 ) ) . '…';
+				/* translators: %s: the start of a menu item label. */
+				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Shorten "%s" so it fits in the menu bar.', 'ashbi-mega-menu' ), $short ) );
+			}
+		}
+		foreach ( $this->menu_links( $menu ) as $link ) {
+			if ( $this->looks_like_broken_url( $link['url'] ?? '' ) ) {
+				/* translators: %s: link label. */
+				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Check the link for "%s". It does not look like a web address.', 'ashbi-mega-menu' ), $link['label'] ?? '' ) );
+			}
+		}
 		return array( 'ready' => empty( $issues ), 'issues' => $issues );
+	}
+
+	/**
+	 * Longest top-level label that reliably fits in a menu bar.
+	 */
+	const MAX_BAR_LABEL_LENGTH = 40;
+
+	/**
+	 * Every labelled link in a menu: top-level links, mega links and the CTA.
+	 *
+	 * @param array $menu Menu payload.
+	 * @return array
+	 */
+	private function menu_links( $menu ) {
+		$links = array();
+		foreach ( $menu['items'] ?? array() as $item ) {
+			if ( 'mega' !== ( $item['type'] ?? 'link' ) ) {
+				$links[] = $item;
+				continue;
+			}
+			foreach ( $item['links'] ?? array() as $link ) { $links[] = $link; }
+			foreach ( $item['categories'] ?? array() as $category ) {
+				foreach ( $category['groups'] ?? array() as $group ) {
+					foreach ( $group['links'] ?? array() as $link ) { $links[] = $link; }
+				}
+			}
+		}
+		if ( ! empty( $menu['cta']['show'] ) ) {
+			$links[] = $menu['cta'];
+		}
+		return $links;
+	}
+
+	/**
+	 * Whether a saved URL was probably typed as plain text, such as "about" saved as http://about.
+	 *
+	 * @param string $url Saved URL.
+	 * @return bool
+	 */
+	public function looks_like_broken_url( $url ) {
+		$url = trim( (string) $url );
+		if ( '' === $url || '#' === $url[0] || '/' === $url[0] || '?' === $url[0] ) {
+			return false;
+		}
+		if ( ! preg_match( '#^https?://([^/?\#:]*)#i', $url, $match ) ) {
+			return false;
+		}
+		$host = strtolower( rawurldecode( $match[1] ) );
+		return '' === $host || false !== strpos( $host, ' ' ) || ( false === strpos( $host, '.' ) && 'localhost' !== $host );
 	}
 
 	/**
@@ -681,9 +745,15 @@ class ABMM_Data {
 		if ( null === $menu ) {
 			return new WP_Error( 'abmm_menu_not_found', __( 'Menu not found.', 'ashbi-mega-menu' ) );
 		}
-		$copy   = $this->duplicate_menu_data( $menu, sprintf(
-/* translators: %s: Original menu title. */
-__( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
+		/* translators: %s: Original menu title. */
+		$title = sprintf( __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] );
+		// Number repeated copies so the dashboard, block and widget lists can tell them apart.
+		$titles = array_column( $this->get_all(), 'title' );
+		$unique = $title;
+		for ( $n = 2; in_array( $unique, $titles, true ); $n++ ) {
+			$unique = $title . ' ' . $n;
+		}
+		$copy   = $this->duplicate_menu_data( $menu, $unique );
 		$new_id = $this->unique_menu_id( $id . '-copy' );
 		$saved = $this->save( $new_id, $copy );
 		if ( is_wp_error( $saved ) ) { return $saved; }

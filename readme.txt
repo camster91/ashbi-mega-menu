@@ -80,6 +80,10 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Redesign the dashboard: simpler welcome, one Tools panel and shorter text.
 * Redesign the menu editor: three clear steps (Edit, Place, Check), a Place tab that always shows the shortcode, a lighter preview toolbar, tidier rows and folded icon styling.
 * Bring Product Navigation, Navigation Coverage and Product Branding in line with the new look and use plainer wording throughout.
+* Preview menus on a zoomable canvas at real desktop, tablet and phone widths instead of squeezing them into the editor.
+* Flag links typed as plain text (such as "about") and menu bar names that are too long, before you place the menu.
+* Count shortcodes in pages when warning before a menu is archived.
+* Show the real reason when an import file is rejected, and give repeated duplicates distinct names.
 * Start ordinary sites with neutral defaults and make contextual navigation an optional module.
 * Generalize contextual navigation for products, services, departments, documentation and locations.
 * Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.

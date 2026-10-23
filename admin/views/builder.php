@@ -449,11 +449,21 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<button type="button" class="button" data-abmm-preview-viewport="tablet" aria-pressed="false"><?php esc_html_e( 'Tablet', 'ashbi-mega-menu' ); ?></button>
 					<button type="button" class="button" data-abmm-preview-viewport="mobile" aria-pressed="false"><?php esc_html_e( 'Mobile', 'ashbi-mega-menu' ); ?></button>
 				</div>
+				<div class="abmm-preview-zoom" role="group" aria-label="<?php esc_attr_e( 'Preview zoom', 'ashbi-mega-menu' ); ?>">
+					<button type="button" class="button" data-abmm-zoom="out" aria-label="<?php esc_attr_e( 'Zoom out', 'ashbi-mega-menu' ); ?>">&minus;</button>
+					<output class="abmm-preview-zoom__value" aria-live="polite">100%</output>
+					<button type="button" class="button" data-abmm-zoom="in" aria-label="<?php esc_attr_e( 'Zoom in', 'ashbi-mega-menu' ); ?>">+</button>
+					<button type="button" class="button" data-abmm-zoom="fit" aria-pressed="true"><?php esc_html_e( 'Fit', 'ashbi-mega-menu' ); ?></button>
+				</div>
 			</div>
 
 			<!-- Preview + inline editor -->
 			<div class="abmm-preview-shell" data-abmm-preview-viewport="desktop">
-				<div class="abmm-preview" id="abmm-preview" data-abmm-preview-state="desktop-root"></div>
+				<div class="abmm-preview-sizer">
+					<div class="abmm-preview-stage">
+						<div class="abmm-preview" id="abmm-preview" data-abmm-preview-state="desktop-root"></div>
+					</div>
+				</div>
 			</div>
 
 			<!-- Detail editor for selected mega item -->
