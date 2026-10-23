@@ -1892,6 +1892,10 @@
 				}
 			}
 			if (!moveCollectionItem(collection, index, direction)) return;
+			if ($row.hasClass('abmm-cat-row')) {
+				if (state.editingCatIndex === index) state.editingCatIndex = index + direction;
+				else if (state.editingCatIndex === index + direction) state.editingCatIndex = index;
+			}
 			rerender();
 			renderPreview();
 			announceReorder(label, index + direction + 1, collection.length);
@@ -1919,14 +1923,30 @@
 		});
 
 		$('.abmm-add-nav-item').on('click', function () {
+			var id = uid();
 			getMenu().items.push({
-				id: uid(),
+				id: id,
 				label: __('New Item', 'ashbi-mega-menu'),
 				url: '#',
 				type: 'link',
 			});
+			state.expandedNavId = id;
 			renderNavItems();
 			renderPreview();
+			setTimeout(function () {
+				$('#abmm-nav-items .abmm-nav-item-row').last().find('.abmm-nav-label').trigger('focus').select();
+			}, 0);
+		});
+
+		// Rows open from the chevron (keyboard) or a click on the row's summary.
+		$('#abmm-nav-items').on('click', '.abmm-nav-item-row__toggle', function () {
+			var $row = $(this).closest('.abmm-nav-item-row');
+			expandNavRow($row, !$row.hasClass('is-expanded'));
+		});
+		$('#abmm-nav-items').on('click', '.abmm-nav-item-row__summary', function () {
+			var $row = $(this).closest('.abmm-nav-item-row');
+			expandNavRow($row, !$row.hasClass('is-expanded'));
+			if ($row.hasClass('is-expanded')) $row.find('.abmm-nav-label').trigger('focus');
 		});
 
 		$('.abmm-save-menu').on('click', saveMenu);
@@ -1950,6 +1970,9 @@
 			item.label = $row.find('.abmm-nav-label').val();
 			item.url = $row.find('.abmm-nav-url').val();
 			readLinkOptions($row, item);
+			$row.find('.abmm-nav-item-row__title').text(item.label || __('Untitled item', 'ashbi-mega-menu'));
+			$row.find('.abmm-nav-item-row__url').text(navSummaryText(item));
+			$row.find('.abmm-nav-item-row__toggle').attr('aria-label', navToggleLabel(item, $row.index()));
 			var newType = $row.find('.abmm-nav-type').val();
 			if (newType !== item.type) {
 				item.type = newType;
@@ -1959,7 +1982,10 @@
 					if (!item.categories) item.categories = [];
 					if (!item.links) item.links = [];
 				}
+				state.expandedNavId = item.id;
 				renderNavItems();
+				// The row is rebuilt for the new type; keep focus on its type field.
+				$('#abmm-nav-items .abmm-nav-item-row').filter(function () { return $(this).data('id') === id; }).find('.abmm-nav-type').trigger('focus');
 			}
 			renderPreview();
 		});
@@ -1979,6 +2005,7 @@
 			if (index < 0) return;
 			var copy = duplicateMenuItem(items[index]);
 			items.splice(index + 1, 0, copy);
+			state.expandedNavId = copy.id;
 			renderNavItems();
 			renderPreview();
 			/* translators: %s: name of the duplicated menu item. */
@@ -2098,7 +2125,8 @@
 		});
 
 		$('#abmm-cat-list').on('click', '.abmm-cat-row', function (e) {
-			if ($(e.target).closest('.abmm-remove-cat, .abmm-pick-icon').length) return;
+			if ($(e.target).closest('.abmm-row-actions, .abmm-pick-icon, .abmm-select-category, .abmm-icon-style').length) return;
+			if ($(this).hasClass('is-selected')) return;
 			selectCategory($(this).index());
 		});
 
@@ -2266,49 +2294,102 @@
 		setStatus(sprintf(__('%1$s moved to position %2$s of %3$s.', 'ashbi-mega-menu'), label, position, length), false);
 	}
 
+	// Each menu item is a compact row that expands into a labelled form.
+	// One row is open at a time; new and duplicated items open straight away.
+	function navItemName(item, itemIndex) {
+		return item.label || String(itemIndex + 1);
+	}
+
+	function navToggleLabel(item, itemIndex) {
+		/* translators: %s: menu item name. */
+		return sprintf(__('Show settings for %s', 'ashbi-mega-menu'), navItemName(item, itemIndex));
+	}
+
+	function navSummaryText(item) {
+		if (item.type === 'mega') {
+			return item.mega_style === 'features' ? __('Simple columns', 'ashbi-mega-menu') : __('With categories', 'ashbi-mega-menu');
+		}
+		return String(item.url || '').trim() || __('No link yet', 'ashbi-mega-menu');
+	}
+
+	function setNavRowExpanded($row, expanded) {
+		$row.toggleClass('is-expanded', expanded);
+		$row.find('.abmm-nav-item-row__toggle').attr('aria-expanded', expanded ? 'true' : 'false');
+		$row.find('.abmm-nav-item-row__fields').prop('hidden', !expanded);
+	}
+
+	function expandNavRow($row, expanded) {
+		var id = $row.data('id');
+		if (expanded) {
+			state.expandedNavId = id;
+			$row.siblings('.abmm-nav-item-row').each(function () { setNavRowExpanded($(this), false); });
+		} else if (state.expandedNavId === id) {
+			state.expandedNavId = '';
+		}
+		setNavRowExpanded($row, expanded);
+	}
+
 	function renderNavItems() {
 		var $list = $('#abmm-nav-items').empty();
-		getMenu().items.forEach(function (item, itemIndex) {
+		var items = getMenu().items;
+		if (typeof state.expandedNavId === 'undefined') {
+			// Open the first item on load so its fields are one click away.
+			state.expandedNavId = items.length ? items[0].id : '';
+		}
+		items.forEach(function (item, itemIndex) {
 			var isMega = item.type === 'mega';
-			var styleLabel =
-				item.mega_style === 'features' ? __('Simple columns', 'ashbi-mega-menu') : __('With categories', 'ashbi-mega-menu');
+			var expanded = item.id === state.expandedNavId;
+			var fieldsId = 'abmm-nav-fields-' + itemIndex;
+			var labelId = 'abmm-nav-label-' + itemIndex;
+			var typeId = 'abmm-nav-type-' + itemIndex;
+			var urlId = 'abmm-nav-url-' + itemIndex;
+			var name = navItemName(item, itemIndex);
 			var $row = $(
-					'<li class="abmm-nav-item-row ' + (isMega ? 'is-mega' : 'is-link') + '" data-id="' +
-					esc(item.id) +
-					'">' +
-					'<span class="abmm-drag-handle" title="' +
-					esc(S.dragHint) +
-					'">⋮⋮</span>' +
-					'<div class="abmm-nav-item-row__fields">' +
-					'<input type="text" class="abmm-nav-label" value="' +
-					esc(item.label) +
-					'" placeholder="' + esc(__('Label', 'ashbi-mega-menu')) + '" aria-label="' + /* translators: %s: item number. */ esc(sprintf(__('Navigation item %s label', 'ashbi-mega-menu'), itemIndex + 1)) + '" />' +
-						(!isMega ? wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false) : '') +
-						(!isMega ? linkOptionsHtml(item) : '') +
-						'<div class="abmm-nav-item-row__meta">' +
-						'<select class="abmm-nav-type" aria-label="' + /* translators: %s: item number. */ esc(sprintf(__('Navigation item %s type', 'ashbi-mega-menu'), itemIndex + 1)) + '">' +
-					'<option value="link"' +
-					(!isMega ? ' selected' : '') +
-					'>' +
-					esc(S.simpleLink) +
-					'</option>' +
-					'<option value="mega"' +
-					(isMega ? ' selected' : '') +
-					'>' +
-					esc(S.megaMenu) +
-					'</option>' +
-					'</select>' +
-						(isMega ? '<span class="abmm-mega-style-badge">' + esc(styleLabel) + '</span>' : '') +
-						(isMega ? '<button type="button" class="button button-small abmm-edit-mega">' + esc(__('Edit content', 'ashbi-mega-menu')) + '</button>' : '') +
+				'<li class="abmm-nav-item-row ' + (isMega ? 'is-mega' : 'is-link') + (expanded ? ' is-expanded' : '') + '" data-id="' + esc(item.id) + '">' +
+				'<div class="abmm-nav-item-row__head">' +
+				'<span class="abmm-drag-handle" title="' + esc(S.dragHint) + '" aria-hidden="true"><span class="dashicons dashicons-menu"></span></span>' +
+				'<span class="abmm-nav-item-row__summary">' +
+				'<span class="abmm-nav-item-row__title">' + esc(item.label || __('Untitled item', 'ashbi-mega-menu')) + '</span>' +
+				'<span class="abmm-nav-item-row__sub">' +
+				'<span class="abmm-nav-type-chip">' + esc(isMega ? __('Mega menu', 'ashbi-mega-menu') : __('Link', 'ashbi-mega-menu')) + '</span>' +
+				(isMega
+					? '<span class="abmm-mega-style-badge">' + esc(navSummaryText(item)) + '</span>'
+					: '<span class="abmm-nav-item-row__url">' + esc(navSummaryText(item)) + '</span>') +
+				'</span>' +
+				'</span>' +
+				'<span class="abmm-row-actions">' +
+				/* translators: %s: menu item name. */
+				reorderControlsHtml(sprintf(__('navigation item %s', 'ashbi-mega-menu'), name), itemIndex, items.length) +
+				'<button type="button" class="button-link abmm-duplicate-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Duplicate navigation item %s', 'ashbi-mega-menu'), name)) + '" title="' + esc(__('Duplicate', 'ashbi-mega-menu')) + '">' + iconButtonContent('admin-page', __('Duplicate', 'ashbi-mega-menu')) + '</button>' +
+				'<button type="button" class="button-link-delete abmm-remove-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Remove navigation item %s', 'ashbi-mega-menu'), name)) + '" title="' + esc(__('Remove navigation item', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
+				'</span>' +
+				'<button type="button" class="button-link abmm-nav-item-row__toggle" aria-expanded="' + (expanded ? 'true' : 'false') + '" aria-controls="' + fieldsId + '" aria-label="' + esc(navToggleLabel(item, itemIndex)) + '" title="' + esc(__('Show or hide settings', 'ashbi-mega-menu')) + '">' +
+				'<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span></button>' +
+				'</div>' +
+				'<div class="abmm-nav-item-row__fields" id="' + fieldsId + '"' + (expanded ? '' : ' hidden') + '>' +
+				'<div class="abmm-nav-field">' +
+				'<label for="' + labelId + '">' + esc(__('Label', 'ashbi-mega-menu')) + '</label>' +
+				'<input type="text" id="' + labelId + '" class="abmm-nav-label" value="' + esc(item.label) + '" placeholder="' + esc(__('Label', 'ashbi-mega-menu')) + '" />' +
+				'</div>' +
+				'<div class="abmm-nav-field">' +
+				'<label for="' + typeId + '">' + esc(__('Type', 'ashbi-mega-menu')) + '</label>' +
+				'<select id="' + typeId + '" class="abmm-nav-type">' +
+				'<option value="link"' + (!isMega ? ' selected' : '') + '>' + esc(S.simpleLink) + '</option>' +
+				'<option value="mega"' + (isMega ? ' selected' : '') + '>' + esc(S.megaMenu) + '</option>' +
+				'</select>' +
+				'</div>' +
+				(isMega
+					? '<div class="abmm-nav-field abmm-nav-item-row__meta">' +
+						'<span class="abmm-nav-field__label">' + esc(__('Content', 'ashbi-mega-menu')) + '</span>' +
+						'<button type="button" class="button abmm-edit-mega">' + esc(__('Edit content', 'ashbi-mega-menu')) + '</button>' +
+						'</div>'
+					: '<div class="abmm-nav-field">' +
+						'<label for="' + urlId + '">' + esc(__('URL', 'ashbi-mega-menu')) + '</label>' +
+						wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false).replace('<input type="text" class="', '<input type="text" id="' + urlId + '" class="') +
 						'</div>' +
-						'</div>' +
-					'<span class="abmm-row-actions">' +
-					/* translators: %s: menu item name. */
-					reorderControlsHtml(sprintf(__('navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1), itemIndex, getMenu().items.length) +
-					'<button type="button" class="button-link abmm-duplicate-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Duplicate navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1)) + '" title="' + esc(__('Duplicate', 'ashbi-mega-menu')) + '">' + iconButtonContent('admin-page', __('Duplicate', 'ashbi-mega-menu')) + '</button>' +
-					'<button type="button" class="button-link-delete abmm-remove-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Remove navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1)) + '" title="' + esc(__('Remove navigation item', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
-					'</span>' +
-					'</li>'
+						linkOptionsHtml(item)) +
+				'</div>' +
+				'</li>'
 			);
 			$list.append($row);
 		});
@@ -2341,6 +2422,7 @@
 		/* translators: %s: mega menu item name. */
 		$('#abmm-mega-editor-title').text(sprintf(__('Edit Mega Menu: %s', 'ashbi-mega-menu'), item.label || ''));
 		$('#abmm-mega-editor').prop('hidden', false);
+		$('#abmm-nav-items .abmm-nav-item-row').removeClass('is-selected').eq(index).addClass('is-selected');
 		syncMegaEditorUI();
 		if (megaEditorIsNarrow()) {
 			syncMegaEditorSheetState();
@@ -2352,6 +2434,16 @@
 		}
 	}
 
+	// "Hide the category list" only makes sense with exactly one category,
+	// so the option is left out entirely rather than shown disabled.
+	function syncCategoryBarField(item) {
+		var canHideCategoryBar = (item.mega_style || 'platforms') === 'platforms' && (item.categories || []).length === 1;
+		$('#abmm-category-bar-field').prop('hidden', !canHideCategoryBar);
+		$('#abmm-hide-category-bar')
+			.prop('disabled', !canHideCategoryBar)
+			.prop('checked', canHideCategoryBar && !!item.hide_category_bar);
+	}
+
 	function syncMegaEditorUI() {
 		var item = getMenu().items[state.editingItemIndex];
 		if (!item) return;
@@ -2360,12 +2452,7 @@
 		$('.abmm-mega-style-card').removeClass('is-active');
 		$('.abmm-mega-style-card[data-style="' + style + '"]').addClass('is-active');
 		$('#abmm-mega-item-columns').val(String(item.columns || (style === 'features' ? 2 : 3)));
-		var categoryCount = (item.categories || []).length;
-		var canHideCategoryBar = style === 'platforms' && categoryCount === 1;
-		$('#abmm-category-bar-field').prop('hidden', style !== 'platforms');
-		$('#abmm-hide-category-bar')
-			.prop('disabled', !canHideCategoryBar)
-			.prop('checked', canHideCategoryBar && !!item.hide_category_bar);
+		syncCategoryBarField(item);
 
 		if (style === 'features') {
 			$('#abmm-editor-platforms').prop('hidden', true);
@@ -2416,6 +2503,7 @@
 
 	function closeMegaEditor() {
 		state.editingItemIndex = -1;
+		$('#abmm-nav-items .abmm-nav-item-row').removeClass('is-selected');
 		state.editingCatIndex = -1;
 		var $editor = $('#abmm-mega-editor');
 		var wasSheet = $editor.attr('role') === 'dialog';
@@ -2437,52 +2525,36 @@
 		var item = getMenu().items[state.editingItemIndex];
 		var $list = $('#abmm-cat-list').empty();
 		if (!item) return;
-		var canHideCategoryBar = (item.categories || []).length === 1;
-		$('#abmm-hide-category-bar')
-			.prop('disabled', !canHideCategoryBar)
-			.prop('checked', canHideCategoryBar && !!item.hide_category_bar);
+		syncCategoryBarField(item);
 
 		(item.categories || []).forEach(function (cat, i) {
 			var iconHtml = iconMarkup(cat.icon, cat.icon_url, '', cat.icon_color, cat.icon_size, cat);
+			var catName = cat.title || String(i + 1);
 			var $row = $(
-				'<li class="abmm-cat-row' +
-					(i === state.editingCatIndex ? ' is-selected' : '') +
-					'" data-id="' +
-					esc(cat.id) +
-					'">' +
-					'<span class="abmm-drag-handle">⋮⋮</span>' +
-				'<button type="button" class="abmm-select-category" aria-pressed="' + (i === state.editingCatIndex ? 'true' : 'false') + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Edit category %s', 'ashbi-mega-menu'), cat.title || i + 1)) + '">' + esc(__('Edit', 'ashbi-mega-menu')) + '</button>' +
-				'<button type="button" class="abmm-pick-icon" title="' +
-					esc(S.selectIcon) +
-					'">' +
-				iconHtml +
-				'</button>' +
+				'<li class="abmm-cat-row' + (i === state.editingCatIndex ? ' is-selected' : '') + '" data-id="' + esc(cat.id) + '">' +
+				'<div class="abmm-cat-row__head">' +
+				'<span class="abmm-drag-handle" title="' + esc(S.dragHint) + '" aria-hidden="true"><span class="dashicons dashicons-menu"></span></span>' +
+				'<button type="button" class="abmm-pick-icon" title="' + esc(S.selectIcon) + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), catName)) + '">' + iconHtml + '</button>' +
+				'<div class="abmm-cat-row__fields">' +
+				'<input type="text" class="abmm-cat-title" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s title', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.title) + '" placeholder="' + esc(S.categoryTitle) + '" />' +
+				'<input type="text" class="abmm-cat-desc" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s description', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.description) + '" placeholder="' + esc(S.categoryDesc) + '" />' +
+				'</div>' +
+				'<button type="button" class="button-link abmm-select-category" aria-pressed="' + (i === state.editingCatIndex ? 'true' : 'false') + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Edit category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Edit links', 'ashbi-mega-menu')) + '">' + iconButtonContent('arrow-right-alt2', __('Edit', 'ashbi-mega-menu')) + '</button>' +
+				'</div>' +
+				'<div class="abmm-cat-row__foot">' +
 				'<details class="abmm-icon-style"><summary>' + esc(__('Icon style', 'ashbi-mega-menu')) + '</summary><div class="abmm-icon-style__fields">' +
-				'<input type="color" class="abmm-icon-color abmm-cat-icon-color" value="' +
-				esc(cat.icon_color || '#2271b1') +
-				'" aria-label="' + esc(__('Icon color', 'ashbi-mega-menu')) + '" />' +
-				'<input type="number" class="abmm-icon-size abmm-cat-icon-size" min="12" max="64" value="' +
-				esc(cat.icon_size || '') +
-				'" placeholder="' + esc(__('Size', 'ashbi-mega-menu')) + '" aria-label="' + esc(__('Icon size override', 'ashbi-mega-menu')) + '" />' +
+				'<input type="color" class="abmm-icon-color abmm-cat-icon-color" value="' + esc(cat.icon_color || '#2271b1') + '" aria-label="' + esc(__('Icon color', 'ashbi-mega-menu')) + '" />' +
+				'<input type="number" class="abmm-icon-size abmm-cat-icon-size" min="12" max="64" value="' + esc(cat.icon_size || '') + '" placeholder="' + esc(__('Size', 'ashbi-mega-menu')) + '" aria-label="' + esc(__('Icon size override', 'ashbi-mega-menu')) + '" />' +
 				'<button type="button" class="button-link abmm-reset-icon-style" title="' + esc(__('Reset icon style to inherited values', 'ashbi-mega-menu')) + '">' + esc(__('Inherit', 'ashbi-mega-menu')) + '</button>' +
 				iconAdvancedFieldsHtml(cat) +
 				'</div></details>' +
-					'<div class="abmm-cat-row__fields">' +
-					'<input type="text" class="abmm-cat-title" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s title', 'ashbi-mega-menu'), i + 1)) + '" value="' +
-					esc(cat.title) +
-					'" placeholder="' +
-					esc(S.categoryTitle) +
-					'" />' +
-					'<input type="text" class="abmm-cat-desc" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s description', 'ashbi-mega-menu'), i + 1)) + '" value="' +
-					esc(cat.description) +
-					'" placeholder="' +
-					esc(S.categoryDesc) +
-					'" />' +
-					'</div>' +
-					/* translators: %s: category name. */
-					reorderControlsHtml(sprintf(__('category %s', 'ashbi-mega-menu'), cat.title || i + 1), i, item.categories.length) +
-					'<button type="button" class="button-link-delete abmm-remove-cat" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Remove category %s', 'ashbi-mega-menu'), cat.title || i + 1)) + '">&times;</button>' +
-					'</li>'
+				'<span class="abmm-row-actions">' +
+				/* translators: %s: category name. */
+				reorderControlsHtml(sprintf(__('category %s', 'ashbi-mega-menu'), catName), i, item.categories.length) +
+				'<button type="button" class="button-link-delete abmm-remove-cat" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Remove category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Remove category', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
+				'</span>' +
+				'</div>' +
+				'</li>'
 			);
 			$list.append($row);
 		});
@@ -2565,7 +2637,7 @@
 			'<h3>' + esc(__('Columns', 'ashbi-mega-menu')) + '</h3>' +
 			'<p class="description">' + esc(__('Group links into columns. Drag a link to move it between columns.', 'ashbi-mega-menu')) + '</p>' +
 			'</div>' +
-			'<button type="button" class="button abmm-add-group">+ ' + esc(__('Add column', 'ashbi-mega-menu')) + '</button>' +
+			'<button type="button" class="button abmm-add-group"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>' + esc(__('Add column', 'ashbi-mega-menu')) + '</button>' +
 			'</div>' +
 			'<div class="abmm-group-list" id="abmm-group-list"></div>' +
 			'</div>';
@@ -2797,8 +2869,10 @@
 			esc(group.title || '') +
 			'" placeholder="' + esc(__('Column heading (e.g. Services)', 'ashbi-mega-menu')) + '" />' +
 			/* translators: %s: column name. */
+			'<span class="abmm-row-actions">' +
 			reorderControlsHtml(sprintf(__('column %s', 'ashbi-mega-menu'), group.title || groupIndex + 1), groupIndex, groupLength) +
-			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="' + /* translators: %s: column name. */ esc(sprintf(__('Remove column %s', 'ashbi-mega-menu'), group.title || '')) + '" title="' + esc(__('Remove column', 'ashbi-mega-menu')) + '">&times;</button>' +
+			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="' + /* translators: %s: column name. */ esc(sprintf(__('Remove column %s', 'ashbi-mega-menu'), group.title || groupIndex + 1)) + '" title="' + esc(__('Remove column', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove column', 'ashbi-mega-menu')) + '</button>' +
+			'</span>' +
 			'</div>' +
 			'<label class="abmm-field abmm-field--compact"><span>' +
 			esc(S.groupUrl) +
@@ -2811,7 +2885,7 @@
 			'<ul class="abmm-sortable abmm-link-list abmm-group-link-list">' +
 			linksHtml +
 			'</ul>' +
-			'<button type="button" class="button-link abmm-add-group-link">+ ' +
+			'<button type="button" class="button-link abmm-add-group-link"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>' +
 			esc(S.addLink) +
 			'</button>' +
 			'</div>'
@@ -2823,7 +2897,7 @@
 			'<li class="abmm-link-row" data-id="' +
 			esc(link.id) +
 			'">' +
-			'<span class="abmm-drag-handle">⋮⋮</span>' +
+			'<span class="abmm-drag-handle" title="' + esc(S.dragHint) + '" aria-hidden="true"><span class="dashicons dashicons-menu"></span></span>' +
 			'<button type="button" class="abmm-pick-link-icon" title="' +
 			esc(S.selectIcon) +
 			'">' +
@@ -2850,8 +2924,10 @@
 			wpLinkFieldHtml(link.url || '', 'abmm-link-url', '.abmm-link-label', false) +
 			linkOptionsHtml(link) +
 			/* translators: %s: link name. */
+			'<span class="abmm-row-actions">' +
 			reorderControlsHtml(sprintf(__('link %s', 'ashbi-mega-menu'), link.label || linkIndex + 1), linkIndex, linkLength) +
-			'<button type="button" class="button-link-delete abmm-remove-link" aria-label="' + /* translators: %s: link name. */ esc(sprintf(__('Remove link %s', 'ashbi-mega-menu'), link.label || '')) + '">&times;</button>' +
+			'<button type="button" class="button-link-delete abmm-remove-link" aria-label="' + /* translators: %s: link name. */ esc(sprintf(__('Remove link %s', 'ashbi-mega-menu'), link.label || linkIndex + 1)) + '" title="' + esc(__('Remove link', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove link', 'ashbi-mega-menu')) + '</button>' +
+			'</span>' +
 			'</li>'
 		);
 	}
@@ -2877,7 +2953,9 @@
 
 	// The preview renders at a real screen width and is scaled to fit, so a
 	// desktop menu is not squeezed into the space between the sidebars.
-	var PREVIEW_WIDTHS = { desktop: 1280, tablet: 820, mobile: 390 };
+	// 1100px keeps the desktop layout (above the 900px mobile breakpoint)
+	// while Fit stays around 75%, so preview text is readable.
+	var PREVIEW_WIDTHS = { desktop: 1100, tablet: 820, mobile: 390 };
 	var PREVIEW_ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.25, 1.5, 2];
 
 	function applyPreviewZoom() {
