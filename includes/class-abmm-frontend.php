@@ -199,7 +199,7 @@ class ABMM_Frontend {
 
 		ob_start();
 		?>
-		<header class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" id="<?php echo esc_attr( $instance_id ); ?>" style="<?php echo esc_attr( $this->css_vars( $settings ) ); ?>" data-abmm-id="<?php echo esc_attr( $menu_id ); ?>" data-abmm-instance="<?php echo esc_attr( $instance_id ); ?>" data-abmm-presentation="<?php echo esc_attr( $presentation ); ?>" data-abmm-desktop-open="<?php echo esc_attr( 'click' === ( $settings['desktop_interaction'] ?? '' ) ? 'click' : 'hover' ); ?>">
+		<header class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" id="<?php echo esc_attr( $instance_id ); ?>" style="<?php echo esc_attr( $this->css_vars( $settings ) ); ?>" data-abmm-id="<?php echo esc_attr( $menu_id ); ?>" data-abmm-instance="<?php echo esc_attr( $instance_id ); ?>" data-abmm-presentation="<?php echo esc_attr( $presentation ); ?>" data-abmm-desktop-open="<?php echo esc_attr( 'click' === ( $settings['desktop_interaction'] ?? '' ) ? 'click' : 'hover' ); ?>" data-abmm-back-label="<?php echo esc_attr_x( 'Back', 'mobile menu button', 'ashbi-mega-menu' ); ?>">
 			<?php echo $this->render_utility_links( $utility_links ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<nav class="abmm-nav" aria-label="<?php echo esc_attr( $menu['title'] ); ?>">
 				<div class="abmm-nav__bar">
