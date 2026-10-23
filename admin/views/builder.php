@@ -500,13 +500,12 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 							<option value="4">4</option>
 						</select>
 					</label>
-					<div class="abmm-field abmm-category-bar-field" id="abmm-category-bar-field">
+					<div class="abmm-field abmm-category-bar-field" id="abmm-category-bar-field" hidden>
 						<span><?php esc_html_e( 'Category list', 'ashbi-mega-menu' ); ?></span>
 						<label class="abmm-checkbox-label">
 							<input type="checkbox" id="abmm-hide-category-bar" value="1" />
 							<?php esc_html_e( 'Hide the category list and use the full width for columns', 'ashbi-mega-menu' ); ?>
 						</label>
-						<small class="description"><?php esc_html_e( 'Available when there is only one category.', 'ashbi-mega-menu' ); ?></small>
 					</div>
 				</div>
 
