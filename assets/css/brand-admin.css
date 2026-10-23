@@ -249,3 +249,25 @@
 /* Long top-level labels wrap in the preview instead of pushing items off the canvas. */
 .abmm-preview .abmm-nav__list {flex-wrap:wrap}
 @media (max-width:782px) {.abmm-wrap .abmm-editor-chrome .abmm-preview-zoom {width:100%;justify-content:center}}
+/* Desktop and tablet previews open panels below the bar, as on the live site. */
+.abmm-preview-shell:not([data-abmm-preview-viewport="mobile"]) .abmm-preview {overflow:visible}
+.abmm-preview-shell:not([data-abmm-preview-viewport="mobile"]) .abmm-preview .abmm-nav__list {flex-wrap:nowrap;align-items:center}
+.abmm-preview-shell:not([data-abmm-preview-viewport="mobile"]) .abmm-preview .abmm-mega {position:absolute!important;top:100%;left:50%!important;transform:translateX(-50%)!important;width:min(var(--abmm-panel-width),calc(100% - 2rem))!important;padding-top:0}
+.abmm-preview-shell:not([data-abmm-preview-viewport="mobile"]) .abmm-preview .abmm-full-width .abmm-mega {left:0!important;transform:none!important;width:100%!important}
+/* Keep the preview in step with frontend.css. */
+.abmm-preview .abmm-mega__col-copy {display:flex;min-width:0;flex-direction:column;gap:.12rem}
+.abmm-preview .abmm-mega__col-description {display:block;max-width:30ch;color:var(--abmm-muted);font-size:12px;font-weight:400;line-height:1.35}
+.abmm-preview .abmm-nav__link,.abmm-preview .abmm-mega a {text-decoration:none}
+.abmm-preview .abmm-nav__cta--drawer {box-sizing:border-box}
+.abmm-workflow-nav .is-done:not([aria-current="step"]) > span {background:#1f9d55;color:#fff;font-size:0}
+.abmm-workflow-nav .is-done:not([aria-current="step"]) > span::before {content:"\2713";font-size:12px}
+.abmm-wrap .abmm-editor-chrome .abmm-builder-panel-toggle:hover,.abmm-wrap .abmm-editor-chrome .abmm-builder-panel-toggle:focus {color:var(--abmm-brand-ink);background:#f4f6fb;border-color:#c5cee3}
+/* Preview links follow the menu's own colours, so dark styles stay readable. */
+.abmm-preview .abmm-mega__col-link,.abmm-preview .abmm-mega__grid-link {color:var(--abmm-text)}
+.abmm-preview .abmm-mega__col-link.is-disabled,.abmm-preview .abmm-mega__grid-link.is-disabled {color:var(--abmm-muted)}
+/* Keep the "Check it" highlight inside its column instead of clipping it. */
+.abmm-wrap .abmm-verification-panel:focus {outline:0;box-shadow:inset 0 0 0 3px #ffb568}
+/* Product pages: consistent fields, lighter placeholders and tighter section headings. */
+:where(.abmm-profile-admin,.abmm-branding-admin) input::placeholder {color:#8a8f98;opacity:1}
+.abmm-profile-admin .abmm-profile-admin__form legend + p {margin-top:4px}
+.abmm-profile-admin .abmm-profile-admin__link-row input {padding:0 12px}

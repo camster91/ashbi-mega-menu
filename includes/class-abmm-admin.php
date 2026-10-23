@@ -207,6 +207,9 @@ class ABMM_Admin {
 					'checkLong' => __( 'Shorten "%s" so it fits in the menu bar.', 'ashbi-mega-menu' ),
 					/* translators: %s: link label. */
 					'checkUrl' => __( 'Check the link for "%s". It does not look like a web address.', 'ashbi-mega-menu' ),
+					'checkBrand' => __( 'Add a logo image or site title, or turn off "Show logo".', 'ashbi-mega-menu' ),
+					'checkLogo' => __( 'Check the logo image link. It does not look like a web address.', 'ashbi-mega-menu' ),
+					'logoBroken' => __( 'Logo image not found', 'ashbi-mega-menu' ),
 					'checkPassed' => __( 'Ready to place.', 'ashbi-mega-menu' ),
 					/* translators: %s: item number, label, count, or formatted file size. */
 					'checkPending' => __( '%s thing(s) to fix before you place this menu.', 'ashbi-mega-menu' ),

@@ -360,7 +360,15 @@
 			accordion.style.removeProperty('--abmm-active-panel-height');
 			return;
 		}
+		// Use the tallest category so switching categories does not make the panel jump.
 		var height = Math.ceil(panel.getBoundingClientRect().height);
+		mega.querySelectorAll('.abmm-mega__panel').forEach(function (other) {
+			if (other === panel) return;
+			var wasHidden = other.hidden;
+			other.hidden = false;
+			height = Math.max(height, Math.ceil(other.getBoundingClientRect().height));
+			other.hidden = wasHidden;
+		});
 		if (height > 0) accordion.style.setProperty('--abmm-active-panel-height', height + 'px');
 	}
 

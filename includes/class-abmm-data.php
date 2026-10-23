@@ -458,6 +458,16 @@ class ABMM_Data {
 				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Shorten "%s" so it fits in the menu bar.', 'ashbi-mega-menu' ), $short ) );
 			}
 		}
+		$brand = is_array( $menu['brand'] ?? null ) ? $menu['brand'] : array();
+		if ( ! empty( $brand['show'] ) ) {
+			$logo      = trim( (string) ( $brand['logo_url'] ?? '' ) );
+			$logo_dark = trim( (string) ( $brand['logo_dark_url'] ?? '' ) );
+			if ( '' === $logo && '' === $logo_dark && '' === trim( (string) ( $brand['title'] ?? '' ) ) ) {
+				$issues[] = array( 'field' => 'abmm-brand-title', 'message' => __( 'Add a logo image or site title, or turn off "Show logo".', 'ashbi-mega-menu' ) );
+			} elseif ( $this->looks_like_broken_url( $logo ) || $this->looks_like_broken_url( $logo_dark ) ) {
+				$issues[] = array( 'field' => 'abmm-brand-logo-url', 'message' => __( 'Check the logo image link. It does not look like a web address.', 'ashbi-mega-menu' ) );
+			}
+		}
 		foreach ( $this->menu_links( $menu ) as $link ) {
 			if ( $this->looks_like_broken_url( $link['url'] ?? '' ) ) {
 				/* translators: %s: link label. */

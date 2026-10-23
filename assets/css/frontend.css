@@ -2520,3 +2520,8 @@ html.abmm-drawer-open {
 		flex-shrink: 0;
 	}
 }
+
+/* Show focus rings for keyboard users only; themes often outline every :focus, including after a tap. */
+.abmm-header :focus:not(:focus-visible) {
+	outline: none;
+}

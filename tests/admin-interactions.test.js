@@ -75,6 +75,9 @@ async function backupFixture(strings = {}) {
  assert.equal($('.abmm-preview-shell').attr('data-abmm-preview-viewport'),'mobile');
  assert.equal($('[data-abmm-preview-viewport="mobile"]').attr('aria-pressed'),'true');
  assert.equal($('[data-abmm-preview-viewport="desktop"]').attr('aria-pressed'),'false');
+ assert.equal($('#abmm-preview .abmm-nav__toggle').attr('aria-expanded'),'true','phone preview opens with the drawer showing');
+ $('#abmm-preview .abmm-nav__toggle').trigger('click');
+ assert.equal($('#abmm-preview .abmm-nav__toggle').attr('aria-expanded'),'false','the preview toggle still closes the drawer');
  $('#abmm-preview .abmm-nav__toggle').trigger('click');
  assert.equal($('#abmm-preview .abmm-nav__toggle').attr('aria-expanded'),'true');
  $('[data-abmm-preview-viewport="desktop"]').trigger('click');

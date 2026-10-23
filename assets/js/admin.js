@@ -373,6 +373,14 @@
 				issues.push({ field: 'abmm-nav-items', message: (S.checkLong || 'Shorten "%s" so it fits in the menu bar.').replace('%s', shortLabel) });
 			}
 		});
+		var brand = menu.brand || {};
+		if (brand.show) {
+			if (!String(brand.logo_url || '').trim() && !String(brand.logo_dark_url || '').trim() && !String(brand.title || '').trim()) {
+				issues.push({ field: 'abmm-brand-title', message: S.checkBrand || 'Add a logo image or site title, or turn off "Show logo".' });
+			} else if (looksLikeBrokenUrl(brand.logo_url) || looksLikeBrokenUrl(brand.logo_dark_url)) {
+				issues.push({ field: 'abmm-brand-logo-url', message: S.checkLogo || 'Check the logo image link. It does not look like a web address.' });
+			}
+		}
 		menuLinks(menu).forEach(function (link) {
 			if (looksLikeBrokenUrl(link.url)) {
 				issues.push({ field: 'abmm-nav-items', message: (S.checkUrl || 'Check the link for "%s". It does not look like a web address.').replace('%s', String(link.label || '')) });
@@ -434,7 +442,8 @@
 			hasUnsavedChanges() || state.draftConflict ? S.placementUnsaved :
 				(!result.ready && S.placementDraft ? S.placementDraft : S.placementSaved)
 		);
-		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + (result.ready && !hasUnsavedChanges() ? 'help' : 'content') + '"]').attr('aria-current', 'step');
+		// Edit shows a tick once the saved menu passes its checklist.
+		$('[data-abmm-workflow="content"]').toggleClass('is-done', result.ready && !hasUnsavedChanges());
 		setBuilderSection(state.builderSection);
 	}
 
@@ -452,12 +461,16 @@
 			var $panel = $(this);
 			$panel.prop('hidden', $panel.data('abmm-builder-section-panel') !== section);
 		});
+		// The stepper marks where the user is: Design and Settings are part of Edit.
+		var step = section === 'help' ? (state.workflowStep === 'verify' ? 'verify' : 'help') : 'content';
+		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + step + '"]').attr('aria-current', 'step');
 	}
 
 	function initBuilderSections() {
 		// "Place & verify" on the dashboard links straight to the Place tab.
 		if (window.location.hash === '#placement') state.builderSection = 'help';
 		$('.abmm-builder-sections').on('click', '[data-abmm-builder-section]', function () {
+			state.workflowStep = '';
 			setBuilderSection(String($(this).data('abmm-builder-section') || 'content'));
 		});
 		$('.abmm-builder-sections').on('keydown', '[data-abmm-builder-section]', function (event) {
@@ -638,6 +651,8 @@
 		$('.abmm-preset-card').removeClass('is-active');
 		$('.abmm-preset-card[data-preset="' + key + '"]').addClass('is-active');
 		if (!values) return;
+		state.applyingPreset = true;
+		setTimeout(function () { state.applyingPreset = false; }, 0);
 		setColorInput('#abmm-sidebar-bg', values.sidebar_bg);
 		setColorInput('#abmm-active-bg', values.active_bg);
 		setColorInput('#abmm-panel-bg', values.panel_bg);
@@ -660,6 +675,8 @@
 	}
 
 	function markCustomPreset() {
+		// Colour pickers report preset colours as changes; only user edits make a preset custom.
+		if (state.applyingPreset) return;
 		$('#abmm-preset').val('custom');
 		$('.abmm-preset-card').removeClass('is-active');
 		$('.abmm-preset-card[data-preset="custom"]').addClass('is-active');
@@ -1658,6 +1675,7 @@
 		initBuilderSections();
 		$('[data-abmm-workflow]').on('click', function () {
 			var step = $(this).attr('data-abmm-workflow');
+			state.workflowStep = step;
 			setBuilderSection(step === 'content' ? 'content' : 'help');
 			if (window.matchMedia('(max-width: 782px)').matches) openBuilderPanel(this);
 			if (step === 'verify') $('#abmm-verification-panel').trigger('focus');
@@ -1676,7 +1694,8 @@
 			state.previewDrill = 'root';
 			state.previewItemIndex = -1;
 			state.previewCategoryId = '';
-			state.previewMobileOpen = false;
+			// Show the drawer straight away so tablet and phone previews show the menu, not just a hamburger.
+			state.previewMobileOpen = state.previewViewport !== 'desktop';
 			$('.abmm-preview-viewports [data-abmm-preview-viewport]')
 				.removeClass('is-active')
 				.attr('aria-pressed', 'false');
@@ -2802,7 +2821,13 @@
 		stage.style.width = width + 'px';
 		stage.style.transform = scale === 1 ? '' : 'scale(' + scale + ')';
 		sizer.style.width = Math.round(width * scale) + 'px';
-		sizer.style.height = Math.round(stage.offsetHeight * scale) + 'px';
+		// Open panels hang below the bar, so measure them too.
+		var height = stage.offsetHeight;
+		var stageTop = stage.getBoundingClientRect().top;
+		$(stage).find('.abmm-mega').filter(':visible').each(function () {
+			height = Math.max(height, (this.getBoundingClientRect().bottom - stageTop) / scale + 24);
+		});
+		sizer.style.height = Math.round(height * scale) + 'px';
 		$('.abmm-preview-zoom__value').text(Math.round(scale * 100) + '%');
 		$('[data-abmm-zoom="fit"]').attr('aria-pressed', state.previewZoom === 'fit' ? 'true' : 'false');
 	}
@@ -2973,6 +2998,11 @@
 		$('#abmm-preview').attr('data-abmm-preview-state', previewState).html(html);
 		applyPreviewZoom();
 		var $preview = $('#abmm-preview');
+		$preview.find('.abmm-nav__brand-logo').on('error', function () {
+			$(this).replaceWith(
+				'<span class="abmm-preview-broken-logo" role="img" aria-label="' + esc(S.logoBroken) + '">' + esc(S.logoBroken) + '</span>'
+			);
+		});
 		$preview.find('.abmm-header').toggleClass('abmm-force-mobile', mobilePreview);
 		if (mobilePreview && state.previewDrill === 'root' && window.ABMMMenuSearch) {
 			window.ABMMMenuSearch.init($preview.find('.abmm-header')[0]);
@@ -3100,7 +3130,7 @@
 			return (
 				'<div class="abmm-mega abmm-mega--features" id="' +
 				previewPanelId +
-				'" style="position:relative;display:block;" data-abmm-mega-panel data-abmm-style="features">' +
+				'" data-abmm-mega-panel data-abmm-style="features">' +
 				'<div class="abmm-mega__inner abmm-mega__inner--features">' +
 				'<ul class="abmm-mega__grid abmm-mega__grid--features" style="--abmm-grid-cols:' +
 				cols +
@@ -3219,7 +3249,7 @@
 			(hideCategoryBar ? ' abmm-mega--columns-only' : '') +
 			'" id="' +
 			previewPanelId +
-			'" style="position:relative;display:block;" data-abmm-mega-panel data-abmm-style="platforms">' +
+			'" data-abmm-mega-panel data-abmm-style="platforms">' +
 			'<div class="abmm-mega__inner">' +
 			'<div class="abmm-mega__accordion">' +
 			sections +

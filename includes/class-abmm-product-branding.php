@@ -429,7 +429,7 @@ class ABMM_Product_Branding {
 								<?php $this->render_media_field( 'primary', __( 'Logo image', 'ashbi-mega-menu' ), $primary, $config['logo_attachment_id'], true ); ?>
 								<?php $this->render_media_field( 'dark', __( 'Logo for dark menus (optional)', 'ashbi-mega-menu' ), $dark, $config['logo_dark_attachment_id'], false ); ?>
 								<div class="abmm-branding-admin__grid">
-									<label><?php esc_html_e( 'Alternative text', 'ashbi-mega-menu' ); ?><input class="regular-text" name="branding[alt]" value="<?php echo esc_attr( $config['alt'] ); ?>" placeholder="<?php esc_attr_e( 'site', 'ashbi-mega-menu' ); ?>" /><small><?php esc_html_e( 'Describe the logo for screen readers. Required.', 'ashbi-mega-menu' ); ?></small></label>
+									<label><?php esc_html_e( 'Alternative text', 'ashbi-mega-menu' ); ?><input type="text" class="regular-text" name="branding[alt]" value="<?php echo esc_attr( $config['alt'] ); ?>" placeholder="<?php esc_attr_e( 'site', 'ashbi-mega-menu' ); ?>" /><small><?php esc_html_e( 'Describe the logo for screen readers. Required.', 'ashbi-mega-menu' ); ?></small></label>
 									<label><?php esc_html_e( 'Logo height', 'ashbi-mega-menu' ); ?><span class="abmm-branding-admin__number"><input type="number" min="16" max="80" name="branding[logo_height]" value="<?php echo esc_attr( $config['logo_height'] ); ?>" /> px</span></label>
 								</div>
 							</fieldset>
