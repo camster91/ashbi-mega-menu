@@ -2851,16 +2851,19 @@ html.abmm-drawer-open {
 	}
 
 	.abmm-header:not(.abmm-force-mobile) .abmm-mega__columns {
-		--abmm-col-gap: 32px;
+		--abmm-col-gap: 40px;
 		flex: 1 1 auto;
 		min-height: 0;
 		overflow-y: auto;
 		overscroll-behavior: contain;
 		padding: var(--abmm-panel-pad-top) var(--abmm-panel-pad-x) var(--abmm-panel-pad-bottom);
-		/* As many columns as there are groups, each at least 220px wide, so two
-		   groups share the width instead of leaving an empty third column. */
-		grid-template-columns: repeat(auto-fit, minmax(max(220px, calc((100% - (var(--abmm-col-count, 3) - 1) * var(--abmm-col-gap)) / var(--abmm-col-count, 3))), 1fr));
-		gap: 24px var(--abmm-col-gap);
+		/* Content-sized columns packed to the start: the track count comes from
+		   the 200px minimum, so tracks stay about 220-260px wide and spare width
+		   collects after the last column (or under the featured card) instead of
+		   between columns. Groups wrap to a second row when space runs out. */
+		grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+		justify-content: start;
+		gap: 28px var(--abmm-col-gap);
 	}
 
 	/* Full width: columns end where the bar's CTA ends. */
@@ -2909,14 +2912,16 @@ html.abmm-drawer-open {
 		text-align: left;
 	}
 
+	/* The strip belongs to the link columns: it starts after the category rail
+	   and ends with the panel content, never bleeding under the rail. */
 	.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title::before {
 		content: "";
 		position: absolute;
 		z-index: -1;
 		top: 0;
 		bottom: 0;
-		left: -100vw;
-		right: -100vw;
+		left: 0;
+		right: 0;
 		border-top: 1px solid var(--abmm-border);
 		background: var(--abmm-subtle);
 	}
@@ -3043,9 +3048,17 @@ html.abmm-drawer-open {
 		display: none;
 	}
 
-	/* One CTA: when the bar shows it, the drawer does not repeat it. */
-	.abmm-header:not(.abmm-has-product-profile):not(:has(.abmm-nav__identity--bar)):has(.abmm-nav__bar > .abmm-nav__cta--bar) .abmm-nav__cta--drawer {
-		display: none;
+	/* One CTA: while the drawer is open its sticky footer carries the CTA, so
+	   the bar's copy fades out in place (keeping the bar's layout still). */
+	.abmm-header .abmm-nav__cta--bar {
+		transition: opacity 0.15s ease, visibility 0s linear 0s;
+	}
+
+	.abmm-header.is-mobile-open .abmm-nav__bar:has(~ .abmm-nav__drawer .abmm-nav__drawer-foot) > .abmm-nav__cta--bar {
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition: opacity 0.15s ease, visibility 0s linear 0.15s;
 	}
 
 	.abmm-header .abmm-nav__drawer {
@@ -3301,5 +3314,529 @@ html.abmm-drawer-open {
 	.abmm-header .abmm-nav__cta--drawer {
 		width: 100%;
 		margin: 20px 0 0;
+	}
+}
+
+/* ------------------------------------------------------------------------
+   Featured card: an optional promo column on the right of a desktop panel
+   and a compact card at the end of the item's phone screen.
+   ------------------------------------------------------------------------ */
+.abmm-header .abmm-mega__featured {
+	--abmm-featured-surface: color-mix(in srgb, var(--abmm-accent) 5%, color-mix(in srgb, var(--abmm-text) 2.5%, var(--abmm-panel-bg)));
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	padding: 6px;
+	border: 1px solid color-mix(in srgb, var(--abmm-text) 7%, transparent);
+	border-radius: 12px;
+	background: var(--abmm-panel-bg);
+	background: var(--abmm-featured-surface);
+	color: var(--abmm-text) !important;
+	text-decoration: none !important;
+	box-sizing: border-box;
+	transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.abmm-header a.abmm-mega__featured:hover {
+	border-color: color-mix(in srgb, var(--abmm-accent) 22%, var(--abmm-border));
+	background: color-mix(in srgb, var(--abmm-accent) 8%, color-mix(in srgb, var(--abmm-text) 2.5%, var(--abmm-panel-bg)));
+	box-shadow: 0 8px 20px -14px rgba(15, 23, 42, 0.35);
+}
+
+.abmm-header a.abmm-mega__featured:focus-visible {
+	outline: 3px solid var(--abmm-accent);
+	outline-offset: 2px;
+}
+
+.abmm-header .abmm-mega__featured-media {
+	display: block;
+	overflow: hidden;
+	aspect-ratio: 16 / 9;
+	border-radius: 7px;
+	background: color-mix(in srgb, var(--abmm-accent) 14%, var(--abmm-panel-bg));
+}
+
+.abmm-header .abmm-mega__featured-media img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	margin: 0;
+	object-fit: cover;
+	transition: transform 0.3s ease;
+}
+
+.abmm-header a.abmm-mega__featured:hover .abmm-mega__featured-media img {
+	transform: scale(1.03);
+}
+
+.abmm-header .abmm-mega__featured-body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+	padding: 12px 10px 8px;
+}
+
+.abmm-header .abmm-mega__featured-title {
+	color: var(--abmm-text);
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: -0.005em;
+	line-height: 1.35;
+	overflow-wrap: anywhere;
+}
+
+.abmm-header .abmm-mega__featured-text {
+	color: var(--abmm-muted);
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+
+.abmm-header .abmm-mega__featured-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: auto;
+	padding-top: 8px;
+	color: var(--abmm-accent);
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 20px;
+}
+
+.abmm-header .abmm-mega__featured-link svg {
+	flex: none;
+	transition: transform 0.15s ease;
+}
+
+.abmm-header a.abmm-mega__featured:hover .abmm-mega__featured-link svg {
+	transform: translateX(3px);
+}
+
+/* Theme paragraph styles (such as a faded p) must not fade the "see all" link. */
+.abmm-header .abmm-mega__panel-title {
+	opacity: 1;
+}
+
+/* Desktop: the card stands at the right edge of the panel content. */
+@media (min-width: 901px) {
+	.abmm-header:not(.abmm-force-mobile) {
+		--abmm-featured-w: 280px;
+		--abmm-featured-gap: 40px;
+		--abmm-featured-inset: var(--abmm-panel-pad-x, 32px);
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width {
+		--abmm-featured-inset: 1.5rem;
+	}
+
+	/* A boxed panel grows by the card's width rather than squeezing the links. */
+	.abmm-header:not(.abmm-force-mobile):not(.abmm-full-width) .abmm-mega--platforms.abmm-mega--has-featured {
+		width: min(calc(var(--abmm-panel-width) + var(--abmm-featured-w)), calc(100vw - 2rem));
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega--platforms .abmm-mega__accordion > .abmm-mega__featured {
+		position: absolute;
+		z-index: 3;
+		top: var(--abmm-panel-pad-top);
+		right: var(--abmm-featured-inset);
+		width: var(--abmm-featured-w);
+	}
+
+	/* The links keep clear of the card; the "see all" strip runs under both. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega--platforms.abmm-mega--has-featured .abmm-mega__columns {
+		padding-right: calc(var(--abmm-featured-inset) + var(--abmm-featured-w) + var(--abmm-featured-gap));
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-layout--sidebar-right .abmm-mega--platforms .abmm-mega__accordion > .abmm-mega__featured {
+		right: auto;
+		left: var(--abmm-featured-inset);
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-layout--sidebar-right .abmm-mega--platforms.abmm-mega--has-featured .abmm-mega__columns {
+		padding-right: var(--abmm-panel-pad-x);
+		padding-left: calc(var(--abmm-featured-inset) + var(--abmm-featured-w) + var(--abmm-featured-gap));
+	}
+
+	/* One category: no rail, so the panel is static and grows to fit the card. */
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega--single, .abmm-mega--columns-only).abmm-mega--has-featured .abmm-mega__panel {
+		min-height: var(--abmm-active-panel-height, 0px);
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width :is(.abmm-mega--single, .abmm-mega--columns-only).abmm-mega--has-featured .abmm-mega__columns {
+		padding-right: calc(var(--abmm-featured-w) + var(--abmm-featured-gap));
+	}
+
+	/* Simple columns: the card follows the link grid. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega--features.abmm-mega--has-featured {
+		width: min(880px, calc(100vw - 2rem));
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega--features.abmm-mega--compact.abmm-mega--has-featured {
+		width: min(660px, calc(100vw - 2rem));
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega--has-featured .abmm-mega__inner--features {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--abmm-featured-gap);
+		padding: 20px 20px 20px 24px;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega--has-featured .abmm-mega__inner--features > .abmm-mega__grid {
+		flex: 1 1 auto;
+		min-width: 0;
+		align-content: start;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__inner--features > .abmm-mega__featured {
+		flex: 0 0 var(--abmm-featured-w);
+		width: var(--abmm-featured-w);
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega--compact .abmm-mega__inner--features > .abmm-mega__featured {
+		flex-basis: 260px;
+		width: 260px;
+	}
+
+	/* Full width: link columns keep a readable width instead of spreading out. */
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width .abmm-mega__grid--features {
+		grid-template-columns: repeat(var(--abmm-grid-cols, 3), minmax(0, 260px));
+		justify-content: start;
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width .abmm-mega--has-featured .abmm-mega__inner--features {
+		padding-inline: max(1.5rem, calc((100% - 1200px) / 2 + 1.5rem));
+	}
+}
+
+/* ------------------------------------------------------------------------
+   Desktop polish: link rows, icon tiles, bar heights and the page scrim.
+   ------------------------------------------------------------------------ */
+@media (min-width: 901px) {
+	/* The open item's pill and the CTA share one 40px height. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link,
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link:link,
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link:visited {
+		min-height: 40px;
+		padding-block: 0;
+		line-height: 20px;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__cta {
+		min-height: 40px;
+		padding: 0 18px;
+		line-height: 20px;
+	}
+
+	/* Link rows: a neutral hover wash taken from the text colour (so dark
+	   presets work), and the title turns the accent colour. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-link {
+		border-radius: 8px;
+		transition: background-color 0.15s ease, color 0.15s ease;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:hover,
+	.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:focus-visible {
+		background: rgba(0, 0, 0, 0.035);
+		background: color-mix(in srgb, var(--abmm-text) 3.5%, transparent);
+		color: var(--abmm-text) !important;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:hover .abmm-mega__col-label,
+	.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:focus-visible .abmm-mega__col-label {
+		color: var(--abmm-accent);
+	}
+
+	/* Icon tiles: a 36px neutral tile with a hairline and an accent glyph. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-icon {
+		width: 36px;
+		height: 36px;
+		border: 1px solid var(--abmm-border);
+		border-radius: 8px;
+		background: var(--abmm-panel-bg);
+		box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+		color: var(--abmm-accent);
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-icon .abmm-icon {
+		font-size: 18px;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:hover .abmm-mega__col-icon {
+		border-color: color-mix(in srgb, var(--abmm-accent) 30%, var(--abmm-border));
+		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-link.has-icon .abmm-mega__col-copy {
+		min-height: 36px;
+		justify-content: center;
+		gap: 2px;
+	}
+
+	/* A full-width panel's category column reaches into the container's side
+	   padding; the strip stops where the bar's CTA ends. */
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked):not(.abmm-layout--sidebar-right) .abmm-mega:not(.abmm-mega--single):not(.abmm-mega--columns-only) .abmm-mega__panel-title::before {
+		right: 1.5rem;
+	}
+
+	.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega:not(.abmm-mega--single):not(.abmm-mega--columns-only) .abmm-mega__panel-title::before {
+		left: 1.5rem;
+	}
+
+	/* "See all" strip: a quieter tint. */
+	.abmm-header:not(.abmm-force-mobile) {
+		--abmm-subtle: color-mix(in srgb, var(--abmm-text) 2.5%, var(--abmm-panel-bg));
+	}
+
+	/* Scrim: a light tint with a slight blur, not a grey sheet. */
+	.abmm-header.abmm-has-scrim:not(.abmm-force-mobile)::after {
+		background: var(--abmm-scrim, rgba(15, 23, 42, 0.08));
+	}
+
+	@supports ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
+		.abmm-header.abmm-has-scrim:not(.abmm-force-mobile)::after {
+			-webkit-backdrop-filter: blur(2px);
+			backdrop-filter: blur(2px);
+		}
+	}
+
+	/* Entrance: fade in and settle 4px. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__item.is-open .abmm-mega__inner {
+		animation: abmm-panel-in 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+	.abmm-header:not(.abmm-force-mobile) .abmm-nav__item.is-open .abmm-mega__inner {
+		animation: none;
+	}
+
+	.abmm-header a.abmm-mega__featured:hover .abmm-mega__featured-media img,
+	.abmm-header a.abmm-mega__featured:hover .abmm-mega__featured-link svg {
+		transform: none;
+	}
+}
+
+/* ------------------------------------------------------------------------
+   Phone and tablet drawer: firmer root rows, a sticky CTA footer, a
+   collapsible category list and the compact featured card.
+   ------------------------------------------------------------------------ */
+@media (max-width: 900px) {
+	.abmm-header .abmm-nav__drawer .abmm-nav__list > .abmm-nav__item > .abmm-nav__link {
+		min-height: 56px;
+		padding-block: 14px;
+		font-size: 17px;
+		font-weight: 500;
+		line-height: 1.3;
+	}
+
+	.abmm-header .abmm-nav__drawer .abmm-nav__link .abmm-chevron {
+		width: 16px;
+		height: 16px;
+		opacity: 1;
+		color: color-mix(in srgb, var(--abmm-text) 55%, var(--abmm-panel-bg));
+	}
+
+	/* The drawer is a column, so the CTA footer can sit on the bottom edge. */
+	.abmm-header.is-mobile-open .abmm-nav__drawer {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.abmm-header .abmm-nav__drawer > .abmm-nav__inner {
+		display: flex;
+		flex: 1 0 auto;
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.abmm-header .abmm-nav__drawer:has(.abmm-nav__drawer-foot) {
+		padding-bottom: 0;
+	}
+
+	.abmm-header .abmm-nav__drawer-foot {
+		position: sticky;
+		z-index: 4;
+		bottom: 0;
+		margin-top: auto;
+		padding: 12px 20px max(16px, env(safe-area-inset-bottom));
+		border-top: 1px solid var(--abmm-border);
+		background: var(--abmm-panel-bg);
+	}
+
+	.abmm-header .abmm-nav__drawer-foot .abmm-nav__cta--drawer,
+	.abmm-header.abmm-is-drilling .abmm-nav__drawer-foot .abmm-nav__cta--drawer {
+		display: flex;
+		width: 100%;
+		min-height: 48px;
+		margin: 0;
+		padding: 12px 16px;
+		font-size: 16px;
+		line-height: 24px;
+	}
+
+	.abmm-header.abmm-mobile-enhanced.abmm-is-searching .abmm-nav__drawer-foot {
+		display: none;
+	}
+
+	/* Several categories: each heading opens or closes its links. */
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section--collapsible {
+		padding: 0 20px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section--collapsible .abmm-mega__section-title {
+		margin: 0;
+		font-size: 17px;
+		font-weight: 650;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-toggle {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		min-height: 60px;
+		margin: 0;
+		padding: 0;
+		border: 0 !important;
+		border-radius: 0;
+		background: transparent !important;
+		box-shadow: none !important;
+		color: var(--abmm-text) !important;
+		font: inherit;
+		letter-spacing: inherit;
+		text-align: left;
+		text-transform: inherit;
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-toggle:focus-visible {
+		outline: 2px solid var(--abmm-accent);
+		outline-offset: -2px;
+		border-radius: 8px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-label {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section-chevron {
+		flex: none;
+		color: color-mix(in srgb, var(--abmm-text) 55%, var(--abmm-panel-bg));
+		transform: rotate(180deg);
+		transition: transform 0.2s ease;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section.is-collapsed .abmm-mega__section-chevron {
+		transform: none;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section--collapsible .abmm-mega__columns {
+		margin-top: -8px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section--collapsible .abmm-mega__panel > :last-child {
+		margin-bottom: 16px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section.is-collapsed :is(.abmm-mega__columns, .abmm-mega__panel-title) {
+		display: none;
+	}
+
+	/* The same neutral icon tile as the desktop panel. */
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__col-icon {
+		width: 36px;
+		height: 36px;
+		border: 1px solid var(--abmm-border);
+		background: var(--abmm-panel-bg);
+		box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	}
+
+	/* Compact featured card at the end of the item's screen. */
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__featured {
+		flex-direction: row;
+		align-items: center;
+		gap: 14px;
+		margin: 12px 20px 24px;
+		padding: 10px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__featured-media {
+		flex: 0 0 104px;
+		width: 104px;
+		border-radius: 8px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__featured-body {
+		gap: 2px;
+		padding: 0;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__featured-text {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__featured-link {
+		padding-top: 4px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__featured:not(:has(.abmm-mega__featured-media)) {
+		padding: 14px 16px;
+	}
+
+	/* The page behind a tablet sheet: a light tint and blur, like desktop. */
+	.abmm-header .abmm-nav__backdrop {
+		background: rgba(15, 23, 42, 0.12);
+	}
+
+	@supports ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
+		.abmm-header .abmm-nav__backdrop {
+			-webkit-backdrop-filter: blur(2px);
+			backdrop-filter: blur(2px);
+		}
+	}
+}
+
+/* Tablet sheet: the footer spans the content column and ends the sheet. */
+@media (min-width: 601px) and (max-width: 900px) {
+	.abmm-header .abmm-nav__drawer {
+		padding-bottom: 0;
+	}
+
+	.abmm-header .abmm-nav__drawer-foot {
+		padding: 16px 0 20px;
+		border-top: 0;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__section--collapsible {
+		padding-inline: 12px;
+	}
+
+	.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__featured {
+		margin-inline: 12px;
+	}
+
+	/* Root rows, their hairlines and the CTA share the sheet's content column. */
+	.abmm-header .abmm-nav__drawer .abmm-nav__list {
+		padding-inline: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.abmm-header .abmm-mega__section-chevron,
+	.abmm-header .abmm-nav__cta--bar {
+		transition: none !important;
 	}
 }

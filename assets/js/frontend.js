@@ -99,7 +99,10 @@
 				'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
 			),
 			function (element) {
-				return !element.hidden && element.getClientRects().length > 0;
+				if (element.hidden || !element.getClientRects().length) return false;
+				// The bar's CTA stays in place but invisible while the drawer is open.
+				var style = window.getComputedStyle ? window.getComputedStyle(element) : null;
+				return !style || style.visibility !== 'hidden';
 			}
 		);
 	}
@@ -134,6 +137,7 @@
 	function resetDrillPanels(mega) {
 		mega.querySelectorAll('.abmm-mega__section').forEach(function (section) {
 			setSectionOpen(section, false);
+			setSectionCollapsed(section, false);
 		});
 		var bar = mega.querySelector('[data-abmm-mobile-bar]');
 		if (bar) bar.hidden = true;
@@ -151,6 +155,18 @@
 			panel.classList.toggle('is-active', open);
 			panel.hidden = !open;
 		}
+	}
+
+	/**
+	 * Phone accordion: a category heading shows or hides its links. This is
+	 * separate from the desktop "open category" state, which stays on for every
+	 * category of the one-screen phone layout.
+	 */
+	function setSectionCollapsed(section, collapsed) {
+		var toggle = section.querySelector('[data-abmm-section-toggle]');
+		if (!toggle) return;
+		section.classList.toggle('is-collapsed', collapsed);
+		toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
 	}
 
 	function activateCategoryDesktop(catBtn) {
@@ -215,6 +231,8 @@
 		drawer.querySelectorAll('a[href]').forEach(function (link) {
 			var href = link.getAttribute('href');
 			if (!href || href.charAt(0) === '#' || link.classList.contains('is-disabled')) return;
+			// A promotional card is not a menu destination of its own.
+			if (link.classList.contains('abmm-mega__featured')) return;
 			var url;
 			try { url = new URL(href, document.baseURI); } catch (err) { return; }
 			if (!/^https?:$/.test(url.protocol)) return;
@@ -373,6 +391,16 @@
 			height = Math.max(height, panelContentHeight(other));
 			other.hidden = wasHidden;
 		});
+		// The featured card is positioned beside the columns, so it adds no height
+		// of its own. Keep the panel tall enough for it.
+		var featured = accordion.querySelector(':scope > .abmm-mega__featured');
+		if (featured && featured.getClientRects().length && window.getComputedStyle(featured).position === 'absolute') {
+			// Leave the usual bottom padding, plus the "see all" strip that runs under the card.
+			var reserve = Number.parseFloat(window.getComputedStyle(accordion).getPropertyValue('--abmm-panel-pad-bottom')) || 32;
+			var footer = panel.querySelector('.abmm-mega__panel-title');
+			if (footer && footer.getClientRects().length) reserve += footer.getBoundingClientRect().height;
+			height = Math.max(height, Math.ceil(featured.offsetTop + featured.getBoundingClientRect().height + reserve));
+		}
 		var maxHeight = window.getComputedStyle ? Number.parseFloat(window.getComputedStyle(panel).maxHeight) : NaN;
 		if (maxHeight > 0) height = Math.min(height, Math.ceil(maxHeight));
 		if (height > 0) accordion.style.setProperty('--abmm-active-panel-height', height + 'px');
@@ -518,6 +546,9 @@
 		var isColumnsOnly = panel.classList.contains('abmm-mega--columns-only');
 		panel.querySelectorAll('.abmm-mega__section').forEach(function (section, index) {
 			setSectionOpen(section, !isColumnsOnly || index === 0);
+			// Long menus would run off the screen, so only the first category
+			// starts expanded. Its links stay two taps from the closed menu.
+			setSectionCollapsed(section, index > 0);
 		});
 		item.setAttribute('data-drill', 'links');
 		header.setAttribute('data-drill-level', '2');
@@ -530,7 +561,9 @@
 				return;
 			}
 			var firstPanel = panel.querySelector('.abmm-mega__section.is-open .abmm-mega__panel');
-			focusFirst(firstPanel, panel.querySelector('[data-abmm-back]'));
+			// Start on the first link, not on the category's accordion button.
+			var firstLinks = firstPanel && firstPanel.querySelector('.abmm-mega__columns');
+			focusFirst(firstLinks && visibleFocusable(firstLinks).length ? firstLinks : firstPanel, panel.querySelector('[data-abmm-back]'));
 		});
 	}
 
@@ -666,6 +699,9 @@
 		header.querySelectorAll('.abmm-mega--platforms').forEach(function (mega) {
 			var bar = mega.querySelector('[data-abmm-mobile-bar]');
 			if (bar) bar.hidden = true;
+			mega.querySelectorAll('.abmm-mega__section').forEach(function (section) {
+				setSectionCollapsed(section, false);
+			});
 
 			var sections = mega.querySelectorAll('.abmm-mega__section');
 			if (!sections.length) return;
@@ -888,6 +924,15 @@
 				if (e.key === 'ArrowUp') index = (index - 1 + buttons.length) % buttons.length;
 				buttons[index].focus();
 				if (!isMobile(header)) activateCategoryDesktop(buttons[index]);
+			});
+		});
+
+		header.querySelectorAll('[data-abmm-section-toggle]').forEach(function (btn) {
+			btn.addEventListener('click', function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var section = closest(btn, '.abmm-mega__section');
+				if (section) setSectionCollapsed(section, btn.getAttribute('aria-expanded') === 'true');
 			});
 		});
 
