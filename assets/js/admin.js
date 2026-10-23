@@ -3288,10 +3288,14 @@
 
 		$('#abmm-icon-search').on('input', function () {
 			var query = String($(this).val() || '').toLowerCase().trim();
+			var shown = 0;
 			$('#abmm-icon-grid .abmm-icon-option').each(function () {
-				var label = String($(this).attr('title') || '').toLowerCase();
-				$(this).prop('hidden', query && label.indexOf(query) === -1);
+				var text = (String($(this).attr('title') || '') + ' ' + String($(this).data('icon') || '')).toLowerCase();
+				var match = !query || text.indexOf(query) !== -1;
+				$(this).prop('hidden', !match);
+				shown += match ? 1 : 0;
 			});
+			$('#abmm-icon-empty').prop('hidden', shown > 0);
 		});
 
 		$('.abmm-modal__close, .abmm-modal__backdrop').on('click', closeIconModal);

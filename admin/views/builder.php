@@ -559,6 +559,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			<label class="screen-reader-text" for="abmm-icon-search"><?php esc_html_e( 'Search icons', 'ashbi-mega-menu' ); ?></label>
 			<input type="search" id="abmm-icon-search" class="abmm-icon-search" placeholder="<?php esc_attr_e( 'Search icons…', 'ashbi-mega-menu' ); ?>" autocomplete="off" />
 			<div class="abmm-icon-grid" id="abmm-icon-grid"></div>
+			<p id="abmm-icon-empty" class="abmm-icon-empty" role="status" hidden><?php esc_html_e( 'No icons match. Try another word, or upload your own icon.', 'ashbi-mega-menu' ); ?></p>
 			<div class="abmm-icon-upload">
 				<button type="button" class="button abmm-upload-icon"><?php esc_html_e( 'Upload custom icon', 'ashbi-mega-menu' ); ?></button>
 				<button type="button" class="button-link abmm-clear-icon"><?php esc_html_e( 'Clear icon', 'ashbi-mega-menu' ); ?></button>

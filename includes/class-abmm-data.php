@@ -893,11 +893,11 @@ class ABMM_Data {
 			$grid = 3;
 		}
 
-		$panel_width   = min( 1400, max( 640, absint( $this->scalar_string( $s['panel_width'] ?? 0 ) ) ) );
-		$sidebar_width = min( 420, max( 180, absint( $this->scalar_string( $s['sidebar_width'] ?? 0 ) ) ) );
-		$radius        = min( 24, max( 0, absint( $this->scalar_string( $s['border_radius'] ?? 0 ) ) ) );
-		$icon_size     = min( 64, max( 12, absint( $this->scalar_string( $s['icon_size'] ?? 0 ) ) ) );
-		$icon_radius   = min( 24, max( 0, absint( $this->scalar_string( $s['icon_radius'] ?? 0 ) ) ) );
+		$panel_width   = min( 1400, max( 640, intval( $this->scalar_string( $s['panel_width'] ?? 0 ) ) ) );
+		$sidebar_width = min( 420, max( 180, intval( $this->scalar_string( $s['sidebar_width'] ?? 0 ) ) ) );
+		$radius        = min( 24, max( 0, intval( $this->scalar_string( $s['border_radius'] ?? 0 ) ) ) );
+		$icon_size     = min( 64, max( 12, intval( $this->scalar_string( $s['icon_size'] ?? 0 ) ) ) );
+		$icon_radius   = min( 24, max( 0, intval( $this->scalar_string( $s['icon_radius'] ?? 0 ) ) ) );
 
 		$menu = array(
 			'title'    => $this->sanitize_text( $data['title'] ?? '' ),
@@ -915,7 +915,7 @@ class ABMM_Data {
 				'logo_url'      => $this->sanitize_menu_url( $brand['logo_url'] ?? '' ),
 				'logo_dark_url' => $this->sanitize_menu_url( $brand['logo_dark_url'] ?? '' ),
 				'alt'           => $this->sanitize_text( $brand['alt'] ?? '' ),
-				'logo_height'   => min( 80, max( 16, absint( $this->scalar_string( $brand['logo_height'] ?? 40 ) ) ) ),
+				'logo_height'   => min( 80, max( 16, intval( $this->scalar_string( $brand['logo_height'] ?? 40 ) ) ) ),
 			),
 			'context'  => array(
 				'show'  => ! empty( $context['show'] ),
@@ -932,7 +932,7 @@ class ABMM_Data {
 				'panel_bg'          => $this->sanitize_color( $s['panel_bg'] ) ?: $defaults['panel_bg'],
 				'header_bg'         => $this->sanitize_color( $s['header_bg'] ) ?: $defaults['header_bg'],
 				'header_transparent' => ! empty( $s['header_transparent'] ),
-				'header_z_index'    => min( 99999, max( 0, absint( $this->scalar_string( $s['header_z_index'] ?? $defaults['header_z_index'] ) ) ) ),
+				'header_z_index'    => min( 99999, max( 0, intval( $this->scalar_string( $s['header_z_index'] ?? $defaults['header_z_index'] ) ) ) ),
 				'accent'            => $this->sanitize_color( $s['accent'] ) ?: $defaults['accent'],
 				'text_color'        => $this->sanitize_color( $s['text_color'] ) ?: $defaults['text_color'],
 				'nav_link_color'    => $this->sanitize_color( $s['nav_link_color'] ?? '' ) ?: ( $this->sanitize_color( $s['text_color'] ) ?: $defaults['nav_link_color'] ),
@@ -1102,16 +1102,16 @@ class ABMM_Data {
 	 */
 	private function sanitize_icon_overrides( $source ) {
 		$source = is_array( $source ) ? $source : array();
-		$size   = absint( $this->scalar_string( $source['icon_size'] ?? 0 ) );
+		$size   = intval( $this->scalar_string( $source['icon_size'] ?? 0 ) );
 		$radius = isset( $source['icon_radius'] ) && '' !== $source['icon_radius']
-			? min( 24, max( 0, absint( $this->scalar_string( $source['icon_radius'] ) ) ) )
+			? min( 24, max( 0, intval( $this->scalar_string( $source['icon_radius'] ) ) ) )
 			: '';
 
 		return array(
 			'icon_color'        => $this->sanitize_color( $source['icon_color'] ?? '' ) ?: '',
 			'icon_hover_color'  => $this->sanitize_color( $source['icon_hover_color'] ?? '' ) ?: '',
 			'icon_active_color' => $this->sanitize_color( $source['icon_active_color'] ?? '' ) ?: '',
-			'icon_size'         => $size ? min( 64, max( 12, $size ) ) : 0,
+			'icon_size'         => $size > 0 ? min( 64, max( 12, $size ) ) : 0,
 			'icon_background'   => $this->sanitize_color( $source['icon_background'] ?? '' ) ?: '',
 			'icon_border_color' => $this->sanitize_color( $source['icon_border_color'] ?? '' ) ?: '',
 			'icon_radius'       => $radius,

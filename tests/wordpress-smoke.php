@@ -9,6 +9,17 @@ function abmm_test_assert( $condition, $message ) {
 }
 abmm_test_assert( class_exists( 'ABMM_Data' ), 'Plugin must be active.' );
 $data = ABMM_Data::instance();
+
+$clamped = $data->sanitize_menu( array(
+	'title'    => 'Numbers',
+	'items'    => array(),
+	'brand'    => array( 'logo_height' => '-999' ),
+	'settings' => array( 'icon_size' => '-999', 'icon_radius' => '-999', 'header_z_index' => '-999', 'panel_width' => '-999', 'sidebar_width' => '-999', 'border_radius' => '-999' ),
+) );
+$cs = $clamped['settings'];
+abmm_test_assert( 12 === $cs['icon_size'] && 0 === $cs['icon_radius'] && 0 === $cs['header_z_index'], 'Negative icon and z-index values clamp to the minimum.' );
+abmm_test_assert( 640 === $cs['panel_width'] && 180 === $cs['sidebar_width'] && 0 === $cs['border_radius'], 'Negative widths and radius clamp to the minimum.' );
+abmm_test_assert( 16 === $clamped['brand']['logo_height'], 'Negative logo height clamps to the minimum.' );
 $id = $data->create( 'Smoke test' );
 abmm_test_assert( is_string( $id ), 'Create a menu.' );
 $menu = $data->get( $id );
