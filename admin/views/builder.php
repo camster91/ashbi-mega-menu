@@ -41,7 +41,45 @@ $menu['context'] = wp_parse_args(
 $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 ?>
 <div class="wrap abmm-wrap abmm-builder-wrap">
-	<?php require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php'; ?>
+	<header class="abmm-page-header abmm-builder-header abmm-builder-topbar">
+		<img class="abmm-builder-header__logo" src="<?php echo esc_url( ABMM_PLUGIN_URL . 'assets/brand/icon.svg' ); ?>" width="40" height="40" alt="" />
+		<div class="abmm-builder-header__titles">
+			<a class="abmm-back abmm-guarded-exit" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>">
+				<span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span><?php esc_html_e( 'All Menus', 'ashbi-mega-menu' ); ?>
+			</a>
+			<h1 class="abmm-builder-header__title">
+				<label class="screen-reader-text" for="abmm-menu-title"><?php esc_html_e( 'Menu name', 'ashbi-mega-menu' ); ?></label>
+				<input type="text" id="abmm-menu-title" class="abmm-menu-title-input" value="<?php echo esc_attr( $menu['title'] ); ?>" placeholder="<?php esc_attr_e( 'Menu name', 'ashbi-mega-menu' ); ?>" title="<?php esc_attr_e( 'Rename this menu', 'ashbi-mega-menu' ); ?>" />
+			</h1>
+			<p class="abmm-builder-header__subtitle"><?php esc_html_e( 'Mega menu', 'ashbi-mega-menu' ); ?> <span aria-hidden="true">&middot;</span> <code>[ashbi_mega_menu id="<?php echo esc_html( $edit_id ); ?>"]</code></p>
+		</div>
+		<nav class="abmm-setup-flow abmm-workflow-nav" aria-label="<?php esc_attr_e( 'Menu setup steps', 'ashbi-mega-menu' ); ?>">
+			<button type="button" data-abmm-workflow="content"><span aria-hidden="true">1</span><?php esc_html_e( 'Edit', 'ashbi-mega-menu' ); ?></button>
+			<button type="button" data-abmm-workflow="help"><span aria-hidden="true">2</span><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></button>
+			<button type="button" data-abmm-workflow="verify"><span aria-hidden="true">3</span><?php esc_html_e( 'Check', 'ashbi-mega-menu' ); ?></button>
+		</nav>
+		<div class="abmm-builder-topbar__actions">
+			<span class="abmm-save-status is-visible" role="status" aria-live="polite"></span>
+			<div class="abmm-more-menu">
+				<button type="button" class="abmm-icon-button abmm-more-menu__toggle" aria-haspopup="true" aria-expanded="false" aria-controls="abmm-more-menu-list" title="<?php esc_attr_e( 'More actions', 'ashbi-mega-menu' ); ?>">
+					<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'More actions', 'ashbi-mega-menu' ); ?></span>
+				</button>
+				<div class="abmm-more-menu__list" id="abmm-more-menu-list" role="menu" aria-label="<?php esc_attr_e( 'More actions', 'ashbi-mega-menu' ); ?>" hidden>
+					<button type="button" role="menuitem" class="abmm-more-menu__item abmm-export-current-menu" data-menu-id="<?php echo esc_attr( $edit_id ); ?>">
+						<span class="dashicons dashicons-download" aria-hidden="true"></span><?php esc_html_e( 'Export as JSON', 'ashbi-mega-menu' ); ?>
+					</button>
+					<a role="menuitem" class="abmm-more-menu__item" href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/getting-started.md" target="_blank" rel="noopener noreferrer">
+						<span class="dashicons dashicons-editor-help" aria-hidden="true"></span><?php esc_html_e( 'Getting started guide', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span>
+					</a>
+				</div>
+			</div>
+			<button type="button" class="button button-primary abmm-save-menu">
+				<span class="dashicons dashicons-yes" aria-hidden="true" hidden></span><span class="abmm-save-menu__label"><?php esc_html_e( 'Save changes', 'ashbi-mega-menu' ); ?></span>
+			</button>
+		</div>
+	</header>
+	<hr class="wp-header-end" />
+
 	<div class="abmm-builder-load-error" id="abmm-builder-load-error" role="alert" tabindex="-1" hidden>
 		<h2 id="abmm-builder-load-error-title" tabindex="-1"><?php esc_html_e( 'This menu could not be loaded safely', 'ashbi-mega-menu' ); ?></h2>
 		<p id="abmm-builder-load-error-message"><?php esc_html_e( 'Editing and saving are disabled. Your stored menu content was not changed.', 'ashbi-mega-menu' ); ?></p>
@@ -60,41 +98,6 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 		<button type="button" class="button abmm-discard-draft"><?php esc_html_e( 'Discard local draft', 'ashbi-mega-menu' ); ?></button>
 	</div>
 
-	<nav class="abmm-setup-flow abmm-workflow-nav" aria-label="<?php esc_attr_e( 'Menu setup steps', 'ashbi-mega-menu' ); ?>">
-		<button type="button" data-abmm-workflow="content"><span aria-hidden="true">1</span><?php esc_html_e( 'Edit', 'ashbi-mega-menu' ); ?></button>
-		<button type="button" data-abmm-workflow="help"><span aria-hidden="true">2</span><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></button>
-		<button type="button" data-abmm-workflow="verify"><span aria-hidden="true">3</span><?php esc_html_e( 'Check', 'ashbi-mega-menu' ); ?></button>
-	</nav>
-	<div class="abmm-builder-topbar">
-		<a class="abmm-back abmm-guarded-exit" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>">
-			<span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span><?php esc_html_e( 'All Menus', 'ashbi-mega-menu' ); ?>
-		</a>
-		<span class="abmm-builder-topbar__divider" aria-hidden="true"></span>
-		<div class="abmm-builder-topbar__center">
-			<label class="screen-reader-text" for="abmm-menu-title"><?php esc_html_e( 'Menu name', 'ashbi-mega-menu' ); ?></label>
-			<input type="text" id="abmm-menu-title" class="abmm-menu-title-input" value="<?php echo esc_attr( $menu['title'] ); ?>" placeholder="<?php esc_attr_e( 'Menu name', 'ashbi-mega-menu' ); ?>" />
-		</div>
-		<div class="abmm-builder-topbar__actions">
-			<span class="abmm-save-status is-visible" role="status" aria-live="polite"></span>
-			<div class="abmm-more-menu">
-				<button type="button" class="abmm-icon-button abmm-more-menu__toggle" aria-haspopup="true" aria-expanded="false" aria-controls="abmm-more-menu-list" title="<?php esc_attr_e( 'More actions', 'ashbi-mega-menu' ); ?>">
-					<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'More actions', 'ashbi-mega-menu' ); ?></span>
-				</button>
-				<div class="abmm-more-menu__list" id="abmm-more-menu-list" role="menu" aria-label="<?php esc_attr_e( 'More actions', 'ashbi-mega-menu' ); ?>" hidden>
-					<button type="button" role="menuitem" class="abmm-more-menu__item abmm-export-current-menu" data-menu-id="<?php echo esc_attr( $edit_id ); ?>">
-						<span class="dashicons dashicons-download" aria-hidden="true"></span><?php esc_html_e( 'Export as JSON', 'ashbi-mega-menu' ); ?>
-					</button>
-					<a role="menuitem" class="abmm-more-menu__item" href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/getting-started.md" target="_blank" rel="noopener noreferrer">
-						<span class="dashicons dashicons-editor-help" aria-hidden="true"></span><?php esc_html_e( 'Getting started guide', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span>
-					</a>
-				</div>
-			</div>
-			<button type="button" class="button button-primary abmm-save-menu">
-				<?php esc_html_e( 'Save changes', 'ashbi-mega-menu' ); ?>
-			</button>
-		</div>
-	</div>
-
 	<script type="application/json" id="abmm-menu-data"><?php echo wp_json_encode( $menu, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
 	<div class="abmm-builder" id="abmm-builder"
 		data-menu-id="<?php echo esc_attr( $edit_id ); ?>"
@@ -111,7 +114,6 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<button type="button" class="is-active" role="tab" id="abmm-section-tab-content" data-abmm-builder-section="content" aria-controls="abmm-section-panel-content" aria-selected="true" tabindex="0"><?php esc_html_e( 'Content', 'ashbi-mega-menu' ); ?></button>
 				<button type="button" role="tab" id="abmm-section-tab-design" data-abmm-builder-section="design" aria-controls="abmm-section-panel-design" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></button>
 				<button type="button" role="tab" id="abmm-section-tab-settings" data-abmm-builder-section="settings" aria-controls="abmm-section-panel-settings" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Settings', 'ashbi-mega-menu' ); ?></button>
-				<button type="button" role="tab" id="abmm-section-tab-help" data-abmm-builder-section="help" aria-controls="abmm-section-panel-help" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></button>
 			</nav>
 			<div class="abmm-builder-section-group" id="abmm-section-panel-settings" data-abmm-builder-section-panel="settings" role="tabpanel" aria-labelledby="abmm-section-tab-settings" hidden>
 			<section class="abmm-builder-panel">
@@ -425,9 +427,9 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			</section>
 			</div>
 
-			<div class="abmm-builder-section-group" id="abmm-section-panel-help" data-abmm-builder-section-panel="help" role="tabpanel" aria-labelledby="abmm-section-tab-help" hidden>
+			<div class="abmm-builder-section-group abmm-builder-section-group--place" id="abmm-section-panel-help" data-abmm-builder-section-panel="help" role="region" aria-labelledby="abmm-placement-title" hidden>
 			<section class="abmm-builder-panel abmm-placement-panel" id="placement">
-				<h2><?php esc_html_e( 'Place this menu', 'ashbi-mega-menu' ); ?></h2>
+				<h2 id="abmm-placement-title"><?php esc_html_e( 'Place this menu', 'ashbi-mega-menu' ); ?></h2>
 				<p class="abmm-placement-save-hint" role="status"></p>
 				<code class="abmm-shortcode-block">[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]</code>
 				<p><button type="button" class="button abmm-copy-placement" data-shortcode='[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]'><?php esc_html_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?></button></p>
@@ -436,7 +438,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<li><strong><?php esc_html_e( 'Classic theme', 'ashbi-mega-menu' ); ?></strong> <?php esc_html_e( 'Add the Ashbi Mega Menu widget to a header area, or paste the shortcode.', 'ashbi-mega-menu' ); ?></li>
 					<li><strong><?php esc_html_e( 'Page builder', 'ashbi-mega-menu' ); ?></strong> <?php esc_html_e( 'Paste the shortcode into a shortcode element.', 'ashbi-mega-menu' ); ?></li>
 				</ul>
-				<details><summary><?php esc_html_e( 'For developers: PHP', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Add this to your child theme header.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
+				<details class="abmm-design-more abmm-disclosure"><summary><?php esc_html_e( 'For developers: PHP', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Add this to your child theme header.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
 			</section>
 
 			<section class="abmm-builder-panel abmm-verification-panel" id="abmm-verification-panel" tabindex="-1" aria-labelledby="abmm-verification-title">
@@ -453,7 +455,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>"><?php esc_html_e( 'Backups and import', 'ashbi-mega-menu' ); ?></a></li>
 					<li><a href="https://github.com/camster91/ashbi-mega-menu/issues/new" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Report a problem', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
 				</ul>
-				<details>
+				<details class="abmm-design-more abmm-disclosure">
 					<summary><?php esc_html_e( 'A save failed?', 'ashbi-mega-menu' ); ?></summary>
 					<p><?php esc_html_e( 'Keep this tab open and press Retry. Your changes are also kept in this browser, so you can export them first if you need to.', 'ashbi-mega-menu' ); ?></p>
 				</details>
@@ -492,11 +494,15 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			<!-- Detail editor for selected mega item -->
 			<div class="abmm-mega-editor" id="abmm-mega-editor" hidden>
 				<div class="abmm-mega-editor__header">
+					<button type="button" class="abmm-close-mega-editor" aria-describedby="abmm-mega-editor-title">
+						<span class="dashicons dashicons-arrow-left-alt2" aria-hidden="true"></span><span class="abmm-close-mega-editor__label"><?php esc_html_e( 'Back to menu', 'ashbi-mega-menu' ); ?></span>
+					</button>
+					<span class="abmm-mega-editor__divider" aria-hidden="true"></span>
 					<div class="abmm-mega-editor__heading">
 						<p class="abmm-mega-editor__eyebrow" id="abmm-mega-editor-eyebrow"><?php esc_html_e( 'Mega menu content', 'ashbi-mega-menu' ); ?></p>
 						<h2 id="abmm-mega-editor-title" tabindex="-1"><?php esc_html_e( 'Edit Mega Menu', 'ashbi-mega-menu' ); ?></h2>
 					</div>
-					<button type="button" class="button button-primary abmm-close-mega-editor"><?php esc_html_e( 'Done', 'ashbi-mega-menu' ); ?></button>
+					<p class="abmm-mega-editor__note"><?php esc_html_e( 'Changes show in the preview right away. Save from the top bar.', 'ashbi-mega-menu' ); ?></p>
 				</div>
 
 				<div class="abmm-mega-style-picker" id="abmm-mega-style-picker">
@@ -556,6 +562,61 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<ul class="abmm-sortable abmm-link-list" id="abmm-features-link-list"></ul>
 					<button type="button" class="button abmm-add-feature-link">+ <?php esc_html_e( 'Add link', 'ashbi-mega-menu' ); ?></button>
 				</div>
+
+				<!-- Featured card: an optional highlighted card after the link columns -->
+				<section class="abmm-featured-editor" id="abmm-featured-editor" aria-labelledby="abmm-featured-heading">
+					<div class="abmm-featured-editor__head">
+						<div class="abmm-featured-editor__intro">
+							<h3 id="abmm-featured-heading"><?php esc_html_e( 'Featured card', 'ashbi-mega-menu' ); ?></h3>
+							<p class="description" id="abmm-featured-help"><?php esc_html_e( 'An optional card after the link columns. Use it for a launch, a guide or an offer.', 'ashbi-mega-menu' ); ?></p>
+						</div>
+						<label class="abmm-switch">
+							<input type="checkbox" id="abmm-featured-show" role="switch" aria-describedby="abmm-featured-help" aria-controls="abmm-featured-fields" />
+							<span class="abmm-switch__track" aria-hidden="true"></span>
+							<span class="screen-reader-text"><?php esc_html_e( 'Show a featured card', 'ashbi-mega-menu' ); ?></span>
+						</label>
+					</div>
+					<div class="abmm-featured-editor__body" id="abmm-featured-fields" hidden>
+						<div class="abmm-featured-editor__fields">
+							<div class="abmm-featured-field">
+								<label for="abmm-featured-title"><?php esc_html_e( 'Title', 'ashbi-mega-menu' ); ?></label>
+								<input type="text" id="abmm-featured-title" class="abmm-featured-input" data-featured-key="title" placeholder="<?php esc_attr_e( 'e.g. New: Analytics 2.0', 'ashbi-mega-menu' ); ?>" />
+							</div>
+							<div class="abmm-featured-field">
+								<label for="abmm-featured-text"><?php esc_html_e( 'Short text', 'ashbi-mega-menu' ); ?></label>
+								<textarea id="abmm-featured-text" class="abmm-featured-input" data-featured-key="text" rows="2" placeholder="<?php esc_attr_e( 'One or two lines about it', 'ashbi-mega-menu' ); ?>"></textarea>
+							</div>
+							<div class="abmm-featured-field-row">
+								<div class="abmm-featured-field">
+									<label for="abmm-featured-label"><?php esc_html_e( 'Link label', 'ashbi-mega-menu' ); ?></label>
+									<input type="text" id="abmm-featured-label" class="abmm-featured-input" data-featured-key="label" placeholder="<?php esc_attr_e( 'e.g. Learn more', 'ashbi-mega-menu' ); ?>" />
+								</div>
+								<div class="abmm-featured-field">
+									<label for="abmm-featured-url"><?php esc_html_e( 'Link', 'ashbi-mega-menu' ); ?></label>
+									<div class="abmm-wp-link">
+										<input type="text" id="abmm-featured-url" class="abmm-url-field abmm-featured-input" data-featured-key="url" placeholder="<?php esc_attr_e( 'Search or type URL', 'ashbi-mega-menu' ); ?>" />
+										<button type="button" class="button abmm-pick-url" title="<?php esc_attr_e( 'Select / edit link', 'ashbi-mega-menu' ); ?>" aria-label="<?php esc_attr_e( 'Select / edit link', 'ashbi-mega-menu' ); ?>" data-abmm-text="#abmm-featured-label">
+											<span class="dashicons dashicons-admin-links" aria-hidden="true"></span>
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="abmm-featured-editor__media">
+							<span class="abmm-featured-field__label" id="abmm-featured-image-label"><?php esc_html_e( 'Image', 'ashbi-mega-menu' ); ?></span>
+							<div class="abmm-featured-media" id="abmm-featured-media">
+								<span class="abmm-featured-media__thumb" aria-hidden="true"><span class="dashicons dashicons-format-image"></span></span>
+								<span class="abmm-featured-media__actions">
+									<button type="button" class="button abmm-featured-choose-image" aria-describedby="abmm-featured-image-label"><?php esc_html_e( 'Choose image', 'ashbi-mega-menu' ); ?></button>
+									<button type="button" class="button-link abmm-featured-remove-image" hidden><?php esc_html_e( 'Remove', 'ashbi-mega-menu' ); ?></button>
+								</span>
+							</div>
+							<label class="screen-reader-text" for="abmm-featured-image"><?php esc_html_e( 'Image URL', 'ashbi-mega-menu' ); ?></label>
+							<input type="url" id="abmm-featured-image" class="abmm-featured-input" data-featured-key="image_url" placeholder="<?php esc_attr_e( 'Or paste an image URL', 'ashbi-mega-menu' ); ?>" />
+							<p class="description"><?php esc_html_e( 'Landscape images work best, about 16:9.', 'ashbi-mega-menu' ); ?></p>
+						</div>
+					</div>
+				</section>
 			</div>
 		</main>
 		<div class="abmm-builder-panel-backdrop" id="abmm-builder-panel-backdrop" hidden aria-hidden="true"></div>

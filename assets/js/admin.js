@@ -206,6 +206,9 @@
 				String($popover.find('.abmm-link-rel').val() || '').trim() !== '' ||
 				String($popover.find('.abmm-link-class').val() || '').trim() !== '');
 		});
+		$(document).on('input change', '.abmm-link-edit input', function () {
+			syncLinkChip($(this).closest('.abmm-link-edit'));
+		});
 		$(document).on('input change', '.abmm-heading-link .abmm-url-field', function () {
 			$(this).closest('.abmm-heading-link').toggleClass('has-value', String($(this).val() || '').trim() !== '');
 		});
@@ -409,19 +412,18 @@
 		var saved = state.saveState === 'saved';
 		var saving = state.saveState === 'saving';
 		var label = saving ? __('Saving…', 'ashbi-mega-menu') : (saved ? __('Saved', 'ashbi-mega-menu') : __('Save changes', 'ashbi-mega-menu'));
-		// Update the existing nodes rather than rebuilding them: a blur that
-		// changes the state between mousedown and mouseup would otherwise remove
-		// the clicked element and the browser would drop the click.
+		// Update the children in place: rebuilding them between mousedown and
+		// mouseup (a field's blur changes the save state) would drop the click.
 		var $icon = $button.children('.dashicons');
 		var $label = $button.children('.abmm-save-menu__label');
-		if (!$label.length) {
+		if (!$icon.length || !$label.length) {
 			$button.empty();
 			$icon = $('<span class="dashicons dashicons-yes" aria-hidden="true"></span>').appendTo($button);
 			$label = $('<span class="abmm-save-menu__label" />').appendTo($button);
 		}
-		$icon.prop('hidden', !saved);
-		if ($label.text() !== label) $label.text(label);
 		$button.toggleClass('is-saved', saved).toggleClass('is-saving', saving);
+		$icon.prop('hidden', !saved);
+		$label.text(label);
 		$button.attr('title', saved ? __('All changes are saved', 'ashbi-mega-menu') : __('Save this menu', 'ashbi-mega-menu'));
 	}
 
@@ -642,6 +644,7 @@
 	function setBuilderSection(section) {
 		section = ['content', 'design', 'settings', 'help'].indexOf(section) !== -1 ? section : 'content';
 		state.builderSection = section;
+		if (section !== 'help') state.lastEditSection = section;
 		$('.abmm-builder-sections [data-abmm-builder-section]').each(function () {
 			var $control = $(this);
 			var active = $control.data('abmm-builder-section') === section;
@@ -653,7 +656,12 @@
 			var $panel = $(this);
 			$panel.prop('hidden', $panel.data('abmm-builder-section-panel') !== section);
 		});
-		// The stepper marks where the user is: Design and Settings are part of Edit.
+		// One navigation: the stepper picks the stage, the tabs only exist inside
+		// Edit (Content, Design, Settings). Place and Check share the place panel.
+		$('.abmm-builder-sections').prop('hidden', section === 'help');
+		$('#abmm-builder-sidebar').toggleClass('is-place-step', section === 'help')
+			.find('.abmm-builder-sidebar__mobile-head strong')
+			.text(section === 'help' ? __('Place and check', 'ashbi-mega-menu') : __('Edit menu', 'ashbi-mega-menu'));
 		var step = section === 'help' ? (state.workflowStep === 'verify' ? 'verify' : 'help') : 'content';
 		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + step + '"]').attr('aria-current', 'step');
 	}
@@ -2023,8 +2031,9 @@
 		$('[data-abmm-workflow]').on('click', function () {
 			var step = $(this).attr('data-abmm-workflow');
 			state.workflowStep = step;
-			setBuilderSection(step === 'content' ? 'content' : 'help');
-			if (window.matchMedia('(max-width: 782px)').matches) openBuilderPanel(this);
+			// Edit returns to the tab the user was last on.
+			setBuilderSection(step === 'content' ? (state.lastEditSection || 'content') : 'help');
+			if (builderPanelIsNarrow()) openBuilderPanel(this);
 			if (step === 'verify') $('#abmm-verification-panel').trigger('focus');
 		});
 		$('.abmm-copy-placement').on('click', function () {
@@ -2043,6 +2052,8 @@
 			state.previewCategoryId = '';
 			// Show the drawer straight away so tablet and phone previews show the menu, not just a hamburger.
 			state.previewMobileOpen = state.previewViewport !== 'desktop';
+			// Every device starts at Fit, so a phone never overflows the canvas.
+			state.previewZoom = 'fit';
 			$('.abmm-preview-viewports [data-abmm-preview-viewport]')
 				.removeClass('is-active')
 				.attr('aria-pressed', 'false');
@@ -2127,6 +2138,7 @@
 		bindModalKeyboard();
 		bindExitRecovery();
 		bindBuilderEvents();
+		initFeaturedEditor();
 		initIconModal();
 
 		// Export current menu from builder
@@ -2576,11 +2588,46 @@
 		return sprintf(__('Show settings for %s', 'ashbi-mega-menu'), navItemName(item, itemIndex));
 	}
 
+	// A row summary that says something: "3 categories · 12 links" for a mega
+	// menu, the path for a link.
+	function megaLinkCount(item) {
+		if ((item.mega_style || 'platforms') === 'features') return (item.links || []).length;
+		var count = 0;
+		(item.categories || []).forEach(function (cat) {
+			(cat.groups || []).forEach(function (group) { count += (group.links || []).length; });
+			count += (cat.links || []).length;
+		});
+		return count;
+	}
+
+	function linkPathText(url) {
+		url = String(url || '').trim();
+		if (!url) return '';
+		var match = url.match(/^(?:https?:)?\/\/([^\/?#]+)(.*)$/i);
+		if (match) {
+			var host = match[1].toLowerCase();
+			var own = String(window.location && window.location.host || '').toLowerCase();
+			var rest = match[2] || '/';
+			// Same site: the path is what matters. Elsewhere: show the domain too.
+			return host === own ? rest : host.replace(/^www\./, '') + (rest === '/' ? '' : rest);
+		}
+		return url;
+	}
+
 	function navSummaryText(item) {
 		if (item.type === 'mega') {
-			return item.mega_style === 'features' ? __('Simple columns', 'ashbi-mega-menu') : __('With categories', 'ashbi-mega-menu');
+			var links = megaLinkCount(item);
+			/* translators: %s: number of links. */
+			var linksText = sprintf(_n('%s link', '%s links', links, 'ashbi-mega-menu'), links);
+			if ((item.mega_style || 'platforms') === 'features') {
+				return links ? linksText : __('No content yet', 'ashbi-mega-menu');
+			}
+			var cats = (item.categories || []).length;
+			if (!cats) return __('No content yet', 'ashbi-mega-menu');
+			/* translators: 1: number of categories, for example "3 categories", 2: number of links, for example "12 links". */
+			return sprintf(__('%1$s · %2$s', 'ashbi-mega-menu'), /* translators: %s: number of categories. */ sprintf(_n('%s category', '%s categories', cats, 'ashbi-mega-menu'), cats), linksText);
 		}
-		return String(item.url || '').trim() || __('No link yet', 'ashbi-mega-menu');
+		return linkPathText(item.url) || __('No link yet', 'ashbi-mega-menu');
 	}
 
 	function setNavRowExpanded($row, expanded) {
@@ -2707,7 +2754,10 @@
 			}, 0);
 		} else {
 			// Clear the sticky top bar when scrolling the editor into view.
-			$('html, body').animate({ scrollTop: $('#abmm-mega-editor').offset().top - 112 }, 200);
+			var $header = $('.abmm-builder-header');
+			var stuck = $header.length && $header.css('position') === 'sticky';
+			var clearance = 16 + (stuck ? (parseFloat($header.css('top')) || 0) + ($header.outerHeight() || 0) : 32);
+			$('html, body').animate({ scrollTop: $('#abmm-mega-editor').offset().top - clearance }, 200);
 			// Opened from the drawer, the button that was pressed is now hidden: move focus into the editor.
 			if (!$(state.megaEditorOpener).is(':visible') || $(state.megaEditorOpener).is('.abmm-builder-panel-toggle')) {
 				setTimeout(function () { $('#abmm-mega-editor-title').trigger('focus'); }, 0);
@@ -2734,6 +2784,7 @@
 		$('.abmm-mega-style-card[data-style="' + style + '"]').addClass('is-active');
 		$('#abmm-mega-item-columns').val(String(item.columns || (style === 'features' ? 2 : 3)));
 		syncCategoryBarField(item);
+		syncFeaturedEditor(item);
 
 		if (style === 'features') {
 			$('#abmm-editor-platforms').prop('hidden', true);
@@ -2754,6 +2805,117 @@
 				showCatPlaceholder();
 			}
 		}
+	}
+
+	/* ---------- Featured card ---------- */
+	var FEATURED_KEYS = ['title', 'text', 'label', 'url', 'image_url'];
+
+	function featuredData(item) {
+		var f = item && item.featured;
+		return f && typeof f === 'object' && !Array.isArray(f) ? f : null;
+	}
+
+	function featuredIsEmpty(f) {
+		return !f || FEATURED_KEYS.every(function (key) { return String(f[key] || '').trim() === ''; });
+	}
+
+	// An item without a card keeps no `featured` key, so older menus and
+	// untouched items save exactly as before.
+	function updateFeatured(item, changes) {
+		var f = featuredData(item) || { show: false, title: '', text: '', label: '', url: '', image_url: '' };
+		Object.keys(changes).forEach(function (key) { f[key] = changes[key]; });
+		f.show = !!f.show;
+		if (!f.show && featuredIsEmpty(f)) delete item.featured;
+		else item.featured = f;
+	}
+
+	function syncFeaturedMedia(url) {
+		url = String(url || '').trim();
+		var $media = $('#abmm-featured-media');
+		var $thumb = $media.find('.abmm-featured-media__thumb').empty().removeClass('has-image is-broken');
+		if (url) {
+			$('<img alt="" />').attr('src', url).on('error', function () {
+				$thumb.addClass('is-broken').empty().append('<span class="dashicons dashicons-warning"></span>');
+				$thumb.attr('title', __('This image could not be loaded.', 'ashbi-mega-menu'));
+			}).appendTo($thumb);
+			$thumb.addClass('has-image').removeAttr('title');
+		} else {
+			$thumb.removeAttr('title').append('<span class="dashicons dashicons-format-image"></span>');
+		}
+		$media.find('.abmm-featured-choose-image').text(url ? __('Replace image', 'ashbi-mega-menu') : __('Choose image', 'ashbi-mega-menu'));
+		$media.find('.abmm-featured-remove-image').prop('hidden', !url);
+	}
+
+	function syncFeaturedEditor(item) {
+		var f = featuredData(item) || {};
+		var show = !!f.show;
+		$('#abmm-featured-show').prop('checked', show).attr('aria-checked', show ? 'true' : 'false');
+		$('#abmm-featured-fields').prop('hidden', !show);
+		$('#abmm-featured-editor').toggleClass('is-on', show);
+		$('#abmm-featured-editor .abmm-featured-input').each(function () {
+			$(this).val(f[$(this).data('featured-key')] || '');
+		});
+		syncFeaturedMedia(f.image_url);
+	}
+
+	function initFeaturedEditor() {
+		$('#abmm-featured-show').on('change', function () {
+			var item = getMenu().items[state.editingItemIndex];
+			if (!item) return;
+			var on = $(this).is(':checked');
+			updateFeatured(item, { show: on });
+			syncFeaturedEditor(item);
+			renderPreview();
+			if (on) setTimeout(function () { $('#abmm-featured-title').trigger('focus'); }, 0);
+		});
+		$('#abmm-featured-editor').on('input change', '.abmm-featured-input', function () {
+			var item = getMenu().items[state.editingItemIndex];
+			if (!item) return;
+			var key = String($(this).data('featured-key'));
+			var change = {};
+			change[key] = String($(this).val() || '');
+			updateFeatured(item, change);
+			if (key === 'image_url') syncFeaturedMedia(change[key]);
+			renderPreview();
+		});
+		$('#abmm-featured-editor').on('click', '.abmm-featured-choose-image', function () {
+			var opener = this;
+			if (!window.wp || typeof window.wp.media !== 'function') {
+				setStatus(__('The media library is not available. Paste an image URL instead.', 'ashbi-mega-menu'), true);
+				$('#abmm-featured-image').trigger('focus');
+				return;
+			}
+			var frame = window.wp.media({
+				title: __('Choose a featured image', 'ashbi-mega-menu'),
+				button: { text: __('Use image', 'ashbi-mega-menu') },
+				library: { type: 'image' },
+				multiple: false,
+			});
+			frame.on('select', function () {
+				var att = frame.state().get('selection').first().toJSON();
+				var url = (att.sizes && att.sizes.large && att.sizes.large.url) || att.url || '';
+				$('#abmm-featured-image').val(url).trigger('change');
+			});
+			frame.on('close', function () { setTimeout(function () { $(opener).trigger('focus'); }, 0); });
+			frame.open();
+		});
+		$('#abmm-featured-editor').on('click', '.abmm-featured-remove-image', function () {
+			$('#abmm-featured-image').val('').trigger('change');
+			$('#abmm-featured-editor .abmm-featured-choose-image').trigger('focus');
+		});
+	}
+
+	// Same markup as the front end: a card after the link columns.
+	function featuredPreviewMarkup(item) {
+		var f = featuredData(item);
+		if (!f || !f.show || featuredIsEmpty(f)) return '';
+		var image = String(f.image_url || '').trim();
+		var content =
+			(image ? '<span class="abmm-mega__featured-media"><img src="' + esc(image) + '" alt="" loading="lazy" /></span>' : '') +
+			(f.title ? '<span class="abmm-mega__featured-title">' + esc(f.title) + '</span>' : '') +
+			(f.text ? '<span class="abmm-mega__featured-text">' + esc(f.text) + '</span>' : '') +
+			(f.label ? '<span class="abmm-mega__featured-link">' + esc(f.label) + '</span>' : '');
+		return '<a class="abmm-mega__featured" href="' + esc(String(f.url || '').trim() || '#') + '">' + content + '</a>';
 	}
 
 	function renderFeaturesLinkList() {
@@ -3131,7 +3293,50 @@
 	}
 
 	// One line per link: icon, label (with an optional description under it),
-	// URL with the link picker and options, then row actions.
+	// a quiet URL chip, then row actions. The chip is the one button that opens
+	// the link popover: URL with the WordPress link picker, and link options.
+	function linkEditPopoverHtml(link) {
+		link = link || {};
+		var id = 'abmm-link-edit-' + (++popoverSeq);
+		return (
+			'<div class="abmm-link-edit abmm-popover' + (linkHasOptions(link) ? ' has-options' : '') + '">' +
+			'<button type="button" class="abmm-link-edit__toggle abmm-popover__toggle" aria-expanded="false" aria-controls="' + id + '" title="' + esc(__('Edit link', 'ashbi-mega-menu')) + '">' +
+			linkChipContent(link.url) +
+			'</button>' +
+			'<div class="abmm-link-edit__panel abmm-popover__panel" id="' + id + '" role="group" aria-label="' + esc(__('Link', 'ashbi-mega-menu')) + '" hidden>' +
+			'<p class="abmm-popover__title" aria-hidden="true">' + esc(__('Link', 'ashbi-mega-menu')) + '</p>' +
+			wpLinkFieldHtml(link.url || '', 'abmm-link-url', '.abmm-link-label', false) +
+			'<div class="abmm-popover__divider" aria-hidden="true"></div>' +
+			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
+			(link.target === '_blank' ? ' checked' : '') +
+			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
+			'<div class="abmm-popover__pair">' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
+			esc(link.rel || '') +
+			'" placeholder="nofollow sponsored" /></label>' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('CSS classes', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-class" value="' +
+			esc(link.class || '') +
+			'" /></label></div></div></div>'
+		);
+	}
+
+	function linkChipContent(url) {
+		var path = linkPathText(url);
+		return '<span class="dashicons dashicons-admin-links" aria-hidden="true"></span>' +
+			'<span class="abmm-link-edit__url' + (path ? '' : ' is-empty') + '">' + esc(path || __('Add a link', 'ashbi-mega-menu')) + '</span>' +
+			'<span class="screen-reader-text">' + esc(__('Edit link', 'ashbi-mega-menu')) + '</span>';
+	}
+
+	function syncLinkChip($popover) {
+		var url = String($popover.find('.abmm-link-url').val() || '');
+		var path = linkPathText(url);
+		$popover.find('.abmm-link-edit__url').toggleClass('is-empty', !path).text(path || __('Add a link', 'ashbi-mega-menu'));
+		$popover.find('.abmm-link-edit__toggle').attr('title', url.trim() ? url.trim() : __('Edit link', 'ashbi-mega-menu'));
+		$popover.toggleClass('has-options', $popover.find('.abmm-link-target').is(':checked') ||
+			String($popover.find('.abmm-link-rel').val() || '').trim() !== '' ||
+			String($popover.find('.abmm-link-class').val() || '').trim() !== '');
+	}
+
 	function linkRowHtml(link, linkIndex, linkLength, withDescription) {
 		var linkName = link.label || linkIndex + 1;
 		return (
@@ -3155,7 +3360,7 @@
 				? '<input type="text" class="abmm-link-description" aria-label="' + esc(__('Link description', 'ashbi-mega-menu')) + '" value="' + esc(link.description || '') + '" placeholder="' + esc(__('Short description (optional)', 'ashbi-mega-menu')) + '" />'
 				: '') +
 			'</div>' +
-			wpLinkFieldHtml(link.url || '', 'abmm-link-url', '.abmm-link-label', false, link) +
+			linkEditPopoverHtml(link) +
 			'<span class="abmm-row-actions">' +
 			/* translators: %s: link name. */
 			reorderControlsHtml(sprintf(__('link %s', 'ashbi-mega-menu'), linkName), linkIndex, linkLength) +
@@ -3195,10 +3400,41 @@
 		var shell = $('.abmm-preview-shell')[0];
 		var stage = shell && shell.querySelector('.abmm-preview-stage');
 		var sizer = shell && shell.querySelector('.abmm-preview-sizer');
+		var preview = stage && stage.querySelector('.abmm-preview');
 		if (!stage || !sizer) return;
-		var width = PREVIEW_WIDTHS[state.previewViewport] || PREVIEW_WIDTHS.desktop;
-		var available = Math.max(160, shell.clientWidth - 32);
-		var scale = state.previewZoom === 'fit' || !state.previewZoom ? Math.min(1, available / width) : state.previewZoom;
+		var device = state.previewViewport;
+		var width = PREVIEW_WIDTHS[device] || PREVIEW_WIDTHS.desktop;
+		var current = state.previewScale || 1;
+		// The browser frame grows to hold an open dropdown, so the panel sits
+		// inside the window instead of hanging below it.
+		if (preview) {
+			preview.style.minHeight = '';
+			if (device === 'desktop') {
+				var previewTop = preview.getBoundingClientRect().top;
+				var needed = 0;
+				$(preview).find('.abmm-mega').filter(':visible').each(function () {
+					needed = Math.max(needed, (this.getBoundingClientRect().bottom - previewTop) / current + 24);
+				});
+				if (needed) preview.style.minHeight = Math.ceil(needed) + 'px';
+			}
+		}
+		var style = window.getComputedStyle ? window.getComputedStyle(shell) : null;
+		var padX = style ? (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0) : 32;
+		var padY = style ? (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0) : 32;
+		var available = Math.max(160, shell.clientWidth - padX);
+		var scale = state.previewZoom;
+		if (state.previewZoom === 'fit' || !state.previewZoom) {
+			scale = Math.min(1, available / width);
+			if (device !== 'desktop') {
+				// Devices also fit the window's height, so the whole phone (and its
+				// CTA) is visible without scrolling the canvas.
+				var top = Math.max(0, shell.getBoundingClientRect().top);
+				var availableHeight = Math.max(360, (window.innerHeight || 900) - Math.min(top, 220) - padY - 24);
+				var naturalHeight = stage.offsetHeight || 1;
+				scale = Math.min(scale, availableHeight / naturalHeight);
+			}
+			scale = Math.max(0.25, Math.floor(scale * 100) / 100);
+		}
 		state.previewScale = scale;
 		stage.style.width = width + 'px';
 		stage.style.transform = scale === 1 ? '' : 'scale(' + scale + ')';
@@ -3364,7 +3600,7 @@
 			'<div class="abmm-nav__drawer" id="' +
 			previewDrawerId +
 			'">' +
-			'<div class="abmm-nav__drawer-head"><span class="abmm-nav__drawer-title">' + esc(__('Menu', 'ashbi-mega-menu')) + '</span><button type="button" class="abmm-nav__drawer-close" data-abmm-preview-drawer-close aria-label="' + esc(__('Close menu', 'ashbi-mega-menu')) + '"><span aria-hidden="true">&times;</span></button></div>' +
+			/* No title row: as on the live site, the bar's toggle turns into the close button. */
 			drillMarkup +
 			'<div class="abmm-nav__inner">' +
 			previewBrandMarkup('drawer') +
@@ -3375,7 +3611,9 @@
 			previewCtaMarkup('drawer') +
 			'</div></div>' +
 			'<button type="button" class="abmm-nav__backdrop" data-abmm-preview-backdrop' + (mobileOpen ? '' : ' hidden') + ' aria-label="' + esc(__('Close menu', 'ashbi-mega-menu')) + '"></button>' +
-			'</nav></div>';
+			'</nav></div>' +
+			// A quiet page under the menu, so the desktop frame reads as a website.
+			(mobilePreview ? '' : '<div class="abmm-preview-page" aria-hidden="true"><span class="abmm-preview-page__eyebrow"></span><span class="abmm-preview-page__title"></span><span class="abmm-preview-page__title is-short"></span><span class="abmm-preview-page__line"></span><span class="abmm-preview-page__line is-short"></span><span class="abmm-preview-page__actions"><span></span><span></span></span></div>');
 
 		var previewState = state.previewViewport + '-' + state.previewDrill;
 		$('#abmm-preview').attr('data-abmm-preview-state', previewState).html(html);
@@ -3420,10 +3658,7 @@
 					state.previewCategoryId = '';
 				}
 				renderPreview();
-				setTimeout(function () {
-					var selector = state.previewMobileOpen ? '.abmm-nav__drawer-close' : '.abmm-nav__toggle';
-					$('#abmm-preview').find(selector).trigger('focus');
-				}, 0);
+				setTimeout(function () { $('#abmm-preview').find('.abmm-nav__toggle').trigger('focus'); }, 0);
 			})
 			.on('click.abmmpreview', '[data-abmm-preview-drawer-close], [data-abmm-preview-backdrop]', function () {
 				state.previewMobileOpen = false;
@@ -3477,8 +3712,21 @@
 				}, 0);
 			}
 		});
+		refreshNavSummaries();
 		renderReadiness();
 		markDirtyState();
+	}
+
+	// Keep each inspector row's summary ("3 categories · 12 links") current.
+	function refreshNavSummaries() {
+		var items = (getMenu() && getMenu().items) || [];
+		$('#abmm-nav-items > .abmm-nav-item-row').each(function () {
+			var id = $(this).data('id');
+			var item = items.find(function (candidate) { return candidate.id === id; });
+			if (!item) return;
+			var text = navSummaryText(item);
+			$(this).find('.abmm-mega-style-badge, .abmm-nav-item-row__url').text(text).attr('title', text);
+		});
 	}
 
 	function renderMegaPreview(item, itemIndex) {
@@ -3510,12 +3758,13 @@
 				cols +
 				'">' +
 				featLinks +
-				'</ul></div></div>'
+				'</ul>' + featuredPreviewMarkup(item) + '</div></div>'
 			);
 		}
 
 		var cats = item.categories || [];
 		var sections = '';
+		var featuredHtml = featuredPreviewMarkup(item);
 
 		cats.forEach(function (cat, i) {
 			var active = state.previewCategoryId ? String(cat.id) === String(state.previewCategoryId) : i === 0;
@@ -3614,7 +3863,7 @@
 				Math.max(1, groups.length) +
 				'">' +
 				colsHtml +
-				'</div></div></section>';
+				'</div>' + featuredHtml + '</div></section>';
 		});
 
 		var hideCategoryBar = !!item.hide_category_bar && cats.length === 1;
