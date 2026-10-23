@@ -79,7 +79,10 @@ test.describe('public menu on a phone-sized screen', () => {
 		await back.click();
 		await expect(trigger).toHaveAttribute('aria-expanded', 'false');
 
-		await header.locator('[data-abmm-drawer-close]:visible').first().click();
+		// The drawer has no separate title row: the bar's toggle turns into the
+		// close button in place of the hamburger.
+		await expect(toggle).toHaveAttribute('aria-label', 'Close menu');
+		await toggle.click();
 		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 		await expect(header).not.toHaveClass(/is-mobile-open/);
 		await expect(toggle).toBeFocused();

@@ -31,6 +31,18 @@ $cs = $clamped['settings'];
 abmm_test_assert( 12 === $cs['icon_size'] && 0 === $cs['icon_radius'] && 0 === $cs['header_z_index'], 'Negative icon and z-index values clamp to the minimum.' );
 abmm_test_assert( 640 === $cs['panel_width'] && 180 === $cs['sidebar_width'] && 0 === $cs['border_radius'], 'Negative widths and radius clamp to the minimum.' );
 abmm_test_assert( 16 === $clamped['brand']['logo_height'], 'Negative logo height clamps to the minimum.' );
+$featured = $data->sanitize_menu( array(
+	'title' => 'Featured',
+	'items' => array(
+		array( 'label' => 'Old', 'type' => 'mega', 'mega_style' => 'platforms', 'categories' => array() ),
+		array( 'label' => 'New', 'type' => 'mega', 'mega_style' => 'features', 'links' => array(), 'featured' => array( 'show' => true, 'title' => '<b>Launch</b> week', 'text' => 'Short text', 'label' => 'Read', 'url' => 'javascript:alert(1)', 'image_url' => 'https://example.com/a.png' ) ),
+	),
+) );
+abmm_test_assert( false === $featured['items'][0]['featured']['show'] && '' === $featured['items'][0]['featured']['title'], 'A mega item without a featured card gets an empty, hidden card.' );
+abmm_test_assert( 'Launch week' === $featured['items'][1]['featured']['title'] && '' === $featured['items'][1]['featured']['url'], 'Featured card text is sanitised and unsafe URLs are removed.' );
+abmm_test_assert( 'https://example.com/a.png' === $featured['items'][1]['featured']['image_url'], 'A safe featured image URL is kept.' );
+$featured_again = $data->sanitize_menu( $featured );
+abmm_test_assert( $featured['items'][1]['featured'] === $featured_again['items'][1]['featured'], 'A featured card round-trips through sanitising unchanged.' );
 $id = $data->create( 'Smoke test' );
 abmm_test_assert( is_string( $id ), 'Create a menu.' );
 $menu = $data->get( $id );
