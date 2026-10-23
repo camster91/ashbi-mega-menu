@@ -6,11 +6,11 @@ Portable imports/exports are limited to 500 menus and 10 MiB total, with a 1 MiB
 
 Product profiles and branding reject edits from stale tabs. After a failed or conflicting save, entered fields are retained in a private recovery form for 30 minutes. Review the latest saved values before retrying. Editors opened before an upgrade should be reloaded; an unchanged save is allowed, while a failed database write never produces a saved confirmation.
 
-Start on a staging copy of your site. Creating a menu does not change the theme header; placement is a separate step. Use a standard MySQL/MariaDB WordPress installation. SQLite is unsupported for editing.
+Start on a staging copy of your site. Creating a menu does not change the theme header; placement is a separate step. Use a standard MySQL/MariaDB WordPress installation. SQLite has not been tested.
 
 ## Build and verify a menu
 
-1. Open **Ashbi Mega Menu** and choose **Start blank** or **Use sample template**. Give the menu a meaningful name.
+1. Open **Ashbi Mega Menu** and choose **Start from scratch** or **Use a template**. Give the menu a meaningful name.
 2. Add top-level links, or select **Mega Menu** for a panel with categories and columns. Replace sample labels and placeholder destinations. A panel toggle opens content; a link needs a real destination.
 3. Choose desktop and mobile preview controls. Check labels, contrast, spacing, CTA links and any product-navigation settings.
 4. Save, then reload the editor to confirm the saved state. If another editor saved first, keep your current work and reload before reconciling changes; a conflict must not silently overwrite newer work.
@@ -109,7 +109,7 @@ Use authenticated administration only. See source/tests for automation contracts
 | Two headers or two mobile toggles | Both the theme navigation and Ashbi placement are present. Remove the duplicate in staging only after verifying the replacement. |
 | Menu is empty | Confirm the exact saved ID, active rather than archived status, selected block/widget menu and the page's profile context. |
 | Save reports a conflict | Another change occurred. Preserve local work, reload and reconcile; do not force an old revision over a newer one. |
-| Save reports locking/database failure | Confirm MySQL/MariaDB and host advisory-lock support. Ask the host to investigate; bypassing the lock is unsafe. |
+| Save reports another save in progress | Wait a few seconds and save again. A save that crashed releases its lock on its own within a minute. If it keeps happening, ask the host to check the database. |
 | Panel is clipped or hidden | Check the theme header's overflow, stacking context, sticky positioning and page-builder containers on staging. |
 | Preview differs from the page | Save and reload first, verify the placement's product context, then clear the site's relevant caches and reload the public page. Report a reproducible mismatch if it remains. |
 | Import or restore failed | Read the error, refresh backups/current menus and export the current collection. Do not assume a failed operation applied; reload to verify. |
@@ -124,7 +124,7 @@ The dashboard and editor use **Create → Edit & save → Place → Verify**. A 
 
 The Place step includes the exact menu shortcode, a block-theme recipe, a classic header/widget recipe, and a guarded child-theme PHP call. The Verify step is a manual checklist for actual pages: follow each destination, operate panels with keyboard, and confirm the mobile drawer closes before navigation. Use a staging page first and keep the original header until the replacement passes.
 
-Per-menu export, duplicate and archive live under **More**. Collection import and developer examples live under **Import / Export & developer tools**; **Recovery snapshots** remains a separate clearly labelled section. Existing product profiles and branding pages remain available for reusable product navigation.
+Per-menu export, duplicate and archive live under **More actions** on each menu card. Under **Tools** on the main screen, **Import and export** holds collection import and developer examples, and **Recovery snapshots** restores automatic backups. Existing product profiles and branding pages remain available for reusable product navigation.
 
 ### Recover a stale browser draft
 

@@ -43,8 +43,13 @@ class ABMM_Test_DB {
 
 	public $acquisitions = 0;
  public $lock_result = '1';
+ // lock_result: '1' acquires the lock row, '0' finds it held by another save, null is a database error.
+ public function query($query) {
+ if (strpos($query, 'INSERT IGNORE') !== false) { ++$this->acquisitions; return null === $this->lock_result ? false : (int) $this->lock_result; }
+		return 1;
+	}
  public function get_var($query) {
- if (strpos($query, 'GET_LOCK') !== false) { ++$this->acquisitions; return $this->lock_result; }
+ if (strpos($query, 'SELECT option_value') !== false) { return ( time() + 60 ) . '|another-request'; }
 		return '1';
 	}
 }

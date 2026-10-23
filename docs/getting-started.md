@@ -16,8 +16,8 @@ Installing the plugin does **not** change your site's header. Nothing shows on y
 
 1. Open **Mega Menu**.
 2. Pick one:
-   - **Start blank** — an empty menu.
-   - **Use sample template** — a small example menu to edit. Replace every sample label and link.
+   - **Start from scratch** — an empty menu.
+   - **Use a template** — a small example menu to edit. Replace every sample label and link.
 3. Give the menu a clear name, like "Main navigation".
 
 ## 3. Add your links
@@ -73,7 +73,7 @@ Your theme's own menu is still there. Remove it once the new one works.
 Your theme's header may be hiding overflow. Try placing the block in a full-width header section.
 
 **How do I back up my menus?**
-Use **Export** in the editor, or **Import / Export & developer tools** on the main screen. Keep the file somewhere private.
+Use **Export** in the editor, or **Tools → Import and export** on the main screen. Keep the file somewhere private.
 
 **What happens if I delete the plugin?**
 Deactivating keeps your menus. Deleting the plugin removes all its menus and settings, so export first.

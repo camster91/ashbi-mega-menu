@@ -137,7 +137,27 @@ class ABMM_Data {
 	}
 
 	/**
-	 * Serialize writes to the shared menu option with a MySQL advisory lock.
+	 * Name of the options row that serializes collection writes on this site.
+	 */
+	const LOCK_OPTION = 'abmm_collection_lock';
+
+	/**
+	 * Seconds to wait for another save to finish before giving up.
+	 */
+	const LOCK_WAIT_SECONDS = 5;
+
+	/**
+	 * Seconds after which an abandoned lock (for example from a crashed request) is cleared.
+	 */
+	const LOCK_TTL_SECONDS = 60;
+
+	/**
+	 * Serialize writes to the shared menu option.
+	 *
+	 * The lock is a row in this site's options table, inserted atomically with
+	 * INSERT IGNORE like core's WP_Upgrader::create_lock(). Unlike a MySQL
+	 * advisory lock it is scoped to this site, works behind connection poolers
+	 * and expires on its own if a request dies while holding it.
 	 *
 	 * @param callable $callback Write operation.
 	 * @return mixed
@@ -149,17 +169,13 @@ class ABMM_Data {
 			return call_user_func( $callback );
 		}
 
-		if ( ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_var' ) || ! method_exists( $wpdb, 'prepare' ) ) {
+		if ( ! is_object( $wpdb ) || ! method_exists( $wpdb, 'query' ) || ! method_exists( $wpdb, 'prepare' ) ) {
 			return new WP_Error( 'abmm_save_lock_unavailable', __( 'The menu save lock is unavailable.', 'ashbi-mega-menu' ) );
 		}
 
-		$lock_name = 'abmm_menus_save_' . md5( (string) ( $wpdb->options ?? '' ) . '|' . ABMM_OPTION_KEY );
-		$acquired  = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory locks must run on this database connection and cannot be cached; the name is prepared.
-		if ( null === $acquired || false === $acquired ) {
-			return new WP_Error( 'abmm_save_lock_unavailable', __( 'The database could not provide the menu save lock. Your changes were not saved. This installation requires a database that supports MySQL advisory locks.', 'ashbi-mega-menu' ) );
-		}
-		if ( '1' !== (string) $acquired ) {
-			return new WP_Error( 'abmm_save_lock_timeout', __( 'Another menu save is in progress. Please try again.', 'ashbi-mega-menu' ) );
+		$token = $this->acquire_collection_lock();
+		if ( is_wp_error( $token ) ) {
+			return $token;
 		}
 
 		$this->lock_owned = true;
@@ -171,8 +187,41 @@ class ABMM_Data {
 			return call_user_func( $callback );
 		} finally {
 			$this->lock_owned = false;
-			$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory locks must run on this database connection and cannot be cached; the name is prepared.
+			// Delete only our own lock row, never one another request took over after expiry.
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", self::LOCK_OPTION, $token ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Atomic compare-and-delete of the lock row; the table name is core-owned.
 		}
+	}
+
+	/**
+	 * Insert the lock row, waiting briefly for another save and clearing an expired lock.
+	 *
+	 * @return string|WP_Error Lock token, or an error.
+	 */
+	private function acquire_collection_lock() {
+		global $wpdb;
+
+		$deadline = microtime( true ) + self::LOCK_WAIT_SECONDS;
+		do {
+			$token    = ( time() + self::LOCK_TTL_SECONDS ) . '|' . wp_generate_uuid4();
+			$inserted = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'no' )", self::LOCK_OPTION, $token ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Atomic lock insert, as in core's WP_Upgrader::create_lock(); the table name is core-owned.
+			if ( false === $inserted || null === $inserted ) {
+				return new WP_Error( 'abmm_save_lock_unavailable', __( 'The database could not provide the menu save lock. Your changes were not saved. Try again, or ask your host to check the database.', 'ashbi-mega-menu' ) );
+			}
+			if ( (int) $inserted > 0 ) {
+				return $token;
+			}
+
+			$current = (string) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::LOCK_OPTION ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The lock row must be read uncached; the table name is core-owned.
+			$expires = (int) strtok( $current, '|' );
+			if ( '' !== $current && $expires < time() ) {
+				// A request died while saving. Clear its lock, but only if nobody replaced it meanwhile.
+				$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", self::LOCK_OPTION, $current ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Atomic compare-and-delete of an expired lock row; the table name is core-owned.
+				continue;
+			}
+			usleep( 100000 );
+		} while ( microtime( true ) < $deadline );
+
+		return new WP_Error( 'abmm_save_lock_timeout', __( 'Another menu save is in progress. Please try again.', 'ashbi-mega-menu' ) );
 	}
 
 	/**

@@ -54,14 +54,14 @@ Copy imports create independent IDs. Existing blocks, widgets and shortcodes con
 Report reproducible issues in the public GitHub repository. There is no guaranteed response time or SLA. Do not include credentials, private exports or client data. Theme-specific and interactive verification limits are documented in the compatibility guide; a build passing does not establish every theme works.
 
 = Which database engines are supported? =
-Standard MySQL and MariaDB WordPress installations are supported. SQLite is not supported because safe editing uses database advisory locks.
+Standard MySQL and MariaDB WordPress installations are supported. SQLite installations have not been tested.
 
 = What happens when I delete the plugin? =
 Uninstallation removes the plugin's stored menus, archived menus, product profiles, branding and settings. Export your menus before deleting it. Deactivation keeps stored data.
 
 == Screenshots ==
 
-1. Menu dashboard with the guided setup flow and optional modules collapsed.
+1. Menu dashboard with menu cards and tools.
 2. Blank menu editor with neutral, empty call-to-action defaults.
 3. Responsive mobile navigation open in Chrome.
 
@@ -76,6 +76,8 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Stop themes such as Twenty Twenty-One from repainting menu section buttons and drawer controls.
 * Tell menus with the same name apart in the block and widget menu lists.
 * Remove the widget's saved settings when the plugin is deleted.
+* Save reliably on every host: menu saves now use a per-site lock row instead of a MySQL advisory lock, which could block saves on shared or pooled databases.
+* Redesign the dashboard: simpler welcome, one Tools panel and shorter text.
 * Start ordinary sites with neutral defaults and make contextual navigation an optional module.
 * Generalize contextual navigation for products, services, departments, documentation and locations.
 * Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.

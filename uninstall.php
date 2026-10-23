@@ -33,6 +33,7 @@ $abmm_option_keys = array(
 	'abmm_import_backups',
 	'abmm_contextual_navigation_enabled',
 	'widget_abmm_widget',
+	'abmm_collection_lock',
 );
 
 // Site options and recovery drafts belong to each site's own options table.
