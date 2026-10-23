@@ -215,33 +215,27 @@ class ABMM_Product_Profiles {
 			<?php require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php'; ?>
 			<div class="abmm-profile-admin__hero">
 				<div>
-					<p class="abmm-profile-admin__eyebrow"><?php esc_html_e( 'Shared-header system', 'ashbi-mega-menu' ); ?></p>
 					<h1><?php esc_html_e( 'Product Navigation', 'ashbi-mega-menu' ); ?></h1>
-					<p><?php esc_html_e( 'Keep the site header consistent, then give each product a focused local path. Create the local links once and child pages inherit them from the product hub.', 'ashbi-mega-menu' ); ?></p>
+					<p><?php esc_html_e( 'Show extra links under your main menu on a product\'s pages. Pages below the product\'s main page get the same links.', 'ashbi-mega-menu' ); ?></p>
 				</div>
-				<a class="button button-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-coverage' ) ); ?>"><?php esc_html_e( 'Review coverage', 'ashbi-mega-menu' ); ?></a>
+				<a class="button button-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-coverage' ) ); ?>"><?php esc_html_e( 'See which pages use it', 'ashbi-mega-menu' ); ?></a>
 			</div>
 			<?php if ( $draft ) : ?><div class="notice notice-error"><p><?php echo esc_html( $draft['error'] ); ?> <?php esc_html_e( 'Your entered values are retained below. Review them against the latest saved profile before retrying.', 'ashbi-mega-menu' ); ?></p></div><?php endif; ?>
 			<?php if ( isset( $_GET['updated'], $_GET['_abmm_notice'] ) && is_string( $_GET['_abmm_notice'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_abmm_notice'] ) ), 'abmm_profile_notice' ) ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Product navigation saved.', 'ashbi-mega-menu' ); ?></p></div>
 			<?php endif; ?>
-			<ol class="abmm-profile-admin__steps" aria-label="<?php esc_attr_e( 'Product navigation workflow', 'ashbi-mega-menu' ); ?>">
-				<li><strong>1</strong><span><?php esc_html_e( 'Create a product profile', 'ashbi-mega-menu' ); ?></span></li>
-				<li><strong>2</strong><span><?php esc_html_e( 'Assign its product hub', 'ashbi-mega-menu' ); ?></span></li>
-				<li><strong>3</strong><span><?php esc_html_e( 'Review inherited pages', 'ashbi-mega-menu' ); ?></span></li>
-			</ol>
 			<div class="abmm-profile-admin__grid">
 				<section class="abmm-profile-admin__list" aria-labelledby="abmm-product-list-title">
-					<div class="abmm-profile-admin__section-head"><div><p class="abmm-profile-admin__kicker"><?php esc_html_e( 'Your system', 'ashbi-mega-menu' ); ?></p><h2 id="abmm-product-list-title"><?php esc_html_e( 'Product profiles', 'ashbi-mega-menu' ); ?></h2></div><a class="button button-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'New profile', 'ashbi-mega-menu' ); ?></a></div>
+					<div class="abmm-profile-admin__section-head"><div><h2 id="abmm-product-list-title"><?php esc_html_e( 'Products', 'ashbi-mega-menu' ); ?></h2></div><a class="button button-secondary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Add product', 'ashbi-mega-menu' ); ?></a></div>
 					<?php if ( empty( $profiles ) ) : ?>
-						<div class="abmm-profile-admin__empty"><strong><?php esc_html_e( 'Start with one product hub', 'ashbi-mega-menu' ); ?></strong><p><?php esc_html_e( 'Create a profile for a product such as Example Product, then select its hub page to cover the child pages below it.', 'ashbi-mega-menu' ); ?></p></div>
+						<div class="abmm-profile-admin__empty"><strong><?php esc_html_e( 'No products yet', 'ashbi-mega-menu' ); ?></strong><p><?php esc_html_e( 'Add your first product with the form.', 'ashbi-mega-menu' ); ?></p></div>
 					<?php else : ?>
 						<ul class="abmm-profile-admin__cards">
 						<?php foreach ( $profiles as $profile_id => $item ) : ?>
 							<?php $delete_url = wp_nonce_url( admin_url( 'admin-post.php?action=abmm_delete_product_profile&profile=' . rawurlencode( $profile_id ) . '&revision=' . ABMM_Option_Store::revision( $item ) . '&branding_revision=' . ABMM_Option_Store::revision( ABMM_Product_Branding::instance()->get_all()[ $profile_id ] ?? null ) ), 'abmm_delete_product_profile_' . $profile_id ); $profile_url = admin_url( 'admin.php?page=ashbi-mega-menu-products&profile=' . rawurlencode( $profile_id ) ); $is_selected = $edit_id === $profile_id; ?>
 							<li class="<?php echo $is_selected ? 'is-selected' : ''; ?>"><a class="abmm-profile-admin__card" href="<?php echo esc_url( $profile_url ); ?>"<?php echo $is_selected ? ' aria-current="page"' : ''; ?>><strong><?php echo esc_html( $item['title'] ?: $item['label'] ?: $profile_id ); ?></strong><span><?php printf( esc_html(
 /* translators: %d: Number of local navigation links. */
-_n( '%d local link', '%d local links', count( $item['links'] ?? array() ), 'ashbi-mega-menu' ) ), esc_html( count( $item['links'] ?? array() ) ) ); ?></span></a><a class="abmm-profile-admin__delete" href="<?php echo esc_url( $delete_url ); ?>" onclick="return window.confirm('<?php echo esc_js( __( 'Delete this product profile? Pages will use their inherited profile or the global fallback.', 'ashbi-mega-menu' ) ); ?>');"><?php esc_html_e( 'Delete', 'ashbi-mega-menu' ); ?></a></li>
+_n( '%d local link', '%d local links', count( $item['links'] ?? array() ), 'ashbi-mega-menu' ) ), esc_html( count( $item['links'] ?? array() ) ) ); ?></span></a><a class="abmm-profile-admin__delete" href="<?php echo esc_url( $delete_url ); ?>" onclick="return window.confirm('<?php echo esc_js( __( 'Delete this product? Its pages will go back to showing only the main menu.', 'ashbi-mega-menu' ) ); ?>');"><?php esc_html_e( 'Delete', 'ashbi-mega-menu' ); ?></a></li>
 						<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>
@@ -251,15 +245,15 @@ _n( '%d local link', '%d local links', count( $item['links'] ?? array() ), 'ashb
 					<input type="hidden" name="action" value="abmm_save_product_profile" />
 					<input type="hidden" name="profile_id" value="<?php echo esc_attr( $edit_id ); ?>" />
 					<input type="hidden" name="revision" value="<?php echo esc_attr( $revision ); ?>" />
-					<div class="abmm-profile-admin__form-head"><div><p class="abmm-profile-admin__kicker"><?php esc_html_e( 'Profile setup', 'ashbi-mega-menu' ); ?></p><h2><?php echo esc_html( $edit_id ? __( 'Edit product profile', 'ashbi-mega-menu' ) : __( 'Add product profile', 'ashbi-mega-menu' ) ); ?></h2></div><span><?php esc_html_e( 'Product-local only', 'ashbi-mega-menu' ); ?></span></div>
-					<fieldset class="abmm-profile-admin__fieldset"><legend><?php esc_html_e( '1. Product identity', 'ashbi-mega-menu' ); ?></legend><p><?php esc_html_e( 'This establishes the product name and the page that passes its local navigation to child pages.', 'ashbi-mega-menu' ); ?></p><div class="abmm-profile-admin__field-grid"><label><?php esc_html_e( 'Internal name', 'ashbi-mega-menu' ); ?><input class="regular-text" required name="profile[title]" value="<?php echo esc_attr( $profile['title'] ); ?>" placeholder="Example Product" /></label><label><?php esc_html_e( 'Product name visitors see', 'ashbi-mega-menu' ); ?><input class="regular-text" required name="profile[label]" value="<?php echo esc_attr( $profile['label'] ); ?>" placeholder="Example Product" /></label><label><?php esc_html_e( 'Product home URL', 'ashbi-mega-menu' ); ?><input class="regular-text" required type="url" name="profile[url]" value="<?php echo esc_attr( $profile['url'] ); ?>" placeholder="https://example.com/product/" /></label><label><?php esc_html_e( 'Product hub page', 'ashbi-mega-menu' ); ?><select name="profile[root_page_id]"><option value="0"><?php esc_html_e( 'Choose a product hub', 'ashbi-mega-menu' ); ?></option><?php foreach ( $pages as $page ) : ?><option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $profile['root_page_id'], $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option><?php endforeach; ?></select></label></div><span class="description"><?php esc_html_e( 'Child pages inherit this profile. Use a page override only for exceptions.', 'ashbi-mega-menu' ); ?></span></fieldset>
-					<fieldset class="abmm-profile-admin__fieldset"><legend><?php esc_html_e( '2. Local navigation', 'ashbi-mega-menu' ); ?></legend><p><?php esc_html_e( 'These links appear beneath the shared header only on this product and its child pages.', 'ashbi-mega-menu' ); ?></p><label class="abmm-profile-admin__style-field"><?php esc_html_e( 'Presentation', 'ashbi-mega-menu' ); ?><select name="profile[rail_style]"><option value="underline" <?php selected( $profile['rail_style'], 'underline' ); ?>><?php esc_html_e( 'Underlined links (recommended)', 'ashbi-mega-menu' ); ?></option><option value="pills" <?php selected( $profile['rail_style'], 'pills' ); ?>><?php esc_html_e( 'Pill links', 'ashbi-mega-menu' ); ?></option></select></label><div class="abmm-profile-admin__links"><div class="abmm-profile-admin__link-head"><span><?php esc_html_e( 'Label', 'ashbi-mega-menu' ); ?></span><span><?php esc_html_e( 'Destination', 'ashbi-mega-menu' ); ?></span></div><?php for ( $index = 0; $index < 6; $index++ ) : $link = $profile['links'][ $index ] ?? array( 'label' => '', 'url' => '' ); ?><div class="abmm-profile-admin__link-row"><label><span class="screen-reader-text"><?php printf(
+					<div class="abmm-profile-admin__form-head"><div><h2><?php echo esc_html( $edit_id ? __( 'Edit product', 'ashbi-mega-menu' ) : __( 'Add product', 'ashbi-mega-menu' ) ); ?></h2></div></div>
+					<fieldset class="abmm-profile-admin__fieldset"><legend><?php esc_html_e( 'Product', 'ashbi-mega-menu' ); ?></legend><p><?php esc_html_e( 'The product\'s name and its main page.', 'ashbi-mega-menu' ); ?></p><div class="abmm-profile-admin__field-grid"><label><?php esc_html_e( 'Name (only you see this)', 'ashbi-mega-menu' ); ?><input class="regular-text" required name="profile[title]" value="<?php echo esc_attr( $profile['title'] ); ?>" placeholder="Example Product" /></label><label><?php esc_html_e( 'Display name', 'ashbi-mega-menu' ); ?><input class="regular-text" required name="profile[label]" value="<?php echo esc_attr( $profile['label'] ); ?>" placeholder="Example Product" /></label><label><?php esc_html_e( 'Product page URL', 'ashbi-mega-menu' ); ?><input class="regular-text" required type="url" name="profile[url]" value="<?php echo esc_attr( $profile['url'] ); ?>" placeholder="https://example.com/product/" /></label><label><?php esc_html_e( 'Main product page', 'ashbi-mega-menu' ); ?><select name="profile[root_page_id]"><option value="0"><?php esc_html_e( 'Choose a page', 'ashbi-mega-menu' ); ?></option><?php foreach ( $pages as $page ) : ?><option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $profile['root_page_id'], $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option><?php endforeach; ?></select></label></div><span class="description"><?php esc_html_e( 'Pages below the main product page show the same links.', 'ashbi-mega-menu' ); ?></span></fieldset>
+					<fieldset class="abmm-profile-admin__fieldset"><legend><?php esc_html_e( 'Links', 'ashbi-mega-menu' ); ?></legend><p><?php esc_html_e( 'Shown under your main menu, only on this product\'s pages.', 'ashbi-mega-menu' ); ?></p><label class="abmm-profile-admin__style-field"><?php esc_html_e( 'Style', 'ashbi-mega-menu' ); ?><select name="profile[rail_style]"><option value="underline" <?php selected( $profile['rail_style'], 'underline' ); ?>><?php esc_html_e( 'Underlined links', 'ashbi-mega-menu' ); ?></option><option value="pills" <?php selected( $profile['rail_style'], 'pills' ); ?>><?php esc_html_e( 'Pill links', 'ashbi-mega-menu' ); ?></option></select></label><div class="abmm-profile-admin__links"><div class="abmm-profile-admin__link-head"><span><?php esc_html_e( 'Label', 'ashbi-mega-menu' ); ?></span><span><?php esc_html_e( 'Destination', 'ashbi-mega-menu' ); ?></span></div><?php $abmm_extra_open = false; for ( $abmm_extra = 2; $abmm_extra < 6; $abmm_extra++ ) { $abmm_extra_open = $abmm_extra_open || ! empty( $profile['links'][ $abmm_extra ]['label'] ) || ! empty( $profile['links'][ $abmm_extra ]['url'] ); } ?><?php for ( $index = 0; $index < 6; $index++ ) : $link = $profile['links'][ $index ] ?? array( 'label' => '', 'url' => '' ); ?><?php if ( 2 === $index ) : ?><details class="abmm-profile-admin__more-links"<?php echo $abmm_extra_open ? ' open' : ''; ?>><summary><?php esc_html_e( 'Add more links', 'ashbi-mega-menu' ); ?></summary><?php endif; ?><div class="abmm-profile-admin__link-row"><label><span class="screen-reader-text"><?php printf(
 /* translators: %d: Link position. */
 esc_html__( 'Link %d label', 'ashbi-mega-menu' ), esc_html( $index + 1 ) ); ?></span><input class="regular-text" name="profile[links][<?php echo esc_attr( $index ); ?>][label]" value="<?php echo esc_attr( $link['label'] ); ?>" placeholder="<?php esc_attr_e( 'Link label', 'ashbi-mega-menu' ); ?>" /></label><label><span class="screen-reader-text"><?php printf(
 /* translators: %d: Link position. */
-esc_html__( 'Link %d destination', 'ashbi-mega-menu' ), esc_html( $index + 1 ) ); ?></span><input class="regular-text" type="url" name="profile[links][<?php echo esc_attr( $index ); ?>][url]" value="<?php echo esc_attr( $link['url'] ); ?>" placeholder="https://…" /></label></div><?php endfor; ?></div></fieldset>
-					<fieldset class="abmm-profile-admin__fieldset abmm-profile-admin__fieldset--cta"><legend><?php esc_html_e( '3. Product CTA (optional)', 'ashbi-mega-menu' ); ?></legend><p><?php esc_html_e( 'Use this only for a product-specific conversion. Matching calls to action stay in the shared header.', 'ashbi-mega-menu' ); ?></p><label class="abmm-profile-admin__checkbox"><input type="checkbox" name="profile[cta][show]" value="1" <?php checked( ! empty( $profile['cta']['show'] ) ); ?> /> <?php esc_html_e( 'Show a distinct product CTA', 'ashbi-mega-menu' ); ?></label><div class="abmm-profile-admin__field-grid"><label><?php esc_html_e( 'CTA label', 'ashbi-mega-menu' ); ?><input class="regular-text" name="profile[cta][label]" value="<?php echo esc_attr( $profile['cta']['label'] ); ?>" placeholder="Get a demo" /></label><label><?php esc_html_e( 'CTA destination', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="profile[cta][url]" value="<?php echo esc_attr( $profile['cta']['url'] ); ?>" placeholder="https://…" /></label></div></fieldset>
-					<div class="abmm-profile-admin__form-footer"><span><?php esc_html_e( 'The shared header is never duplicated by this profile.', 'ashbi-mega-menu' ); ?></span><?php submit_button( $edit_id ? __( 'Save product profile', 'ashbi-mega-menu' ) : __( 'Create product profile', 'ashbi-mega-menu' ), 'primary', 'submit', false ); ?></div>
+esc_html__( 'Link %d destination', 'ashbi-mega-menu' ), esc_html( $index + 1 ) ); ?></span><input class="regular-text" type="url" name="profile[links][<?php echo esc_attr( $index ); ?>][url]" value="<?php echo esc_attr( $link['url'] ); ?>" placeholder="https://…" /></label></div><?php endfor; ?></details></div></fieldset>
+					<fieldset class="abmm-profile-admin__fieldset abmm-profile-admin__fieldset--cta"><legend><?php esc_html_e( 'Button (optional)', 'ashbi-mega-menu' ); ?></legend><p><?php esc_html_e( 'Add a button for this product only, such as "Book a demo".', 'ashbi-mega-menu' ); ?></p><label class="abmm-profile-admin__checkbox"><input type="checkbox" name="profile[cta][show]" value="1" <?php checked( ! empty( $profile['cta']['show'] ) ); ?> /> <?php esc_html_e( 'Show a button', 'ashbi-mega-menu' ); ?></label><div class="abmm-profile-admin__field-grid"><label><?php esc_html_e( 'Button text', 'ashbi-mega-menu' ); ?><input class="regular-text" name="profile[cta][label]" value="<?php echo esc_attr( $profile['cta']['label'] ); ?>" placeholder="Get a demo" /></label><label><?php esc_html_e( 'Button link', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="profile[cta][url]" value="<?php echo esc_attr( $profile['cta']['url'] ); ?>" placeholder="https://…" /></label></div></fieldset>
+					<div class="abmm-profile-admin__form-footer"><span></span><?php submit_button( $edit_id ? __( 'Save product', 'ashbi-mega-menu' ) : __( 'Add product', 'ashbi-mega-menu' ), 'primary', 'submit', false ); ?></div>
 				</form>
 			</div>
 		</div>
@@ -322,36 +316,44 @@ esc_html__( 'Link %d destination', 'ashbi-mega-menu' ), esc_html( $index + 1 ) )
 		$coverage_url = admin_url( 'admin.php?page=ashbi-mega-menu-coverage&abmm_source=' . rawurlencode( $source_filter ) . '&abmm_search=' . rawurlencode( $search ) . '&abmm_page=' );
 		?>
 		<div class="wrap abmm-profile-coverage">
+			<?php require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php'; ?>
 			<h1><?php esc_html_e( 'Navigation Coverage', 'ashbi-mega-menu' ); ?></h1>
-			<p><?php esc_html_e( 'Review which product navigation each published page will use with the context-aware header. “Global fallback” is expected for corporate pages.', 'ashbi-mega-menu' ); ?></p>
+			<p><?php esc_html_e( 'See which product links each page shows. Pages that are not part of a product show only your main menu.', 'ashbi-mega-menu' ); ?></p>
 			<?php if ( 0 === $coverage['profiles'] ) : ?>
-				<div class="notice notice-info inline"><p><strong><?php esc_html_e( 'No product profiles yet.', 'ashbi-mega-menu' ); ?></strong> <?php esc_html_e( 'Corporate pages can use the global menu; create a profile when a product section needs local navigation.', 'ashbi-mega-menu' ); ?> <a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Set up product navigation', 'ashbi-mega-menu' ); ?></a></p></div>
+				<div class="notice notice-info inline"><p><strong><?php esc_html_e( 'No products yet.', 'ashbi-mega-menu' ); ?></strong> <?php esc_html_e( 'Every page shows your main menu only.', 'ashbi-mega-menu' ); ?> <a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Add a product', 'ashbi-mega-menu' ); ?></a></p></div>
 			<?php endif; ?>
 			<div class="abmm-profile-coverage__summary" aria-label="<?php esc_attr_e( 'Navigation coverage summary', 'ashbi-mega-menu' ); ?>">
-				<span><strong><?php echo esc_html( $coverage['profiles'] ); ?></strong> <?php esc_html_e( 'product profiles', 'ashbi-mega-menu' ); ?></span>
-				<span><strong><?php echo esc_html( $coverage['ancestor'] ); ?></strong> <?php esc_html_e( 'inherited pages', 'ashbi-mega-menu' ); ?></span>
-				<span><strong><?php echo esc_html( $coverage['page'] ); ?></strong> <?php esc_html_e( 'page exceptions', 'ashbi-mega-menu' ); ?></span>
-				<span><strong><?php echo esc_html( $coverage['fallback'] ); ?></strong> <?php esc_html_e( 'global fallbacks', 'ashbi-mega-menu' ); ?></span>
+				<span><strong><?php echo esc_html( $coverage['profiles'] ); ?></strong> <?php esc_html_e( 'products', 'ashbi-mega-menu' ); ?></span>
+				<span><strong><?php echo esc_html( $coverage['ancestor'] ); ?></strong> <?php esc_html_e( 'pages inside a product', 'ashbi-mega-menu' ); ?></span>
+				<span><strong><?php echo esc_html( $coverage['page'] ); ?></strong> <?php esc_html_e( 'pages set by hand', 'ashbi-mega-menu' ); ?></span>
+				<span><strong><?php echo esc_html( $coverage['fallback'] ); ?></strong> <?php esc_html_e( 'main menu only', 'ashbi-mega-menu' ); ?></span>
 			</div>
 			<form method="get" class="abmm-profile-coverage__filters">
 				<input type="hidden" name="page" value="ashbi-mega-menu-coverage" />
 				<label for="abmm-coverage-search"><?php esc_html_e( 'Search pages', 'ashbi-mega-menu' ); ?></label>
 				<input type="search" id="abmm-coverage-search" name="abmm_search" value="<?php echo esc_attr( $search ); ?>" />
-				<label for="abmm-coverage-source"><?php esc_html_e( 'Navigation source', 'ashbi-mega-menu' ); ?></label>
+				<label for="abmm-coverage-source"><?php esc_html_e( 'Shows', 'ashbi-mega-menu' ); ?></label>
 				<select id="abmm-coverage-source" name="abmm_source">
-					<option value="all" <?php selected( $source_filter, 'all' ); ?>><?php esc_html_e( 'All sources', 'ashbi-mega-menu' ); ?></option>
-					<option value="page" <?php selected( $source_filter, 'page' ); ?>><?php esc_html_e( 'Page exception', 'ashbi-mega-menu' ); ?></option>
-					<option value="ancestor" <?php selected( $source_filter, 'ancestor' ); ?>><?php esc_html_e( 'Inherited', 'ashbi-mega-menu' ); ?></option>
-					<option value="fallback" <?php selected( $source_filter, 'fallback' ); ?>><?php esc_html_e( 'Global fallback', 'ashbi-mega-menu' ); ?></option>
+					<option value="all" <?php selected( $source_filter, 'all' ); ?>><?php esc_html_e( 'All pages', 'ashbi-mega-menu' ); ?></option>
+					<option value="page" <?php selected( $source_filter, 'page' ); ?>><?php esc_html_e( 'Set by hand', 'ashbi-mega-menu' ); ?></option>
+					<option value="ancestor" <?php selected( $source_filter, 'ancestor' ); ?>><?php esc_html_e( 'Inside a product', 'ashbi-mega-menu' ); ?></option>
+					<option value="fallback" <?php selected( $source_filter, 'fallback' ); ?>><?php esc_html_e( 'Main menu only', 'ashbi-mega-menu' ); ?></option>
 				</select>
 				<button type="submit" class="button"><?php esc_html_e( 'Filter', 'ashbi-mega-menu' ); ?></button>
 			</form>
 			<p class="abmm-profile-coverage__count"><?php echo esc_html( sprintf(
 /* translators: 1: Matching page count, 2: Current page, 3: Total pages. */
 __( '%1$d matching pages; page %2$d of %3$d', 'ashbi-mega-menu' ), $filtered_count, $page_number, $page_count ) ); ?></p>
-			<table class="widefat striped"><caption class="screen-reader-text"><?php esc_html_e( 'Navigation coverage results', 'ashbi-mega-menu' ); ?></caption><thead><tr><th scope="col"><?php esc_html_e( 'Page', 'ashbi-mega-menu' ); ?></th><th scope="col"><?php esc_html_e( 'Navigation', 'ashbi-mega-menu' ); ?></th><th scope="col"><?php esc_html_e( 'Source', 'ashbi-mega-menu' ); ?></th></tr></thead><tbody>
+			<table class="widefat striped"><caption class="screen-reader-text"><?php esc_html_e( 'Navigation coverage results', 'ashbi-mega-menu' ); ?></caption><thead><tr><th scope="col"><?php esc_html_e( 'Page', 'ashbi-mega-menu' ); ?></th><th scope="col"><?php esc_html_e( 'Product links', 'ashbi-mega-menu' ); ?></th><th scope="col"><?php esc_html_e( 'Why', 'ashbi-mega-menu' ); ?></th></tr></thead><tbody>
+			<?php
+			$source_labels = array(
+				'page'     => __( 'Set by hand', 'ashbi-mega-menu' ),
+				'ancestor' => __( 'Inside a product', 'ashbi-mega-menu' ),
+				'fallback' => __( 'Main menu only', 'ashbi-mega-menu' ),
+			);
+			?>
 			<?php foreach ( $coverage_rows as $row ) : $page = $row['page']; $resolved = $row['resolved']; ?>
-				<tr><td><a href="<?php echo esc_url( get_edit_post_link( $page->ID ) ); ?>"><?php echo esc_html( $page->post_title ?: __( '(no title)', 'ashbi-mega-menu' ) ); ?></a></td><td><?php echo esc_html( $resolved['profile']['label'] ?? __( 'Global fallback', 'ashbi-mega-menu' ) ); ?></td><td><?php echo esc_html( ucfirst( $resolved['source'] ) ); ?></td></tr>
+				<tr><td><a href="<?php echo esc_url( get_edit_post_link( $page->ID ) ); ?>"><?php echo esc_html( $page->post_title ?: __( '(no title)', 'ashbi-mega-menu' ) ); ?></a></td><td><?php echo esc_html( $resolved['profile']['label'] ?? '—' ); ?></td><td><?php echo esc_html( $source_labels[ $resolved['source'] ] ?? $source_labels['fallback'] ); ?></td></tr>
 			<?php endforeach; ?>
 			<?php if ( 0 === $filtered_count ) : ?><tr><td colspan="3"><?php esc_html_e( 'No pages match these filters.', 'ashbi-mega-menu' ); ?></td></tr><?php endif; ?>
 			</tbody></table>

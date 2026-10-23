@@ -14,11 +14,12 @@ abmm_product_assert( is_string( $id_one ) && is_string( $id_two ), 'Create produ
 $current = $profiles->get_all();
 $stale_revision = ABMM_Option_Store::revision( $current[ $id_one ] );
 $other_db = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
-$lock_name = 'abmm_menus_save_' . md5( $wpdb->options . '|' . ABMM_OPTION_KEY );
-abmm_product_assert( '1' === (string) $other_db->get_var( $other_db->prepare( 'SELECT GET_LOCK(%s, 0)', $lock_name ) ), 'Independent connection owns shared lock.' );
+$other_db->set_prefix( $wpdb->prefix );
+$other_db->query( $other_db->prepare( "INSERT INTO {$other_db->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'no' )", ABMM_Data::LOCK_OPTION, ( time() + 60 ) . '|other-request' ) );
+abmm_product_assert( null !== $other_db->get_var( $other_db->prepare( "SELECT option_value FROM {$other_db->options} WHERE option_name = %s", ABMM_Data::LOCK_OPTION ) ), 'Independent connection owns shared lock.' );
 $blocked = $profiles->store_profile( $id_one, $one, $stale_revision );
 abmm_product_assert( is_wp_error( $blocked ) && 'abmm_save_lock_timeout' === $blocked->get_error_code(), 'Products respect a competing lock.' );
-$other_db->get_var( $other_db->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) );
+$other_db->query( $other_db->prepare( "DELETE FROM {$other_db->options} WHERE option_name = %s", ABMM_Data::LOCK_OPTION ) );
 // Simulate another request after this request populated its option cache.
 get_option( ABMM_Product_Profiles::OPTION_KEY );
 $current[ $id_two ]['label'] = 'Concurrent second product';

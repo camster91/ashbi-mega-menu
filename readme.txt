@@ -30,7 +30,7 @@ The complete block source is included in the src directory of this package. To r
 == Installation ==
 
 1. Install the plugin and activate it.
-2. Open Ashbi Mega Menu and choose a blank menu or the optional sample.
+2. Open Mega Menu and choose Start from scratch or Use a template.
 3. Edit links and design, then save your menu.
 4. Add the Ashbi Mega Menu block to a test page and select your menu, or copy its exact shortcode into a Shortcode block or use the included widget.
 5. Verify links, keyboard navigation and mobile display on a staging site before placing it in your theme header. The theme's existing navigation remains until you remove it deliberately.
@@ -54,15 +54,15 @@ Copy imports create independent IDs. Existing blocks, widgets and shortcodes con
 Report reproducible issues in the public GitHub repository. There is no guaranteed response time or SLA. Do not include credentials, private exports or client data. Theme-specific and interactive verification limits are documented in the compatibility guide; a build passing does not establish every theme works.
 
 = Which database engines are supported? =
-Standard MySQL and MariaDB WordPress installations are supported. SQLite is not supported because safe editing uses database advisory locks.
+Standard MySQL and MariaDB WordPress installations are supported. SQLite installations have not been tested.
 
 = What happens when I delete the plugin? =
 Uninstallation removes the plugin's stored menus, archived menus, product profiles, branding and settings. Export your menus before deleting it. Deactivation keeps stored data.
 
 == Screenshots ==
 
-1. Menu dashboard with the guided setup flow and optional modules collapsed.
-2. Blank menu editor with neutral, empty call-to-action defaults.
+1. Menu dashboard with menu cards and tools.
+2. Menu editor with a live preview and the menu item list.
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
@@ -76,6 +76,14 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Stop themes such as Twenty Twenty-One from repainting menu section buttons and drawer controls.
 * Tell menus with the same name apart in the block and widget menu lists.
 * Remove the widget's saved settings when the plugin is deleted.
+* Save reliably on every host: menu saves now use a per-site lock row instead of a MySQL advisory lock, which could block saves on shared or pooled databases.
+* Redesign the dashboard: simpler welcome, one Tools panel and shorter text.
+* Redesign the menu editor: three clear steps (Edit, Place, Check), a Place tab that always shows the shortcode, a lighter preview toolbar, tidier rows and folded icon styling.
+* Bring Product Navigation, Navigation Coverage and Product Branding in line with the new look and use plainer wording throughout.
+* Preview menus on a zoomable canvas at real desktop, tablet and phone widths instead of squeezing them into the editor.
+* Flag links typed as plain text (such as "about") and menu bar names that are too long, before you place the menu.
+* Count shortcodes in pages when warning before a menu is archived.
+* Show the real reason when an import file is rejected, and give repeated duplicates distinct names.
 * Start ordinary sites with neutral defaults and make contextual navigation an optional module.
 * Generalize contextual navigation for products, services, departments, documentation and locations.
 * Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.

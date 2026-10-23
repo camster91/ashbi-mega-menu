@@ -21,7 +21,7 @@ Activation starts with an empty menu list. An optional generic sample helps you 
 
 ## Requirements and installation
 
-WordPress 6.6 or later, PHP 8.2 or later, and a standard MySQL/MariaDB WordPress database. SQLite installations are not supported because saving uses database advisory locks.
+WordPress 6.6 or later, PHP 8.2 or later, and a standard MySQL/MariaDB WordPress database. SQLite has not been tested.
 
 Upload the release ZIP through **Plugins → Add New → Upload Plugin**, activate it, then open **Ashbi Mega Menu**. Create a menu and place it with the provided shortcode, block or widget. Test placement, keyboard navigation and mobile links on staging before enabling it on a client site.
 

@@ -6,13 +6,13 @@ Portable imports/exports are limited to 500 menus and 10 MiB total, with a 1 MiB
 
 Product profiles and branding reject edits from stale tabs. After a failed or conflicting save, entered fields are retained in a private recovery form for 30 minutes. Review the latest saved values before retrying. Editors opened before an upgrade should be reloaded; an unchanged save is allowed, while a failed database write never produces a saved confirmation.
 
-Start on a staging copy of your site. Creating a menu does not change the theme header; placement is a separate step. Use a standard MySQL/MariaDB WordPress installation. SQLite is unsupported for editing.
+Start on a staging copy of your site. Creating a menu does not change the theme header; placement is a separate step. Use a standard MySQL/MariaDB WordPress installation. SQLite has not been tested.
 
 ## Build and verify a menu
 
-1. Open **Ashbi Mega Menu** and choose **Start blank** or **Use sample template**. Give the menu a meaningful name.
+1. Open **Ashbi Mega Menu** and choose **Start from scratch** or **Use a template**. Give the menu a meaningful name.
 2. Add top-level links, or select **Mega Menu** for a panel with categories and columns. Replace sample labels and placeholder destinations. A panel toggle opens content; a link needs a real destination.
-3. Choose desktop and mobile preview controls. Check labels, contrast, spacing, CTA links and any product-navigation settings.
+3. Switch the preview between Desktop, Tablet and Mobile. The preview shows the menu at a real screen width, scaled to fit; use **−**, **+**, **Fit** or Ctrl/⌘ + scroll to zoom. Check labels, contrast, spacing, CTA links and any product-navigation settings.
 4. Save, then reload the editor to confirm the saved state. If another editor saved first, keep your current work and reload before reconciling changes; a conflict must not silently overwrite newer work.
 5. Follow every link on the actual staged page. The builder preview does not establish theme compatibility or replace keyboard and mobile checks.
 
@@ -65,7 +65,7 @@ Keep a copy of the original child-theme file and avoid editing the parent theme.
 
 ## Product navigation
 
-Product Navigation profiles associate navigation with a hub page and its child pages. In the block or widget enable **Use page product navigation** only when that contextual behavior is intended. The equivalent shortcode is:
+**Product Navigation** shows extra links under your main menu on a product's pages. Each product has a main page; pages below it get the same links. **Navigation Coverage** lists which pages show which product, and **Product Branding** can show a product's own logo on its pages. In the block or widget enable **Use page product navigation** only when that contextual behavior is intended. The equivalent shortcode is:
 
 ```text
 [ashbi_mega_menu id="your_actual_menu_id" context="page"]
@@ -109,7 +109,7 @@ Use authenticated administration only. See source/tests for automation contracts
 | Two headers or two mobile toggles | Both the theme navigation and Ashbi placement are present. Remove the duplicate in staging only after verifying the replacement. |
 | Menu is empty | Confirm the exact saved ID, active rather than archived status, selected block/widget menu and the page's profile context. |
 | Save reports a conflict | Another change occurred. Preserve local work, reload and reconcile; do not force an old revision over a newer one. |
-| Save reports locking/database failure | Confirm MySQL/MariaDB and host advisory-lock support. Ask the host to investigate; bypassing the lock is unsafe. |
+| Save reports another save in progress | Wait a few seconds and save again. A save that crashed releases its lock on its own within a minute. If it keeps happening, ask the host to check the database. |
 | Panel is clipped or hidden | Check the theme header's overflow, stacking context, sticky positioning and page-builder containers on staging. |
 | Preview differs from the page | Save and reload first, verify the placement's product context, then clear the site's relevant caches and reload the public page. Report a reproducible mismatch if it remains. |
 | Import or restore failed | Read the error, refresh backups/current menus and export the current collection. Do not assume a failed operation applied; reload to verify. |
@@ -120,11 +120,11 @@ Before launch, test keyboard opening/closing, visible focus, phone menu back/clo
 
 ## Follow the setup path
 
-The dashboard and editor use **Create → Edit & save → Place → Verify**. A **Configured** badge means the saved menu passes content checks; it does not mean a header was installed or its links were tested. Use **Place & verify** on a configured menu to open placement instructions. The editor has the same steps above the save bar. Save before copying a shortcode: published placements read the saved version, not the preview or an unsaved draft.
+The editor has three steps above the save bar: **Edit → Place → Check**. A **Configured** badge on the dashboard means the saved menu passes its checklist; it does not mean a header was installed or its links were tested. **Place & verify** on a configured menu opens the editor's **Place** tab. Save before copying a shortcode: published placements read the saved version, not the preview or an unsaved draft.
 
-The Place step includes the exact menu shortcode, a block-theme recipe, a classic header/widget recipe, and a guarded child-theme PHP call. The Verify step is a manual checklist for actual pages: follow each destination, operate panels with keyboard, and confirm the mobile drawer closes before navigation. Use a staging page first and keep the original header until the replacement passes.
+The **Place** tab always shows the exact menu shortcode with a Copy button, plus short instructions for block themes, classic themes and page builders, and a child-theme PHP call for developers. If the menu still has checklist items, the tab reminds you to fix them first. **Check it on your site** is a manual checklist for real pages: follow each link, open dropdowns with the mouse and keyboard, and confirm the phone menu opens, goes back and closes. Use a staging page first and keep the original header until the replacement passes.
 
-Per-menu export, duplicate and archive live under **More**. Collection import and developer examples live under **Import / Export & developer tools**; **Recovery snapshots** remains a separate clearly labelled section. Existing product profiles and branding pages remain available for reusable product navigation.
+Per-menu export, duplicate and archive live under **More actions** on each menu card. Under **Tools** on the main screen, **Import and export** holds collection import and developer examples, and **Recovery snapshots** restores automatic backups. Existing product profiles and branding pages remain available for reusable product navigation.
 
 ### Recover a stale browser draft
 

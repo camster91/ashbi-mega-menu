@@ -61,10 +61,9 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 	</div>
 
 	<nav class="abmm-setup-flow abmm-workflow-nav" aria-label="<?php esc_attr_e( 'Menu setup steps', 'ashbi-mega-menu' ); ?>">
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>" class="abmm-guarded-exit"><?php esc_html_e( '1. Create', 'ashbi-mega-menu' ); ?></a>
-		<button type="button" data-abmm-workflow="content"><?php esc_html_e( '2. Edit & save', 'ashbi-mega-menu' ); ?></button>
-		<button type="button" data-abmm-workflow="help"><?php esc_html_e( '3. Place', 'ashbi-mega-menu' ); ?></button>
-		<button type="button" data-abmm-workflow="verify"><?php esc_html_e( '4. Verify', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" data-abmm-workflow="content"><span aria-hidden="true">1</span><?php esc_html_e( 'Edit', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" data-abmm-workflow="help"><span aria-hidden="true">2</span><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" data-abmm-workflow="verify"><span aria-hidden="true">3</span><?php esc_html_e( 'Check', 'ashbi-mega-menu' ); ?></button>
 	</nav>
 	<div class="abmm-builder-topbar">
 		<a class="abmm-back abmm-guarded-exit" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>">
@@ -100,18 +99,18 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<button type="button" class="is-active" role="tab" id="abmm-section-tab-content" data-abmm-builder-section="content" aria-controls="abmm-section-panel-content" aria-selected="true" tabindex="0"><?php esc_html_e( 'Content', 'ashbi-mega-menu' ); ?></button>
 				<button type="button" role="tab" id="abmm-section-tab-design" data-abmm-builder-section="design" aria-controls="abmm-section-panel-design" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></button>
 				<button type="button" role="tab" id="abmm-section-tab-settings" data-abmm-builder-section="settings" aria-controls="abmm-section-panel-settings" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Settings', 'ashbi-mega-menu' ); ?></button>
-				<button type="button" role="tab" id="abmm-section-tab-help" data-abmm-builder-section="help" aria-controls="abmm-section-panel-help" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Help', 'ashbi-mega-menu' ); ?></button>
+				<button type="button" role="tab" id="abmm-section-tab-help" data-abmm-builder-section="help" aria-controls="abmm-section-panel-help" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></button>
 			</nav>
 			<div class="abmm-builder-section-group" id="abmm-section-panel-settings" data-abmm-builder-section-panel="settings" role="tabpanel" aria-labelledby="abmm-section-tab-settings" hidden>
 			<section class="abmm-builder-panel">
 				<h2><?php esc_html_e( 'Mobile navigation', 'ashbi-mega-menu' ); ?></h2>
 				<label class="abmm-field"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
-				<p class="description"><?php esc_html_e( 'Add menu search, full-width menu rows, and a visible Back label. Disabled by default to preserve existing menus. Review your mobile preview before enabling.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Adds search, full-width rows and a Back label to the phone menu.', 'ashbi-mega-menu' ); ?></p>
 			</section>
 			<section class="abmm-builder-panel abmm-brand-panel">
-				<h2><?php esc_html_e( 'Brand Identity', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Optional. Disabled by default so existing menus keep their current output.', 'ashbi-mega-menu' ); ?></p>
-				<label class="abmm-field"><span><?php esc_html_e( 'Show brand', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-brand-show" <?php checked( ! empty( $menu['brand']['show'] ) ); ?> /></label>
+				<h2><?php esc_html_e( 'Logo', 'ashbi-mega-menu' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Show your logo or site name at the start of the menu bar.', 'ashbi-mega-menu' ); ?></p>
+				<label class="abmm-field"><span><?php esc_html_e( 'Show logo', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-brand-show" <?php checked( ! empty( $menu['brand']['show'] ) ); ?> /></label>
 				<div class="abmm-optional-fields abmm-brand-fields">
 					<label class="abmm-field"><span><?php esc_html_e( 'Site title', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-title" value="<?php echo esc_attr( $menu['brand']['title'] ); ?>" /></label>
 					<label class="abmm-field"><span><?php esc_html_e( 'Brand URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-url" value="<?php echo esc_attr( $menu['brand']['url'] ); ?>" /></label>
@@ -123,7 +122,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			</section>
 			<?php if ( abmm_contextual_navigation_enabled() ) : ?><section class="abmm-builder-panel abmm-product-navigation-panel">
 				<h2><?php esc_html_e( 'Product Navigation', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Keep this shared menu focused on site-wide navigation. Manage reusable product links and product hubs separately, then use the context-aware shortcode in one header placement.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Show extra links on specific sections of your site, such as a product or department.', 'ashbi-mega-menu' ); ?></p>
 				<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Manage product navigation', 'ashbi-mega-menu' ); ?></a></p>
 			</section><?php endif; ?>
 			</div>
@@ -131,21 +130,21 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			<div class="abmm-builder-section-group" id="abmm-section-panel-content" data-abmm-builder-section-panel="content" role="tabpanel" aria-labelledby="abmm-section-tab-content">
 			<?php if ( ! empty( $menu['starter_source'] ) ) : ?>
 				<section class="abmm-builder-panel abmm-sample-warning">
-					<h2><?php esc_html_e( 'Sample template', 'ashbi-mega-menu' ); ?></h2>
-					<p><?php esc_html_e( 'Replace the sample labels, URLs, logo, and call-to-action. Verify every destination before placement.', 'ashbi-mega-menu' ); ?></p>
+					<h2><?php esc_html_e( 'This is a sample', 'ashbi-mega-menu' ); ?></h2>
+					<p><?php esc_html_e( 'Replace its labels and links with your own before you place it.', 'ashbi-mega-menu' ); ?></p>
 				</section>
 			<?php endif; ?>
 			<section class="abmm-builder-panel abmm-menu-structure-panel">
-				<h2><?php esc_html_e( 'Top Menu Items', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'These appear in the header bar. Drag to reorder.', 'ashbi-mega-menu' ); ?></p>
+				<h2><?php esc_html_e( 'Menu items', 'ashbi-mega-menu' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Shown in the menu bar. Drag or use the arrows to reorder.', 'ashbi-mega-menu' ); ?></p>
 				<ul class="abmm-sortable abmm-nav-items" id="abmm-nav-items" tabindex="-1"></ul>
 				<button type="button" class="button abmm-add-nav-item">
-					+ <?php esc_html_e( 'Add Menu Item', 'ashbi-mega-menu' ); ?>
+					+ <?php esc_html_e( 'Add item', 'ashbi-mega-menu' ); ?>
 				</button>
 			</section>
 
 			<section class="abmm-builder-panel abmm-cta-panel">
-				<h2><?php esc_html_e( 'Call-to-Action Button', 'ashbi-mega-menu' ); ?></h2>
+				<h2><?php esc_html_e( 'Button', 'ashbi-mega-menu' ); ?></h2>
 				<label class="abmm-field">
 					<span><?php esc_html_e( 'Show button', 'ashbi-mega-menu' ); ?></span>
 					<input type="checkbox" id="abmm-cta-show" <?php checked( ! empty( $menu['cta']['show'] ) ); ?> />
@@ -174,7 +173,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			</section>
 
 			<section class="abmm-builder-panel abmm-readiness-panel" id="abmm-readiness-panel" aria-labelledby="abmm-readiness-title">
-				<h2 id="abmm-readiness-title"><?php esc_html_e( 'Configuration checks', 'ashbi-mega-menu' ); ?></h2>
+				<h2 id="abmm-readiness-title"><?php esc_html_e( 'Checklist', 'ashbi-mega-menu' ); ?></h2>
 				<p class="abmm-readiness-summary" role="status" aria-live="polite"></p>
 				<ul class="abmm-readiness-issues"></ul>
 			</section>
@@ -183,14 +182,12 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			<div class="abmm-builder-section-group" id="abmm-section-panel-design" data-abmm-builder-section-panel="design" role="tabpanel" aria-labelledby="abmm-section-tab-design" hidden>
 			<section class="abmm-builder-panel abmm-design-panel">
 				<h2><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Pick a preset, then fine-tune colors and layout. Preview updates live.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Pick a preset, then fine-tune it. The preview updates as you go.', 'ashbi-mega-menu' ); ?></p>
 
 				<?php
 				$abmm_settings = wp_parse_args( $menu['settings'] ?? array(), ABMM_Data::default_settings() );
 				$abmm_presets  = ABMM_Data::design_presets();
 				?>
-
-				<p class="description"><?php esc_html_e( 'The preview shows the stacked header used on your published pages.', 'ashbi-mega-menu' ); ?></p>
 
 				<div class="abmm-field">
 					<span><?php esc_html_e( 'Style preset', 'ashbi-mega-menu' ); ?></span>
@@ -229,7 +226,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 						<option value="sidebar-right" <?php selected( $abmm_settings['layout'], 'sidebar-right' ); ?>><?php esc_html_e( 'Right', 'ashbi-mega-menu' ); ?></option>
 						<option value="stacked" <?php selected( $abmm_settings['layout'], 'stacked' ); ?>><?php esc_html_e( 'Top (horizontal tabs)', 'ashbi-mega-menu' ); ?></option>
 					</select>
-					<span class="description"><?php esc_html_e( 'Applies to mega items that use a category bar. For a simple 2/3-column mega, open Edit Mega Content and choose "Simple columns".', 'ashbi-mega-menu' ); ?></span>
+					<span class="description"><?php esc_html_e( 'Only applies to mega menus that use categories.', 'ashbi-mega-menu' ); ?></span>
 				</label>
 
 				<label class="abmm-field">
@@ -248,7 +245,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 							<option value="<?php echo (int) $abmm_i; ?>" <?php selected( (int) $abmm_settings['grid_columns'], $abmm_i ); ?>><?php echo (int) $abmm_i; ?></option>
 						<?php endfor; ?>
 					</select>
-					<span class="description"><?php esc_html_e( 'Fallback default. Each mega item can override columns in Edit Mega Content.', 'ashbi-mega-menu' ); ?></span>
+					<span class="description"><?php esc_html_e( 'Each mega menu can change this in its own layout settings.', 'ashbi-mega-menu' ); ?></span>
 				</label>
 
 				<details class="abmm-design-more">
@@ -405,59 +402,44 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			</div>
 
 			<div class="abmm-builder-section-group" id="abmm-section-panel-help" data-abmm-builder-section-panel="help" role="tabpanel" aria-labelledby="abmm-section-tab-help" hidden>
-			<section class="abmm-builder-panel abmm-builder-panel--hint abmm-placement-panel" <?php echo ! empty( $abmm_menu_readiness['ready'] ) ? '' : 'hidden'; ?>>
-				<h2><?php esc_html_e( 'Place this saved menu', 'ashbi-mega-menu' ); ?></h2>
+			<section class="abmm-builder-panel abmm-placement-panel" id="placement">
+				<h2><?php esc_html_e( 'Place this menu', 'ashbi-mega-menu' ); ?></h2>
 				<p class="abmm-placement-save-hint" role="status"></p>
 				<code class="abmm-shortcode-block">[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]</code>
 				<p><button type="button" class="button abmm-copy-placement" data-shortcode='[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]'><?php esc_html_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?></button></p>
-				<p><?php esc_html_e( 'Block theme: insert Ashbi Mega Menu in your Header template and select this menu. Classic theme: use the widget in a header area or paste this shortcode in your header builder.', 'ashbi-mega-menu' ); ?></p>
-				<details><summary><?php esc_html_e( 'Child-theme PHP placement', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Ask your developer to add this guarded call to the child-theme header, after saving a rollback copy.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
+				<ul class="abmm-place-options">
+					<li><strong><?php esc_html_e( 'Block theme', 'ashbi-mega-menu' ); ?></strong> <?php esc_html_e( 'In Appearance → Editor, add the Ashbi Mega Menu block to your Header and pick this menu.', 'ashbi-mega-menu' ); ?></li>
+					<li><strong><?php esc_html_e( 'Classic theme', 'ashbi-mega-menu' ); ?></strong> <?php esc_html_e( 'Add the Ashbi Mega Menu widget to a header area, or paste the shortcode.', 'ashbi-mega-menu' ); ?></li>
+					<li><strong><?php esc_html_e( 'Page builder', 'ashbi-mega-menu' ); ?></strong> <?php esc_html_e( 'Paste the shortcode into a shortcode element.', 'ashbi-mega-menu' ); ?></li>
+				</ul>
+				<details><summary><?php esc_html_e( 'For developers: PHP', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Add this to your child theme header.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
 			</section>
 
 			<section class="abmm-builder-panel abmm-verification-panel" id="abmm-verification-panel" tabindex="-1" aria-labelledby="abmm-verification-title">
-				<h2 id="abmm-verification-title"><?php esc_html_e( 'Verify the real header', 'ashbi-mega-menu' ); ?></h2>
-				<p><?php esc_html_e( 'The editor preview is a design aid. These checks must be completed on a real page; the plugin does not mark them complete automatically.', 'ashbi-mega-menu' ); ?></p>
-				<ol><li><?php esc_html_e( 'Save and reload, then place the menu on a staging page or header.', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Desktop: open every panel and follow every link. Test Tab, Enter and Escape.', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Mobile: open the drawer and nested panels. Follow a link and confirm the drawer closes and the destination loads.', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Check narrow screens, browser zoom, and duplicate navigation before replacing the original header.', 'ashbi-mega-menu' ); ?></li></ol>
-				<a class="button" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open site in a new tab', 'ashbi-mega-menu' ); ?></a>
+				<h2 id="abmm-verification-title"><?php esc_html_e( 'Check it on your site', 'ashbi-mega-menu' ); ?></h2>
+				<ul class="abmm-checklist"><li><?php esc_html_e( 'Every link goes to the right page', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Dropdowns open with a mouse and the keyboard', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'The phone menu opens, goes back and closes', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Your theme\'s old menu is removed, so there is only one', 'ashbi-mega-menu' ); ?></li></ul>
+				<a class="button" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View site', 'ashbi-mega-menu' ); ?></a>
 			</section>
 
 			<section class="abmm-builder-panel abmm-builder-help" aria-labelledby="abmm-builder-help-title">
-				<h2 id="abmm-builder-help-title"><?php esc_html_e( 'Help & Recovery', 'ashbi-mega-menu' ); ?></h2>
-				<p>
-					<?php
-					printf(
-						/* translators: %s is the installed plugin version. */
-						esc_html__( 'Guidance for Ashbi Mega Menu %s.', 'ashbi-mega-menu' ),
-						esc_html( ABMM_VERSION )
-					);
-					?>
-				</p>
+				<h2 id="abmm-builder-help-title"><?php esc_html_e( 'Need help?', 'ashbi-mega-menu' ); ?></h2>
+				<ul class="abmm-help-links">
+					<li><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/getting-started.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Getting started guide', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
+					<li><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/user-guide.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Placement and troubleshooting', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>"><?php esc_html_e( 'Backups and import', 'ashbi-mega-menu' ); ?></a></li>
+					<li><a href="https://github.com/camster91/ashbi-mega-menu/issues/new" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Report a problem', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
+				</ul>
 				<details>
-					<summary><?php esc_html_e( 'Place this menu', 'ashbi-mega-menu' ); ?></summary>
-					<ol>
-						<li><?php esc_html_e( 'Save your menu and check every destination.', 'ashbi-mega-menu' ); ?></li>
-						<li><?php esc_html_e( 'For a block theme, open Appearance → Editor → Patterns → Header and insert the Ashbi Mega Menu block. For a classic theme, use a header widget area or add the shortcode in your page builder header.', 'ashbi-mega-menu' ); ?></li>
-						<li><?php esc_html_e( 'Choose this saved menu, preview your header on desktop and mobile, then remove the old navigation only after the replacement works.', 'ashbi-mega-menu' ); ?></li>
-					</ol>
-					<p><a href="<?php echo esc_url( 'https://github.com/camster91/ashbi-mega-menu/blob/main/docs/user-guide.md' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Read the header placement guide', 'ashbi-mega-menu' ); ?></a></p>
+					<summary><?php esc_html_e( 'A save failed?', 'ashbi-mega-menu' ); ?></summary>
+					<p><?php esc_html_e( 'Keep this tab open and press Retry. Your changes are also kept in this browser, so you can export them first if you need to.', 'ashbi-mega-menu' ); ?></p>
 				</details>
-				<details>
-					<summary><?php esc_html_e( 'Recover from a load or save problem', 'ashbi-mega-menu' ); ?></summary>
-					<ol>
-						<li><?php esc_html_e( 'Keep this browser tab open and use Retry if the save status reports a failure.', 'ashbi-mega-menu' ); ?></li>
-						<li><?php esc_html_e( 'Export the current menu before making additional changes.', 'ashbi-mega-menu' ); ?></li>
-						<li><?php esc_html_e( 'Return to All Menus to import a validated backup or recovery snapshot.', 'ashbi-mega-menu' ); ?></li>
-					</ol>
-				</details>
-				<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>"><?php esc_html_e( 'Manage menus and backups', 'ashbi-mega-menu' ); ?></a></p>
-				<p><a href="https://github.com/camster91/ashbi-mega-menu/issues/new" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Report a problem on GitHub (opens in a new tab)', 'ashbi-mega-menu' ); ?></a></p>
 			</section>
 			</div>
 		</aside>
 
 		<main class="abmm-builder__main">
 			<div class="abmm-editor-chrome">
-				<p class="abmm-editor-chrome__label"><?php esc_html_e( 'Live preview — choose a mega menu, then edit its content', 'ashbi-mega-menu' ); ?></p>
+				<p class="abmm-editor-chrome__label"><?php esc_html_e( 'Preview', 'ashbi-mega-menu' ); ?></p>
 				<button type="button" class="button abmm-builder-panel-toggle" aria-controls="abmm-builder-sidebar" aria-expanded="false">
 					<?php esc_html_e( 'Edit menu settings', 'ashbi-mega-menu' ); ?>
 				</button>
@@ -467,11 +449,21 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<button type="button" class="button" data-abmm-preview-viewport="tablet" aria-pressed="false"><?php esc_html_e( 'Tablet', 'ashbi-mega-menu' ); ?></button>
 					<button type="button" class="button" data-abmm-preview-viewport="mobile" aria-pressed="false"><?php esc_html_e( 'Mobile', 'ashbi-mega-menu' ); ?></button>
 				</div>
+				<div class="abmm-preview-zoom" role="group" aria-label="<?php esc_attr_e( 'Preview zoom', 'ashbi-mega-menu' ); ?>">
+					<button type="button" class="button" data-abmm-zoom="out" aria-label="<?php esc_attr_e( 'Zoom out', 'ashbi-mega-menu' ); ?>">&minus;</button>
+					<output class="abmm-preview-zoom__value" aria-live="polite">100%</output>
+					<button type="button" class="button" data-abmm-zoom="in" aria-label="<?php esc_attr_e( 'Zoom in', 'ashbi-mega-menu' ); ?>">+</button>
+					<button type="button" class="button" data-abmm-zoom="fit" aria-pressed="true"><?php esc_html_e( 'Fit', 'ashbi-mega-menu' ); ?></button>
+				</div>
 			</div>
 
 			<!-- Preview + inline editor -->
 			<div class="abmm-preview-shell" data-abmm-preview-viewport="desktop">
-				<div class="abmm-preview" id="abmm-preview" data-abmm-preview-state="desktop-root"></div>
+				<div class="abmm-preview-sizer">
+					<div class="abmm-preview-stage">
+						<div class="abmm-preview" id="abmm-preview" data-abmm-preview-state="desktop-root"></div>
+					</div>
+				</div>
 			</div>
 
 			<!-- Detail editor for selected mega item -->
@@ -482,25 +474,25 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				</div>
 
 				<div class="abmm-mega-style-picker" id="abmm-mega-style-picker">
-					<p class="abmm-mega-style-picker__label"><?php esc_html_e( 'Choose layout for this mega menu', 'ashbi-mega-menu' ); ?></p>
+					<p class="abmm-mega-style-picker__label"><?php esc_html_e( 'Layout', 'ashbi-mega-menu' ); ?></p>
 					<div class="abmm-mega-style-cards">
 						<button type="button" class="abmm-mega-style-card" data-style="platforms">
 							<span class="abmm-mega-style-card__preview abmm-mega-style-card__preview--platforms" aria-hidden="true">
 								<span></span><span></span>
 							</span>
-							<strong><?php esc_html_e( 'With category bar', 'ashbi-mega-menu' ); ?></strong>
-							<small><?php esc_html_e( 'Left/right sidebar categories (SPEND, SIGN…) + links grid', 'ashbi-mega-menu' ); ?></small>
+							<strong><?php esc_html_e( 'Categories + links', 'ashbi-mega-menu' ); ?></strong>
+							<small><?php esc_html_e( 'A list of categories, each with its own links', 'ashbi-mega-menu' ); ?></small>
 						</button>
 						<button type="button" class="abmm-mega-style-card" data-style="features">
 							<span class="abmm-mega-style-card__preview abmm-mega-style-card__preview--features" aria-hidden="true">
 								<span></span><span></span><span></span><span></span>
 							</span>
-							<strong><?php esc_html_e( 'Simple columns (no category bar)', 'ashbi-mega-menu' ); ?></strong>
-							<small><?php esc_html_e( 'Just icon + links in 2, 3, or 4 columns — like a Features mega menu', 'ashbi-mega-menu' ); ?></small>
+							<strong><?php esc_html_e( 'Simple columns', 'ashbi-mega-menu' ); ?></strong>
+							<small><?php esc_html_e( 'Links in 2, 3 or 4 columns', 'ashbi-mega-menu' ); ?></small>
 						</button>
 					</div>
 					<label class="abmm-field abmm-mega-columns-field">
-						<span><?php esc_html_e( 'Columns for this mega menu', 'ashbi-mega-menu' ); ?></span>
+						<span><?php esc_html_e( 'Columns', 'ashbi-mega-menu' ); ?></span>
 						<select id="abmm-mega-item-columns">
 							<option value="1">1</option>
 							<option value="2">2</option>
@@ -509,35 +501,35 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 						</select>
 					</label>
 					<div class="abmm-field abmm-category-bar-field" id="abmm-category-bar-field">
-						<span><?php esc_html_e( 'Category bar', 'ashbi-mega-menu' ); ?></span>
+						<span><?php esc_html_e( 'Category list', 'ashbi-mega-menu' ); ?></span>
 						<label class="abmm-checkbox-label">
 							<input type="checkbox" id="abmm-hide-category-bar" value="1" />
-							<?php esc_html_e( 'Hide the category bar and show labeled columns edge to edge', 'ashbi-mega-menu' ); ?>
+							<?php esc_html_e( 'Hide the category list and use the full width for columns', 'ashbi-mega-menu' ); ?>
 						</label>
-						<small class="description"><?php esc_html_e( 'Best for a single section such as Resources / Learn / Compare. The option is disabled when this item has more than one category.', 'ashbi-mega-menu' ); ?></small>
+						<small class="description"><?php esc_html_e( 'Available when there is only one category.', 'ashbi-mega-menu' ); ?></small>
 					</div>
 				</div>
 
 				<!-- Category-bar layout editor -->
 				<div class="abmm-mega-editor__layout" id="abmm-editor-platforms">
 					<div class="abmm-mega-editor__cats">
-						<h3><?php esc_html_e( 'Left Sidebar Categories', 'ashbi-mega-menu' ); ?></h3>
-						<p class="description"><?php esc_html_e( 'Like SPEND, SIGN, HR — icon + title + description.', 'ashbi-mega-menu' ); ?></p>
+						<h3><?php esc_html_e( 'Categories', 'ashbi-mega-menu' ); ?></h3>
+						<p class="description"><?php esc_html_e( 'Each category shows its own links when selected.', 'ashbi-mega-menu' ); ?></p>
 						<ul class="abmm-sortable abmm-cat-list" id="abmm-cat-list"></ul>
-						<button type="button" class="button abmm-add-category">+ <?php esc_html_e( 'Add Category', 'ashbi-mega-menu' ); ?></button>
+						<button type="button" class="button abmm-add-category">+ <?php esc_html_e( 'Add category', 'ashbi-mega-menu' ); ?></button>
 					</div>
 
 					<div class="abmm-mega-editor__cat-detail" id="abmm-cat-detail">
-						<p class="abmm-placeholder"><?php esc_html_e( 'Select a category on the left to edit its columns and links.', 'ashbi-mega-menu' ); ?></p>
+						<p class="abmm-placeholder"><?php esc_html_e( 'Select a category to edit its links.', 'ashbi-mega-menu' ); ?></p>
 					</div>
 				</div>
 
 				<!-- Features grid layout editor -->
 				<div class="abmm-mega-editor__features" id="abmm-editor-features" hidden>
-					<h3><?php esc_html_e( 'Feature Links', 'ashbi-mega-menu' ); ?></h3>
-					<p class="description"><?php esc_html_e( 'Add icon + label links. They appear in a simple column grid like a Features mega menu.', 'ashbi-mega-menu' ); ?></p>
+					<h3><?php esc_html_e( 'Links', 'ashbi-mega-menu' ); ?></h3>
+					<p class="description"><?php esc_html_e( 'Each link can have an icon and a short description.', 'ashbi-mega-menu' ); ?></p>
 					<ul class="abmm-sortable abmm-link-list" id="abmm-features-link-list"></ul>
-					<button type="button" class="button abmm-add-feature-link">+ <?php esc_html_e( 'Add Link', 'ashbi-mega-menu' ); ?></button>
+					<button type="button" class="button abmm-add-feature-link">+ <?php esc_html_e( 'Add link', 'ashbi-mega-menu' ); ?></button>
 				</div>
 			</div>
 		</main>
@@ -567,6 +559,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			<label class="screen-reader-text" for="abmm-icon-search"><?php esc_html_e( 'Search icons', 'ashbi-mega-menu' ); ?></label>
 			<input type="search" id="abmm-icon-search" class="abmm-icon-search" placeholder="<?php esc_attr_e( 'Search icons…', 'ashbi-mega-menu' ); ?>" autocomplete="off" />
 			<div class="abmm-icon-grid" id="abmm-icon-grid"></div>
+			<p id="abmm-icon-empty" class="abmm-icon-empty" role="status" hidden><?php esc_html_e( 'No icons match. Try another word, or upload your own icon.', 'ashbi-mega-menu' ); ?></p>
 			<div class="abmm-icon-upload">
 				<button type="button" class="button abmm-upload-icon"><?php esc_html_e( 'Upload custom icon', 'ashbi-mega-menu' ); ?></button>
 				<button type="button" class="button-link abmm-clear-icon"><?php esc_html_e( 'Clear icon', 'ashbi-mega-menu' ); ?></button>

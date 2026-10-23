@@ -155,8 +155,8 @@ class ABMM_Admin {
 					'archiveChecking' => __( 'Checking placements…', 'ashbi-mega-menu' ),
 					/* translators: %1$s: menu title. */
 					'archiveConfirmTitle' => __( 'Archive “%1$s”?', 'ashbi-mega-menu' ),
-					/* translators: 1: number of block placements, 2: number of widget placements. */
-					'archivePlacements' => __( 'Known placements: %1$d block(s), %2$d widget(s).', 'ashbi-mega-menu' ),
+					/* translators: 1: number of block placements, 2: number of widget placements, 3: number of shortcodes in pages. */
+					'archivePlacements' => __( 'Used in: %1$d block(s), %2$d widget(s), %3$d shortcode(s).', 'ashbi-mega-menu' ),
 					'archiveConfirm'  => __( 'Archive and keep recoverable', 'ashbi-mega-menu' ),
 					'archiveSuccess'  => __( 'Menu archived. It can be restored below.', 'ashbi-mega-menu' ),
 					'restoreSuccess'  => __( 'Menu restored with its original ID.', 'ashbi-mega-menu' ),
@@ -165,9 +165,9 @@ class ABMM_Admin {
 					'uploadIcon'      => __( 'Upload custom icon', 'ashbi-mega-menu' ),
 					'categoryTitle'   => __( 'Category title', 'ashbi-mega-menu' ),
 					'categoryDesc'    => __( 'Short description', 'ashbi-mega-menu' ),
-					'panelTitle'      => __( 'Panel heading (right side)', 'ashbi-mega-menu' ),
-					'panelUrl'        => __( 'Panel heading link URL', 'ashbi-mega-menu' ),
-					'groupUrl'        => __( 'Column heading link URL', 'ashbi-mega-menu' ),
+					'panelTitle'      => __( 'Heading (optional)', 'ashbi-mega-menu' ),
+					'panelUrl'        => __( 'Heading link (optional)', 'ashbi-mega-menu' ),
+					'groupUrl'        => __( 'Column heading link (optional)', 'ashbi-mega-menu' ),
 					'linkLabel'       => __( 'Link label', 'ashbi-mega-menu' ),
 					'linkUrl'         => __( 'Search or type URL', 'ashbi-mega-menu' ),
 					'selectLink'      => __( 'Select / edit link', 'ashbi-mega-menu' ),
@@ -203,11 +203,16 @@ class ABMM_Admin {
 					'checkDuplicate' => __( 'Rename duplicate top menu item "%s".', 'ashbi-mega-menu' ),
 					'checkDestination' => __( 'Add at least one labelled item with a real destination.', 'ashbi-mega-menu' ),
 					'checkCta' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ),
-					'checkPassed' => __( 'Configuration checks passed. Placement and live-site testing still need verification.', 'ashbi-mega-menu' ),
+					/* translators: %s: menu item label. */
+					'checkLong' => __( 'Shorten "%s" so it fits in the menu bar.', 'ashbi-mega-menu' ),
+					/* translators: %s: link label. */
+					'checkUrl' => __( 'Check the link for "%s". It does not look like a web address.', 'ashbi-mega-menu' ),
+					'checkPassed' => __( 'Ready to place.', 'ashbi-mega-menu' ),
 					/* translators: %s: item number, label, count, or formatted file size. */
-					'checkPending' => __( 'Draft: %s configuration check(s) need attention.', 'ashbi-mega-menu' ),
-					'placementUnsaved' => __( 'Save changes before placing this menu. Your shortcode currently uses the saved version.', 'ashbi-mega-menu' ),
-					'placementSaved' => __( 'This shortcode uses the saved version. Placement and real-page testing are still your next steps.', 'ashbi-mega-menu' ),
+					'checkPending' => __( '%s thing(s) to fix before you place this menu.', 'ashbi-mega-menu' ),
+					'placementUnsaved' => __( 'You have unsaved changes. Save first: the shortcode shows the saved version.', 'ashbi-mega-menu' ),
+					'placementSaved' => __( 'Copy the shortcode, or use the block or widget.', 'ashbi-mega-menu' ),
+					'placementDraft' => __( 'This menu still has items in its checklist. You can place it, but fix those first.', 'ashbi-mega-menu' ),
 					'importing' => __( 'Importing…', 'ashbi-mega-menu' ),
 					'preparingImport' => __( 'Preparing preview…', 'ashbi-mega-menu' ),
 					/* translators: %s: item number, label, count, or formatted file size. */
@@ -475,8 +480,9 @@ class ABMM_Admin {
 	 * @return array
 	 */
 	private function reference_summary( $menu_id ) {
-		$blocks  = 0;
-		$widgets = 0;
+		$blocks     = 0;
+		$widgets    = 0;
+		$shortcodes = 0;
 		$widget_options = get_option( 'widget_abmm_widget', array() );
 		foreach ( is_array( $widget_options ) ? $widget_options : array() as $instance ) {
 			if ( is_array( $instance ) && $menu_id === ( $instance['menu_id'] ?? '' ) ) {
@@ -501,16 +507,41 @@ class ABMM_Admin {
 				)
 			);
 			foreach ( $posts as $post ) {
-				$blocks += $this->count_menu_blocks( parse_blocks( $post->post_content ?? '' ), $menu_id );
+				$blocks     += $this->count_menu_blocks( parse_blocks( $post->post_content ?? '' ), $menu_id );
+				$shortcodes += $this->count_menu_shortcodes( (string) ( $post->post_content ?? '' ), $menu_id );
 			}
 		}
 
 		return array(
-			'blocks'  => $blocks,
-			'widgets' => $widgets,
-			'known'   => $blocks + $widgets,
-			'warning' => __( 'Shortcodes in text, templates, and PHP calls cannot be detected reliably. Check those placements before archiving.', 'ashbi-mega-menu' ),
+			'blocks'     => $blocks,
+			'widgets'    => $widgets,
+			'shortcodes' => $shortcodes,
+			'known'      => $blocks + $widgets + $shortcodes,
+			'warning'    => __( 'Menus placed in theme templates, page builders or PHP cannot be detected. Check those before archiving.', 'ashbi-mega-menu' ),
 		);
+	}
+
+	/**
+	 * Count [ashbi_mega_menu id="…"] shortcodes for one menu in post content.
+	 *
+	 * @param string $content Post content.
+	 * @param string $menu_id Menu ID.
+	 * @return int
+	 */
+	private function count_menu_shortcodes( $content, $menu_id ) {
+		if ( false === strpos( $content, '[ashbi_mega_menu' ) || ! function_exists( 'get_shortcode_regex' ) ) {
+			return 0;
+		}
+		$count = 0;
+		if ( preg_match_all( '/' . get_shortcode_regex( array( 'ashbi_mega_menu' ) ) . '/', $content, $matches, PREG_SET_ORDER ) ) {
+			foreach ( $matches as $match ) {
+				$atts = shortcode_parse_atts( $match[3] );
+				if ( is_array( $atts ) && isset( $atts['id'] ) && (string) $menu_id === (string) $atts['id'] ) {
+					++$count;
+				}
+			}
+		}
+		return $count;
 	}
 
 	/**

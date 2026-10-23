@@ -1,6 +1,6 @@
 # Compatibility and verification
 
-Requirements: WordPress 6.6+, PHP 8.2+, standard MySQL/MariaDB. SQLite editing is unsupported because collection writes require advisory locks. WordPress.org approval and broad production compatibility are not established by a passing build.
+Requirements: WordPress 6.6+, PHP 8.2+, standard MySQL/MariaDB. SQLite has not been tested. WordPress.org approval and broad production compatibility are not established by a passing build.
 
 ## Verified release candidate 1.0.4 — 2026-10-13
 

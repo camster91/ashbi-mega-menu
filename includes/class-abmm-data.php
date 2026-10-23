@@ -137,7 +137,27 @@ class ABMM_Data {
 	}
 
 	/**
-	 * Serialize writes to the shared menu option with a MySQL advisory lock.
+	 * Name of the options row that serializes collection writes on this site.
+	 */
+	const LOCK_OPTION = 'abmm_collection_lock';
+
+	/**
+	 * Seconds to wait for another save to finish before giving up.
+	 */
+	const LOCK_WAIT_SECONDS = 5;
+
+	/**
+	 * Seconds after which an abandoned lock (for example from a crashed request) is cleared.
+	 */
+	const LOCK_TTL_SECONDS = 60;
+
+	/**
+	 * Serialize writes to the shared menu option.
+	 *
+	 * The lock is a row in this site's options table, inserted atomically with
+	 * INSERT IGNORE like core's WP_Upgrader::create_lock(). Unlike a MySQL
+	 * advisory lock it is scoped to this site, works behind connection poolers
+	 * and expires on its own if a request dies while holding it.
 	 *
 	 * @param callable $callback Write operation.
 	 * @return mixed
@@ -149,17 +169,13 @@ class ABMM_Data {
 			return call_user_func( $callback );
 		}
 
-		if ( ! is_object( $wpdb ) || ! method_exists( $wpdb, 'get_var' ) || ! method_exists( $wpdb, 'prepare' ) ) {
+		if ( ! is_object( $wpdb ) || ! method_exists( $wpdb, 'query' ) || ! method_exists( $wpdb, 'prepare' ) ) {
 			return new WP_Error( 'abmm_save_lock_unavailable', __( 'The menu save lock is unavailable.', 'ashbi-mega-menu' ) );
 		}
 
-		$lock_name = 'abmm_menus_save_' . md5( (string) ( $wpdb->options ?? '' ) . '|' . ABMM_OPTION_KEY );
-		$acquired  = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory locks must run on this database connection and cannot be cached; the name is prepared.
-		if ( null === $acquired || false === $acquired ) {
-			return new WP_Error( 'abmm_save_lock_unavailable', __( 'The database could not provide the menu save lock. Your changes were not saved. This installation requires a database that supports MySQL advisory locks.', 'ashbi-mega-menu' ) );
-		}
-		if ( '1' !== (string) $acquired ) {
-			return new WP_Error( 'abmm_save_lock_timeout', __( 'Another menu save is in progress. Please try again.', 'ashbi-mega-menu' ) );
+		$token = $this->acquire_collection_lock();
+		if ( is_wp_error( $token ) ) {
+			return $token;
 		}
 
 		$this->lock_owned = true;
@@ -171,8 +187,41 @@ class ABMM_Data {
 			return call_user_func( $callback );
 		} finally {
 			$this->lock_owned = false;
-			$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Advisory locks must run on this database connection and cannot be cached; the name is prepared.
+			// Delete only our own lock row, never one another request took over after expiry.
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", self::LOCK_OPTION, $token ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Atomic compare-and-delete of the lock row; the table name is core-owned.
 		}
+	}
+
+	/**
+	 * Insert the lock row, waiting briefly for another save and clearing an expired lock.
+	 *
+	 * @return string|WP_Error Lock token, or an error.
+	 */
+	private function acquire_collection_lock() {
+		global $wpdb;
+
+		$deadline = microtime( true ) + self::LOCK_WAIT_SECONDS;
+		do {
+			$token    = ( time() + self::LOCK_TTL_SECONDS ) . '|' . wp_generate_uuid4();
+			$inserted = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'no' )", self::LOCK_OPTION, $token ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Atomic lock insert, as in core's WP_Upgrader::create_lock(); the table name is core-owned.
+			if ( false === $inserted || null === $inserted ) {
+				return new WP_Error( 'abmm_save_lock_unavailable', __( 'The database could not provide the menu save lock. Your changes were not saved. Try again, or ask your host to check the database.', 'ashbi-mega-menu' ) );
+			}
+			if ( (int) $inserted > 0 ) {
+				return $token;
+			}
+
+			$current = (string) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", self::LOCK_OPTION ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The lock row must be read uncached; the table name is core-owned.
+			$expires = (int) strtok( $current, '|' );
+			if ( '' !== $current && $expires < time() ) {
+				// A request died while saving. Clear its lock, but only if nobody replaced it meanwhile.
+				$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s", self::LOCK_OPTION, $current ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Atomic compare-and-delete of an expired lock row; the table name is core-owned.
+				continue;
+			}
+			usleep( 100000 );
+		} while ( microtime( true ) < $deadline );
+
+		return new WP_Error( 'abmm_save_lock_timeout', __( 'Another menu save is in progress. Please try again.', 'ashbi-mega-menu' ) );
 	}
 
 	/**
@@ -400,7 +449,71 @@ class ABMM_Data {
 		if ( ! empty( $menu['cta']['show'] ) && ! $usable_link( $menu['cta'] ) ) {
 			$issues[] = array( 'field' => 'abmm-cta-url', 'message' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ) );
 		}
+		foreach ( $menu['items'] ?? array() as $item ) {
+			$label = trim( (string) ( $item['label'] ?? '' ) );
+			$length = function_exists( 'mb_strlen' ) ? mb_strlen( $label, 'UTF-8' ) : strlen( $label );
+			if ( $length > self::MAX_BAR_LABEL_LENGTH ) {
+				$short = ( function_exists( 'mb_substr' ) ? mb_substr( $label, 0, 24, 'UTF-8' ) : substr( $label, 0, 24 ) ) . '…';
+				/* translators: %s: the start of a menu item label. */
+				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Shorten "%s" so it fits in the menu bar.', 'ashbi-mega-menu' ), $short ) );
+			}
+		}
+		foreach ( $this->menu_links( $menu ) as $link ) {
+			if ( $this->looks_like_broken_url( $link['url'] ?? '' ) ) {
+				/* translators: %s: link label. */
+				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Check the link for "%s". It does not look like a web address.', 'ashbi-mega-menu' ), $link['label'] ?? '' ) );
+			}
+		}
 		return array( 'ready' => empty( $issues ), 'issues' => $issues );
+	}
+
+	/**
+	 * Longest top-level label that reliably fits in a menu bar.
+	 */
+	const MAX_BAR_LABEL_LENGTH = 40;
+
+	/**
+	 * Every labelled link in a menu: top-level links, mega links and the CTA.
+	 *
+	 * @param array $menu Menu payload.
+	 * @return array
+	 */
+	private function menu_links( $menu ) {
+		$links = array();
+		foreach ( $menu['items'] ?? array() as $item ) {
+			if ( 'mega' !== ( $item['type'] ?? 'link' ) ) {
+				$links[] = $item;
+				continue;
+			}
+			foreach ( $item['links'] ?? array() as $link ) { $links[] = $link; }
+			foreach ( $item['categories'] ?? array() as $category ) {
+				foreach ( $category['groups'] ?? array() as $group ) {
+					foreach ( $group['links'] ?? array() as $link ) { $links[] = $link; }
+				}
+			}
+		}
+		if ( ! empty( $menu['cta']['show'] ) ) {
+			$links[] = $menu['cta'];
+		}
+		return $links;
+	}
+
+	/**
+	 * Whether a saved URL was probably typed as plain text, such as "about" saved as http://about.
+	 *
+	 * @param string $url Saved URL.
+	 * @return bool
+	 */
+	public function looks_like_broken_url( $url ) {
+		$url = trim( (string) $url );
+		if ( '' === $url || '#' === $url[0] || '/' === $url[0] || '?' === $url[0] ) {
+			return false;
+		}
+		if ( ! preg_match( '#^https?://([^/?\#:]*)#i', $url, $match ) ) {
+			return false;
+		}
+		$host = strtolower( rawurldecode( $match[1] ) );
+		return '' === $host || false !== strpos( $host, ' ' ) || ( false === strpos( $host, '.' ) && 'localhost' !== $host );
 	}
 
 	/**
@@ -632,9 +745,15 @@ class ABMM_Data {
 		if ( null === $menu ) {
 			return new WP_Error( 'abmm_menu_not_found', __( 'Menu not found.', 'ashbi-mega-menu' ) );
 		}
-		$copy   = $this->duplicate_menu_data( $menu, sprintf(
-/* translators: %s: Original menu title. */
-__( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
+		/* translators: %s: Original menu title. */
+		$title = sprintf( __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] );
+		// Number repeated copies so the dashboard, block and widget lists can tell them apart.
+		$titles = array_column( $this->get_all(), 'title' );
+		$unique = $title;
+		for ( $n = 2; in_array( $unique, $titles, true ); $n++ ) {
+			$unique = $title . ' ' . $n;
+		}
+		$copy   = $this->duplicate_menu_data( $menu, $unique );
 		$new_id = $this->unique_menu_id( $id . '-copy' );
 		$saved = $this->save( $new_id, $copy );
 		if ( is_wp_error( $saved ) ) { return $saved; }
@@ -774,11 +893,11 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
 			$grid = 3;
 		}
 
-		$panel_width   = min( 1400, max( 640, absint( $this->scalar_string( $s['panel_width'] ?? 0 ) ) ) );
-		$sidebar_width = min( 420, max( 180, absint( $this->scalar_string( $s['sidebar_width'] ?? 0 ) ) ) );
-		$radius        = min( 24, max( 0, absint( $this->scalar_string( $s['border_radius'] ?? 0 ) ) ) );
-		$icon_size     = min( 64, max( 12, absint( $this->scalar_string( $s['icon_size'] ?? 0 ) ) ) );
-		$icon_radius   = min( 24, max( 0, absint( $this->scalar_string( $s['icon_radius'] ?? 0 ) ) ) );
+		$panel_width   = min( 1400, max( 640, intval( $this->scalar_string( $s['panel_width'] ?? 0 ) ) ) );
+		$sidebar_width = min( 420, max( 180, intval( $this->scalar_string( $s['sidebar_width'] ?? 0 ) ) ) );
+		$radius        = min( 24, max( 0, intval( $this->scalar_string( $s['border_radius'] ?? 0 ) ) ) );
+		$icon_size     = min( 64, max( 12, intval( $this->scalar_string( $s['icon_size'] ?? 0 ) ) ) );
+		$icon_radius   = min( 24, max( 0, intval( $this->scalar_string( $s['icon_radius'] ?? 0 ) ) ) );
 
 		$menu = array(
 			'title'    => $this->sanitize_text( $data['title'] ?? '' ),
@@ -796,7 +915,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
 				'logo_url'      => $this->sanitize_menu_url( $brand['logo_url'] ?? '' ),
 				'logo_dark_url' => $this->sanitize_menu_url( $brand['logo_dark_url'] ?? '' ),
 				'alt'           => $this->sanitize_text( $brand['alt'] ?? '' ),
-				'logo_height'   => min( 80, max( 16, absint( $this->scalar_string( $brand['logo_height'] ?? 40 ) ) ) ),
+				'logo_height'   => min( 80, max( 16, intval( $this->scalar_string( $brand['logo_height'] ?? 40 ) ) ) ),
 			),
 			'context'  => array(
 				'show'  => ! empty( $context['show'] ),
@@ -813,7 +932,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
 				'panel_bg'          => $this->sanitize_color( $s['panel_bg'] ) ?: $defaults['panel_bg'],
 				'header_bg'         => $this->sanitize_color( $s['header_bg'] ) ?: $defaults['header_bg'],
 				'header_transparent' => ! empty( $s['header_transparent'] ),
-				'header_z_index'    => min( 99999, max( 0, absint( $this->scalar_string( $s['header_z_index'] ?? $defaults['header_z_index'] ) ) ) ),
+				'header_z_index'    => min( 99999, max( 0, intval( $this->scalar_string( $s['header_z_index'] ?? $defaults['header_z_index'] ) ) ) ),
 				'accent'            => $this->sanitize_color( $s['accent'] ) ?: $defaults['accent'],
 				'text_color'        => $this->sanitize_color( $s['text_color'] ) ?: $defaults['text_color'],
 				'nav_link_color'    => $this->sanitize_color( $s['nav_link_color'] ?? '' ) ?: ( $this->sanitize_color( $s['text_color'] ) ?: $defaults['nav_link_color'] ),
@@ -983,16 +1102,16 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] ) );
 	 */
 	private function sanitize_icon_overrides( $source ) {
 		$source = is_array( $source ) ? $source : array();
-		$size   = absint( $this->scalar_string( $source['icon_size'] ?? 0 ) );
+		$size   = intval( $this->scalar_string( $source['icon_size'] ?? 0 ) );
 		$radius = isset( $source['icon_radius'] ) && '' !== $source['icon_radius']
-			? min( 24, max( 0, absint( $this->scalar_string( $source['icon_radius'] ) ) ) )
+			? min( 24, max( 0, intval( $this->scalar_string( $source['icon_radius'] ) ) ) )
 			: '';
 
 		return array(
 			'icon_color'        => $this->sanitize_color( $source['icon_color'] ?? '' ) ?: '',
 			'icon_hover_color'  => $this->sanitize_color( $source['icon_hover_color'] ?? '' ) ?: '',
 			'icon_active_color' => $this->sanitize_color( $source['icon_active_color'] ?? '' ) ?: '',
-			'icon_size'         => $size ? min( 64, max( 12, $size ) ) : 0,
+			'icon_size'         => $size > 0 ? min( 64, max( 12, $size ) ) : 0,
 			'icon_background'   => $this->sanitize_color( $source['icon_background'] ?? '' ) ?: '',
 			'icon_border_color' => $this->sanitize_color( $source['icon_border_color'] ?? '' ) ?: '',
 			'icon_radius'       => $radius,

@@ -9,6 +9,17 @@ function abmm_test_assert( $condition, $message ) {
 }
 abmm_test_assert( class_exists( 'ABMM_Data' ), 'Plugin must be active.' );
 $data = ABMM_Data::instance();
+
+$clamped = $data->sanitize_menu( array(
+	'title'    => 'Numbers',
+	'items'    => array(),
+	'brand'    => array( 'logo_height' => '-999' ),
+	'settings' => array( 'icon_size' => '-999', 'icon_radius' => '-999', 'header_z_index' => '-999', 'panel_width' => '-999', 'sidebar_width' => '-999', 'border_radius' => '-999' ),
+) );
+$cs = $clamped['settings'];
+abmm_test_assert( 12 === $cs['icon_size'] && 0 === $cs['icon_radius'] && 0 === $cs['header_z_index'], 'Negative icon and z-index values clamp to the minimum.' );
+abmm_test_assert( 640 === $cs['panel_width'] && 180 === $cs['sidebar_width'] && 0 === $cs['border_radius'], 'Negative widths and radius clamp to the minimum.' );
+abmm_test_assert( 16 === $clamped['brand']['logo_height'], 'Negative logo height clamps to the minimum.' );
 $id = $data->create( 'Smoke test' );
 abmm_test_assert( is_string( $id ), 'Create a menu.' );
 $menu = $data->get( $id );
@@ -40,14 +51,23 @@ unlink( $cli_file );
 abmm_test_assert( $data->get( $id ) === $menu, 'CLI roundtrip preserves menu.' );
 // Every path touching the shared collection must serialize against the same lock.
 $other_db = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
-$lock_name = 'abmm_menus_save_' . md5( $wpdb->options . '|' . ABMM_OPTION_KEY );
-abmm_test_assert( '1' === (string) $other_db->get_var( $other_db->prepare( 'SELECT GET_LOCK(%s, 0)', $lock_name ) ), 'Second database connection acquires collection lock.' );
+$other_db->set_prefix( $wpdb->prefix );
+$held = ( time() + 60 ) . '|other-request';
+abmm_test_assert( 1 === (int) $other_db->query( $other_db->prepare( "INSERT INTO {$other_db->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'no' )", ABMM_Data::LOCK_OPTION, $held ) ), 'Second database connection takes the collection lock.' );
 $locked = $data->create( 'Must not be written while locked' );
 abmm_test_assert( is_wp_error( $locked ) && 'abmm_save_lock_timeout' === $locked->get_error_code(), 'Create respects a competing connection lock.' );
-$other_db->get_var( $other_db->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) );
+// A lock left by a request that died must expire instead of blocking saves forever.
+$other_db->query( $other_db->prepare( "UPDATE {$other_db->options} SET option_value = %s WHERE option_name = %s", ( time() - 1 ) . '|crashed-request', ABMM_Data::LOCK_OPTION ) );
+$recovered = $data->create( 'Saved after an expired lock' );
+abmm_test_assert( is_string( $recovered ), 'An expired lock is cleared and the save succeeds.' );
+abmm_test_assert( null === $other_db->get_var( $other_db->prepare( "SELECT option_value FROM {$other_db->options} WHERE option_name = %s", ABMM_Data::LOCK_OPTION ) ), 'The lock row is removed after the save.' );
+$data->delete( $recovered );
 $other_db->close();
 $copy_id = $data->duplicate( $id );
 abmm_test_assert( is_string( $copy_id ), 'Duplicate succeeds without nested lock deadlock.' );
+$second_copy_id = $data->duplicate( $id );
+abmm_test_assert( is_string( $second_copy_id ) && $data->get( $copy_id )['title'] !== $data->get( $second_copy_id )['title'], 'Repeated duplicates get distinct names.' );
+$data->delete( $second_copy_id );
 abmm_test_assert( true === $data->archive( $copy_id ) && null === $data->get( $copy_id ), 'Archive removes active copy.' );
 abmm_test_assert( true === $data->restore( $copy_id ) && null !== $data->get( $copy_id ), 'Archived copy restores.' );
 $collection_before_import = $data->get_all();
