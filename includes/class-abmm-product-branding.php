@@ -36,7 +36,6 @@ class ABMM_Product_Branding {
 		add_action( 'admin_menu', array( $this, 'register_page' ), 25 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'admin_post_abmm_save_product_branding', array( $this, 'save' ) );
-		add_action( 'admin_notices', array( $this, 'product_navigation_notice' ) );
 		add_filter( 'option_' . ABMM_OPTION_KEY, array( $this, 'filter_menus_for_product_brand' ), 20 );
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 	}
@@ -285,21 +284,18 @@ class ABMM_Product_Branding {
 			array(),
 			ABMM_VERSION
 		);
-		wp_enqueue_script(
-			'abmm-product-branding-admin',
-			ABMM_PLUGIN_URL . 'assets/js/product-branding-admin.js',
-			array(),
-			ABMM_VERSION,
-			true
-		);
-		wp_localize_script(
-			'abmm-product-branding-admin',
-			'abmmProductBranding',
-			array(
-				'mediaTitle'  => __( 'Choose a product lockup', 'ashbi-mega-menu' ),
-				'mediaButton' => __( 'Use this image', 'ashbi-mega-menu' ),
-			)
-		);
+		ABMM_Product_Profiles::enqueue_admin_script();
+	}
+
+	/**
+	 * The product's own logo, for previews in the admin. Empty when it has none.
+	 *
+	 * @param string $profile_id Profile ID.
+	 * @return string
+	 */
+	public function logo_preview_url( $profile_id ) {
+		$config = $this->get( $profile_id );
+		return $this->attachment_url( $config['logo_attachment_id'], $config['logo_url'] );
 	}
 
 	/**
@@ -311,7 +307,7 @@ class ABMM_Product_Branding {
 		}
 
 		$profiles = ABMM_Product_Profiles::instance()->get_all();
-		$notice = $this->notice_state();
+		$notice   = $this->notice_state();
 		$menus    = ABMM_Data::instance()->get_all();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$selected = isset( $_GET['profile'] ) ? sanitize_key( wp_unslash( $_GET['profile'] ) ) : '';
@@ -319,30 +315,27 @@ class ABMM_Product_Branding {
 			$selected = (string) array_key_first( $profiles );
 		}
 
-		$profile = $profiles[ $selected ] ?? null;
-		$config  = $this->get( $selected );
-		$revision = ABMM_Option_Store::revision( $this->get_all()[ $selected ] ?? null );
+		$profile          = $profiles[ $selected ] ?? null;
+		$config           = $this->get( $selected );
+		$revision         = ABMM_Option_Store::revision( $this->get_all()[ $selected ] ?? null );
 		$profile_revision = ABMM_Option_Store::revision( $profile );
-		$draft = ABMM_Option_Store::draft( 'ashbi-mega-menu-product-branding' );
-		if ( $draft && $selected === $draft['id'] ) { $config = $this->sanitize_config( $draft['record'] ); }
-		$states  = $this->profile_states( $profiles, $menus );
-		$primary = $this->attachment_url( $config['logo_attachment_id'], $config['logo_url'] );
-		$dark    = $this->attachment_url( $config['logo_dark_attachment_id'], $config['logo_dark_url'] );
-		$wordmark = $this->attachment_url( $config['wordmark_attachment_id'], $config['wordmark_url'] );
-		$wordmark_dark = $this->attachment_url( $config['wordmark_dark_attachment_id'], $config['wordmark_dark_url'] );
+		$draft            = ABMM_Option_Store::draft( 'ashbi-mega-menu-product-branding' );
+		if ( $draft && $selected === $draft['id'] ) {
+			$config = $this->sanitize_config( $draft['record'] );
+		}
+		$states           = $this->profile_states( $profiles, $menus );
+		$primary          = $this->attachment_url( $config['logo_attachment_id'], $config['logo_url'] );
+		$dark             = $this->attachment_url( $config['logo_dark_attachment_id'], $config['logo_dark_url'] );
+		$wordmark         = $this->attachment_url( $config['wordmark_attachment_id'], $config['wordmark_url'] );
+		$wordmark_dark    = $this->attachment_url( $config['wordmark_dark_attachment_id'], $config['wordmark_dark_url'] );
+		$abmm_page_header = array(
+			'title'   => __( 'Product Branding', 'ashbi-mega-menu' ),
+			'intro'   => __( 'Show a product\'s own logo in the menu on that product\'s pages.', 'ashbi-mega-menu' ),
+			'current' => 'branding',
+		);
 		?>
 		<div class="wrap abmm-branding-admin">
 			<?php require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php'; ?>
-			<div class="abmm-branding-admin__hero">
-				<div>
-					<h1><?php esc_html_e( 'Product Branding', 'ashbi-mega-menu' ); ?></h1>
-					<p><?php esc_html_e( 'Show a product\'s own logo in the menu on that product\'s pages.', 'ashbi-mega-menu' ); ?></p>
-				</div>
-				<div class="abmm-branding-admin__hero-actions">
-					<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Products', 'ashbi-mega-menu' ); ?></a>
-					<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-coverage' ) ); ?>"><?php esc_html_e( 'Page coverage', 'ashbi-mega-menu' ); ?></a>
-				</div>
-			</div>
 
 			<?php if ( $draft ) : ?><div class="notice notice-error"><p><?php echo esc_html( $draft['error'] ); ?> <?php esc_html_e( 'Your changes are kept below. Check them, then save again.', 'ashbi-mega-menu' ); ?></p></div><?php endif; ?>
 			<?php if ( $notice['updated'] ) : ?>
@@ -353,36 +346,57 @@ class ABMM_Product_Branding {
 			<?php endif; ?>
 
 			<?php if ( empty( $profiles ) ) : ?>
-				<div class="abmm-branding-admin__empty">
-					<h2><?php esc_html_e( 'Add a product first', 'ashbi-mega-menu' ); ?></h2>
-					<p><?php esc_html_e( 'Product logos are set per product. Add a product first.', 'ashbi-mega-menu' ); ?></p>
+				<div class="abmm-product-empty abmm-product-empty--page">
+					<span class="abmm-product-empty__icon dashicons dashicons-format-image" aria-hidden="true"></span>
+					<strong><?php esc_html_e( 'Add a product first', 'ashbi-mega-menu' ); ?></strong>
+					<p><?php esc_html_e( 'Product logos are set per product. Add a product, then come back to give it its own logo.', 'ashbi-mega-menu' ); ?></p>
 					<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Add a product', 'ashbi-mega-menu' ); ?></a>
 				</div>
 			<?php else : ?>
 				<div class="abmm-branding-admin__summary" aria-label="<?php esc_attr_e( 'Product branding readiness', 'ashbi-mega-menu' ); ?>">
-					<span><strong><?php echo esc_html( count( $profiles ) ); ?></strong><?php esc_html_e( 'products', 'ashbi-mega-menu' ); ?></span>
-					<span><strong><?php echo esc_html( $states['ready'] ); ?></strong><?php esc_html_e( 'ready', 'ashbi-mega-menu' ); ?></span>
-					<span><strong><?php echo esc_html( $states['off'] ); ?></strong><?php esc_html_e( 'using shared logo', 'ashbi-mega-menu' ); ?></span>
-					<span><strong><?php echo esc_html( $states['attention'] ); ?></strong><?php esc_html_e( 'need attention', 'ashbi-mega-menu' ); ?></span>
+					<span><strong><?php echo esc_html( number_format_i18n( count( $profiles ) ) ); ?></strong><?php esc_html_e( 'products', 'ashbi-mega-menu' ); ?></span>
+					<span class="is-ready"><strong><?php echo esc_html( number_format_i18n( $states['ready'] ) ); ?></strong><?php esc_html_e( 'ready', 'ashbi-mega-menu' ); ?></span>
+					<span class="is-off"><strong><?php echo esc_html( number_format_i18n( $states['off'] ) ); ?></strong><?php esc_html_e( 'using shared logo', 'ashbi-mega-menu' ); ?></span>
+					<span class="<?php echo $states['attention'] ? 'is-attention' : ''; ?>"><strong><?php echo esc_html( number_format_i18n( $states['attention'] ) ); ?></strong><?php esc_html_e( 'need attention', 'ashbi-mega-menu' ); ?></span>
 				</div>
 
 				<div class="abmm-branding-admin__layout">
-					<nav class="abmm-branding-admin__profiles" aria-label="<?php esc_attr_e( 'Product profiles', 'ashbi-mega-menu' ); ?>">
-						<h2><?php esc_html_e( 'Products', 'ashbi-mega-menu' ); ?></h2>
-						<ul>
+					<nav class="abmm-branding-admin__profiles" aria-labelledby="abmm-branding-products-title">
+						<div class="abmm-section-head">
+							<h2 id="abmm-branding-products-title"><?php esc_html_e( 'Products', 'ashbi-mega-menu' ); ?></h2>
+							<span class="abmm-count"><?php echo esc_html( number_format_i18n( count( $profiles ) ) ); ?></span>
+						</div>
+						<ul class="abmm-product-cards">
 						<?php foreach ( $profiles as $profile_id => $item ) : ?>
-							<?php $state = $this->profile_state( $profile_id, $item, $menus ); ?>
-							<li>
-								<a class="<?php echo $profile_id === $selected ? 'is-current' : ''; ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-product-branding&profile=' . rawurlencode( $profile_id ) ) ); ?>"<?php echo $profile_id === $selected ? ' aria-current="page"' : ''; ?>>
-									<span><strong><?php echo esc_html( $item['label'] ?: $item['title'] ?: $profile_id ); ?></strong><small><?php echo esc_html( $state['label'] ); ?></small></span>
-									<i class="abmm-branding-status abmm-branding-status--<?php echo esc_attr( $state['key'] ); ?>" aria-hidden="true"></i>
-								</a>
+							<?php
+							$state      = $this->profile_state( $profile_id, $item, $menus );
+							$item_title = $item['label'] ?: $item['title'] ?: $profile_id;
+							$item_logo  = $this->logo_preview_url( $profile_id );
+							$status_key = array(
+								'ready'   => 'ready',
+								'off'     => 'off',
+								'warning' => 'draft',
+							);
+							?>
+							<li class="abmm-product-card<?php echo $profile_id === $selected ? ' is-selected' : ''; ?>">
+								<span class="abmm-product-card__avatar<?php echo '' !== $item_logo ? ' has-logo' : ''; ?>" aria-hidden="true">
+									<?php if ( '' !== $item_logo ) : ?>
+										<img src="<?php echo esc_url( $item_logo ); ?>" alt="" />
+									<?php else : ?>
+										<?php echo esc_html( function_exists( 'mb_substr' ) ? mb_strtoupper( mb_substr( $item_title, 0, 1 ) ) : strtoupper( substr( $item_title, 0, 1 ) ) ); ?>
+									<?php endif; ?>
+								</span>
+								<div class="abmm-product-card__body">
+									<a class="abmm-product-card__title" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-product-branding&profile=' . rawurlencode( $profile_id ) ) ); ?>"<?php echo $profile_id === $selected ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $item_title ); ?></a>
+									<span class="abmm-status abmm-status--<?php echo esc_attr( $status_key[ $state['key'] ] ?? 'draft' ); ?>"><?php echo esc_html( $state['label'] ); ?></span>
+								</div>
 							</li>
 						<?php endforeach; ?>
 						</ul>
 					</nav>
 
 					<?php if ( $profile ) : ?>
+						<?php $current_state = $this->profile_state( $selected, $profile, $menus ); ?>
 						<form class="abmm-branding-admin__form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<?php wp_nonce_field( 'abmm_save_product_branding' ); ?>
 							<input type="hidden" name="action" value="abmm_save_product_branding" />
@@ -391,75 +405,80 @@ class ABMM_Product_Branding {
 							<input type="hidden" name="profile_revision" value="<?php echo esc_attr( $profile_revision ); ?>" />
 
 							<div class="abmm-branding-admin__form-head">
-								<div><h2><?php echo esc_html( $profile['label'] ?: $profile['title'] ); ?></h2></div>
+								<div>
+									<p class="abmm-profile-admin__form-eyebrow"><?php esc_html_e( 'Branding for', 'ashbi-mega-menu' ); ?></p>
+									<h2><?php echo esc_html( $profile['label'] ?: $profile['title'] ); ?></h2>
+								</div>
+								<span class="abmm-status abmm-status--<?php echo esc_attr( array( 'ready' => 'ready', 'off' => 'off' )[ $current_state['key'] ] ?? 'draft' ); ?>"><?php echo esc_html( $current_state['label'] ); ?></span>
 							</div>
 
-							<label class="abmm-branding-admin__toggle">
-								<input type="checkbox" name="branding[enabled]" value="1" <?php checked( ! empty( $config['enabled'] ) ); ?> />
-								<span><strong><?php esc_html_e( 'Use a product logo', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Shown on this product\'s pages.', 'ashbi-mega-menu' ); ?></small></span>
+							<label class="abmm-branding-admin__toggle abmm-switch-row">
+								<input class="abmm-switch" type="checkbox" name="branding[enabled]" value="1" <?php checked( ! empty( $config['enabled'] ) ); ?> />
+								<span><strong><?php esc_html_e( 'Use a product logo', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Shown on this product\'s pages. Other pages keep your main logo.', 'ashbi-mega-menu' ); ?></small></span>
 							</label>
+
 							<fieldset>
-							<legend><?php esc_html_e( 'Logo style', 'ashbi-mega-menu' ); ?></legend>
-							<label for="abmm-branding-mode" class="screen-reader-text"><?php esc_html_e( 'Logo style', 'ashbi-mega-menu' ); ?></label>
-							<select id="abmm-branding-mode" name="branding[mode]" data-abmm-branding-mode>
-								<option value="image" <?php selected( $config['mode'], 'image' ); ?>><?php esc_html_e( 'One combined logo image', 'ashbi-mega-menu' ); ?></option>
-								<option value="product_text" <?php selected( $config['mode'], 'product_text' ); ?>><?php esc_html_e( 'Shared logo + product name', 'ashbi-mega-menu' ); ?></option>
-							</select>
-							<p class="description"><?php esc_html_e( '"Shared logo + product name" keeps your main logo and adds the product name after it.', 'ashbi-mega-menu' ); ?></p>
+								<legend><?php esc_html_e( 'Logo style', 'ashbi-mega-menu' ); ?></legend>
+								<p><?php esc_html_e( '"Shared logo + product name" keeps your main logo and adds the product name after it.', 'ashbi-mega-menu' ); ?></p>
+								<label for="abmm-branding-mode" class="screen-reader-text"><?php esc_html_e( 'Logo style', 'ashbi-mega-menu' ); ?></label>
+								<select id="abmm-branding-mode" name="branding[mode]" data-abmm-branding-mode>
+									<option value="image" <?php selected( $config['mode'], 'image' ); ?>><?php esc_html_e( 'One combined logo image', 'ashbi-mega-menu' ); ?></option>
+									<option value="product_text" <?php selected( $config['mode'], 'product_text' ); ?>><?php esc_html_e( 'Shared logo + product name', 'ashbi-mega-menu' ); ?></option>
+								</select>
 							</fieldset>
 
 							<fieldset>
 								<legend><?php esc_html_e( 'Menu', 'ashbi-mega-menu' ); ?></legend>
-								<label for="abmm-product-brand-menu"><?php esc_html_e( 'Show it in this menu', 'ashbi-mega-menu' ); ?></label>
+								<p><?php esc_html_e( 'The menu that shows the product logo. The logo links to the product page.', 'ashbi-mega-menu' ); ?></p>
+								<label for="abmm-product-brand-menu" class="screen-reader-text"><?php esc_html_e( 'Show it in this menu', 'ashbi-mega-menu' ); ?></label>
 								<select id="abmm-product-brand-menu" name="branding[shared_menu_id]">
 									<option value=""><?php esc_html_e( 'Choose a menu', 'ashbi-mega-menu' ); ?></option>
 									<?php foreach ( $menus as $menu_id => $menu ) : ?>
 										<option value="<?php echo esc_attr( $menu_id ); ?>" <?php selected( $config['shared_menu_id'], $menu_id ); ?>><?php echo esc_html( $menu['title'] ?? $menu_id ); ?></option>
 									<?php endforeach; ?>
 								</select>
-								<p class="description"><?php esc_html_e( 'The logo links to the product page.', 'ashbi-mega-menu' ); ?></p>
 							</fieldset>
 
 							<fieldset data-abmm-image-branding>
 								<legend><?php esc_html_e( 'Logo', 'ashbi-mega-menu' ); ?></legend>
-								<div class="abmm-branding-admin__preview" data-abmm-brand-preview<?php echo '' === $primary ? ' hidden' : ''; ?>>
-									<img src="<?php echo esc_url( $primary ); ?>" alt="" data-abmm-brand-preview-image />
-									<span><?php esc_html_e( 'Preview', 'ashbi-mega-menu' ); ?></span>
+								<p><?php esc_html_e( 'An SVG or a PNG with a transparent background looks sharpest.', 'ashbi-mega-menu' ); ?></p>
+								<div class="abmm-media-grid">
+									<?php $this->render_media_field( 'primary', __( 'Light menus', 'ashbi-mega-menu' ), __( 'Logo image URL', 'ashbi-mega-menu' ), $primary, $config['logo_attachment_id'], true ); ?>
+									<?php $this->render_media_field( 'dark', __( 'Dark menus (optional)', 'ashbi-mega-menu' ), __( 'Dark-menu logo image URL', 'ashbi-mega-menu' ), $dark, $config['logo_dark_attachment_id'], false ); ?>
 								</div>
-								<?php $this->render_media_field( 'primary', __( 'Logo image', 'ashbi-mega-menu' ), $primary, $config['logo_attachment_id'], true ); ?>
-								<?php $this->render_media_field( 'dark', __( 'Logo for dark menus (optional)', 'ashbi-mega-menu' ), $dark, $config['logo_dark_attachment_id'], false ); ?>
-								<div class="abmm-branding-admin__grid">
-									<label><?php esc_html_e( 'Alternative text', 'ashbi-mega-menu' ); ?><input class="regular-text" type="text" name="branding[alt]" value="<?php echo esc_attr( $config['alt'] ); ?>" placeholder="<?php esc_attr_e( 'site', 'ashbi-mega-menu' ); ?>" /><small><?php esc_html_e( 'Describe the logo for screen readers. Required.', 'ashbi-mega-menu' ); ?></small></label>
-									<label><?php esc_html_e( 'Logo height', 'ashbi-mega-menu' ); ?><span class="abmm-branding-admin__number"><input type="number" min="16" max="80" name="branding[logo_height]" value="<?php echo esc_attr( $config['logo_height'] ); ?>" /> px</span></label>
+								<div class="abmm-branding-admin__grid abmm-branding-admin__fields">
+									<label class="abmm-branding-admin__field abmm-branding-admin__field--grow"><?php esc_html_e( 'Alternative text', 'ashbi-mega-menu' ); ?><input class="regular-text" type="text" name="branding[alt]" value="<?php echo esc_attr( $config['alt'] ); ?>" placeholder="<?php esc_attr_e( 'e.g. Acme logo', 'ashbi-mega-menu' ); ?>" /><small><?php esc_html_e( 'Describe the logo for screen readers. Required.', 'ashbi-mega-menu' ); ?></small></label>
+									<label class="abmm-branding-admin__field"><?php esc_html_e( 'Logo height', 'ashbi-mega-menu' ); ?><span class="abmm-branding-admin__number"><input type="number" min="16" max="80" name="branding[logo_height]" value="<?php echo esc_attr( $config['logo_height'] ); ?>" /> <span>px</span></span><small><?php esc_html_e( 'Between 16 and 80.', 'ashbi-mega-menu' ); ?></small></label>
 								</div>
 							</fieldset>
 
 							<fieldset data-abmm-product-text-branding>
 								<legend><?php esc_html_e( 'Product wordmark', 'ashbi-mega-menu' ); ?></legend>
 								<p><?php esc_html_e( 'Optional. Use an image for the product name if it must match your logo\'s lettering.', 'ashbi-mega-menu' ); ?></p>
-								<?php $this->render_media_field( 'wordmark', __( 'Primary product wordmark', 'ashbi-mega-menu' ), $wordmark, $config['wordmark_attachment_id'], false ); ?>
-								<?php $this->render_media_field( 'wordmark-dark', __( 'Dark-header product wordmark (optional)', 'ashbi-mega-menu' ), $wordmark_dark, $config['wordmark_dark_attachment_id'], false ); ?>
-								<div class="abmm-branding-admin__grid">
-									<label><?php esc_html_e( 'Wordmark height', 'ashbi-mega-menu' ); ?><span class="abmm-branding-admin__number"><input type="number" min="16" max="80" name="branding[wordmark_height]" value="<?php echo esc_attr( $config['wordmark_height'] ); ?>" /> px</span><small><?php esc_html_e( 'Usually the same height as your main logo.', 'ashbi-mega-menu' ); ?></small></label>
-									<label><?php esc_html_e( 'Desktop menu behavior', 'ashbi-mega-menu' ); ?><select name="branding[desktop_interaction]"><option value="hover" <?php selected( $config['desktop_interaction'], 'hover' ); ?>><?php esc_html_e( 'Open on hover and click', 'ashbi-mega-menu' ); ?></option><option value="click" <?php selected( $config['desktop_interaction'], 'click' ); ?>><?php esc_html_e( 'Open and close on click', 'ashbi-mega-menu' ); ?></option></select></label>
+								<div class="abmm-media-grid">
+									<?php $this->render_media_field( 'wordmark', __( 'Light menus', 'ashbi-mega-menu' ), __( 'Wordmark image URL', 'ashbi-mega-menu' ), $wordmark, $config['wordmark_attachment_id'], false ); ?>
+									<?php $this->render_media_field( 'wordmark-dark', __( 'Dark menus (optional)', 'ashbi-mega-menu' ), __( 'Dark-menu wordmark image URL', 'ashbi-mega-menu' ), $wordmark_dark, $config['wordmark_dark_attachment_id'], false ); ?>
+								</div>
+								<div class="abmm-branding-admin__grid abmm-branding-admin__fields">
+									<label class="abmm-branding-admin__field"><?php esc_html_e( 'Wordmark height', 'ashbi-mega-menu' ); ?><span class="abmm-branding-admin__number"><input type="number" min="16" max="80" name="branding[wordmark_height]" value="<?php echo esc_attr( $config['wordmark_height'] ); ?>" /> <span>px</span></span><small><?php esc_html_e( 'Usually the same height as your main logo.', 'ashbi-mega-menu' ); ?></small></label>
+									<label class="abmm-branding-admin__field abmm-branding-admin__field--grow"><?php esc_html_e( 'Desktop menu behavior', 'ashbi-mega-menu' ); ?><select name="branding[desktop_interaction]"><option value="hover" <?php selected( $config['desktop_interaction'], 'hover' ); ?>><?php esc_html_e( 'Open on hover and click', 'ashbi-mega-menu' ); ?></option><option value="click" <?php selected( $config['desktop_interaction'], 'click' ); ?>><?php esc_html_e( 'Open and close on click', 'ashbi-mega-menu' ); ?></option></select></label>
 								</div>
 							</fieldset>
 
 							<fieldset>
 								<legend><?php esc_html_e( 'Top bar', 'ashbi-mega-menu' ); ?></legend>
-								<label class="abmm-branding-admin__toggle"><input type="checkbox" name="branding[show_utility_links]" value="1" data-abmm-controls="abmm-branding-utility-fields" <?php checked( ! empty( $config['show_utility_links'] ) ); ?> /><span><strong><?php esc_html_e( 'Show About and Contact above the header', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'A slim bar of links above the menu, on desktop only.', 'ashbi-mega-menu' ); ?></small></span></label>
-								<div class="abmm-branding-admin__grid abmm-dependent-fields" id="abmm-branding-utility-fields">
-									<label><?php esc_html_e( 'About URL', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="branding[about_url]" value="<?php echo esc_attr( $config['about_url'] ); ?>" /></label>
-									<label><?php esc_html_e( 'Contact URL', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="branding[contact_url]" value="<?php echo esc_attr( $config['contact_url'] ); ?>" /></label>
+								<p><?php esc_html_e( 'A slim bar of links above the menu, on desktop only.', 'ashbi-mega-menu' ); ?></p>
+								<label class="abmm-branding-admin__toggle abmm-switch-row"><input class="abmm-switch" type="checkbox" name="branding[show_utility_links]" value="1" data-abmm-controls="abmm-branding-utility-fields" <?php checked( ! empty( $config['show_utility_links'] ) ); ?> /><span><strong><?php esc_html_e( 'Show About and Contact above the header', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Both links are required while this is on.', 'ashbi-mega-menu' ); ?></small></span></label>
+								<div class="abmm-branding-admin__grid abmm-branding-admin__fields abmm-dependent-fields" id="abmm-branding-utility-fields">
+									<label class="abmm-branding-admin__field abmm-branding-admin__field--grow"><?php esc_html_e( 'About URL', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="branding[about_url]" value="<?php echo esc_attr( $config['about_url'] ); ?>" placeholder="https://example.com/about/" /></label>
+									<label class="abmm-branding-admin__field abmm-branding-admin__field--grow"><?php esc_html_e( 'Contact URL', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="branding[contact_url]" value="<?php echo esc_attr( $config['contact_url'] ); ?>" placeholder="https://example.com/contact/" /></label>
 								</div>
 							</fieldset>
 
-							<div class="abmm-branding-admin__inheritance">
-								<strong><?php esc_html_e( 'Good to know', 'ashbi-mega-menu' ); ?></strong>
-								<p><?php esc_html_e( 'Other pages keep your main logo.', 'ashbi-mega-menu' ); ?></p>
+							<div class="abmm-branding-admin__footer">
+								<p class="abmm-profile-admin__footnote"><?php esc_html_e( 'Changes show on your site as soon as you save.', 'ashbi-mega-menu' ); ?></p>
+								<?php submit_button( __( 'Save product branding', 'ashbi-mega-menu' ), 'primary', 'submit', false ); ?>
 							</div>
-
-							<div class="abmm-branding-admin__footer"><?php submit_button( __( 'Save product branding', 'ashbi-mega-menu' ), 'primary', 'submit', false ); ?></div>
 						</form>
 					<?php endif; ?>
 				</div>
@@ -470,40 +489,59 @@ class ABMM_Product_Branding {
 	}
 
 	/**
-	 * Render one Media Library URL/attachment field.
+	 * Render one Media Library picker: a thumbnail with Replace and Remove, or
+	 * an empty drop zone. The URL field stays available under "Use an image
+	 * URL" for images that are not in the Media Library.
 	 *
 	 * @param string $key Key suffix.
 	 * @param string $label Field label.
+	 * @param string $url_label Accessible name of the URL field.
 	 * @param string $url Current URL.
 	 * @param int    $attachment_id Current attachment ID.
-	 * @param bool   $is_preview Whether this field drives the preview.
+	 * @param bool   $is_preview Whether this is the main logo field.
 	 */
-	private function render_media_field( $key, $label, $url, $attachment_id, $is_preview ) {
-		$url_id  = 'abmm-product-logo-' . sanitize_html_class( $key ) . '-url';
-		$id_id   = 'abmm-product-logo-' . sanitize_html_class( $key ) . '-id';
+	private function render_media_field( $key, $label, $url_label, $url, $attachment_id, $is_preview ) {
+		$url_id   = 'abmm-product-logo-' . sanitize_html_class( $key ) . '-url';
+		$id_id    = 'abmm-product-logo-' . sanitize_html_class( $key ) . '-id';
+		$label_id = 'abmm-product-logo-' . sanitize_html_class( $key ) . '-label';
 		$url_keys = array(
 			'primary'       => 'logo_url',
 			'dark'          => 'logo_dark_url',
 			'wordmark'      => 'wordmark_url',
 			'wordmark-dark' => 'wordmark_dark_url',
 		);
-		$id_keys = array(
+		$id_keys  = array(
 			'primary'       => 'logo_attachment_id',
 			'dark'          => 'logo_dark_attachment_id',
 			'wordmark'      => 'wordmark_attachment_id',
 			'wordmark-dark' => 'wordmark_dark_attachment_id',
 		);
-		$url_key = $url_keys[ $key ] ?? 'logo_url';
-		$id_key  = $id_keys[ $key ] ?? 'logo_attachment_id';
+		$url_key  = $url_keys[ $key ] ?? 'logo_url';
+		$id_key   = $id_keys[ $key ] ?? 'logo_attachment_id';
+		$is_dark  = in_array( $key, array( 'dark', 'wordmark-dark' ), true );
+		$has      = '' !== $url;
+		$targets  = ' data-abmm-media-target="' . esc_attr( $url_id ) . '" data-abmm-media-id-target="' . esc_attr( $id_id ) . '"';
 		?>
-		<div class="abmm-branding-admin__media-field">
-			<label for="<?php echo esc_attr( $url_id ); ?>"><?php echo esc_html( $label ); ?></label>
-			<div>
-				<input id="<?php echo esc_attr( $url_id ); ?>" class="regular-text" type="url" name="branding[<?php echo esc_attr( $url_key ); ?>]" value="<?php echo esc_attr( $url ); ?>"<?php echo $is_preview ? ' data-abmm-brand-url' : ''; ?> />
-				<input id="<?php echo esc_attr( $id_id ); ?>" type="hidden" name="branding[<?php echo esc_attr( $id_key ); ?>]" value="<?php echo esc_attr( $attachment_id ); ?>" />
-				<button class="button" type="button" data-abmm-media-target="<?php echo esc_attr( $url_id ); ?>" data-abmm-media-id-target="<?php echo esc_attr( $id_id ); ?>"><?php esc_html_e( 'Choose image', 'ashbi-mega-menu' ); ?></button>
-				<button class="button-link-delete" type="button" data-abmm-media-clear="<?php echo esc_attr( $url_id ); ?>" data-abmm-media-id-clear="<?php echo esc_attr( $id_id ); ?>"><?php esc_html_e( 'Clear', 'ashbi-mega-menu' ); ?></button>
+		<div class="abmm-media-field<?php echo $is_dark ? ' abmm-media-field--dark' : ''; ?><?php echo $has ? ' has-image' : ''; ?>" data-abmm-media-field role="group" aria-labelledby="<?php echo esc_attr( $label_id ); ?>">
+			<span class="abmm-media-field__label" id="<?php echo esc_attr( $label_id ); ?>"><?php echo esc_html( $label ); ?></span>
+			<div class="abmm-media-field__preview" data-abmm-media-preview<?php echo $has ? '' : ' hidden'; ?>>
+				<img src="<?php echo esc_url( $url ); ?>" alt="" data-abmm-media-image<?php echo $is_preview ? ' data-abmm-brand-preview-image' : ''; ?> />
 			</div>
+			<button type="button" class="abmm-media-field__drop" data-abmm-media-drop<?php echo $targets; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute values escaped above. ?><?php echo $has ? ' hidden' : ''; ?>>
+				<span class="dashicons dashicons-format-image" aria-hidden="true"></span>
+				<strong><?php esc_html_e( 'Choose an image', 'ashbi-mega-menu' ); ?></strong>
+				<small><?php esc_html_e( 'or drop a file here', 'ashbi-mega-menu' ); ?></small>
+			</button>
+			<div class="abmm-media-field__actions" data-abmm-media-actions<?php echo $has ? '' : ' hidden'; ?>>
+				<button class="button" type="button"<?php echo $targets; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute values escaped above. ?>><?php esc_html_e( 'Replace', 'ashbi-mega-menu' ); ?></button>
+				<button class="button abmm-button-ghost" type="button" data-abmm-media-clear="<?php echo esc_attr( $url_id ); ?>" data-abmm-media-id-clear="<?php echo esc_attr( $id_id ); ?>"><?php esc_html_e( 'Remove', 'ashbi-mega-menu' ); ?></button>
+			</div>
+			<details class="abmm-media-field__url"<?php echo $has && ! $attachment_id ? ' open' : ''; ?>>
+				<summary><?php esc_html_e( 'Use an image URL', 'ashbi-mega-menu' ); ?></summary>
+				<label class="screen-reader-text" for="<?php echo esc_attr( $url_id ); ?>"><?php echo esc_html( $url_label ); ?></label>
+				<input id="<?php echo esc_attr( $url_id ); ?>" class="regular-text" type="url" name="branding[<?php echo esc_attr( $url_key ); ?>]" value="<?php echo esc_attr( $url ); ?>" placeholder="https://"<?php echo $is_preview ? ' data-abmm-brand-url' : ''; ?> />
+			</details>
+			<input id="<?php echo esc_attr( $id_id ); ?>" type="hidden" name="branding[<?php echo esc_attr( $id_key ); ?>]" value="<?php echo esc_attr( $attachment_id ); ?>" />
 		</div>
 		<?php
 	}
@@ -565,20 +603,6 @@ class ABMM_Product_Branding {
 			$all[ $profile_id ] = $config;
 			return ABMM_Option_Store::persist( self::OPTION_KEY, $all );
 		} );
-	}
-
-	/**
-	 * Add a discoverable path from Product Navigation to Product Branding.
-	 */
-	public function product_navigation_notice() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
-		if ( ! current_user_can( 'manage_options' ) || 'ashbi-mega-menu-products' !== $page ) {
-			return;
-		}
-		?>
-		<div class="notice notice-info"><p><strong><?php esc_html_e( 'Want a product logo in the menu too?', 'ashbi-mega-menu' ); ?></strong> <a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-product-branding' ) ); ?>"><?php esc_html_e( 'Set up product branding', 'ashbi-mega-menu' ); ?></a></p></div>
-		<?php
 	}
 
 	/**

@@ -223,14 +223,12 @@
 
 .abmm-profile-coverage > p {margin-bottom:18px}
 .abmm-profile-coverage .notice.inline {margin:0 0 18px;border-radius:10px}
-.abmm-profile-coverage__summary > * {background:#fff;border:1px solid var(--abmm-brand-line) !important;border-radius:12px !important;box-shadow:0 1px 2px #1922380a}
 .abmm-profile-coverage table.widefat {border:1px solid var(--abmm-brand-line);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px #1922380a}
 .abmm-profile-coverage table.widefat th {font-weight:600;color:var(--abmm-brand-muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
 .abmm-profile-coverage input[type="search"],
 .abmm-profile-coverage input[type="text"],
 .abmm-profile-coverage select {border-radius:7px}
 @media (max-width:782px) {.abmm-profile-admin .abmm-profile-admin__hero,.abmm-branding-admin .abmm-branding-admin__hero {flex-direction:column;align-items:flex-start}}
-.abmm-branding-admin input[name="branding[alt]"] {display:block;width:100%;max-width:none;min-height:40px;margin-top:4px;padding:0 12px;border-radius:7px}
 /* The off-canvas settings panel must include its padding in its width, or it spills past the left edge on phones. */
 .abmm-wrap .abmm-builder__sidebar {box-sizing:border-box}
 
@@ -433,6 +431,254 @@
 	.abmm-profile-coverage .abmm-profile-coverage__filters select {flex:1 1 60%}
 }
 @media (prefers-reduced-motion:reduce) {.abmm-profile-admin__more-links > summary::before,.abmm-dependent-fields {transition:none}}
+/* Product pages (round 4): the dashboard header, tabs, cards, badges and ⋯ menus. */
+.abmm-page-header {margin:18px 0 18px}
+.abmm-page-header .abmm-logo-title {align-items:flex-start}
+.abmm-page-header .abmm-logo-title img {margin-top:2px}
+:is(.abmm-profile-admin,.abmm-profile-coverage,.abmm-branding-admin) .abmm-page-header h1 {margin:0;padding:0;font-size:23px;line-height:1.25}
+.abmm-page-header .abmm-admin-intro {max-width:640px;margin:4px 0 0;line-height:1.5}
+.abmm-page-header__eyebrow {margin:0 0 2px;font-size:12px;font-weight:600;line-height:1.4}
+.abmm-page-header__eyebrow a {color:var(--abmm-brand-muted);text-decoration:none}
+.abmm-page-header__eyebrow a:hover,.abmm-page-header__eyebrow a:focus {color:var(--abmm-brand-blue);text-decoration:underline}
+.abmm-page-header .abmm-admin-header__actions {flex:none}
+.abmm-page-header .abmm-admin-header__actions .button {display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:38px;padding:0 16px;font-weight:600}
+.abmm-page-header .abmm-admin-header__actions .dashicons {width:18px;height:18px;margin:0;font-size:18px;line-height:18px}
+.abmm-page-tabs {display:flex;gap:4px;margin:0 0 24px;padding:0;overflow-x:auto;border-bottom:1px solid var(--abmm-brand-line);scrollbar-width:none}
+.abmm-page-tabs a {flex:none;margin-bottom:-1px;padding:10px 12px;color:var(--abmm-brand-muted);font-size:13px;font-weight:600;text-decoration:none;border-bottom:2px solid transparent;border-radius:6px 6px 0 0}
+.abmm-page-tabs a:hover {color:var(--abmm-brand-ink);background:#ffffff99}
+.abmm-page-tabs a:focus {box-shadow:none;outline:0}
+.abmm-page-tabs a:focus-visible {outline:3px solid #ffb568;outline-offset:-3px}
+.abmm-page-tabs a.is-current {color:var(--abmm-brand-ink);border-bottom-color:var(--abmm-brand-blue)}
+:is(.abmm-profile-admin,.abmm-profile-coverage,.abmm-branding-admin) > .notice {margin:0 0 16px;border-radius:10px}
+
+/* A friendly callout, not a WordPress notice. */
+.abmm-callout {display:flex;align-items:center;gap:14px;margin:0 0 24px;padding:14px 16px;color:var(--abmm-brand-ink);background:linear-gradient(110deg,#eef3ff 0%,#f8faff 100%);border:1px solid #d4defb;border-radius:12px}
+.abmm-callout__icon {display:grid !important;place-items:center;flex:none;width:36px !important;height:36px !important;font-size:20px !important;color:var(--abmm-brand-blue);background:#fff;border-radius:9px;box-shadow:0 1px 2px #2457ff1f}
+.abmm-callout__text {display:flex;flex:1 1 auto;flex-direction:column;gap:2px;min-width:0;font-size:13px;line-height:1.45}
+.abmm-callout__text strong {font-size:14px}
+.abmm-callout__text span {color:var(--abmm-brand-muted)}
+.abmm-callout .button {flex:none;min-height:34px;line-height:32px;background:#fff}
+
+/* Shared buttons and badges. */
+:is(.abmm-profile-admin,.abmm-branding-admin,.abmm-profile-coverage) .button:not(.button-primary) {color:var(--abmm-brand-ink);border-color:#c5cee3;background:#fff}
+:is(.abmm-profile-admin,.abmm-branding-admin,.abmm-profile-coverage) .button:not(.button-primary):hover {color:var(--abmm-brand-ink);border-color:#a9b5cf;background:#f7f9fc}
+:is(.abmm-profile-admin,.abmm-branding-admin) .button.abmm-button-ghost {color:var(--abmm-brand-muted);background:transparent;border-color:transparent;box-shadow:none}
+:is(.abmm-profile-admin,.abmm-branding-admin) .button.abmm-button-ghost:hover,
+:is(.abmm-profile-admin,.abmm-branding-admin) .button.abmm-button-ghost:focus {color:#b32d2e;background:#fcf0f1;border-color:transparent}
+.abmm-status--off {background:#eef1f7;color:var(--abmm-brand-muted)}
+.abmm-product-card .abmm-status--draft {cursor:default}
+.abmm-product-card .abmm-status--draft[title] {cursor:help}
+
+/* Products list: cards in the menu-card style, each with a status and a ⋯ menu. */
+.abmm-profile-admin .abmm-profile-admin__grid {grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:24px;align-items:start;margin-top:0}
+.abmm-product-cards {display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.abmm-product-card {position:relative;display:flex;align-items:center;gap:12px;margin:0;padding:12px 10px 12px 12px;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:12px;box-shadow:0 1px 2px #1922380a;transition:border-color .15s,box-shadow .15s}
+.abmm-product-card:hover {border-color:#c5cee3;box-shadow:0 6px 18px #1922380f}
+.abmm-product-card.is-selected {background:#f7f9ff;border-color:var(--abmm-brand-blue);box-shadow:0 0 0 1px var(--abmm-brand-blue)}
+.abmm-product-card__avatar {display:grid;place-items:center;flex:none;width:40px;height:40px;overflow:hidden;color:var(--abmm-brand-blue);background:#eef3ff;border-radius:10px;font-size:16px;font-weight:700;line-height:1}
+.abmm-product-card__avatar.has-logo {background:#fff;border:1px solid var(--abmm-brand-line);box-sizing:border-box}
+.abmm-product-card__avatar img {width:28px;height:28px;object-fit:cover;object-position:left center}
+.abmm-product-card__body {flex:1 1 auto;min-width:0}
+.abmm-product-card__head {display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-product-card__title {display:block;flex:1 1 auto;min-width:0;padding:0;overflow:hidden;color:var(--abmm-brand-ink);background:none;border:0;font-size:14px;font-weight:600;line-height:1.4;text-decoration:none;white-space:nowrap;text-overflow:ellipsis;box-shadow:none;outline:0}
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-product-card__title:is(:hover,:focus) {color:var(--abmm-brand-ink);background:none;box-shadow:none}
+/* The title link covers the whole card; the ⋯ menu sits above it. */
+.abmm-product-card__title::after {content:"";position:absolute;inset:-1px;z-index:1;border-radius:12px}
+.abmm-product-card__title:focus-visible::after {outline:3px solid #ffb568;outline-offset:2px}
+.abmm-product-card__meta {display:flex;align-items:center;gap:6px;min-width:0;margin:2px 0 0;color:var(--abmm-brand-muted);font-size:12px;line-height:1.5}
+.abmm-product-card__page {overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.abmm-product-card .abmm-card-menu {position:relative;z-index:2;flex:none;margin:0}
+.abmm-product-card .abmm-card-menu__toggle {display:inline-grid;place-items:center;width:32px;min-height:32px;padding:0;color:var(--abmm-brand-muted);background:transparent;border-color:transparent;font-size:20px;line-height:1;box-shadow:none}
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-card-menu__toggle:not(.button-primary) {background:transparent;border-color:transparent}
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-card-menu__toggle:not(.button-primary):hover,
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-card-menu.is-open .abmm-card-menu__toggle:not(.button-primary) {color:var(--abmm-brand-ink);background:#eef1f7;border-color:transparent}
+.abmm-product-card .abmm-card-menu__list {top:calc(100% + 4px);min-width:176px}
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-card-menu__list .button {display:flex;align-items:center;gap:10px;width:100%;min-height:34px;margin:0;padding:0 10px;color:var(--abmm-brand-ink);text-align:start;background:transparent;border:0;border-radius:6px;box-shadow:none;font-size:13px;line-height:34px}
+.abmm-product-card .abmm-card-menu__list .button::before {width:18px;font:normal 18px/1 dashicons;color:var(--abmm-brand-muted);-webkit-font-smoothing:antialiased}
+.abmm-product-card .abmm-card-menu__item--edit::before {content:"\f464"}
+.abmm-product-card .abmm-card-menu__item--branding::before {content:"\f128"}
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-card-menu__list .is-danger {margin-top:4px;color:#b32d2e;border-radius:0 0 6px 6px;box-shadow:inset 0 1px 0 #edf0f6}
+.abmm-product-card .abmm-card-menu__list .is-danger::before {content:"\f182";color:currentColor}
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-card-menu__list .button:is(:hover,:focus) {color:var(--abmm-brand-ink);background:#f3f5f9;outline:0}
+:is(.abmm-profile-admin,.abmm-branding-admin) .abmm-product-card .abmm-card-menu__list .is-danger:is(:hover,:focus) {color:#8a1f1f;background:#fcf0f1}
+.abmm-product-card .abmm-card-menu__list .button:focus-visible {outline:2px solid var(--abmm-brand-blue);outline-offset:-2px}
+/* Without JavaScript the actions stay visible under the card. */
+.no-js .abmm-product-card {flex-wrap:wrap}
+.no-js .abmm-product-card .abmm-card-menu {flex:1 0 100%}
+.no-js .abmm-product-card .abmm-card-menu__toggle {display:none}
+.no-js .abmm-product-card .abmm-card-menu__list[hidden] {position:static;display:flex;flex-direction:row;min-width:0;padding:0;border:0;box-shadow:none}
+.abmm-product-empty {display:flex;flex-direction:column;align-items:center;gap:4px;padding:32px 20px;text-align:center;color:var(--abmm-brand-ink);background:#fff;border:1px dashed #c5cee3;border-radius:12px}
+.abmm-product-empty__icon {display:grid !important;place-items:center;width:40px !important;height:40px !important;margin-bottom:8px;font-size:22px !important;color:var(--abmm-brand-blue);background:#eef3ff;border-radius:10px}
+.abmm-product-empty strong {font-size:14px}
+.abmm-product-empty p {max-width:420px;margin:0;color:var(--abmm-brand-muted);font-size:13px}
+.abmm-product-empty--page {padding:56px 24px;border-style:solid;border-color:var(--abmm-brand-line)}
+.abmm-product-empty--page .button {margin-top:14px}
+
+/* Product form: header, section rhythm, switches and footer. */
+.abmm-profile-admin .abmm-profile-admin__form,
+.abmm-branding-admin .abmm-branding-admin__form {padding:0;overflow:hidden;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:14px;box-shadow:0 1px 2px #1922380a}
+.abmm-profile-admin .abmm-profile-admin__form-head,
+.abmm-branding-admin .abmm-branding-admin__form-head {display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:18px 24px;background:#fff;border-bottom:1px solid var(--abmm-brand-line)}
+.abmm-profile-admin__form-eyebrow {margin:0 0 2px !important;color:var(--abmm-brand-muted);font-size:12px !important;font-weight:600;letter-spacing:0 !important;text-transform:none !important}
+.abmm-profile-admin .abmm-profile-admin__form-head h2,
+.abmm-branding-admin .abmm-branding-admin__form-head h2 {margin:0;font-size:18px;font-weight:650;letter-spacing:-.2px;line-height:1.3;color:var(--abmm-brand-ink)}
+.abmm-profile-admin__view {display:inline-flex;align-items:center;gap:4px;color:var(--abmm-brand-blue);font-size:13px;font-weight:500;text-decoration:none}
+.abmm-profile-admin__view:hover {text-decoration:underline}
+.abmm-profile-admin__view .dashicons {width:16px;height:16px;font-size:16px}
+.abmm-profile-admin .abmm-profile-admin__form-footer,
+.abmm-branding-admin .abmm-branding-admin__footer {display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:16px 24px;background:#f7f9fc;border-top:1px solid var(--abmm-brand-line)}
+.abmm-branding-admin .abmm-branding-admin__footer {border-top:0}
+.abmm-profile-admin__footnote {margin:0;color:var(--abmm-brand-muted);font-size:13px}
+:is(.abmm-profile-admin__form-footer,.abmm-branding-admin__footer) .button-primary {min-height:38px;padding:0 18px;font-weight:600}
+:is(.abmm-profile-admin,.abmm-branding-admin) label.abmm-switch-row {display:flex;align-items:flex-start;gap:12px;margin:0 0 16px;padding:12px 14px;font-weight:400;background:#f7f9fc;border:1px solid var(--abmm-brand-line);border-radius:10px;cursor:pointer}
+.abmm-switch-row > span {display:flex;flex-direction:column;gap:2px}
+.abmm-switch-row strong {color:var(--abmm-brand-ink);font-size:13px;font-weight:600}
+.abmm-switch-row small {margin:0;color:var(--abmm-brand-muted);font-size:12px;line-height:1.45}
+:is(.abmm-profile-admin,.abmm-branding-admin) input[type="checkbox"].abmm-switch {position:relative;flex:none;width:36px;min-width:36px;height:20px;margin:0;padding:0;background:#c5cee3;border:0;border-radius:999px;box-shadow:none;cursor:pointer;transition:background .15s;-webkit-appearance:none;appearance:none}
+:is(.abmm-profile-admin,.abmm-branding-admin) input[type="checkbox"].abmm-switch::before {content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;margin:0;background:#fff;border-radius:50%;box-shadow:0 1px 2px #19223840;transition:transform .15s}
+:is(.abmm-profile-admin,.abmm-branding-admin) input[type="checkbox"].abmm-switch:checked {background:var(--abmm-brand-blue)}
+:is(.abmm-profile-admin,.abmm-branding-admin) input[type="checkbox"].abmm-switch:checked::before {content:"";transform:translateX(16px)}
+:is(.abmm-profile-admin,.abmm-branding-admin) input[type="checkbox"].abmm-switch:focus-visible {outline:3px solid #ffb568;outline-offset:2px;box-shadow:none}
+.abmm-branding-admin .abmm-branding-admin__form > label.abmm-switch-row {margin:0;padding:16px 24px;border:0;border-bottom:1px solid var(--abmm-brand-line);border-radius:0}
+:is(.abmm-profile-admin,.abmm-branding-admin,.abmm-profile-coverage) :is(input[type="text"],input[type="url"],input[type="number"],input[type="search"],select) {border-radius:8px;font-weight:400}
+:is(.abmm-profile-admin,.abmm-branding-admin,.abmm-profile-coverage) :is(input[type="text"],input[type="url"],input[type="number"],input[type="search"],select):focus {border-color:var(--abmm-brand-blue);box-shadow:0 0 0 3px #2457ff26}
+
+/* Product Branding: summary, product list and fields. */
+.abmm-branding-admin .abmm-branding-admin__summary {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 24px}
+.abmm-branding-admin .abmm-branding-admin__summary > span {display:flex;flex-direction:column;gap:2px;min-width:0;padding:14px 16px;color:var(--abmm-brand-muted);font-size:13px;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:12px;box-shadow:0 1px 2px #1922380a}
+.abmm-branding-admin .abmm-branding-admin__summary strong {color:var(--abmm-brand-ink);font-size:22px;font-weight:700;letter-spacing:-.3px}
+.abmm-branding-admin .abmm-branding-admin__summary .is-ready strong {color:#0a6b30}
+.abmm-branding-admin .abmm-branding-admin__summary .is-attention strong {color:#8a4b00}
+.abmm-branding-admin .abmm-branding-admin__layout {display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:24px;align-items:start}
+.abmm-branding-admin .abmm-branding-admin__profiles {overflow:visible;background:none;border:0;border-radius:0}
+.abmm-branding-admin .abmm-branding-admin__profiles .abmm-section-head h2 {padding:0;border:0;font-size:15px}
+.abmm-branding-admin .abmm-product-card {padding:12px}
+.abmm-branding-admin .abmm-product-card__body {display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.abmm-branding-admin .abmm-product-card__body .abmm-product-card__title {width:100%}
+.abmm-branding-admin .abmm-product-card .abmm-status {font-size:11.5px;line-height:16px}
+.abmm-branding-admin .abmm-branding-admin__form-head > .abmm-status {padding:2px 9px 2px 8px;border-radius:999px;font-size:12px;line-height:18px}
+.abmm-branding-admin .abmm-branding-admin__form-head > .abmm-status--off {background:#eef1f7;color:var(--abmm-brand-muted)}
+.abmm-branding-admin .abmm-branding-admin__form-head > .abmm-status--draft {background:#fff3df;color:#8a4b00}
+.abmm-branding-admin .abmm-branding-admin__form fieldset {border-bottom:1px solid var(--abmm-brand-line)}
+.abmm-branding-admin .abmm-branding-admin__form fieldset > legend + p {margin-bottom:14px}
+.abmm-branding-admin .abmm-branding-admin__form fieldset > select {display:block;width:100%;max-width:440px;min-height:40px}
+.abmm-media-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.abmm-media-field {display:flex;flex-direction:column;min-width:0}
+.abmm-media-field__label {margin:0 0 8px;color:var(--abmm-brand-ink);font-size:13px;font-weight:600}
+.abmm-media-field__preview,
+.abmm-media-field__drop {box-sizing:border-box;width:100%;height:120px;border-radius:10px}
+.abmm-media-field__preview {display:grid;place-items:center;padding:16px;background-color:#fff;background-image:linear-gradient(45deg,#f3f5f9 25%,transparent 25%,transparent 75%,#f3f5f9 75%),linear-gradient(45deg,#f3f5f9 25%,transparent 25%,transparent 75%,#f3f5f9 75%);background-position:0 0,8px 8px;background-size:16px 16px;border:1px solid var(--abmm-brand-line)}
+.abmm-media-field--dark .abmm-media-field__preview {background-color:#111827;background-image:linear-gradient(45deg,#1a2233 25%,transparent 25%,transparent 75%,#1a2233 75%),linear-gradient(45deg,#1a2233 25%,transparent 25%,transparent 75%,#1a2233 75%);border-color:#111827}
+.abmm-media-field__preview img {display:block;max-width:100%;max-height:56px;object-fit:contain}
+.abmm-media-field__drop {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:12px;color:var(--abmm-brand-ink);font:inherit;text-align:center;background:#f9fafc;border:1px dashed #b9c4da;cursor:pointer;transition:border-color .15s,background .15s}
+.abmm-media-field__drop .dashicons {display:grid;place-items:center;width:32px;height:32px;margin-bottom:6px;font-size:18px;color:var(--abmm-brand-blue);background:#eef3ff;border-radius:8px}
+.abmm-media-field__drop strong {font-size:13px;font-weight:600}
+.abmm-media-field__drop small {color:var(--abmm-brand-muted);font-size:12px}
+.abmm-media-field__drop:hover,
+.abmm-media-field__drop.is-dragover {background:#f5f8ff;border-color:var(--abmm-brand-blue)}
+.abmm-media-field__drop.is-dragover {box-shadow:0 0 0 3px #2457ff26}
+.abmm-media-field__drop:focus-visible {outline:3px solid #ffb568;outline-offset:2px}
+.abmm-media-field__preview[hidden],.abmm-media-field__drop[hidden],.abmm-media-field__actions[hidden] {display:none}
+.abmm-media-field.is-broken .abmm-media-field__preview {background:#fcf0f1;border-color:#e0a3a4}
+.abmm-media-field__actions {display:flex;align-items:center;gap:6px;margin-top:10px}
+.abmm-branding-admin .abmm-media-field__actions .button {min-height:32px;margin:0;line-height:30px}
+.abmm-media-field__url {margin-top:10px}
+.abmm-media-field__url > summary {display:inline-flex;align-items:center;gap:6px;color:var(--abmm-brand-muted);font-size:12px;font-weight:500;list-style:none;cursor:pointer;border-radius:4px}
+.abmm-media-field__url > summary::-webkit-details-marker {display:none}
+.abmm-media-field__url > summary::before {content:"";width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
+.abmm-media-field__url[open] > summary::before {transform:rotate(45deg)}
+.abmm-media-field__url > summary:hover {color:var(--abmm-brand-blue)}
+.abmm-media-field__url > summary:focus-visible {outline:3px solid #ffb568;outline-offset:2px}
+.abmm-branding-admin .abmm-media-field__url input {display:block;width:100%;min-height:36px;margin-top:8px}
+.abmm-branding-admin .abmm-branding-admin__fields {display:flex;align-items:flex-start;gap:16px;margin-top:20px}
+.abmm-branding-admin .abmm-branding-admin__fields > .abmm-branding-admin__field {display:flex;flex:0 0 auto;flex-direction:column;gap:6px;min-width:0;color:var(--abmm-brand-ink);font-size:13px;font-weight:600}
+.abmm-branding-admin .abmm-branding-admin__fields > .abmm-branding-admin__field--grow {flex:1 1 0}
+.abmm-branding-admin .abmm-branding-admin__fields small {margin:0;color:var(--abmm-brand-muted);font-size:12px;font-weight:400}
+.abmm-branding-admin .abmm-branding-admin__fields :is(input[type="text"],input[type="url"],select) {width:100%;max-width:none;min-height:40px;margin:0}
+.abmm-branding-admin .abmm-branding-admin__number {margin:0;gap:8px;color:var(--abmm-brand-muted);font-weight:400}
+.abmm-branding-admin .abmm-branding-admin__number input {width:96px;min-height:40px}
+.abmm-branding-admin .abmm-branding-admin__form fieldset > .abmm-switch-row + .abmm-branding-admin__fields {margin-top:0}
+
+/* Navigation Coverage: filter chips, live search and a calm table. */
+.abmm-profile-coverage .abmm-profile-coverage__filters {justify-content:space-between;gap:10px 16px;margin:0 0 12px;padding:10px;box-shadow:0 1px 2px #1922380a}
+.abmm-coverage-chips {display:flex;flex-wrap:wrap;gap:2px;padding:3px;background:#eef1f7;border-radius:9px}
+.abmm-profile-coverage .abmm-coverage-chip {display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 10px;color:var(--abmm-brand-muted);font-size:13px;font-weight:500;text-decoration:none;border-radius:7px}
+.abmm-profile-coverage .abmm-coverage-chip:hover {color:var(--abmm-brand-ink);background:#ffffffa6}
+.abmm-profile-coverage .abmm-coverage-chip:focus {box-shadow:none;outline:0}
+.abmm-profile-coverage .abmm-coverage-chip:focus-visible {outline:3px solid #ffb568;outline-offset:1px}
+.abmm-profile-coverage .abmm-coverage-chip.is-current {color:var(--abmm-brand-ink);font-weight:600;background:#fff;box-shadow:0 1px 2px #1922381f}
+.abmm-coverage-chip__count {min-width:18px;padding:0 6px;color:var(--abmm-brand-muted);font-size:11px;font-weight:600;line-height:18px;text-align:center;background:#e2e7f0;border-radius:999px;box-sizing:border-box}
+.abmm-coverage-chip.is-current .abmm-coverage-chip__count {color:#1744df;background:#eef3ff}
+.abmm-coverage-search {position:relative;display:flex;align-items:center;gap:8px;flex:0 1 280px}
+.abmm-coverage-search > .dashicons {position:absolute;top:50%;left:10px;width:18px;height:18px;font-size:18px;color:#8892a6;transform:translateY(-50%);pointer-events:none}
+.abmm-profile-coverage .abmm-coverage-search input[type="search"] {width:100%;min-height:36px;margin:0;padding:0 10px 0 34px}
+.abmm-profile-coverage .abmm-profile-coverage__count {margin:0 0 10px 2px}
+.abmm-coverage-table {overflow:hidden;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:12px;box-shadow:0 1px 2px #1922380a}
+.abmm-profile-coverage .abmm-coverage-table table.widefat {border:0;border-radius:0;box-shadow:none}
+.abmm-profile-coverage .abmm-coverage-table th {padding:10px 16px;background:#f7f9fc;border-bottom:1px solid var(--abmm-brand-line)}
+.abmm-profile-coverage .abmm-coverage-table td {padding:12px 16px;vertical-align:middle;border-top:1px solid #edf0f6}
+.abmm-profile-coverage .abmm-coverage-table tbody tr:first-child td {border-top:0}
+.abmm-profile-coverage .abmm-coverage-table tbody tr:hover td {background:#f9fafc}
+.abmm-profile-coverage .abmm-coverage-table tr[hidden] {display:none}
+.abmm-coverage-table__page a {color:var(--abmm-brand-ink);font-weight:500;text-decoration:none}
+.abmm-coverage-table__page a:hover,.abmm-coverage-table__page a:focus {color:var(--abmm-brand-blue);text-decoration:underline}
+.abmm-coverage-product {display:inline-flex;align-items:center;padding:1px 9px;color:var(--abmm-brand-ink);font-size:12px;font-weight:600;line-height:20px;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:6px}
+.abmm-coverage-none {color:#8892a6;font-size:13px}
+.abmm-source {display:inline-flex;align-items:center;gap:6px;padding:2px 9px 2px 8px;font-size:12px;font-weight:600;line-height:18px;white-space:nowrap;border-radius:999px}
+.abmm-source::before {content:"";width:7px;height:7px;background:currentColor;border-radius:50%}
+.abmm-source--ancestor {color:#1744df;background:#eef3ff}
+.abmm-source--page {color:#5b3cc4;background:#f3effe}
+.abmm-source--fallback {color:var(--abmm-brand-muted);background:#eef1f7}
+.abmm-profile-coverage .abmm-coverage-table__empty td {padding:36px 16px;text-align:center}
+.abmm-coverage-table__empty strong {display:block;margin-bottom:2px;color:var(--abmm-brand-ink);font-size:14px}
+.abmm-coverage-table__empty span {color:var(--abmm-brand-muted);font-size:13px}
+.abmm-profile-coverage .abmm-profile-coverage__pages[hidden] {display:none}
+
+@media (max-width:960px) {
+	.abmm-profile-admin .abmm-profile-admin__grid,
+	.abmm-branding-admin .abmm-branding-admin__layout {grid-template-columns:1fr}
+}
+@media (max-width:782px) {
+	.abmm-page-header {margin-top:10px}
+	.abmm-page-header .abmm-logo-title img {width:36px;height:36px}
+	.abmm-page-tabs {margin-bottom:18px}
+	.abmm-callout {flex-wrap:wrap;align-items:flex-start}
+	.abmm-callout__text {flex-basis:calc(100% - 50px)}
+	.abmm-callout .button {flex:1 1 100%;min-height:40px;line-height:38px;text-align:center}
+	.abmm-profile-admin .abmm-profile-admin__form-head,
+	.abmm-branding-admin .abmm-branding-admin__form-head,
+	.abmm-profile-admin .abmm-profile-admin__form-footer,
+	.abmm-branding-admin .abmm-branding-admin__footer {padding:16px}
+	.abmm-branding-admin .abmm-branding-admin__form > label.abmm-switch-row {padding:14px 16px}
+	.abmm-profile-admin .abmm-profile-admin__form-head,
+	.abmm-branding-admin .abmm-branding-admin__form-head {flex-direction:row;flex-wrap:wrap;align-items:center;text-align:start}
+	.abmm-profile-admin .abmm-profile-admin__form-footer,
+	.abmm-branding-admin .abmm-branding-admin__footer {flex-direction:column-reverse;align-items:stretch;text-align:center}
+	:is(.abmm-profile-admin__form-footer,.abmm-branding-admin__footer) .button-primary {width:100%;min-height:44px}
+	.abmm-branding-admin .abmm-branding-admin__summary {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+	.abmm-media-grid {grid-template-columns:1fr}
+	.abmm-branding-admin .abmm-branding-admin__fields {flex-direction:column;align-items:stretch}
+	.abmm-coverage-search {flex:1 1 100%}
+	.abmm-coverage-chips {width:100%}
+	.abmm-profile-coverage .abmm-coverage-chip {flex:1 1 auto;justify-content:center}
+}
+@media (max-width:600px) {
+	.abmm-profile-coverage .abmm-coverage-table thead {position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+	.abmm-profile-coverage .abmm-coverage-table :is(table,tbody) {display:block}
+	.abmm-profile-coverage .abmm-coverage-table tbody tr {display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:12px 14px;border-top:1px solid #edf0f6}
+	.abmm-profile-coverage .abmm-coverage-table tbody tr:first-child {border-top:0}
+	.abmm-profile-coverage .abmm-coverage-table td {display:block;padding:0;border:0}
+	.abmm-profile-coverage .abmm-coverage-table td.abmm-coverage-table__page {flex:1 1 100%}
+	.abmm-profile-coverage .abmm-coverage-table tbody tr:hover td {background:none}
+	.abmm-profile-coverage .abmm-coverage-table td:has(> .abmm-coverage-none) {display:none}
+	.abmm-profile-coverage .abmm-coverage-table__empty td {flex:1 1 100%}
+}
+@media (prefers-reduced-motion:reduce) {.abmm-product-card,.abmm-switch,.abmm-switch::before,.abmm-media-field__drop {transition:none !important}}
+@media (forced-colors:active) {
+	.abmm-product-card,.abmm-callout,.abmm-coverage-table,.abmm-media-field__drop,.abmm-source,.abmm-coverage-chip.is-current {border:1px solid CanvasText}
+	.abmm-product-card.is-selected,.abmm-page-tabs a.is-current {outline:2px solid Highlight}
+	:is(.abmm-profile-admin,.abmm-branding-admin) input[type="checkbox"].abmm-switch {border:1px solid CanvasText;forced-color-adjust:none}
+}
 /* Editor polish (round 3) */
 /* Canvas hugs the menu: no fixed height and no empty dotted area under it. */
 .abmm-wrap .abmm-preview-shell,
