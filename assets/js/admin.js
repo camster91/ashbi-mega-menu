@@ -898,8 +898,63 @@
 		});
 	}
 
+	// Dashboard card "⋯" menus: a menu button with a small popover of actions.
+	function initCardMenus() {
+		function items($menu) {
+			return $menu.find('[role="menuitem"]').filter(function () { return !this.disabled; });
+		}
+		function closeMenu($wrap, restoreFocus) {
+			var $toggle = $wrap.find('.abmm-card-menu__toggle');
+			$wrap.removeClass('is-open').find('.abmm-card-menu__list').prop('hidden', true);
+			$toggle.attr('aria-expanded', 'false');
+			if (restoreFocus) $toggle.trigger('focus');
+		}
+		function openMenu($wrap, focusLast) {
+			$('.abmm-card-menu.is-open').not($wrap).each(function () { closeMenu($(this), false); });
+			var $menu = $wrap.addClass('is-open').find('.abmm-card-menu__list').prop('hidden', false);
+			$wrap.find('.abmm-card-menu__toggle').attr('aria-expanded', 'true');
+			var $items = items($menu);
+			$items.eq(focusLast ? $items.length - 1 : 0).trigger('focus');
+		}
+		$(document).on('click', '.abmm-card-menu__toggle', function () {
+			var $wrap = $(this).closest('.abmm-card-menu');
+			if ($wrap.hasClass('is-open')) closeMenu($wrap, true);
+			else openMenu($wrap, false);
+		});
+		$(document).on('keydown', '.abmm-card-menu__toggle', function (e) {
+			if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+			e.preventDefault();
+			openMenu($(this).closest('.abmm-card-menu'), e.key === 'ArrowUp');
+		});
+		$(document).on('keydown', '.abmm-card-menu__list', function (e) {
+			var $wrap = $(this).closest('.abmm-card-menu');
+			var $items = items($(this));
+			var index = $items.index(document.activeElement);
+			if (e.key === 'Escape') {
+				e.preventDefault();
+				closeMenu($wrap, true);
+			} else if (e.key === 'Tab') {
+				closeMenu($wrap, false);
+			} else if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') {
+				e.preventDefault();
+				var next = e.key === 'Home' ? 0 : (e.key === 'End' ? $items.length - 1 : index + (e.key === 'ArrowDown' ? 1 : -1));
+				$items.eq((next + $items.length) % $items.length).trigger('focus');
+			}
+		});
+		// Item handlers run first; then the menu closes and focus returns to its button.
+		$(document).on('click', '.abmm-card-menu__list [role="menuitem"]', function () {
+			closeMenu($(this).closest('.abmm-card-menu'), true);
+		});
+		$(document).on('click focusin', function (e) {
+			$('.abmm-card-menu.is-open').each(function () {
+				if (!$.contains(this, e.target)) closeMenu($(this), false);
+			});
+		});
+	}
+
 	function initListPage() {
 		initBackupRecovery();
+		initCardMenus();
 		$('.abmm-onboarding-choice').on('click', function () {
 			var $buttons = $('.abmm-onboarding-choice').prop('disabled', true);
 			$.post(abmmAdmin.ajaxUrl, {
@@ -1006,7 +1061,10 @@
 		$(document).on('click', '.abmm-cancel-archive', function () {
 			var $card = $(this).closest('.abmm-menu-card');
 			$card.find('.abmm-archive-confirm').remove();
-			$card.find('.abmm-delete-menu').trigger('focus');
+			// Archive lives in the closed "⋯" menu on the dashboard, so focus its button instead.
+			var $archive = $card.find('.abmm-delete-menu');
+			if ($archive.closest('[hidden]').length) $card.find('.abmm-card-menu__toggle').trigger('focus');
+			else $archive.trigger('focus');
 		});
 
 		$(document).on('click', '.abmm-confirm-archive', function () {
