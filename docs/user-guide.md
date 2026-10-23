@@ -65,7 +65,7 @@ Keep a copy of the original child-theme file and avoid editing the parent theme.
 
 ## Product navigation
 
-Product Navigation profiles associate navigation with a hub page and its child pages. In the block or widget enable **Use page product navigation** only when that contextual behavior is intended. The equivalent shortcode is:
+**Product Navigation** shows extra links under your main menu on a product's pages. Each product has a main page; pages below it get the same links. **Navigation Coverage** lists which pages show which product, and **Product Branding** can show a product's own logo on its pages. In the block or widget enable **Use page product navigation** only when that contextual behavior is intended. The equivalent shortcode is:
 
 ```text
 [ashbi_mega_menu id="your_actual_menu_id" context="page"]
@@ -120,9 +120,9 @@ Before launch, test keyboard opening/closing, visible focus, phone menu back/clo
 
 ## Follow the setup path
 
-The dashboard and editor use **Create → Edit & save → Place → Verify**. A **Configured** badge means the saved menu passes content checks; it does not mean a header was installed or its links were tested. Use **Place & verify** on a configured menu to open placement instructions. The editor has the same steps above the save bar. Save before copying a shortcode: published placements read the saved version, not the preview or an unsaved draft.
+The editor has three steps above the save bar: **Edit → Place → Check**. A **Configured** badge on the dashboard means the saved menu passes its checklist; it does not mean a header was installed or its links were tested. **Place & verify** on a configured menu opens the editor's **Place** tab. Save before copying a shortcode: published placements read the saved version, not the preview or an unsaved draft.
 
-The Place step includes the exact menu shortcode, a block-theme recipe, a classic header/widget recipe, and a guarded child-theme PHP call. The Verify step is a manual checklist for actual pages: follow each destination, operate panels with keyboard, and confirm the mobile drawer closes before navigation. Use a staging page first and keep the original header until the replacement passes.
+The **Place** tab always shows the exact menu shortcode with a Copy button, plus short instructions for block themes, classic themes and page builders, and a child-theme PHP call for developers. If the menu still has checklist items, the tab reminds you to fix them first. **Check it on your site** is a manual checklist for real pages: follow each link, open dropdowns with the mouse and keyboard, and confirm the phone menu opens, goes back and closes. Use a staging page first and keep the original header until the replacement passes.
 
 Per-menu export, duplicate and archive live under **More actions** on each menu card. Under **Tools** on the main screen, **Import and export** holds collection import and developer examples, and **Recovery snapshots** restores automatic backups. Existing product profiles and branding pages remain available for reusable product navigation.
 

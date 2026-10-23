@@ -30,7 +30,7 @@ The complete block source is included in the src directory of this package. To r
 == Installation ==
 
 1. Install the plugin and activate it.
-2. Open Ashbi Mega Menu and choose a blank menu or the optional sample.
+2. Open Mega Menu and choose Start from scratch or Use a template.
 3. Edit links and design, then save your menu.
 4. Add the Ashbi Mega Menu block to a test page and select your menu, or copy its exact shortcode into a Shortcode block or use the included widget.
 5. Verify links, keyboard navigation and mobile display on a staging site before placing it in your theme header. The theme's existing navigation remains until you remove it deliberately.
@@ -62,7 +62,7 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 == Screenshots ==
 
 1. Menu dashboard with menu cards and tools.
-2. Blank menu editor with neutral, empty call-to-action defaults.
+2. Menu editor with a live preview and the menu item list.
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
@@ -78,6 +78,8 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Remove the widget's saved settings when the plugin is deleted.
 * Save reliably on every host: menu saves now use a per-site lock row instead of a MySQL advisory lock, which could block saves on shared or pooled databases.
 * Redesign the dashboard: simpler welcome, one Tools panel and shorter text.
+* Redesign the menu editor: three clear steps (Edit, Place, Check), a Place tab that always shows the shortcode, a lighter preview toolbar, tidier rows and folded icon styling.
+* Bring Product Navigation, Navigation Coverage and Product Branding in line with the new look and use plainer wording throughout.
 * Start ordinary sites with neutral defaults and make contextual navigation an optional module.
 * Generalize contextual navigation for products, services, departments, documentation and locations.
 * Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.

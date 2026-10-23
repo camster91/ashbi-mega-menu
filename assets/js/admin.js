@@ -380,8 +380,12 @@
 				.find('button').text(issue.message).attr('data-field', issue.field).end()
 				.appendTo($list);
 		});
-		$('.abmm-placement-panel').prop('hidden', !result.ready);
-		$('.abmm-placement-save-hint').text(hasUnsavedChanges() || state.draftConflict ? S.placementUnsaved : S.placementSaved);
+		// The shortcode is always available; a draft only gets a reminder.
+		$('.abmm-placement-panel').toggleClass('is-draft', !result.ready);
+		$('.abmm-placement-save-hint').text(
+			hasUnsavedChanges() || state.draftConflict ? S.placementUnsaved :
+				(!result.ready && S.placementDraft ? S.placementDraft : S.placementSaved)
+		);
 		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + (result.ready && !hasUnsavedChanges() ? 'help' : 'content') + '"]').attr('aria-current', 'step');
 		setBuilderSection(state.builderSection);
 	}
@@ -403,6 +407,8 @@
 	}
 
 	function initBuilderSections() {
+		// "Place & verify" on the dashboard links straight to the Place tab.
+		if (window.location.hash === '#placement') state.builderSection = 'help';
 		$('.abmm-builder-sections').on('click', '[data-abmm-builder-section]', function () {
 			setBuilderSection(String($(this).data('abmm-builder-section') || 'content'));
 		});
@@ -2312,6 +2318,7 @@
 					'">' +
 				iconHtml +
 				'</button>' +
+				'<details class="abmm-icon-style"><summary>' + esc(__('Icon style', 'ashbi-mega-menu')) + '</summary><div class="abmm-icon-style__fields">' +
 				'<input type="color" class="abmm-icon-color abmm-cat-icon-color" value="' +
 				esc(cat.icon_color || '#2271b1') +
 				'" aria-label="' + esc(__('Icon color', 'ashbi-mega-menu')) + '" />' +
@@ -2320,6 +2327,7 @@
 				'" placeholder="' + esc(__('Size', 'ashbi-mega-menu')) + '" aria-label="' + esc(__('Icon size override', 'ashbi-mega-menu')) + '" />' +
 				'<button type="button" class="button-link abmm-reset-icon-style" title="' + esc(__('Reset icon style to inherited values', 'ashbi-mega-menu')) + '">' + esc(__('Inherit', 'ashbi-mega-menu')) + '</button>' +
 				iconAdvancedFieldsHtml(cat) +
+				'</div></details>' +
 					'<div class="abmm-cat-row__fields">' +
 					'<input type="text" class="abmm-cat-title" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s title', 'ashbi-mega-menu'), i + 1)) + '" value="' +
 					esc(cat.title) +
@@ -2416,7 +2424,7 @@
 			'<div class="abmm-col-editor-head">' +
 			'<div>' +
 			'<h3>' + esc(__('Columns', 'ashbi-mega-menu')) + '</h3>' +
-			'<p class="description">' + esc(__('Split this category into labeled columns. Drag links between columns to reorganize them.', 'ashbi-mega-menu')) + '</p>' +
+			'<p class="description">' + esc(__('Group links into columns. Drag a link to move it between columns.', 'ashbi-mega-menu')) + '</p>' +
 			'</div>' +
 			'<button type="button" class="button abmm-add-group">+ ' + esc(__('Add column', 'ashbi-mega-menu')) + '</button>' +
 			'</div>' +
@@ -2682,6 +2690,7 @@
 			'">' +
 			iconMarkup(link.icon, link.icon_url, '', link.icon_color, link.icon_size, link) +
 			'</button>' +
+			'<details class="abmm-icon-style"><summary>' + esc(__('Icon style', 'ashbi-mega-menu')) + '</summary><div class="abmm-icon-style__fields">' +
 			'<input type="color" class="abmm-icon-color abmm-link-icon-color" value="' +
 			esc(link.icon_color || '#8a8a96') +
 			'" aria-label="' + esc(__('Icon color', 'ashbi-mega-menu')) + '" />' +
@@ -2690,6 +2699,7 @@
 			'" placeholder="' + esc(__('Size', 'ashbi-mega-menu')) + '" aria-label="' + esc(__('Icon size override', 'ashbi-mega-menu')) + '" />' +
 			'<button type="button" class="button-link abmm-reset-icon-style" title="' + esc(__('Reset icon style to inherited values', 'ashbi-mega-menu')) + '">' + esc(__('Inherit', 'ashbi-mega-menu')) + '</button>' +
 			iconAdvancedFieldsHtml(link) +
+			'</div></details>' +
 			'<input type="text" class="abmm-link-label" aria-label="' + esc(__('Link label', 'ashbi-mega-menu')) + '" value="' +
 			esc(link.label) +
 			'" placeholder="' +
