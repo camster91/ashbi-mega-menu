@@ -314,3 +314,114 @@
 .abmm-wrap .abmm-link-options > summary::-webkit-details-marker {display:none}
 .abmm-wrap .abmm-link-options > summary::before {content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .15s ease}
 .abmm-wrap .abmm-link-options[open] > summary::before {transform:rotate(45deg)}
+
+/* Dashboard and product pages polish (round 3) */
+/* Menu cards: thumbnail, compact status, body, then actions pinned to the bottom. */
+.abmm-dashboard .abmm-menu-cards {margin:0 0 28px}
+.abmm-dashboard .abmm-menu-card {position:relative;display:flex;flex-direction:column;gap:0;padding:0;overflow:visible}
+.abmm-dashboard .abmm-menu-card__thumb {display:flex;align-items:center;justify-content:center;height:92px;margin:0;padding:0 8px;background-color:#f5f7fb;background-image:radial-gradient(#dfe4ee 1px,transparent 1px);background-size:12px 12px;border-bottom:1px solid var(--abmm-brand-line);border-radius:12px 12px 0 0;overflow:hidden}
+.abmm-dashboard .abmm-menu-thumb {display:block;width:100%;max-width:340px;height:100%}
+.abmm-dashboard .abmm-menu-card__body {display:flex;flex:1 1 auto;flex-direction:column;gap:4px;min-width:0;padding:14px 18px 0}
+.abmm-dashboard .abmm-menu-card__head {display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.abmm-dashboard .abmm-menu-card__title {display:block;flex:1 1 auto;min-width:0;margin:0;overflow:hidden;font-size:15px;font-weight:600;line-height:1.4;letter-spacing:-.1px;color:var(--abmm-brand-ink);white-space:nowrap;text-overflow:ellipsis}
+.abmm-dashboard .abmm-menu-card__meta {display:flex;align-items:center;gap:8px;margin:0;color:var(--abmm-brand-muted);font-size:13px}
+.abmm-dashboard .abmm-menu-card__tag {padding:0 7px;border:1px solid #f1d58a;border-radius:999px;background:#fff8e1;color:#6c4b00;font-size:11px;font-weight:600;line-height:18px}
+.abmm-status {display:inline-flex;flex:none;align-items:center;gap:6px;padding:2px 9px 2px 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:18px;white-space:nowrap}
+.abmm-status::before {content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.abmm-status--ready {background:#e6f6ec;color:#0a6b30}
+.abmm-status--draft {background:#fff3df;color:#8a4b00;cursor:help}
+.abmm-dashboard .abmm-menu-card__shortcode,
+.abmm-dashboard .abmm-menu-card__issue {min-height:30px;margin:8px 0 0}
+.abmm-dashboard .abmm-menu-card__shortcode {display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.abmm-dashboard .abmm-menu-card__shortcode code {flex:1 1 0;min-width:0;padding:5px 9px;overflow:hidden;font-size:12px;line-height:18px;color:var(--abmm-brand-ink);background:#f3f5f9;border:1px solid var(--abmm-brand-line);border-radius:6px;white-space:nowrap;text-overflow:ellipsis}
+.abmm-dashboard .abmm-menu-card__shortcode .abmm-copy-shortcode {flex:none;min-height:30px;margin:0;padding:0 10px;line-height:28px}
+.abmm-dashboard .abmm-menu-card__shortcode .abmm-copy-fallback {flex:1 1 100%;margin-top:4px}
+.abmm-dashboard .abmm-menu-card__issue {display:flex;align-items:center;overflow:hidden;color:var(--abmm-brand-muted);font-size:13px;line-height:1.4}
+.abmm-dashboard .abmm-menu-card__actions {display:flex;flex-wrap:nowrap;align-items:center;gap:8px;margin:14px 0 0;padding:12px 18px 14px;border-top:1px solid #edf0f6}
+.abmm-dashboard .abmm-menu-card__actions > .button {min-height:32px;line-height:30px}
+.abmm-dashboard .abmm-archive-confirm {margin:0 18px 16px;border-radius:8px}
+
+/* "More actions" menu button and popover. */
+.abmm-card-menu {position:relative;flex:none;margin-inline-start:auto}
+.abmm-wrap .abmm-card-menu__toggle {display:inline-grid;place-items:center;width:34px;min-height:32px;padding:0;color:var(--abmm-brand-ink);background:#fff;border-color:var(--abmm-brand-line);font-size:20px;line-height:1}
+.abmm-wrap .abmm-card-menu__toggle:hover,
+.abmm-wrap .abmm-card-menu.is-open .abmm-card-menu__toggle {color:var(--abmm-brand-ink);background:#f3f5f9;border-color:#c5cee3}
+.abmm-card-menu__dots {display:block;margin-top:-2px}
+.abmm-card-menu__list {position:absolute;top:calc(100% + 6px);right:0;z-index:30;display:flex;flex-direction:column;gap:2px;min-width:184px;padding:6px;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:10px;box-shadow:0 12px 32px #19223824,0 2px 6px #1922380f}
+.abmm-card-menu__list[hidden] {display:none}
+.abmm-wrap .abmm-card-menu__list .button {display:flex;align-items:center;gap:10px;width:100%;min-height:34px;margin:0;padding:0 10px;color:var(--abmm-brand-ink);text-align:start;background:transparent;border:0;border-radius:6px;box-shadow:none;font-size:13px;line-height:34px}
+.abmm-wrap .abmm-card-menu__list .button::before {width:18px;font:normal 18px/1 dashicons;color:var(--abmm-brand-muted);-webkit-font-smoothing:antialiased}
+.abmm-wrap .abmm-card-menu__list .abmm-export-menu::before {content:"\f316"}
+.abmm-wrap .abmm-card-menu__list .abmm-duplicate-menu::before {content:"\f105"}
+.abmm-wrap .abmm-card-menu__list .abmm-delete-menu {margin-top:4px;color:#b32d2e;box-shadow:inset 0 1px 0 #edf0f6;border-radius:0 0 6px 6px}
+.abmm-wrap .abmm-card-menu__list .abmm-delete-menu::before {content:"\f480";color:currentColor}
+.abmm-wrap .abmm-card-menu__list .button:hover,
+.abmm-wrap .abmm-card-menu__list .button:focus {color:var(--abmm-brand-ink);background:#f3f5f9;box-shadow:none;outline:0}
+.abmm-wrap .abmm-card-menu__list .abmm-delete-menu:hover,
+.abmm-wrap .abmm-card-menu__list .abmm-delete-menu:focus {color:#8a1f1f;background:#fcf0f1}
+.abmm-wrap .abmm-card-menu__list .button:focus-visible {outline:2px solid var(--abmm-brand-blue);outline-offset:-2px}
+@media (max-width:480px) {
+	.abmm-dashboard .abmm-menu-card__actions > .button {flex:1 1 auto;min-height:40px;line-height:38px}
+	.abmm-dashboard .abmm-menu-card__actions > .abmm-card-menu {flex:none}
+	.abmm-wrap .abmm-card-menu__toggle {width:40px;min-height:40px}
+	.abmm-wrap .abmm-card-menu__list .button {min-height:40px}
+}
+@media (forced-colors:active) {
+	.abmm-status,.abmm-card-menu__list {border:1px solid CanvasText}
+	.abmm-wrap .abmm-card-menu__list .button:focus {outline:2px solid Highlight}
+}
+
+/* Product pages: one heading, description and fields rhythm per section. */
+.abmm-profile-admin .abmm-profile-admin__fieldset {padding:22px 24px 24px}
+.abmm-profile-admin .abmm-profile-admin__fieldset > legend,
+.abmm-branding-admin .abmm-branding-admin__form fieldset > legend {float:left;width:100%;margin:0 0 4px;padding:0;font-size:15px;font-weight:600;line-height:1.4;color:var(--abmm-brand-ink)}
+.abmm-profile-admin .abmm-profile-admin__fieldset > legend + *,
+.abmm-branding-admin .abmm-branding-admin__form fieldset > legend + * {clear:both}
+.abmm-profile-admin .abmm-profile-admin__fieldset > .abmm-profile-admin__intro,
+.abmm-branding-admin .abmm-branding-admin__form fieldset > legend + p {max-width:650px;margin:0 0 16px;color:var(--abmm-brand-muted);font-size:13px;line-height:1.5}
+.abmm-profile-admin .abmm-profile-admin__field-grid > label {align-content:start}
+.abmm-profile-admin__help {color:var(--abmm-brand-muted);font-size:12px;font-weight:400;line-height:1.45}
+.abmm-profile-admin .abmm-profile-admin__style-field {margin-bottom:16px}
+.abmm-profile-admin .abmm-profile-admin__checkbox {margin:0 0 14px;font-size:13px;font-weight:600;color:var(--abmm-brand-ink)}
+
+/* "Add more links" sits below the table as its own disclosure, with a chevron. */
+.abmm-profile-admin .abmm-profile-admin__more-links {margin:12px 0 0}
+.abmm-profile-admin .abmm-profile-admin__more-links > summary {display:inline-flex;align-items:center;gap:8px;margin:0;padding:6px 10px 6px 8px;color:var(--abmm-brand-blue);font-size:13px;font-weight:600;line-height:1.4;list-style:none;border-radius:7px;cursor:pointer}
+.abmm-profile-admin__more-links > summary::-webkit-details-marker {display:none}
+.abmm-profile-admin__more-links > summary::before {content:"";width:6px;height:6px;margin:0 3px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
+.abmm-profile-admin__more-links[open] > summary::before {transform:rotate(45deg) translate(-2px,-1px)}
+.abmm-profile-admin .abmm-profile-admin__more-links > summary:hover {background:#eef3ff}
+.abmm-profile-admin .abmm-profile-admin__more-links > summary:focus-visible {outline:3px solid #ffb568;outline-offset:2px}
+.abmm-profile-admin__summary-note {color:var(--abmm-brand-muted);font-size:12px;font-weight:400}
+.abmm-profile-admin .abmm-profile-admin__more-links[open] > summary {margin-bottom:10px}
+
+/* Fields that only apply while their option is on. */
+.abmm-dependent-fields {transition:opacity .15s}
+.abmm-dependent-fields.is-muted {opacity:.5}
+.abmm-dependent-fields.is-muted input:disabled {background:#f6f7f9;border-color:#dce2ef;cursor:not-allowed}
+
+/* Product Branding: same section rhythm, toggles as tidy option rows. */
+.abmm-branding-admin .abmm-branding-admin__form fieldset {padding:22px 24px 24px}
+.abmm-branding-admin .abmm-branding-admin__form fieldset > legend + .screen-reader-text + select,
+.abmm-branding-admin .abmm-branding-admin__form fieldset > legend + label {margin-top:8px}
+.abmm-branding-admin .abmm-branding-admin__form fieldset > .description {margin:8px 0 0;color:var(--abmm-brand-muted)}
+.abmm-branding-admin .abmm-branding-admin__form fieldset > legend + .abmm-branding-admin__preview + .abmm-branding-admin__media-field,
+.abmm-branding-admin .abmm-branding-admin__form fieldset > legend + p + .abmm-branding-admin__media-field {margin-top:4px}
+.abmm-branding-admin .abmm-branding-admin__form fieldset > label.abmm-branding-admin__toggle {display:flex;align-items:flex-start;gap:10px;margin:0 0 16px;padding:12px 14px;background:#f7f9fc;border:1px solid var(--abmm-brand-line);border-radius:8px;font-weight:400}
+.abmm-branding-admin .abmm-branding-admin__toggle input[type="checkbox"] {flex:none;margin:2px 0 0}
+
+/* Navigation Coverage: filters read as one toolbar above the table. */
+.abmm-profile-coverage .abmm-profile-coverage__filters {display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:20px 0 12px;padding:12px 14px;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:12px}
+.abmm-profile-coverage .abmm-profile-coverage__filters label {font-weight:600;font-size:13px}
+.abmm-profile-coverage .abmm-profile-coverage__filters label + select {margin-inline-end:4px}
+.abmm-profile-coverage .abmm-profile-coverage__filters input[type="search"],
+.abmm-profile-coverage .abmm-profile-coverage__filters select {min-height:34px}
+.abmm-profile-coverage .abmm-profile-coverage__filters .button {min-height:34px}
+.abmm-profile-coverage .abmm-profile-coverage__count {margin:0 0 10px;color:var(--abmm-brand-muted);font-size:13px}
+@media (max-width:782px) {
+	.abmm-profile-admin .abmm-profile-admin__fieldset,
+	.abmm-branding-admin .abmm-branding-admin__form fieldset {padding:18px 16px 20px}
+	.abmm-profile-coverage .abmm-profile-coverage__filters input[type="search"],
+	.abmm-profile-coverage .abmm-profile-coverage__filters select {flex:1 1 60%}
+}
+@media (prefers-reduced-motion:reduce) {.abmm-profile-admin__more-links > summary::before,.abmm-dependent-fields {transition:none}}

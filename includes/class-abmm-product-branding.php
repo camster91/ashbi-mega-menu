@@ -429,7 +429,7 @@ class ABMM_Product_Branding {
 								<?php $this->render_media_field( 'primary', __( 'Logo image', 'ashbi-mega-menu' ), $primary, $config['logo_attachment_id'], true ); ?>
 								<?php $this->render_media_field( 'dark', __( 'Logo for dark menus (optional)', 'ashbi-mega-menu' ), $dark, $config['logo_dark_attachment_id'], false ); ?>
 								<div class="abmm-branding-admin__grid">
-									<label><?php esc_html_e( 'Alternative text', 'ashbi-mega-menu' ); ?><input type="text" class="regular-text" name="branding[alt]" value="<?php echo esc_attr( $config['alt'] ); ?>" placeholder="<?php esc_attr_e( 'site', 'ashbi-mega-menu' ); ?>" /><small><?php esc_html_e( 'Describe the logo for screen readers. Required.', 'ashbi-mega-menu' ); ?></small></label>
+									<label><?php esc_html_e( 'Alternative text', 'ashbi-mega-menu' ); ?><input class="regular-text" type="text" name="branding[alt]" value="<?php echo esc_attr( $config['alt'] ); ?>" placeholder="<?php esc_attr_e( 'site', 'ashbi-mega-menu' ); ?>" /><small><?php esc_html_e( 'Describe the logo for screen readers. Required.', 'ashbi-mega-menu' ); ?></small></label>
 									<label><?php esc_html_e( 'Logo height', 'ashbi-mega-menu' ); ?><span class="abmm-branding-admin__number"><input type="number" min="16" max="80" name="branding[logo_height]" value="<?php echo esc_attr( $config['logo_height'] ); ?>" /> px</span></label>
 								</div>
 							</fieldset>
@@ -447,8 +447,8 @@ class ABMM_Product_Branding {
 
 							<fieldset>
 								<legend><?php esc_html_e( 'Top bar', 'ashbi-mega-menu' ); ?></legend>
-								<label class="abmm-branding-admin__toggle"><input type="checkbox" name="branding[show_utility_links]" value="1" <?php checked( ! empty( $config['show_utility_links'] ) ); ?> /><span><strong><?php esc_html_e( 'Show About and Contact above the header', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'A slim bar of links above the menu, on desktop only.', 'ashbi-mega-menu' ); ?></small></span></label>
-								<div class="abmm-branding-admin__grid">
+								<label class="abmm-branding-admin__toggle"><input type="checkbox" name="branding[show_utility_links]" value="1" data-abmm-controls="abmm-branding-utility-fields" <?php checked( ! empty( $config['show_utility_links'] ) ); ?> /><span><strong><?php esc_html_e( 'Show About and Contact above the header', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'A slim bar of links above the menu, on desktop only.', 'ashbi-mega-menu' ); ?></small></span></label>
+								<div class="abmm-branding-admin__grid abmm-dependent-fields" id="abmm-branding-utility-fields">
 									<label><?php esc_html_e( 'About URL', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="branding[about_url]" value="<?php echo esc_attr( $config['about_url'] ); ?>" /></label>
 									<label><?php esc_html_e( 'Contact URL', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="branding[contact_url]" value="<?php echo esc_attr( $config['contact_url'] ); ?>" /></label>
 								</div>
@@ -466,6 +466,7 @@ class ABMM_Product_Branding {
 			<?php endif; ?>
 		</div>
 		<?php
+		ABMM_Product_Profiles::print_dependent_fields_script();
 	}
 
 	/**
