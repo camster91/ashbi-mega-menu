@@ -395,13 +395,15 @@ class ABMM_Product_Profiles {
 						</div>
 					</fieldset>
 					<?php
-					$abmm_extra_open = false;
-					for ( $abmm_extra = 2; $abmm_extra < 6; $abmm_extra++ ) {
-						$abmm_extra_open = $abmm_extra_open || ! empty( $profile['links'][ $abmm_extra ]['label'] ) || ! empty( $profile['links'][ $abmm_extra ]['url'] );
-					}
+					/*
+					 * All six rows are printed so the form works without JavaScript.
+					 * product-admin.js hides the unused ones and reveals them one at
+					 * a time with "Add link"; the field names never change.
+					 */
 					$abmm_link_row = static function ( $index, $link ) {
+						$filled = '' !== (string) ( $link['label'] ?? '' ) || '' !== (string) ( $link['url'] ?? '' );
 						?>
-						<div class="abmm-profile-admin__link-row">
+						<div class="abmm-profile-admin__link-row" data-abmm-link-row<?php echo $filled ? ' data-abmm-filled' : ''; ?>>
 							<label><span class="screen-reader-text">
 								<?php
 								/* translators: %d: Link position. */
@@ -421,25 +423,25 @@ class ABMM_Product_Profiles {
 					<fieldset class="abmm-profile-admin__fieldset">
 						<legend><?php esc_html_e( 'Links', 'ashbi-mega-menu' ); ?></legend>
 						<p class="abmm-profile-admin__intro"><?php esc_html_e( 'Shown under your main menu, only on this product\'s pages.', 'ashbi-mega-menu' ); ?></p>
-						<label class="abmm-profile-admin__style-field"><?php esc_html_e( 'Style', 'ashbi-mega-menu' ); ?><select name="profile[rail_style]"><option value="underline" <?php selected( $profile['rail_style'], 'underline' ); ?>><?php esc_html_e( 'Underlined links', 'ashbi-mega-menu' ); ?></option><option value="pills" <?php selected( $profile['rail_style'], 'pills' ); ?>><?php esc_html_e( 'Pill links', 'ashbi-mega-menu' ); ?></option></select></label>
-						<div class="abmm-profile-admin__links">
+						<div class="abmm-profile-admin__field-grid abmm-profile-admin__style-grid">
+							<label class="abmm-profile-admin__style-field"><?php esc_html_e( 'Style', 'ashbi-mega-menu' ); ?><select name="profile[rail_style]"><option value="underline" <?php selected( $profile['rail_style'], 'underline' ); ?>><?php esc_html_e( 'Underlined links', 'ashbi-mega-menu' ); ?></option><option value="pills" <?php selected( $profile['rail_style'], 'pills' ); ?>><?php esc_html_e( 'Pill links', 'ashbi-mega-menu' ); ?></option></select></label>
+						</div>
+						<div class="abmm-profile-admin__links" data-abmm-links>
 							<div class="abmm-profile-admin__link-head"><span><?php esc_html_e( 'Label', 'ashbi-mega-menu' ); ?></span><span><?php esc_html_e( 'Destination', 'ashbi-mega-menu' ); ?></span></div>
 							<?php
-							for ( $index = 0; $index < 2; $index++ ) {
+							for ( $index = 0; $index < 6; $index++ ) {
 								$abmm_link_row( $index, $profile['links'][ $index ] ?? array() );
 							}
 							?>
-						</div>
-						<details class="abmm-profile-admin__more-links"<?php echo $abmm_extra_open ? ' open' : ''; ?>>
-							<summary><?php esc_html_e( 'Add more links', 'ashbi-mega-menu' ); ?> <span class="abmm-profile-admin__summary-note"><?php esc_html_e( 'Up to 4 more', 'ashbi-mega-menu' ); ?></span></summary>
-							<div class="abmm-profile-admin__links">
-								<?php
-								for ( $index = 2; $index < 6; $index++ ) {
-									$abmm_link_row( $index, $profile['links'][ $index ] ?? array() );
-								}
-								?>
+							<div class="abmm-profile-admin__links-empty" data-abmm-links-empty hidden>
+								<span class="abmm-profile-admin__links-empty-icon dashicons dashicons-admin-links" aria-hidden="true"></span>
+								<span><strong><?php esc_html_e( 'No links yet', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Add up to six links, such as Overview, Features and Pricing.', 'ashbi-mega-menu' ); ?></small></span>
 							</div>
-						</details>
+						</div>
+						<div class="abmm-profile-admin__links-actions" data-abmm-links-actions hidden>
+							<button type="button" class="button abmm-profile-admin__add-link" data-abmm-add-link><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add link', 'ashbi-mega-menu' ); ?></button>
+							<span class="abmm-profile-admin__links-note" data-abmm-links-note aria-live="polite"></span>
+						</div>
 					</fieldset>
 					<fieldset class="abmm-profile-admin__fieldset abmm-profile-admin__fieldset--cta">
 						<legend><?php esc_html_e( 'Button (optional)', 'ashbi-mega-menu' ); ?></legend>
@@ -475,9 +477,12 @@ class ABMM_Product_Profiles {
 	function sync(toggle) {
 		var target = document.getElementById(toggle.getAttribute('data-abmm-controls'));
 		if (!target) return;
-		var off = !toggle.checked;
+		var off = !toggle.checked || toggle.disabled;
 		target.classList.toggle('is-muted', off);
+		target.setAttribute('aria-disabled', off ? 'true' : 'false');
 		target.querySelectorAll('input, select, textarea, button').forEach(function (field) { field.disabled = off; });
+		// A switch inside the group (such as the top bar) keeps its own fields off while it is off.
+		target.querySelectorAll('input[type="checkbox"][data-abmm-controls]').forEach(sync);
 	}
 	toggles.forEach(function (toggle) {
 		sync(toggle);

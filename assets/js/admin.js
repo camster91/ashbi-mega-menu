@@ -1174,9 +1174,91 @@
 		});
 	}
 
+	// Dashboard search, sort and grid/list view. Only rendered for more than six menus.
+	function initMenuToolbar() {
+		var $toolbar = $('[data-abmm-menu-toolbar]');
+		var $grid = $('[data-abmm-menu-cards]');
+		if (!$toolbar.length || !$grid.length) return;
+		var key = 'abmmMenuView:' + ($toolbar.attr('data-abmm-user') || '0');
+		var $search = $toolbar.find('[data-abmm-menu-search]');
+		var $sort = $toolbar.find('[data-abmm-menu-sort]');
+		var $cards = $grid.children('.abmm-menu-card');
+		var $empty = $('[data-abmm-menu-noresults]');
+		var $results = $('[data-abmm-menu-results]');
+		var $count = $('[data-abmm-menu-count]');
+		var total = $cards.length;
+		var timer = null;
+		function read() {
+			try { return JSON.parse(window.localStorage.getItem(key) || '{}') || {}; } catch (error) { return {}; }
+		}
+		function write(prefs) {
+			try { window.localStorage.setItem(key, JSON.stringify(prefs)); } catch (error) { /* Private mode: the choice lasts for this visit. */ }
+		}
+		function setView(view) {
+			view = view === 'list' ? 'list' : 'grid';
+			$grid.toggleClass('is-list', view === 'list');
+			$toolbar.find('[data-abmm-view]').each(function () {
+				var on = $(this).attr('data-abmm-view') === view;
+				$(this).toggleClass('is-current', on).attr('aria-pressed', on ? 'true' : 'false');
+			});
+		}
+		function sortCards(by) {
+			var sorted = $cards.get().sort(function (a, b) {
+				if (by === 'name') return String($(a).attr('data-abmm-title')).localeCompare(String($(b).attr('data-abmm-title')));
+				return Number($(a).attr('data-abmm-order')) - Number($(b).attr('data-abmm-order'));
+			});
+			$grid.append(sorted);
+		}
+		function filter() {
+			var term = $.trim(String($search.val() || '')).toLowerCase();
+			var shown = 0;
+			$cards.each(function () {
+				var match = term === '' || String($(this).attr('data-abmm-title')).indexOf(term) !== -1;
+				this.hidden = !match;
+				if (match) shown++;
+			});
+			$empty.prop('hidden', shown > 0);
+			$count.text(term === '' ? String(total) : sprintf(
+				/* translators: 1: number of matching menus, 2: total number of menus. */
+				__('%1$d of %2$d', 'ashbi-mega-menu'), shown, total
+			));
+			$results.text(term === '' ? '' : sprintf(
+				/* translators: %d: number of menus matching the search. */
+				_n('%d menu found', '%d menus found', shown, 'ashbi-mega-menu'), shown
+			));
+		}
+		var prefs = read();
+		setView(prefs.view);
+		if (prefs.sort === 'name') $sort.val('name');
+		sortCards($sort.val());
+		$toolbar.prop('hidden', false);
+		$toolbar.on('click', '[data-abmm-view]', function () {
+			var view = $(this).attr('data-abmm-view');
+			setView(view);
+			prefs.view = view;
+			write(prefs);
+		});
+		$sort.on('change', function () {
+			sortCards($sort.val());
+			prefs.sort = $sort.val();
+			write(prefs);
+		});
+		$search.on('input', function () {
+			window.clearTimeout(timer);
+			timer = window.setTimeout(filter, 80);
+		}).on('keydown', function (e) {
+			if (e.key === 'Escape' && $search.val()) { e.preventDefault(); $search.val(''); filter(); }
+		});
+		$('[data-abmm-menu-clear]').on('click', function () {
+			$search.val('').trigger('focus');
+			filter();
+		});
+	}
+
 	function initListPage() {
 		initBackupRecovery();
 		initCardMenus();
+		initMenuToolbar();
 		$('.abmm-onboarding-choice').on('click', function () {
 			var $buttons = $('.abmm-onboarding-choice').prop('disabled', true);
 			$.post(abmmAdmin.ajaxUrl, {
