@@ -86,6 +86,18 @@ async function backupFixture(strings = {}) {
   rows().eq(1).find('.abmm-duplicate-nav').trigger('click');
   assert.equal(toggle(2).attr('aria-expanded'),'true','a duplicated item opens straight away');
   assert.equal(toggle(1).attr('aria-expanded'),'false');
+  // Link options are a popover: the toggle reports its state and Escape closes it and returns focus.
+  const popover = rows().eq(0).find('.abmm-link-options');
+  const popToggle = popover.find('.abmm-link-options__toggle');
+  popToggle.trigger('click');
+  assert.equal(popToggle.attr('aria-expanded'),'true');
+  assert.equal(popover.find('.abmm-link-options__panel').prop('hidden'),false);
+  popover.find('.abmm-link-target').prop('checked',true).trigger('change');
+  assert.equal(popover.hasClass('has-options'),true,'a set option marks the toggle');
+  popover.find('.abmm-link-rel').trigger(rq.Event('keydown',{key:'Escape'}));
+  assert.equal(popToggle.attr('aria-expanded'),'false');
+  assert.equal(popover.find('.abmm-link-options__panel').prop('hidden'),true);
+  assert.equal(rowsFixture.window.document.activeElement,popToggle[0],'Escape returns focus to the popover button');
  } finally { rowsFixture.close(); }
  let f=await fixture(); let {$,requests}=f;
  assert.equal($('#abmm-preview .abmm-nav__link').text(),'Home','loaded transport renders actual preview');
@@ -104,7 +116,9 @@ async function backupFixture(strings = {}) {
  assert.equal($('[data-abmm-builder-section="help"]').attr('aria-selected'),'true');
  assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false);
  assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
+ assert.equal($('.abmm-save-menu').hasClass('is-saved'),true,'with nothing to save the button rests in its quiet Saved state');
  $('#abmm-menu-title').val('Changed').trigger('input');
+ assert.equal($('.abmm-save-menu').hasClass('is-saved'),false,'a change turns Save back into the primary action');
  $('.abmm-save-menu').trigger('click');
  assert.equal(requests.length,1); assert.equal(requests[0].data.base_revision,'revision-1');
  assert.equal(JSON.parse(requests[0].data.menu_data).title,'Changed');
