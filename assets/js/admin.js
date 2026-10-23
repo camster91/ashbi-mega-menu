@@ -423,7 +423,9 @@
 		}
 		$button.toggleClass('is-saved', saved).toggleClass('is-saving', saving);
 		$icon.prop('hidden', !saved);
-		$label.text(label);
+		// Only touch the text when it changes: replacing the text node under the
+		// pointer makes WebKit drop the click.
+		if ($label.text() !== label) $label.text(label);
 		$button.attr('title', saved ? __('All changes are saved', 'ashbi-mega-menu') : __('Save this menu', 'ashbi-mega-menu'));
 	}
 
