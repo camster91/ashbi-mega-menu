@@ -524,11 +524,14 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 			return false;
 		}
 
-		if ( empty( $target['query'] ) ) {
-			return true;
-		}
-		parse_str( $target['query'], $target_query );
+		parse_str( $target['query'] ?? '', $target_query );
 		parse_str( $current['query'] ?? '', $current_query );
+		if ( empty( $target_query ) ) {
+			// With plain permalinks every page lives at "/?page_id=…", so a bare
+			// home link only matches when the request names no other content.
+			$routing = array( 'p', 'page_id', 'pagename', 'name', 'cat', 'tag', 'tag_id', 'category_name', 'author', 'author_name', 'post_type', 'attachment_id', 's', 'm', 'year', 'monthnum', 'day' );
+			return ! array_intersect_key( $current_query, array_flip( $routing ) );
+		}
 		ksort( $target_query );
 		ksort( $current_query );
 		return $target_query === $current_query;

@@ -84,6 +84,11 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Flag links typed as plain text (such as "about") and menu bar names that are too long, before you place the menu.
 * Count shortcodes in pages when warning before a menu is archived.
 * Show the real reason when an import file is rejected, and give repeated duplicates distinct names.
+* Fix the editor preview for menus with several mega items, and open the drawer in tablet and phone previews.
+* Refresh the desktop mega panel: rounded category rows, icon tiles, a clear "see all" link and a stable height between categories.
+* Ship a fuller starter template with sample products, a site name and a button; the checklist counts sample links still to replace.
+* Flag a logo with nothing to show, keep dark styles readable and stop a home link from looking current on every page with plain permalinks.
+* Clamp negative number settings to their minimum and fix icon search.
 * Start ordinary sites with neutral defaults and make contextual navigation an optional module.
 * Generalize contextual navigation for products, services, departments, documentation and locations.
 * Remove retained recovery drafts on uninstall and package third-party notices in a directory-compatible format.

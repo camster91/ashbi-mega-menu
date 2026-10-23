@@ -10,6 +10,17 @@ function abmm_test_assert( $condition, $message ) {
 abmm_test_assert( class_exists( 'ABMM_Data' ), 'Plugin must be active.' );
 $data = ABMM_Data::instance();
 
+$current_method = new ReflectionMethod( ABMM_Frontend::instance(), 'is_current_url' );
+$current_method->setAccessible( true );
+$saved_uri = $_SERVER['REQUEST_URI'] ?? null;
+$_SERVER['REQUEST_URI'] = '/?page_id=24';
+abmm_test_assert( ! $current_method->invoke( ABMM_Frontend::instance(), home_url( '/' ) ), 'A home link is not current on a plain-permalink page.' );
+abmm_test_assert( $current_method->invoke( ABMM_Frontend::instance(), home_url( '/?page_id=24' ) ), 'A plain-permalink page link is current on that page.' );
+$_SERVER['REQUEST_URI'] = '/?utm_source=mail';
+abmm_test_assert( $current_method->invoke( ABMM_Frontend::instance(), home_url( '/' ) ), 'Tracking parameters do not stop the home link matching.' );
+abmm_test_assert( ! $current_method->invoke( ABMM_Frontend::instance(), '#abmm-sample' ), 'Template placeholders are never current.' );
+if ( null === $saved_uri ) { unset( $_SERVER['REQUEST_URI'] ); } else { $_SERVER['REQUEST_URI'] = $saved_uri; }
+
 $clamped = $data->sanitize_menu( array(
 	'title'    => 'Numbers',
 	'items'    => array(),

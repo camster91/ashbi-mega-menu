@@ -37,4 +37,9 @@ check( false !== strpos( $messages, 'Check the logo image link' ), 'Readiness fl
 $menu['brand']['logo_url'] = 'https://example.com/logo.svg';
 check( $checker->readiness( $menu )['ready'], 'A logo with a real image is ready' );
 
+$menu['brand'] = array();
+$menu['items'][] = array( 'type' => 'link', 'label' => 'Sample', 'url' => '#abmm-sample' );
+$messages = implode( "\n", array_column( $checker->readiness( $menu )['issues'], 'message' ) );
+check( false !== strpos( $messages, 'Replace 1 sample link' ), 'Readiness counts template links still to replace' );
+
 echo "Readiness flags plain-text links and long labels.\n";

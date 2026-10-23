@@ -223,6 +223,8 @@
 .abmm-nav__brand-title {
 	overflow: hidden;
 	max-width: 18rem;
+	font-size: 18px;
+	letter-spacing: -0.01em;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
@@ -2524,4 +2526,36 @@ html.abmm-drawer-open {
 /* Show focus rings for keyboard users only; themes often outline every :focus, including after a tap. */
 .abmm-header :focus:not(:focus-visible) {
 	outline: none;
+}
+
+/* Desktop panel: card-style rows, quieter labels and a clear "see all" link. */
+@media (min-width: 901px) {
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__accordion {background:var(--abmm-panel-bg);padding:12px 0}
+.abmm-header:not(.abmm-force-mobile).abmm-full-width .abmm-mega__accordion {max-width:var(--abmm-panel-width);margin-inline:auto}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat {width:calc(var(--abmm-sidebar-width) - 1.5rem);margin:1px 0.75rem;padding:0.6rem 0.75rem;border-bottom:0;border-radius:8px;gap:0.75rem}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat:hover,.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat:focus {background:color-mix(in srgb,var(--abmm-accent) 6%,var(--abmm-panel-bg))!important}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat.is-active,.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat.is-active:hover,.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat.is-active:focus {background:color-mix(in srgb,var(--abmm-accent) 10%,var(--abmm-panel-bg))!important;box-shadow:none}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat-title {font-size:14px;font-weight:600;letter-spacing:0;text-transform:none}
+.abmm-header:not(.abmm-force-mobile).abmm-cats-upper .abmm-mega__cat-title {font-size:13px;letter-spacing:0.05em;text-transform:uppercase}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__cat-desc {font-size:12.5px}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel {padding:0.5rem 1.75rem 1.25rem}
+.abmm-header:not(.abmm-force-mobile):not(.abmm-layout--stacked) .abmm-mega__accordion::before {content:"";position:absolute;top:12px;bottom:12px;left:calc(var(--abmm-sidebar-width) + 0.25rem);width:1px;background:var(--abmm-border);z-index:2;pointer-events:none}
+.abmm-header:not(.abmm-force-mobile).abmm-layout--sidebar-right .abmm-mega__accordion::before {left:auto;right:calc(var(--abmm-sidebar-width) + 0.25rem)}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title {margin:0 0 1rem;font-size:14px;font-weight:600}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a {color:var(--abmm-accent);text-decoration:none}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a::after {content:"\2192";display:inline-block;margin-left:0.4em;transition:transform 0.15s ease}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a:hover::after {transform:translateX(3px)}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-title {font-size:11px}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-link {margin:0 -0.6rem;padding:0.5rem 0.6rem;border-radius:8px;gap:0.7rem;transition:background 0.15s ease,color 0.15s ease}
+.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:hover,.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:focus-visible {background:color-mix(in srgb,var(--abmm-accent) 6%,var(--abmm-panel-bg))}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-label {font-weight:500}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-description {font-size:12.5px;max-width:34ch}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__col-icon {display:grid;place-items:center;width:32px;height:32px;margin-top:0;border-radius:8px;background:color-mix(in srgb,var(--abmm-accent) 10%,var(--abmm-panel-bg));color:var(--abmm-accent)}
+}
+
+/* Touch screens keep :hover after a tap, which made a second row look selected. */
+@media (hover: none) {
+	.abmm-header .abmm-mega__cat:hover:not(.is-active):not(:focus-visible) {
+		background: transparent !important;
+	}
 }

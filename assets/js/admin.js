@@ -7,6 +7,7 @@
 	var S = abmmAdmin.strings;
 	var wpI18n = (window.wp && window.wp.i18n) || {};
 	var __ = wpI18n.__ || function (text) { return text; };
+	var _n = wpI18n._n || function (single, plural, number) { return number === 1 ? single : plural; };
 	var sprintf = wpI18n.sprintf || function (format) {
 		var args = Array.prototype.slice.call(arguments, 1);
 		var next = 0;
@@ -380,6 +381,11 @@
 			} else if (looksLikeBrokenUrl(brand.logo_url) || looksLikeBrokenUrl(brand.logo_dark_url)) {
 				issues.push({ field: 'abmm-brand-logo-url', message: S.checkLogo || 'Check the logo image link. It does not look like a web address.' });
 			}
+		}
+		var samples = menuLinks(menu).filter(function (link) { return /#abmm-sample$/.test(String(link.url || '').trim()); }).length;
+		if (samples) {
+			/* translators: %d: number of template links. */
+			issues.push({ field: 'abmm-nav-items', message: sprintf(_n('Replace %d sample link with your own page.', 'Replace %d sample links with your own pages.', samples, 'ashbi-mega-menu'), samples) });
 		}
 		menuLinks(menu).forEach(function (link) {
 			if (looksLikeBrokenUrl(link.url)) {
@@ -2178,10 +2184,15 @@
 
 	function reorderControlsHtml(label, index, length) {
 		return '<span class="abmm-reorder-controls" role="group" aria-label="' + esc((S.positionControls || '%s position controls').replace('%s', label)) + '">' +
-			'<button type="button" class="button-link abmm-move-item abmm-move-up" aria-label="' + esc((S.moveUpLabel || 'Move %s up').replace('%s', label)) + '"' +
-			(index === 0 ? ' disabled' : '') + '>' + esc(S.moveUp || 'Move up') + '</button>' +
-			'<button type="button" class="button-link abmm-move-item abmm-move-down" aria-label="' + esc((S.moveDownLabel || 'Move %s down').replace('%s', label)) + '"' +
-			(index === length - 1 ? ' disabled' : '') + '>' + esc(S.moveDown || 'Move down') + '</button></span>';
+			'<button type="button" class="button-link abmm-move-item abmm-move-up" aria-label="' + esc((S.moveUpLabel || 'Move %s up').replace('%s', label)) + '" title="' + esc(S.moveUp || 'Move up') + '"' +
+			(index === 0 ? ' disabled' : '') + '>' + iconButtonContent('arrow-up-alt2', S.moveUp || 'Move up') + '</button>' +
+			'<button type="button" class="button-link abmm-move-item abmm-move-down" aria-label="' + esc((S.moveDownLabel || 'Move %s down').replace('%s', label)) + '" title="' + esc(S.moveDown || 'Move down') + '"' +
+			(index === length - 1 ? ' disabled' : '') + '>' + iconButtonContent('arrow-down-alt2', S.moveDown || 'Move down') + '</button></span>';
+	}
+
+	// Compact icon button body; the text stays available to screen readers and tests.
+	function iconButtonContent(icon, text) {
+		return '<span class="dashicons dashicons-' + icon + '" aria-hidden="true"></span><span class="screen-reader-text">' + esc(text) + '</span>';
 	}
 
 	function moveCollectionItem(collection, from, direction) {
@@ -2231,12 +2242,14 @@
 					'</select>' +
 						(isMega ? '<span class="abmm-mega-style-badge">' + esc(styleLabel) + '</span>' : '') +
 						(isMega ? '<button type="button" class="button button-small abmm-edit-mega">' + esc(__('Edit content', 'ashbi-mega-menu')) + '</button>' : '') +
-						'<button type="button" class="button button-small abmm-duplicate-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Duplicate navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1)) + '">' + esc(__('Duplicate', 'ashbi-mega-menu')) + '</button>' +
 						'</div>' +
 						'</div>' +
+					'<span class="abmm-row-actions">' +
 					/* translators: %s: menu item name. */
 					reorderControlsHtml(sprintf(__('navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1), itemIndex, getMenu().items.length) +
-					'<button type="button" class="button-link-delete abmm-remove-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Remove navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1)) + '" title="' + esc(__('Remove navigation item', 'ashbi-mega-menu')) + '">&times;</button>' +
+					'<button type="button" class="button-link abmm-duplicate-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Duplicate navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1)) + '" title="' + esc(__('Duplicate', 'ashbi-mega-menu')) + '">' + iconButtonContent('admin-page', __('Duplicate', 'ashbi-mega-menu')) + '</button>' +
+					'<button type="button" class="button-link-delete abmm-remove-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Remove navigation item %s', 'ashbi-mega-menu'), item.label || itemIndex + 1)) + '" title="' + esc(__('Remove navigation item', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
+					'</span>' +
 					'</li>'
 			);
 			$list.append($row);
