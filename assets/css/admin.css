@@ -196,7 +196,8 @@
 .abmm-builder-wrap {
 	margin-right: 20px;
 	max-width: 100%;
-	overflow-x: hidden;
+	/* clip, not hidden: hidden makes this a scroll container and breaks the sticky top bar and inspector. */
+	overflow-x: clip;
 }
 
 .abmm-builder-topbar {
@@ -1789,13 +1790,13 @@ button.abmm-preset-card:hover {
 }
 
 /* Keep the editor readable on medium desktop screens. */
-@media (max-width: 1400px) and (min-width: 1101px) {
+@media (max-width: 1400px) and (min-width: 1200px) {
 	.abmm-builder {
 		grid-template-columns: minmax(0, 1fr) 320px;
 	}
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1199px) {
 	.abmm-builder {
 		grid-template-columns: 1fr;
 	}
@@ -2531,7 +2532,7 @@ body.abmm-builder-sheet-open {
 	overflow: hidden;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1199px) {
 	.abmm-builder {
 		grid-template-columns: minmax(0, 1fr);
 		gap: 0;
