@@ -89,6 +89,25 @@ assert.equal(C.isTypingTarget(doc.createElement('textarea')), true);
 assert.deepEqual({ ...C.wheelDelta({ deltaX: 1, deltaY: 2, deltaMode: 1 }) }, { x: 16, y: 32 });
 assert.deepEqual({ ...C.wheelDelta({ deltaX: 0, deltaY: 1, deltaMode: 2 }) }, { x: 0, y: 400 });
 
+// A wheel over a live frame scrolls its content first, then pans the canvas.
+{
+	const box = doc.createElement('div');
+	box.style.overflowY = 'auto';
+	const inner = doc.createElement('p');
+	box.appendChild(inner);
+	doc.body.appendChild(box);
+	Object.defineProperty(box, 'scrollHeight', { value: 500 });
+	Object.defineProperty(box, 'clientHeight', { value: 200 });
+	box.scrollTop = 0;
+	assert.equal(C.canScroll(inner, { x: 0, y: 40 }), true, 'content that can scroll down takes the wheel');
+	assert.equal(C.canScroll(inner, { x: 0, y: -40 }), false, 'at the top, scrolling up pans the canvas');
+	box.scrollTop = 300;
+	assert.equal(C.canScroll(inner, { x: 0, y: 40 }), false, 'at the bottom, scrolling down pans the canvas');
+	assert.equal(C.canScroll(inner, { x: 0, y: -40 }), true);
+	assert.equal(C.canScroll(inner, { x: 30, y: 0 }), false, 'sideways scrolling pans when nothing scrolls sideways');
+	box.remove();
+}
+
 // The dotted grid follows the view.
 {
 	const grid = C.gridStyle({ x: -10, y: 37, scale: 0.5 });

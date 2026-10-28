@@ -104,6 +104,29 @@
 		return ['button', 'checkbox', 'radio', 'range', 'color', 'submit', 'reset', 'file', 'image'].indexOf(type) === -1;
 	}
 
+	/**
+	 * Whether `element` or an ancestor can still scroll by `delta` (pixels),
+	 * so a wheel over a live frame scrolls its content before the canvas.
+	 */
+	function canScroll(element, delta) {
+		for (var node = element; node && node.nodeType === 1; node = node.parentElement) {
+			var win = node.ownerDocument.defaultView;
+			var style = win && win.getComputedStyle ? win.getComputedStyle(node) : null;
+			var isRoot = node === node.ownerDocument.scrollingElement;
+			var scrollsY = isRoot || (style && /(auto|scroll|overlay)/.test(style.overflowY));
+			var scrollsX = isRoot || (style && /(auto|scroll|overlay)/.test(style.overflowX));
+			if (scrollsY && delta.y) {
+				var maxY = node.scrollHeight - node.clientHeight;
+				if (maxY > 1 && ((delta.y > 0 && node.scrollTop < maxY - 1) || (delta.y < 0 && node.scrollTop > 0))) return true;
+			}
+			if (scrollsX && delta.x) {
+				var maxX = node.scrollWidth - node.clientWidth;
+				if (maxX > 1 && ((delta.x > 0 && node.scrollLeft < maxX - 1) || (delta.x < 0 && node.scrollLeft > 0))) return true;
+			}
+		}
+		return false;
+	}
+
 	/** The dotted grid moves and scales with the view. */
 	function gridStyle(view) {
 		var size = GRID * view.scale;
@@ -344,8 +367,9 @@
 				return { x: rect.left + event.clientX * view.scale, y: rect.top + event.clientY * view.scale };
 			};
 			frameDoc.addEventListener('wheel', function (event) {
-				// Plain scrolling stays inside the device, as on a real phone.
-				if (!(event.ctrlKey || event.metaKey)) return;
+				// Plain scrolling scrolls the device first, as on a real phone, and
+				// pans the canvas once there is nothing left to scroll that way.
+				if (!(event.ctrlKey || event.metaKey) && canScroll(event.target, wheelDelta(event))) return;
 				var point = toParent(event);
 				onWheel(event, point.x, point.y);
 			}, { passive: false });
@@ -398,6 +422,7 @@
 		wheelZoomScale: wheelZoomScale,
 		shortcutAction: shortcutAction,
 		isTypingTarget: isTypingTarget,
+		canScroll: canScroll,
 		gridStyle: gridStyle,
 		storageKey: storageKey,
 		loadView: loadView,
