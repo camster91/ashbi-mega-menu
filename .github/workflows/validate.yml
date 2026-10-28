@@ -87,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: [chromium, firefox, webkit, edge]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -103,7 +103,7 @@ jobs:
           wp-env start
           wp-env run cli wp plugin activate ashbi-mega-menu
           wp-env run cli env ABMM_DISPOSABLE_TEST=1 wp eval-file wp-content/plugins/ashbi-mega-menu/tests/e2e/seed.php
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npx playwright install --with-deps ${{ matrix.browser == 'edge' && 'msedge' || matrix.browser }}
       - name: Browser tests (${{ matrix.browser }})
         run: npm run test:e2e -- --project=${{ matrix.browser }}
         env:
@@ -112,6 +112,60 @@ jobs:
         if: failure()
         with:
           name: playwright-report-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            test-results/
+  compat:
+    name: compatibility (${{ matrix.setup }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - setup: classic
+            env: '{"themes":["https://downloads.wordpress.org/theme/twentytwentyone.zip"]}'
+          - setup: elementor
+            env: '{"plugins":["https://downloads.wordpress.org/plugin/elementor.latest-stable.zip"]}'
+          - setup: cache
+            env: '{"plugins":["https://downloads.wordpress.org/plugin/cache-enabler.latest-stable.zip","https://downloads.wordpress.org/plugin/autoptimize.latest-stable.zip","https://downloads.wordpress.org/plugin/sqlite-object-cache.latest-stable.zip"],"config":{"WP_CACHE":true}}'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm install -g @wordpress/env
+      - name: Start WordPress with the ${{ matrix.setup }} setup
+        env:
+          EXTRA: ${{ matrix.env }}
+        run: |
+          node -e 'const x=JSON.parse(process.env.EXTRA); const c={phpVersion:"8.2",plugins:["."],...x}; c.plugins=["."].concat(x.plugins||[]); require("fs").writeFileSync(".wp-env.json", JSON.stringify(c))'
+          cat .wp-env.json
+          wp-env start
+          wp-env run cli wp plugin activate --all
+          wp-env run cli wp core version
+          wp-env run cli wp plugin list --fields=name,version,status
+          wp-env run cli wp theme list --fields=name,version,status
+      - name: Enable the persistent object cache
+        if: matrix.setup == 'cache'
+        run: |
+          wp-env run cli wp eval 'if ( function_exists( "sqlite_object_cache" ) || class_exists( "SQLite_Object_Cache" ) ) { echo "plugin loaded\n"; }'
+          wp-env run cli bash -c 'cp wp-content/plugins/sqlite-object-cache/assets/drop-in/object-cache.php wp-content/object-cache.php 2>/dev/null || find wp-content/plugins/sqlite-object-cache -name "object-cache*.php" -exec cp {} wp-content/object-cache.php \;'
+          wp-env run cli wp eval 'echo wp_using_ext_object_cache() ? "object cache: active\n" : "object cache: inactive\n";'
+      - name: Seed
+        run: wp-env run cli env ABMM_DISPOSABLE_TEST=1 ABMM_E2E_SETUP=${{ matrix.setup }} wp eval-file wp-content/plugins/ashbi-mega-menu/tests/e2e/seed.php
+      - run: npx playwright install --with-deps chromium
+      - name: Compatibility journeys (${{ matrix.setup }})
+        run: npm run test:e2e -- --project=chromium tests/e2e/compat.spec.js tests/e2e/menu.spec.js
+        env:
+          WP_BASE_URL: http://localhost:8888
+          ABMM_E2E_SETUP: ${{ matrix.setup }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: compat-report-${{ matrix.setup }}
           path: |
             playwright-report/
             test-results/
