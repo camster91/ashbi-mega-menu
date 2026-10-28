@@ -115,10 +115,59 @@ class ABMM_Frontend {
 	 * @return string HTML
 	 */
 	public function render( $menu_id, $args = array() ) {
+		$args = is_array( $args ) ? $args : array();
 		$menu = ABMM_Data::instance()->get( $menu_id );
 		if ( ! $menu ) {
 			return '';
 		}
+
+		/**
+		 * Filters a stored menu just before it is rendered on the site.
+		 *
+		 * Changes are not saved. Use it for conditional visibility or
+		 * per-request variations: remove or adjust items, links or the CTA.
+		 * Return an empty value to render nothing. The result is sanitized
+		 * again, so only the stored menu format is supported.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array  $menu    Stored menu.
+		 * @param string $menu_id Menu ID.
+		 * @param array  $args    Render arguments (shortcode, block or widget attributes).
+		 */
+		$filtered = apply_filters( 'abmm_menu_data', $menu, (string) $menu_id, $args );
+		if ( empty( $filtered ) || ! is_array( $filtered ) ) {
+			return '';
+		}
+		if ( $filtered !== $menu ) {
+			$menu = ABMM_Data::instance()->sanitize_menu( $filtered );
+		}
+
+		/**
+		 * Filters the rendered menu HTML.
+		 *
+		 * Keep the classes and data attributes the front-end script relies on.
+		 * Output is not escaped again: escape anything you add.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $html    Rendered markup.
+		 * @param string $menu_id Menu ID.
+		 * @param array  $menu    Menu that was rendered.
+		 * @param array  $args    Render arguments.
+		 */
+		return (string) apply_filters( 'abmm_menu_html', $this->render_menu_markup( $menu, $menu_id, $args ), (string) $menu_id, $menu, $args );
+	}
+
+	/**
+	 * Render menu data (see render()).
+	 *
+	 * @param array  $menu    Menu data.
+	 * @param string $menu_id Menu ID.
+	 * @param array  $args    Render arguments.
+	 * @return string HTML
+	 */
+	private function render_menu_markup( $menu, $menu_id, $args ) {
 
 		$settings = wp_parse_args(
 			$menu['settings'] ?? array(),

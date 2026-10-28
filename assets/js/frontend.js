@@ -110,8 +110,30 @@
 		if (target && typeof target.focus === 'function') target.focus();
 	}
 
+	/**
+	 * Public events for add-ons (analytics, logging), dispatched on the menu
+	 * root and bubbling. The plugin itself never sends them anywhere.
+	 *   abmm:open   detail { menuId, itemId, label, layout: 'desktop'|'mobile' }
+	 *   abmm:close  detail { menuId, itemId, label }
+	 *   abmm:drawer detail { menuId, open }
+	 */
+	function emit(header, name, detail) {
+		if (!header || typeof window.CustomEvent !== 'function') return;
+		detail.menuId = header.getAttribute('data-abmm-id') || '';
+		header.dispatchEvent(new window.CustomEvent(name, { bubbles: true, detail: detail }));
+	}
+
+	function itemDetail(item) {
+		var btn = item.querySelector('[data-abmm-mega-trigger]');
+		return {
+			itemId: item.getAttribute('data-abmm-item-id') || '',
+			label: (btn && btn.textContent ? btn.textContent : '').replace(/\s+/g, ' ').trim(),
+		};
+	}
+
 	function closeAllMegas(root) {
 		root.querySelectorAll('.abmm-nav__item--mega.is-open').forEach(function (item) {
+			emit(closest(item, '.abmm-header'), 'abmm:close', itemDetail(item));
 			item.__ashbiMegaMenuClickOpen = false;
 			item.classList.remove('is-open');
 			item.removeAttribute('data-drill');
@@ -464,6 +486,9 @@
 			syncDesktopAccordionHeight(panel);
 			syncOpenHeaderLayers();
 		}
+		var openDetail = itemDetail(item);
+		openDetail.layout = 'desktop';
+		emit(header, 'abmm:open', openDetail);
 	}
 
 	/** Mobile: open mega at categories screen (or links for features layout) */
@@ -473,6 +498,9 @@
 
 		closeAllMegas(header);
 		item.classList.add('is-open');
+		var mobileDetail = itemDetail(item);
+		mobileDetail.layout = 'mobile';
+		emit(header, 'abmm:open', mobileDetail);
 		header.classList.add('abmm-has-open-menu');
 		syncActiveStackHost();
 
@@ -597,7 +625,9 @@
 				if (otherHeader !== header) setDrawerOpen(otherHeader, false, false);
 			});
 		}
+		var wasOpen = header.classList.contains('is-mobile-open');
 		header.classList.toggle('is-mobile-open', open);
+		if (wasOpen !== !!open) emit(header, 'abmm:drawer', { open: !!open });
 		syncActiveStackHost();
 		if (toggle) {
 			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
