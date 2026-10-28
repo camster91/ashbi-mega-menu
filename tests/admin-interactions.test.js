@@ -296,6 +296,19 @@ async function backupFixture(strings = {}) {
  assert.equal(saved.items[1].links[0].url,'/b');
  assert.equal(saved.items[1].links[0].target,'_blank');
  f.close();
+ // Ctrl/Cmd + S saves the menu, also while typing in a field, and the browser's own save is blocked.
+ f=await fixture(); $=f.$;
+ $('#abmm-menu-title').val('Shortcut').trigger('input');
+ const saveKey=new f.window.KeyboardEvent('keydown',{key:'s',ctrlKey:true,bubbles:true,cancelable:true});
+ $('#abmm-menu-title')[0].dispatchEvent(saveKey);
+ assert.equal(saveKey.defaultPrevented,true,'Ctrl+S does not open the browser save dialog');
+ assert.equal(f.requests.length,1,'Ctrl+S saves the menu');
+ assert.equal(JSON.parse(f.requests[0].data.menu_data).title,'Shortcut');
+ const metaKey=new f.window.KeyboardEvent('keydown',{key:'S',metaKey:true,bubbles:true,cancelable:true});
+ f.window.document.body.dispatchEvent(metaKey);
+ assert.equal(f.requests.length,1,'a second shortcut while saving does not send a duplicate save');
+ assert.match($('.abmm-save-menu').attr('aria-keyshortcuts'),/Control\+S/);
+ f.close();
  // Dashboard deep links: "Place & verify" opens the Place step, and the card's
  // "N issues" pill opens the checklist on the Content tab.
  f=await fixture(false,false,null,'demo',menu,'',"http://localhost/#placement"); $=f.$;

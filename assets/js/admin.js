@@ -404,6 +404,21 @@
 		renderSaveButton();
 	}
 
+	var SAVE_SHORTCUT = /Mac|iPhone|iPad/.test((window.navigator && window.navigator.platform) || '') ? '\u2318S' : 'Ctrl+S';
+
+	// Ctrl/Cmd + S saves the menu instead of the browser saving the page.
+	function initSaveShortcut() {
+		$(document).on('keydown.abmmSave', function (event) {
+			if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+			if (String(event.key).toLowerCase() !== 's') return;
+			var $button = $('.abmm-save-menu').first();
+			if (!$button.length) return;
+			event.preventDefault();
+			if (state.isSaving || state.loadFailed || $button.prop('disabled')) return;
+			$button.trigger('click');
+		});
+	}
+
 	// With nothing to save the button settles into a quiet "Saved" state;
 	// any change turns it back into the primary action.
 	function renderSaveButton() {
@@ -426,7 +441,8 @@
 		// Only touch the text when it changes: replacing the text node under the
 		// pointer makes WebKit drop the click.
 		if ($label.text() !== label) $label.text(label);
-		$button.attr('title', saved ? __('All changes are saved', 'ashbi-mega-menu') : __('Save this menu', 'ashbi-mega-menu'));
+		$button.attr('title', saved ? __('All changes are saved', 'ashbi-mega-menu') : sprintf(__('Save this menu (%s)', 'ashbi-mega-menu'), SAVE_SHORTCUT));
+		$button.attr('aria-keyshortcuts', 'Control+S Meta+S');
 	}
 
 	function markDirtyState() {
@@ -2039,6 +2055,7 @@
 		initPopovers();
 		initMoreMenu();
 		initBuilderSections();
+		initSaveShortcut();
 		$('[data-abmm-workflow]').on('click', function () {
 			var step = $(this).attr('data-abmm-workflow');
 			state.workflowStep = step;
@@ -3087,11 +3104,12 @@
 			'<div class="abmm-cat-detail__heading">' +
 			'<label class="abmm-cat-detail__label" for="' + panelTitleId + '">' + esc(S.panelTitle) + '</label>' +
 			'<div class="abmm-cat-detail__heading-row">' +
-			'<input type="text" id="' + panelTitleId + '" class="abmm-panel-title" value="' +
+			'<input type="text" id="' + panelTitleId + '" class="abmm-panel-title" aria-describedby="' + panelTitleId + '-help" placeholder="' + esc(S.panelTitleHint || '') + '" value="' +
 			esc(cat.panel_title || '') +
 			'" />' +
 			headingLinkPopoverHtml('abmm-panel-link-options', 'abmm-panel-url', '.abmm-panel-title', cat.panel_link || {}, cat.panel_url) +
 			'</div>' +
+			(S.panelTitleHelp ? '<p class="description abmm-cat-detail__help" id="' + panelTitleId + '-help">' + esc(S.panelTitleHelp) + '</p>' : '') +
 			'</div>' +
 			'<div class="abmm-col-editor-head">' +
 			'<div>' +

@@ -285,8 +285,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<?php endif; ?>
 					</div>
 					<div class="abmm-menu-card__actions">
-						<a class="button button-primary" href="<?php echo esc_url( $abmm_edit_url ); ?>">
-							<?php echo esc_html( $abmm_is_ready ? __( 'Edit Menu', 'ashbi-mega-menu' ) : __( 'Finish setup', 'ashbi-mega-menu' ) ); ?>
+						<a class="button abmm-menu-card__main" href="<?php echo esc_url( $abmm_edit_url ); ?>">
+							<?php echo esc_html( $abmm_is_ready ? __( 'Edit menu', 'ashbi-mega-menu' ) : __( 'Finish setup', 'ashbi-mega-menu' ) ); ?>
 						</a>
 						<?php if ( $abmm_is_ready ) : ?>
 							<a class="button" href="<?php echo esc_url( $abmm_edit_url . '#placement' ); ?>"><?php esc_html_e( 'Place & verify', 'ashbi-mega-menu' ); ?></a>
