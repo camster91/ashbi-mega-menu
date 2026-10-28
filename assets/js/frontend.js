@@ -849,6 +849,16 @@
 			clearCloseTimer();
 		});
 
+		// Tabbing out of the menu closes an open desktop panel and its scrim.
+		// Only a focus move to another element counts: a null relatedTarget is a
+		// click on blank space or a window switch, which must not close it.
+		header.addEventListener('focusout', function (event) {
+			if (isMobile(header) || isWithinHeader(event.relatedTarget) || !event.relatedTarget) return;
+			if (!header.querySelector('.abmm-nav__item--mega.is-open')) return;
+			clearCloseTimer();
+			closeAllMegas(header);
+		});
+
 		header.querySelectorAll('.abmm-nav__item--mega').forEach(function (item) {
 			var trigger = item.querySelector('[data-abmm-mega-trigger]');
 			var panel = item.querySelector('[data-abmm-mega-panel]');
