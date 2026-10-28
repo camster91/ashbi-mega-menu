@@ -1146,6 +1146,8 @@
 .abmm-wrap .abmm-col-editor-head .abmm-add-group {display:inline-flex;align-items:center;gap:4px;flex:none;min-height:30px;padding:0 10px;color:var(--abmm-brand-ink);background:#fff;border:1px solid var(--abmm-brand-line);border-radius:8px;box-shadow:none;font-weight:500}
 .abmm-wrap .abmm-col-editor-head .abmm-add-group:hover {color:var(--abmm-brand-blue);background:#f7f9ff;border-color:#c5cfe2}
 .abmm-wrap .abmm-add-group .dashicons,
+.abmm-wrap .abmm-add-category .dashicons,
+.abmm-wrap .abmm-add-feature-link .dashicons,
 .abmm-wrap .abmm-add-group-link .dashicons {width:16px;height:16px;font-size:16px;line-height:1}
 .abmm-wrap .abmm-group-block {margin:0;padding:14px 0 10px;background:transparent;border:0;border-bottom:1px solid var(--abmm-ui-line-soft);border-radius:0;box-shadow:none}
 .abmm-wrap .abmm-group-block:last-child {border-bottom:0;padding-bottom:0}

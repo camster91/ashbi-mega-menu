@@ -118,13 +118,13 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			<div class="abmm-builder-section-group" id="abmm-section-panel-settings" data-abmm-builder-section-panel="settings" role="tabpanel" aria-labelledby="abmm-section-tab-settings" hidden>
 			<section class="abmm-builder-panel">
 				<h2><?php esc_html_e( 'Mobile navigation', 'ashbi-mega-menu' ); ?></h2>
-				<label class="abmm-field"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
+				<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
 				<p class="description"><?php esc_html_e( 'Adds search, full-width rows and a Back label to the phone menu.', 'ashbi-mega-menu' ); ?></p>
 			</section>
 			<section class="abmm-builder-panel abmm-brand-panel">
 				<h2><?php esc_html_e( 'Logo', 'ashbi-mega-menu' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'Show your logo or site name at the start of the menu bar.', 'ashbi-mega-menu' ); ?></p>
-				<label class="abmm-field"><span><?php esc_html_e( 'Show logo', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-brand-show" <?php checked( ! empty( $menu['brand']['show'] ) ); ?> /></label>
+				<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Show logo', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-brand-show" <?php checked( ! empty( $menu['brand']['show'] ) ); ?> /></label>
 				<div class="abmm-optional-fields abmm-brand-fields">
 					<label class="abmm-field"><span><?php esc_html_e( 'Site title', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-title" value="<?php echo esc_attr( $menu['brand']['title'] ); ?>" /></label>
 					<label class="abmm-field"><span><?php esc_html_e( 'Brand URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-url" value="<?php echo esc_attr( $menu['brand']['url'] ); ?>" /></label>
@@ -159,7 +159,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 
 			<section class="abmm-builder-panel abmm-cta-panel">
 				<h2><?php esc_html_e( 'Button', 'ashbi-mega-menu' ); ?></h2>
-				<label class="abmm-field">
+				<label class="abmm-field abmm-field--toggle">
 					<span><?php esc_html_e( 'Show button', 'ashbi-mega-menu' ); ?></span>
 					<input type="checkbox" id="abmm-cta-show" <?php checked( ! empty( $menu['cta']['show'] ) ); ?> />
 				</label>
@@ -558,7 +558,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 						<h3><?php esc_html_e( 'Categories', 'ashbi-mega-menu' ); ?></h3>
 						<p class="description"><?php esc_html_e( 'Each category shows its own links when selected.', 'ashbi-mega-menu' ); ?></p>
 						<ul class="abmm-sortable abmm-cat-list" id="abmm-cat-list"></ul>
-						<button type="button" class="button abmm-add-category">+ <?php esc_html_e( 'Add category', 'ashbi-mega-menu' ); ?></button>
+						<button type="button" class="button abmm-add-category"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add category', 'ashbi-mega-menu' ); ?></button>
 					</div>
 
 					<div class="abmm-mega-editor__cat-detail" id="abmm-cat-detail">
@@ -571,7 +571,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<h3><?php esc_html_e( 'Links', 'ashbi-mega-menu' ); ?></h3>
 					<p class="description"><?php esc_html_e( 'Each link can have an icon and a short description.', 'ashbi-mega-menu' ); ?></p>
 					<ul class="abmm-sortable abmm-link-list" id="abmm-features-link-list"></ul>
-					<button type="button" class="button abmm-add-feature-link">+ <?php esc_html_e( 'Add link', 'ashbi-mega-menu' ); ?></button>
+					<button type="button" class="button abmm-add-feature-link"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add link', 'ashbi-mega-menu' ); ?></button>
 				</div>
 
 				<!-- Featured card: an optional highlighted card after the link columns -->
