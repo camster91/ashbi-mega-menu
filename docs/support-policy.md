@@ -18,3 +18,23 @@ Export menus and take a full-site/database backup before upgrading. Test on stag
 Deactivation keeps stored plugin data. Deletion through WordPress removes plugin settings, menus, archives, backups, profiles and branding; export and back up first. Removing the plugin does not recreate theme navigation previously removed from a header.
 
 The existing WordPress.org submission is awaiting review; directory approval remains pending. GitHub release availability is distinct from directory approval. Claims about user adoption, accessibility conformance and theme compatibility require their own evidence.
+
+## Triage
+
+New issues are triaged by a maintainer. Triage means: reproduce or ask for missing details, label the issue, set a severity, and link duplicates. Issues that stay without the requested details for 30 days may be closed; they can be reopened when the details arrive.
+
+| Severity | Examples | Expected response |
+| --- | --- | --- |
+| Critical | Security vulnerability; data loss (menus or settings lost or overwritten); the site or admin crashes after activation or update | Handled privately first for security (see [SECURITY.md](../SECURITY.md)). Fix and release as soon as a verified fix is ready, ahead of other work. |
+| High | Navigation unusable for a group of visitors (keyboard, screen reader, a major browser, phones); saving fails; a common theme or cache setup breaks the menu | Fixed in the next release. |
+| Medium | A feature misbehaves with a workaround; layout problems in a specific theme; accessibility issues that do not block a task | Scheduled for an upcoming release. |
+| Low | Cosmetic issues, wording, minor enhancements | Considered when related work happens. |
+
+These are targets, not guarantees. Labels: `bug`, `enhancement`, `accessibility`, `compatibility`, `security` (private advisories only), `scheduled-ci` (opened automatically when the weekly compatibility run fails).
+
+## Releases
+
+- **Fix releases** (`x.y.Z`) carry bug, security and compatibility fixes and are safe to apply without other changes.
+- **Feature releases** (`x.Y.0`) add behavior. New features are optional when they change appearance.
+- Every release follows [release-checklist.md](release-checklist.md), and its ZIP is traceable to an exact commit and CI run (`build-info.json`, `SHA256SUMS`).
+- A weekly scheduled run tests supported PHP (8.2–8.5) and WordPress (6.6, latest, nightly). A failure opens a `scheduled-ci` issue; failures against nightly are fixed before that WordPress version is released where possible, and `Tested up to` is only raised after the new version passes.
