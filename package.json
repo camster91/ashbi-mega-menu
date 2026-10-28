@@ -24,6 +24,7 @@
     "@playwright/test": "1.64.0",
     "@wordpress/scripts": "36.1.0",
     "adm-zip": "0.5.18",
+    "axe-core": "4.14.0",
     "jquery": "3.7.1",
     "jsdom": "26.1.0",
     "lucide-static": "1.54.0",

@@ -121,7 +121,7 @@
 .abmm-dash-footer a {color:var(--abmm-brand-muted);text-decoration:none}
 .abmm-dash-footer a:hover,
 .abmm-dash-footer a:focus {color:var(--abmm-brand-blue);text-decoration:underline}
-.abmm-dash-footer__version {margin-inline-start:auto;color:#8892a6}
+.abmm-dash-footer__version {margin-inline-start:auto;color:var(--abmm-brand-muted)}
 
 @media (max-width:782px) {
 	.abmm-dash-header {flex-wrap:wrap}
@@ -423,6 +423,12 @@
 	.abmm-menu-card__tip::after {left:72px}
 }
 @media (prefers-reduced-motion:reduce) {.abmm-menu-card__tip {transition:none}}
+/* Span the card instead of hanging off the issue link, so the tip never runs
+   past the screen edge (narrow screens, 200%+ zoom, long translations). */
+.abmm-menu-card__issues {position:static}
+.abmm-menu-card__tip,
+.abmm-dashboard .abmm-menu-card__tip {left:12px;right:12px;width:auto;max-width:none}
+.abmm-menu-card__tip::after {display:none}
 @media (forced-colors:active) {.abmm-menu-card__tip,.abmm-view-toggle__button.is-current {border:1px solid CanvasText}}
 
 /* "More actions" menu button and popover. */
@@ -678,7 +684,7 @@
 .abmm-branding-admin .abmm-branding-admin__number input {width:96px;min-height:40px}
 .abmm-branding-admin .abmm-branding-admin__form fieldset > .abmm-switch-row + .abmm-branding-admin__fields {margin-top:0}
 /* A zero is not a result: zero tiles stay neutral. */
-.abmm-branding-admin .abmm-branding-admin__summary .is-zero strong {color:#8892a6}
+.abmm-branding-admin .abmm-branding-admin__summary .is-zero strong {color:var(--abmm-brand-muted)}
 /* While "Use a product logo" is off, everything below it is muted, like the top bar fields. */
 .abmm-branding-admin .abmm-branding-admin__settings.is-muted fieldset {background:#fbfcfe}
 
@@ -737,7 +743,7 @@
 .abmm-coverage-table__page a {color:var(--abmm-brand-ink);font-weight:500;text-decoration:none}
 .abmm-coverage-table__page a:hover,.abmm-coverage-table__page a:focus {color:var(--abmm-brand-blue);text-decoration:underline}
 .abmm-coverage-product {display:inline-flex;align-items:center;padding:1px 9px;color:var(--abmm-brand-ink);font-size:12px;font-weight:600;line-height:20px;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:6px}
-.abmm-coverage-none {color:#8892a6;font-size:13px}
+.abmm-coverage-none {color:var(--abmm-brand-muted);font-size:13px}
 .abmm-source {display:inline-flex;align-items:center;gap:6px;padding:2px 9px 2px 8px;font-size:12px;font-weight:600;line-height:18px;white-space:nowrap;border-radius:999px}
 .abmm-source::before {content:"";width:7px;height:7px;background:currentColor;border-radius:50%}
 .abmm-source--ancestor {color:#1744df;background:#eef3ff}
@@ -1543,3 +1549,7 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
 .abmm-wrap .abmm-just-selected {animation:abmm-just-selected 1.2s ease-out}
 @keyframes abmm-just-selected {0%,30% {box-shadow:0 0 0 3px color-mix(in srgb,var(--abmm-brand-blue) 45%,transparent)} 100% {box-shadow:0 0 0 3px transparent}}
 @media (prefers-reduced-motion:reduce) {.abmm-wrap .abmm-just-selected {animation:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--abmm-brand-blue) 45%,transparent)}}
+
+/* Tool sub-headings are h3 under the Tools h2; keep their former size. */
+.abmm-import-upload > h3,
+.abmm-import-api > h3 {margin:0 0 8px;font-size:14px;line-height:1.4}

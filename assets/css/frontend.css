@@ -973,9 +973,6 @@ a.abmm-product-nav__identity:focus {
 	line-height: 1.35;
 }
 
-.abmm-mega__cat.is-active .abmm-mega__cat-desc {
-	opacity: 0.92;
-}
 
 .abmm-mega__panel {
 	position: absolute;
@@ -2768,6 +2765,8 @@ html.abmm-drawer-open {
 	.abmm-header:not(.abmm-force-mobile) .abmm-nav__link:focus-visible,
 	.abmm-header:not(.abmm-force-mobile) .abmm-nav__item.is-open > .abmm-nav__link {
 		background: color-mix(in srgb, var(--abmm-nav-link) 7%, transparent) !important;
+		/* On its own tint the accent can fall below 4.5:1; lean it toward the text colour. */
+		color: color-mix(in srgb, var(--abmm-nav-hover) 78%, var(--abmm-nav-link)) !important;
 	}
 
 	/* Panel edge: a hairline under the panel and a tighter, softer shadow. */
@@ -3046,6 +3045,13 @@ html.abmm-drawer-open {
 	/* The bar's toggle is the close button, so the drawer needs no title row. */
 	.abmm-header .abmm-nav__drawer-head {
 		display: none;
+	}
+
+	/* Unless the drawer opened over the bar (a low placement, a short screen or
+	   400% zoom): then the drawer's own close button is the only one in view. */
+	.abmm-header.abmm-drawer-covers-bar .abmm-nav__drawer-head,
+	.abmm-header.abmm-drawer-covers-bar.abmm-is-drilling .abmm-nav__drawer-head {
+		display: flex;
 	}
 
 	/* One CTA: while the drawer is open its sticky footer carries the CTA, so
@@ -3669,6 +3675,14 @@ html.abmm-drawer-open {
 		padding: 12px 20px max(16px, env(safe-area-inset-bottom));
 		border-top: 1px solid var(--abmm-border);
 		background: var(--abmm-panel-bg);
+	}
+
+	/* Short screens (400% zoom, landscape phones): a pinned footer would leave
+	   room for a single row of links, so let it scroll with the menu. */
+	@media (max-height: 480px) {
+		.abmm-header .abmm-nav__drawer-foot {
+			position: static;
+		}
 	}
 
 	.abmm-header .abmm-nav__drawer-foot .abmm-nav__cta--drawer,

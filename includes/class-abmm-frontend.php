@@ -249,7 +249,7 @@ class ABMM_Frontend {
 
 		ob_start();
 		?>
-		<header class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" id="<?php echo esc_attr( $instance_id ); ?>" style="<?php echo esc_attr( $this->css_vars( $settings ) ); ?>" data-abmm-id="<?php echo esc_attr( $menu_id ); ?>" data-abmm-instance="<?php echo esc_attr( $instance_id ); ?>" data-abmm-presentation="<?php echo esc_attr( $presentation ); ?>" data-abmm-desktop-open="<?php echo esc_attr( 'click' === ( $settings['desktop_interaction'] ?? '' ) ? 'click' : 'hover' ); ?>" data-abmm-back-label="<?php echo esc_attr_x( 'Back', 'mobile menu button', 'ashbi-mega-menu' ); ?>">
+		<div class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" id="<?php echo esc_attr( $instance_id ); ?>" style="<?php echo esc_attr( $this->css_vars( $settings ) ); ?>" data-abmm-id="<?php echo esc_attr( $menu_id ); ?>" data-abmm-instance="<?php echo esc_attr( $instance_id ); ?>" data-abmm-presentation="<?php echo esc_attr( $presentation ); ?>" data-abmm-desktop-open="<?php echo esc_attr( 'click' === ( $settings['desktop_interaction'] ?? '' ) ? 'click' : 'hover' ); ?>" data-abmm-back-label="<?php echo esc_attr_x( 'Back', 'mobile menu button', 'ashbi-mega-menu' ); ?>">
 			<?php echo $this->render_utility_links( $utility_links ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<nav class="abmm-nav" aria-label="<?php echo esc_attr( $menu['title'] ); ?>">
 				<div class="abmm-nav__bar">
@@ -307,7 +307,7 @@ class ABMM_Frontend {
 			<?php if ( ! $is_unified ) : ?>
 				<?php echo $this->render_product_navigation( $profile, 'rail', $cta, $brand ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php endif; ?>
-		</header>
+		</div>
 		<?php
 		return ob_get_clean();
 	}
@@ -866,7 +866,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 									// scroll view. With several categories the heading is an accordion button.
 									$section_body_ids = $cat_uid . '-links' . ( ! empty( $cat['panel_title'] ) ? ' ' . $cat_uid . '-more' : '' );
 									?>
-									<h3 class="abmm-mega__section-title">
+									<div class="abmm-mega__section-title">
 										<?php if ( $collapsible ) : ?>
 											<button type="button" class="abmm-mega__section-toggle" aria-expanded="true" aria-controls="<?php echo esc_attr( $section_body_ids ); ?>" data-abmm-section-toggle>
 										<?php endif; ?>
@@ -876,7 +876,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 												<svg class="abmm-mega__section-chevron" width="16" height="16" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
 											</button>
 										<?php endif; ?>
-									</h3>
+									</div>
 
 									<?php echo $this->render_category_columns( $cat, $cat_uid . '-links' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
@@ -990,17 +990,18 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 		?>
 		<div class="abmm-mega__columns"<?php echo '' !== $id ? ' id="' . esc_attr( $id ) . '"' : ''; ?> style="--abmm-col-count: <?php echo (int) $count; ?>">
 			<?php foreach ( $groups as $group ) : ?>
+				<?php $col_title_id = ! empty( $group['title'] ) ? ( function_exists( 'wp_unique_id' ) ? wp_unique_id( 'abmm-col-title-' ) : uniqid( 'abmm-col-title-' ) ) : ''; ?>
 				<div class="abmm-mega__col">
 					<?php if ( ! empty( $group['title'] ) ) : ?>
-						<h4 class="abmm-mega__col-title">
+						<div class="abmm-mega__col-title" id="<?php echo esc_attr( $col_title_id ); ?>">
 							<?php if ( ! empty( $group['url'] ) ) : ?>
 								<a <?php echo $this->link_attrs( $group, '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $group['url'] ); ?>"><?php echo esc_html( $group['title'] ); ?></a>
 							<?php else : ?>
 								<?php echo esc_html( $group['title'] ); ?>
 							<?php endif; ?>
-						</h4>
+						</div>
 					<?php endif; ?>
-					<ul class="abmm-mega__col-list">
+					<ul class="abmm-mega__col-list"<?php echo $col_title_id ? ' aria-labelledby="' . esc_attr( $col_title_id ) . '"' : ''; ?>>
 						<?php foreach ( ( $group['links'] ?? array() ) as $link ) : ?>
 							<?php echo $this->render_col_link( $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 						<?php endforeach; ?>
