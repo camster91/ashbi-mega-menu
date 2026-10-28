@@ -12,4 +12,11 @@ for(const file of files){const data=fs.readFileSync(path.join(root,file));if(/su
 const out=path.join(root,'dist');fs.mkdirSync(out,{recursive:true});
 const dest=path.join(out,`ashbi-mega-menu-${version}.zip`);zip.writeZip(dest);
 fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify({version,files:files.sort()},null,2)+'\n');
+// Tie the ZIP to the exact commit and CI run that built it.
+const sha256=require('node:crypto').createHash('sha256').update(fs.readFileSync(dest)).digest('hex');
+fs.writeFileSync(path.join(out,'SHA256SUMS'),`${sha256}  ${path.basename(dest)}\n`);
+let commit=process.env.GITHUB_SHA||'';
+if(!commit){try{commit=require('node:child_process').execSync('git rev-parse HEAD',{cwd:root,stdio:['ignore','pipe','ignore']}).toString().trim();}catch(e){commit='unknown';}}
+const run=process.env.GITHUB_RUN_ID?`${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`:null;
+fs.writeFileSync(path.join(out,'build-info.json'),JSON.stringify({version,zip:path.basename(dest),sha256,commit,run},null,2)+'\n');
 console.log(dest);
