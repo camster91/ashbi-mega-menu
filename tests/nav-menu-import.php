@@ -229,6 +229,27 @@ verify_import( false === strpos( $warnings, '"Products" has no URL' ), 'A parent
 verify_import( 'nofollow' === $products['categories'][1]['groups'][0]['links'][0]['rel'], 'Supported XFN values are kept.' );
 verify_import( array() === ( $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ] ?? array() ), 'Converting stores nothing.' );
 
+// Long flat lists are split into columns (the renderer draws one column per group).
+$GLOBALS['abmm_nav_items_saved'] = $GLOBALS['abmm_nav_items'];
+$GLOBALS['abmm_nav_items'] = array();
+abmm_nav( 100, 0, 'Services', '#' );
+for ( $i = 1; $i <= 18; $i++ ) {
+	abmm_nav( 100 + $i, 100, 'Service ' . $i, '/service-' . $i . '/' );
+}
+$wide   = $store->import_from_nav_menu( 7 );
+$groups = $wide['menu']['items'][0]['categories'][0]['groups'];
+verify_import( 3 === $wide['menu']['items'][0]['columns'] && 3 === count( $groups ), '18 links become three columns.' );
+verify_import( array( 6, 6, 6 ) === array_map( function ( $g ) { return count( $g['links'] ); }, $groups ), 'Links are split evenly.' );
+verify_import( 'Service 7' === $groups[1]['links'][0]['label'], 'Columns keep the original order.' );
+$GLOBALS['abmm_nav_items'] = array();
+abmm_nav( 100, 0, 'Services', '#' );
+for ( $i = 1; $i <= 7; $i++ ) {
+	abmm_nav( 100 + $i, 100, 'Service ' . $i, '/service-' . $i . '/' );
+}
+$seven = $store->import_from_nav_menu( 7 )['menu']['items'][0]['categories'][0]['groups'];
+verify_import( array( 4, 3 ) === array_map( function ( $g ) { return count( $g['links'] ); }, $seven ), 'Seven links become two balanced columns.' );
+$GLOBALS['abmm_nav_items'] = $GLOBALS['abmm_nav_items_saved'];
+
 // Failures.
 verify_import( is_wp_error( $store->import_from_nav_menu( 8 ) ), 'An empty WordPress menu is refused.' );
 verify_import( is_wp_error( $store->import_from_nav_menu( 404 ) ), 'A missing WordPress menu is refused.' );

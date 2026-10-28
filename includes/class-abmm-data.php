@@ -1677,12 +1677,19 @@ class ABMM_Data {
 					$links[] = $this->nav_row_link( $by_id[ $child ] );
 					$report['imported']++;
 				}
+				// The renderer draws one column per group: split long lists evenly
+				// into up to four columns of about six links.
+				$columns = max( 1, min( 4, (int) ceil( count( $links ) / 6 ) ) );
+				$groups  = array();
+				foreach ( array_chunk( $links, (int) ceil( count( $links ) / $columns ) ) as $index => $chunk ) {
+					$groups[] = array( 'id' => 'wpcol_' . $id . ( $index ? '_' . $index : '' ), 'title' => '', 'links' => $chunk );
+				}
 				$item['hide_category_bar'] = true;
-				$item['columns']           = max( 1, min( 4, (int) ceil( count( $links ) / 6 ) ) );
+				$item['columns']           = $columns;
 				$item['categories'][]      = array(
 					'id'     => 'wpcat_' . $id,
 					'title'  => trim( $row['title'] ),
-					'groups' => array( array( 'id' => 'wpcol_' . $id, 'title' => '', 'links' => $links ) ),
+					'groups' => $groups,
 				);
 			} else {
 				foreach ( $second as $child ) {
