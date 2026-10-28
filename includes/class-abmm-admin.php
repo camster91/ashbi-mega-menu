@@ -100,10 +100,11 @@ class ABMM_Admin {
 		wp_enqueue_script( 'abmm-menu-search-preview', ABMM_PLUGIN_URL . 'assets/js/frontend.js', array(), ABMM_VERSION, true );
 		wp_localize_script( 'abmm-menu-search-preview', 'abmmRuntime', array( 'adminPreview' => true, 'searchStrings' => abmm_menu_search_strings() ) );
 
+		wp_enqueue_script( 'abmm-preview-canvas', ABMM_PLUGIN_URL . 'assets/js/preview-canvas.js', array(), ABMM_VERSION, true );
 		wp_enqueue_script(
 			'abmm-admin',
 			ABMM_PLUGIN_URL . 'assets/js/admin.js',
-			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview' ),
+			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview', 'abmm-preview-canvas' ),
 			ABMM_VERSION,
 			true
 		);

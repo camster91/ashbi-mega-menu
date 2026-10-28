@@ -69,6 +69,12 @@ async function backupFixture(strings = {}) {
   assert.deepEqual(rq('#abmm-preview .abmm-nav__link').map((_,el)=>rq(el).text()).get(),['A','B','D','C'],'preview matches the reordered menu');
   assert.equal(reorderFixture.requests.length,0,'keyboard reordering never implicitly saves or sends a mutation');
   assert.equal(rq('#abmm-menu-title').val(),menu.title,'reordering does not change other menu fields');
+  // Clicking an item in the preview selects it in the inspector, with an outline.
+  rq('#abmm-preview [data-abmm-preview-item="2"] > .abmm-nav__link').trigger('click');
+  await new Promise(resolve=>reorderFixture.window.setTimeout(resolve,20));
+  assert.equal(row('d').find('.abmm-nav-item-row__toggle').attr('aria-expanded'),'true','the clicked preview item opens in the inspector');
+  assert.equal(row('a').find('.abmm-nav-item-row__toggle').attr('aria-expanded'),'false','other rows close');
+  assert.equal(rq('#abmm-preview [data-abmm-preview-item="2"] > .abmm-nav__link').hasClass('abmm-canvas-selected'),true,'the selected preview element is outlined');
  } finally { reorderFixture.close(); }
  let rowsFixture = await fixture(false,false,null,'demo',reorderMenu);
  try {

@@ -2063,14 +2063,15 @@
 			state.previewCategoryId = '';
 			// Show the drawer straight away so tablet and phone previews show the menu, not just a hamburger.
 			state.previewMobileOpen = state.previewViewport !== 'desktop';
-			// Every device starts at Fit, so a phone never overflows the canvas.
-			state.previewZoom = 'fit';
 			$('.abmm-preview-viewports [data-abmm-preview-viewport]')
 				.removeClass('is-active')
 				.attr('aria-pressed', 'false');
 			$(this).addClass('is-active').attr('aria-pressed', 'true');
 			$('.abmm-preview-shell').attr('data-abmm-preview-viewport', state.previewViewport);
 			renderPreview();
+			// Each device returns to its own remembered view (Fit the first time).
+			applyPreviewZoom();
+			if (previewCanvas) previewCanvas.restore();
 		});
 
 		var designSelectors = [
@@ -3411,12 +3412,19 @@
 		return '<a ' + previewLinkAttrs(link, baseClass) + ' href="' + esc(link.url || '#') + '">' + content + '</a>';
 	}
 
-	// The preview renders at a real screen width and is scaled to fit, so a
+	// The preview renders at a real screen width on a pan-and-zoom canvas, so a
 	// desktop menu is not squeezed into the space between the sidebars.
-	// 1100px keeps the desktop layout (above the 900px mobile breakpoint)
-	// while Fit stays around 75%, so preview text is readable.
+	// 1100px keeps the desktop layout (above the 900px mobile breakpoint).
+	// Phone and tablet frames have a fixed screen height, like a real device.
 	var PREVIEW_WIDTHS = { desktop: 1100, tablet: 820, mobile: 390 };
-	var PREVIEW_ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.25, 1.5, 2];
+	var PREVIEW_SCREEN_HEIGHTS = { tablet: 1040, mobile: 720 };
+	var previewCanvas = null;
+
+	function previewFrameSize() {
+		var stage = $('.abmm-preview-stage')[0];
+		var width = PREVIEW_WIDTHS[state.previewViewport] || PREVIEW_WIDTHS.desktop;
+		return { width: width, height: stage ? Math.max(stage.offsetHeight, 200) : 600 };
+	}
 
 	function applyPreviewZoom() {
 		var shell = $('.abmm-preview-shell')[0];
@@ -3425,8 +3433,7 @@
 		var preview = stage && stage.querySelector('.abmm-preview');
 		if (!stage || !sizer) return;
 		var device = state.previewViewport;
-		var width = PREVIEW_WIDTHS[device] || PREVIEW_WIDTHS.desktop;
-		var current = state.previewScale || 1;
+		var scale = previewCanvas ? previewCanvas.view().scale : 1;
 		// The browser frame grows to hold an open dropdown, so the panel sits
 		// inside the window instead of hanging below it.
 		if (preview) {
@@ -3435,79 +3442,402 @@
 				var previewTop = preview.getBoundingClientRect().top;
 				var needed = 0;
 				$(preview).find('.abmm-mega').filter(':visible').each(function () {
-					needed = Math.max(needed, (this.getBoundingClientRect().bottom - previewTop) / current + 24);
+					needed = Math.max(needed, (this.getBoundingClientRect().bottom - previewTop) / scale + 24);
 				});
 				if (needed) preview.style.minHeight = Math.ceil(needed) + 'px';
 			}
 		}
-		var style = window.getComputedStyle ? window.getComputedStyle(shell) : null;
-		var padX = style ? (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0) : 32;
-		var padY = style ? (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0) : 32;
-		var available = Math.max(160, shell.clientWidth - padX);
-		var scale = state.previewZoom;
-		if (state.previewZoom === 'fit' || !state.previewZoom) {
-			scale = Math.min(1, available / width);
-			if (device !== 'desktop') {
-				// Devices also fit the window's height, so the whole phone (and its
-				// CTA) is visible without scrolling the canvas.
-				var top = Math.max(0, shell.getBoundingClientRect().top);
-				var availableHeight = Math.max(360, (window.innerHeight || 900) - Math.min(top, 220) - padY - 24);
-				var naturalHeight = stage.offsetHeight || 1;
-				scale = Math.min(scale, availableHeight / naturalHeight);
-			}
-			scale = Math.max(0.25, Math.floor(scale * 100) / 100);
-		}
-		state.previewScale = scale;
+		var width = PREVIEW_WIDTHS[device] || PREVIEW_WIDTHS.desktop;
 		stage.style.width = width + 'px';
-		stage.style.transform = scale === 1 ? '' : 'scale(' + scale + ')';
-		sizer.style.width = Math.round(width * scale) + 'px';
-		// Open panels hang below the bar, so measure them too.
-		var height = Math.max(stage.offsetHeight, stage.scrollHeight);
-		var stageTop = stage.getBoundingClientRect().top;
-		$(stage).find('.abmm-mega').filter(':visible').each(function () {
-			height = Math.max(height, (this.getBoundingClientRect().bottom - stageTop) / scale + 24);
-		});
-		sizer.style.height = Math.round(height * scale) + 'px';
-		$('.abmm-preview-zoom__value').text(Math.round(scale * 100) + '%');
-		$('[data-abmm-zoom="fit"]').attr('aria-pressed', state.previewZoom === 'fit' ? 'true' : 'false');
+		sizer.style.width = width + 'px';
+		if (previewCanvas) previewCanvas.refresh();
+		else $('.abmm-preview-zoom__value').text('100%');
 	}
 
-	function stepPreviewZoom(direction) {
-		var current = state.previewScale || 1;
-		var next = current;
-		if (direction > 0) {
-			next = PREVIEW_ZOOM_STEPS.filter(function (step) { return step > current + 0.001; })[0] || PREVIEW_ZOOM_STEPS[PREVIEW_ZOOM_STEPS.length - 1];
-		} else {
-			next = PREVIEW_ZOOM_STEPS.filter(function (step) { return step < current - 0.001; }).pop() || PREVIEW_ZOOM_STEPS[0];
+	var HINT_KEY = 'abmmCanvasHintSeen';
+
+	function hideCanvasHint() {
+		var $hint = $('.abmm-canvas-hint');
+		if (!$hint.length || $hint.prop('hidden')) return;
+		$hint.prop('hidden', true);
+		try { window.localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* private window */ }
+	}
+
+	function syncZoomReadout(view, mode) {
+		// Once someone has moved the canvas, the gesture hint has done its job.
+		if (mode === 'manual') hideCanvasHint();
+		var percent = Math.round(view.scale * 100) + '%';
+		var $value = $('.abmm-preview-zoom__value');
+		if ($value.text() !== percent) {
+			$value.text(percent).attr('aria-label', sprintf(__('Zoom %s. Choose a zoom level', 'ashbi-mega-menu'), percent));
 		}
-		state.previewZoom = next;
-		applyPreviewZoom();
+		$('[data-abmm-zoom="fit"]').attr('aria-pressed', mode === 'fit' ? 'true' : 'false');
+		$('[data-abmm-zoom="actual"]').attr('aria-pressed', mode !== 'fit' && Math.abs(view.scale - 1) < 0.001 ? 'true' : 'false');
+		$('[data-abmm-zoom="in"]').prop('disabled', view.scale >= window.ABMMPreviewCanvas.MAX_SCALE - 0.001);
+		$('[data-abmm-zoom="out"]').prop('disabled', view.scale <= window.ABMMPreviewCanvas.MIN_SCALE + 0.001);
+	}
+
+	function setZoomMenuOpen(open, focusFirst) {
+		var $toggle = $('.abmm-preview-zoom__value');
+		var $list = $('#abmm-zoom-presets');
+		if (!$list.length) return;
+		$toggle.attr('aria-expanded', open ? 'true' : 'false');
+		$list.prop('hidden', !open);
+		if (open && focusFirst) $list.find('[role="menuitem"]').first().trigger('focus');
 	}
 
 	function initPreviewZoom() {
-		state.previewZoom = 'fit';
+		var shell = $('.abmm-preview-shell')[0];
+		var sizer = shell && shell.querySelector('.abmm-preview-sizer');
+		try { if (window.localStorage.getItem(HINT_KEY)) $('.abmm-canvas-hint').prop('hidden', true); } catch (e) { /* private window */ }
+		if (shell && sizer && window.ABMMPreviewCanvas) {
+			previewCanvas = window.ABMMPreviewCanvas.create({
+				shell: shell,
+				world: sizer,
+				content: previewFrameSize,
+				fitHeight: function () { return state.previewViewport !== 'desktop'; },
+				device: function () { return state.previewViewport; },
+				userId: (window.abmmAdmin && window.abmmAdmin.userId) || 0,
+				onChange: syncZoomReadout,
+			});
+			previewCanvas.restore();
+		}
 		$('.abmm-preview-zoom').on('click', '[data-abmm-zoom]', function () {
+			if (!previewCanvas) return;
 			var action = $(this).attr('data-abmm-zoom');
-			if (action === 'fit') {
-				state.previewZoom = 'fit';
-				applyPreviewZoom();
-			} else {
-				stepPreviewZoom(action === 'in' ? 1 : -1);
+			if (action === 'fit') previewCanvas.fit(true);
+			else if (action === 'actual') previewCanvas.zoomTo(1, null, true);
+			else previewCanvas.step(action === 'in' ? 1 : -1);
+		});
+		$('.abmm-preview-zoom').on('click', '.abmm-preview-zoom__value', function () {
+			setZoomMenuOpen($(this).attr('aria-expanded') !== 'true', false);
+		});
+		$('.abmm-preview-zoom').on('keydown', '.abmm-preview-zoom__value', function (event) {
+			if (event.key !== 'ArrowDown') return;
+			event.preventDefault();
+			setZoomMenuOpen(true, true);
+		});
+		$('#abmm-zoom-presets').on('click', '[data-abmm-zoom-preset]', function () {
+			var preset = String($(this).attr('data-abmm-zoom-preset'));
+			if (previewCanvas) {
+				if (preset === 'fit') previewCanvas.fit(true);
+				else previewCanvas.zoomTo(parseFloat(preset), null, true);
+			}
+			setZoomMenuOpen(false);
+			$('.abmm-preview-zoom__value').trigger('focus');
+		});
+		$('#abmm-zoom-presets').on('keydown', '[role="menuitem"]', function (event) {
+			var $items = $('#abmm-zoom-presets [role="menuitem"]');
+			var index = $items.index(this);
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				setZoomMenuOpen(false);
+				$('.abmm-preview-zoom__value').trigger('focus');
+			} else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+				event.preventDefault();
+				$items.eq((index + (event.key === 'ArrowDown' ? 1 : -1) + $items.length) % $items.length).trigger('focus');
+			} else if (event.key === 'Home' || event.key === 'End') {
+				event.preventDefault();
+				$items.eq(event.key === 'Home' ? 0 : $items.length - 1).trigger('focus');
+			} else if (event.key === 'Tab') {
+				setZoomMenuOpen(false);
 			}
 		});
-		// Ctrl/Cmd + scroll zooms the canvas, as in design tools.
-		$('.abmm-preview-shell').on('wheel', function (event) {
-			var original = event.originalEvent || event;
-			if (!original.ctrlKey && !original.metaKey) return;
-			event.preventDefault();
-			stepPreviewZoom(original.deltaY < 0 ? 1 : -1);
+		$(document).on('mousedown', function (event) {
+			if (!$(event.target).closest('.abmm-zoom-menu').length) setZoomMenuOpen(false);
 		});
-		$(window).on('resize', function () { if (state.previewZoom === 'fit') applyPreviewZoom(); });
+		if (/Mac|iPhone|iPad/.test(window.navigator.platform || '')) $('#abmm-zoom-presets kbd').text('\u23180');
+		$(window).on('resize', function () { if (previewCanvas) previewCanvas.refresh(); });
 		var stage = $('.abmm-preview-stage')[0];
 		if (stage && typeof window.ResizeObserver === 'function') {
-			// Keep the canvas height in step when a dropdown opens or closes.
+			// A fitted canvas follows the frame when its height changes.
 			new window.ResizeObserver(function () { applyPreviewZoom(); }).observe(stage);
 		}
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Phone and tablet previews: the live markup, stylesheet and script in a
+	 * frame at the device width, so the two-tap accordion, the sticky drawer
+	 * CTA and every media query behave exactly as on the site.
+	 * ------------------------------------------------------------------- */
+	var deviceFrame = { seq: 0, timer: null, state: null, viewport: '' };
+
+	function devicePreviewAvailable() {
+		var assets = window.abmmAdmin && window.abmmAdmin.previewAssets;
+		return !!(assets && assets.css && assets.js && typeof window.fetch === 'function' && typeof window.FormData === 'function');
+	}
+
+	function scriptJson(value) {
+		return JSON.stringify(value).replace(/</g, '\\u003c');
+	}
+
+	function deviceDocument(html) {
+		var assets = window.abmmAdmin.previewAssets;
+		var lang = document.documentElement.getAttribute('lang') || 'en';
+		return '<!doctype html><html lang="' + esc(lang) + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+			'<link rel="stylesheet" href="' + esc(assets.css) + '">' +
+			'<style>html,body{margin:0;background:#fff}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#1e1e1e}' +
+			'.abmm-preview-doc__page{padding:28px 20px;display:grid;gap:14px}.abmm-preview-doc__page span{display:block;height:12px;border-radius:6px;background:#eef1f6}' +
+			'.abmm-preview-doc__page .is-title{height:26px;width:72%}.abmm-preview-doc__page .is-short{width:46%}' +
+			'.abmm-canvas-selected{outline:2px solid #2457ff!important;outline-offset:2px!important;border-radius:6px}</style>' +
+			// The editor replays the drawer state after every change; while it
+			// does, the live script must not move focus out of the field the
+			// user is typing in.
+			'<script>(function(){var p=HTMLElement.prototype,f=p.focus;p.focus=function(){if(window.__abmmQuiet)return;return f.apply(this,arguments);};var s=Element.prototype.scrollIntoView;if(s)Element.prototype.scrollIntoView=function(){if(window.__abmmQuiet)return;return s.apply(this,arguments);};})();</script>' +
+			'</head><body class="abmm-preview-doc">' + html +
+			'<div class="abmm-preview-doc__page" aria-hidden="true"><span class="is-title"></span><span></span><span class="is-short"></span><span></span><span></span><span class="is-short"></span></div>' +
+			'<script>window.abmmRuntime=' + scriptJson(assets.runtime || {}) + ';</script>' +
+			'<script src="' + esc(assets.js) + '"></script></body></html>';
+	}
+
+	function frameHeader(frame) {
+		var doc = frame && frame.contentDocument;
+		return doc ? doc.querySelector('.abmm-header') : null;
+	}
+
+	/** Where the user is in the device menu, so a re-render can return there. */
+	function captureFrameState(frame) {
+		var header = frameHeader(frame);
+		if (!header) return deviceFrame.state;
+		var items = Array.prototype.slice.call(header.querySelectorAll('.abmm-nav__list > .abmm-nav__item'));
+		var open = header.querySelector('.abmm-nav__list > .abmm-nav__item.is-open');
+		var drawer = header.querySelector('.abmm-nav__drawer');
+		var sections = open ? Array.prototype.slice.call(open.querySelectorAll('.abmm-mega__section')) : [];
+		return {
+			open: header.classList.contains('is-mobile-open'),
+			item: open ? items.indexOf(open) : -1,
+			expanded: sections.map(function (section) { return !section.classList.contains('is-collapsed'); }),
+			scroll: drawer ? drawer.scrollTop : 0,
+		};
+	}
+
+	function restoreFrameState(frame, saved) {
+		var header = frameHeader(frame);
+		var win = frame.contentWindow;
+		if (!header || !win || !saved) return;
+		win.__abmmQuiet = true;
+		try {
+			var toggle = header.querySelector('.abmm-nav__toggle');
+			if (saved.open && toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
+			var item = saved.item >= 0 ? header.querySelectorAll('.abmm-nav__list > .abmm-nav__item')[saved.item] : null;
+			var trigger = item && item.querySelector('[data-abmm-mega-trigger]');
+			if (saved.open && trigger) {
+				trigger.click();
+				Array.prototype.forEach.call(item.querySelectorAll('.abmm-mega__section'), function (section, index) {
+					var want = saved.expanded[index];
+					var button = section.querySelector('[data-abmm-section-toggle]');
+					if (typeof want === 'boolean' && button && want === section.classList.contains('is-collapsed')) button.click();
+				});
+			}
+			var drawer = header.querySelector('.abmm-nav__drawer');
+			if (drawer) drawer.scrollTop = saved.scroll || 0;
+		} finally {
+			// The live script focuses in an animation frame; stay quiet past it.
+			win.requestAnimationFrame(function () {
+				win.requestAnimationFrame(function () { win.__abmmQuiet = false; });
+			});
+		}
+	}
+
+	function bindDeviceFrame(frame) {
+		var doc = frame.contentDocument;
+		if (!doc) return;
+		if (previewCanvas) previewCanvas.bindFrame(frame);
+		doc.addEventListener('click', function (event) {
+			var target = event.target;
+			if (!target || !target.closest) return;
+			// Links mirror the live destination but must not leave the editor.
+			if (target.closest('a[href]')) event.preventDefault();
+			var selection = previewSelectionFrom(target, 'frame');
+			if (selection) selectFromPreview(selection);
+			setTimeout(function () { deviceFrame.state = captureFrameState(frame); }, 0);
+		}, true);
+		var drawer = doc.querySelector('.abmm-nav__drawer');
+		if (drawer) {
+			drawer.addEventListener('scroll', function () { if (deviceFrame.state) deviceFrame.state.scroll = drawer.scrollTop; }, { passive: true });
+		}
+	}
+
+	function writeDeviceFrame(html) {
+		var $preview = $('#abmm-preview');
+		var frame = $preview.find('iframe.abmm-preview-device')[0];
+		if (!frame) return;
+		if (frameHeader(frame)) deviceFrame.state = captureFrameState(frame);
+		frame.onload = function () {
+			bindDeviceFrame(frame);
+			restoreFrameState(frame, deviceFrame.state);
+			markCanvasSelection();
+			$preview.removeClass('is-loading');
+		};
+		frame.srcdoc = deviceDocument(html);
+	}
+
+	function requestDeviceMarkup() {
+		var seq = ++deviceFrame.seq;
+		var body = new window.FormData();
+		body.append('action', 'abmm_preview_markup');
+		body.append('nonce', window.abmmAdmin.nonce);
+		body.append('menu_id', state.menuId || '');
+		body.append('menu_data', JSON.stringify(getMenu()));
+		window.fetch(window.abmmAdmin.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
+			.then(function (response) { return response.json(); })
+			.then(function (result) {
+				if (seq !== deviceFrame.seq) return;
+				if (!result || !result.success || !result.data || typeof result.data.html !== 'string') throw new Error('preview');
+				writeDeviceFrame(result.data.html);
+			})
+			.catch(function () {
+				if (seq !== deviceFrame.seq) return;
+				// Fall back to the built-in preview rather than an empty frame.
+				deviceFrame.failed = true;
+				renderPreview();
+			});
+	}
+
+	/** Returns true when the device frame handles this render. */
+	function renderDeviceFrame() {
+		if (state.previewViewport === 'desktop' || deviceFrame.failed || !devicePreviewAvailable()) return false;
+		var $preview = $('#abmm-preview');
+		var device = state.previewViewport;
+		var $frame = $preview.find('iframe.abmm-preview-device');
+		if (!$frame.length || deviceFrame.viewport !== device) {
+			deviceFrame.viewport = device;
+			deviceFrame.state = { open: state.previewMobileOpen, item: -1, expanded: [], scroll: 0 };
+			$preview.empty().addClass('has-device-frame is-loading').attr('data-abmm-preview-state', device + '-frame').append(
+				$('<iframe class="abmm-preview-device"></iframe>')
+					.attr('title', device === 'mobile' ? __('Phone preview', 'ashbi-mega-menu') : __('Tablet preview', 'ashbi-mega-menu'))
+					.css({ width: PREVIEW_WIDTHS[device] + 'px', height: PREVIEW_SCREEN_HEIGHTS[device] + 'px' })
+			);
+			applyPreviewZoom();
+			requestDeviceMarkup();
+			return true;
+		}
+		clearTimeout(deviceFrame.timer);
+		deviceFrame.timer = setTimeout(requestDeviceMarkup, 200);
+		return true;
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Selecting in the preview selects in the editor.
+	 * ------------------------------------------------------------------- */
+	function previewSelectionFrom(target, source) {
+		var linkEl = target.closest('[data-abmm-link-id]');
+		if (linkEl) return { kind: 'link', id: String(linkEl.getAttribute('data-abmm-link-id')), source: source };
+		var catEl = target.closest('[data-abmm-cat]');
+		if (catEl) return { kind: 'cat', id: String(catEl.getAttribute('data-abmm-cat')), source: source };
+		if (target.closest('.abmm-nav__cta')) return { kind: 'cta', source: source };
+		var itemEl = target.closest('[data-abmm-preview-item], .abmm-nav__list > [data-abmm-item-id]');
+		if (itemEl) {
+			var items = getMenu().items || [];
+			var index = itemEl.hasAttribute('data-abmm-preview-item')
+				? Number(itemEl.getAttribute('data-abmm-preview-item'))
+				: items.map(function (item) { return String(item.id); }).indexOf(String(itemEl.getAttribute('data-abmm-item-id')));
+			if (items[index]) return { kind: 'item', id: String(items[index].id), source: source };
+		}
+		return null;
+	}
+
+	function findLinkLocation(linkId) {
+		var found = null;
+		(getMenu().items || []).forEach(function (item, itemIndex) {
+			if (found) return;
+			(item.links || []).forEach(function (link) {
+				if (!found && String(link.id) === linkId) found = { itemIndex: itemIndex, catIndex: -1 };
+			});
+			(item.categories || []).forEach(function (cat, catIndex) {
+				if (found) return;
+				var groups = Array.isArray(cat.groups) && cat.groups.length ? cat.groups : [{ links: cat.links || [] }];
+				groups.forEach(function (group) {
+					(group.links || []).forEach(function (link) {
+						if (!found && String(link.id) === linkId) found = { itemIndex: itemIndex, catIndex: catIndex };
+					});
+				});
+			});
+		});
+		return found;
+	}
+
+	function revealInInspector($element) {
+		if (!$element || !$element.length) return;
+		var element = $element[0];
+		if (element.scrollIntoView) element.scrollIntoView({ block: 'nearest', behavior: window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+		$element.removeClass('abmm-just-selected');
+		void element.offsetWidth;
+		$element.addClass('abmm-just-selected');
+		setTimeout(function () { $element.removeClass('abmm-just-selected'); }, 1200);
+	}
+
+	function openMegaEditorFor(itemIndex) {
+		if (state.editingItemIndex !== itemIndex) {
+			if (state.editingItemIndex >= 0) closeMegaEditor();
+			openMegaEditor(itemIndex, document.activeElement);
+		}
+	}
+
+	function selectFromPreview(selection) {
+		var items = getMenu().items || [];
+		state.canvasSelection = selection;
+		if (state.builderSection !== 'content') setBuilderSection('content');
+		if (selection.kind === 'cta') {
+			if (state.editingItemIndex >= 0) closeMegaEditor();
+			revealInInspector($('#abmm-cta-label').closest('.abmm-field, .abmm-builder-panel, p, div').first());
+		} else if (selection.kind === 'item') {
+			var itemIndex = items.map(function (item) { return String(item.id); }).indexOf(selection.id);
+			if (itemIndex < 0) return;
+			if (state.editingItemIndex >= 0 && items[itemIndex].type === 'mega') {
+				openMegaEditorFor(itemIndex);
+			} else {
+				if (state.editingItemIndex >= 0) closeMegaEditor();
+				var $row = $('#abmm-nav-items > .abmm-nav-item-row').eq(itemIndex);
+				expandNavRow($row, true);
+				revealInInspector($row);
+			}
+		} else if (selection.kind === 'cat') {
+			var catItem = -1, catIndex = -1;
+			items.forEach(function (item, index) {
+				(item.categories || []).forEach(function (cat, ci) {
+					if (catItem < 0 && String(cat.id) === selection.id) { catItem = index; catIndex = ci; }
+				});
+			});
+			if (catItem < 0) return;
+			openMegaEditorFor(catItem);
+			selectCategory(catIndex);
+			revealInInspector($('#abmm-cat-list .abmm-cat-row').eq(catIndex));
+		} else if (selection.kind === 'link') {
+			var where = findLinkLocation(selection.id);
+			if (!where) return;
+			openMegaEditorFor(where.itemIndex);
+			if (where.catIndex >= 0 && state.editingCatIndex !== where.catIndex) selectCategory(where.catIndex);
+			revealInInspector($('#abmm-mega-editor .abmm-link-row').filter(function () { return String($(this).data('id')) === selection.id; }).first());
+		}
+		markCanvasSelection();
+	}
+
+	/** Outline the selected element in whichever preview is showing. */
+	function markCanvasSelection() {
+		var selection = state.canvasSelection;
+		var roots = [$('#abmm-preview')[0]];
+		var frame = $('#abmm-preview iframe.abmm-preview-device')[0];
+		if (frame && frame.contentDocument) roots.push(frame.contentDocument);
+		roots.forEach(function (root) {
+			if (!root || !root.querySelectorAll) return;
+			Array.prototype.forEach.call(root.querySelectorAll('.abmm-canvas-selected'), function (el) { el.classList.remove('abmm-canvas-selected'); });
+			if (!selection) return;
+			var el = null;
+			if (selection.kind === 'link') el = root.querySelector('[data-abmm-link-id="' + cssEscape(selection.id) + '"] > :is(a, span)');
+			else if (selection.kind === 'cat') el = root.querySelector('[data-abmm-cat="' + cssEscape(selection.id) + '"]');
+			else if (selection.kind === 'cta') el = Array.prototype.filter.call(root.querySelectorAll('.abmm-nav__cta'), function (cta) { return cta.getClientRects().length; })[0] || null;
+			else if (selection.kind === 'item') {
+				var index = (getMenu().items || []).map(function (item) { return String(item.id); }).indexOf(selection.id);
+				var li = root.querySelector('[data-abmm-preview-item="' + index + '"]') || root.querySelector('.abmm-nav__list > [data-abmm-item-id="' + cssEscape(selection.id) + '"]');
+				el = li && li.querySelector(':scope > .abmm-nav__link');
+			}
+			if (el) el.classList.add('abmm-canvas-selected');
+		});
+	}
+
+	function cssEscape(value) {
+		return window.CSS && window.CSS.escape ? window.CSS.escape(value) : String(value).replace(/["\\]/g, '\\$&');
 	}
 
 	function renderPreview() {
@@ -3518,6 +3848,14 @@
 		var className = settingsClassList(s);
 		var previewDrawerId = 'abmm-preview-drawer';
 		syncCustomPresetSwatch(s);
+		if (renderDeviceFrame()) {
+			refreshNavSummaries();
+			renderReadiness();
+			markDirtyState();
+			return;
+		}
+		deviceFrame.viewport = '';
+		$('#abmm-preview').removeClass('has-device-frame is-loading');
 
 		var itemsHtml = '';
 		(m.items || []).forEach(function (item, idx) {
@@ -3664,12 +4002,27 @@
 		// measured earlier, Fit sees every item plus the whole panel and shrinks
 		// the phone or tablet frame.
 		applyPreviewZoom();
+		markCanvasSelection();
 
 		$preview.off('.abmmpreview')
 			.on('click.abmmpreview', 'a', function (event) {
 				/* Preview links mirror the live destination but must not navigate away
 				 * from the builder while a user is inspecting the layout. */
 				event.preventDefault();
+			})
+			.on('click.abmmpreview', function (event) {
+				// Clicking an element in the preview selects it in the editor.
+				var selection = event.target && event.target.closest ? previewSelectionFrom(event.target, 'preview') : null;
+				if (selection) setTimeout(function () { selectFromPreview(selection); }, 0);
+			})
+			.on('mouseenter.abmmpreview', '.abmm-nav__item--mega', function () {
+				// As on the live site, hovering a desktop item opens its panel.
+				if (mobilePreview || s.desktop_interaction === 'click') return;
+				var index = Number($(this).data('abmm-preview-item'));
+				if (index === state.previewItemIndex) return;
+				state.previewItemIndex = index;
+				state.previewCategoryId = '';
+				renderPreview();
 			})
 			.on('click.abmmpreview', '.abmm-nav__toggle', function () {
 				var toggle = this;
@@ -3767,7 +4120,7 @@
 					esc(link.label) +
 					'</span>';
 				featLinks +=
-					'<li class="abmm-mega__grid-item">' +
+					'<li class="abmm-mega__grid-item"' + (link.id ? ' data-abmm-link-id="' + esc(link.id) + '"' : '') + '>' +
 					previewLinkMarkup(link, 'abmm-mega__grid-link', featureContent, false) +
 					'</li>';
 			});
@@ -3812,7 +4165,7 @@
 						(link.description ? '<span class="abmm-mega__col-description">' + esc(link.description) + '</span>' : '') +
 						'</span>';
 					links +=
-						'<li class="abmm-mega__col-item">' +
+						'<li class="abmm-mega__col-item"' + (link.id ? ' data-abmm-link-id="' + esc(link.id) + '"' : '') + '>' +
 						previewLinkMarkup(link, 'abmm-mega__col-link' + (hasIcon ? ' has-icon' : ''), columnContent, false) +
 						'</li>';
 				});
