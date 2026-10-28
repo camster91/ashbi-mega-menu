@@ -14,7 +14,14 @@ Already have a menu under Appearance → Menus? [Import it](import-wordpress-men
 
 1. Open **Ashbi Mega Menu** and choose **Start from scratch** or **Use a template**. Give the menu a meaningful name.
 2. Add top-level links, or select **Mega Menu** for a panel with categories and columns. Replace sample labels and placeholder destinations. A panel toggle opens content; a link needs a real destination.
-3. Switch the preview between Desktop, Tablet and Mobile. The preview shows the menu at a real screen width, scaled to fit; use **−**, **+**, **Fit** or Ctrl/⌘ + scroll to zoom. Check labels, contrast, spacing, CTA links and any product-navigation settings.
+3. Switch the preview between Desktop, Tablet and Mobile. The preview is a canvas that shows the menu at a real screen width:
+   - **Move around:** drag empty space, hold Space and drag, drag with the middle mouse button, or scroll with two fingers.
+   - **Zoom:** Ctrl/⌘ + scroll or pinch zooms at the pointer, from 25% to 200%. Ctrl/⌘ + **+** / **−** steps, Ctrl/⌘ + **0** fits and Ctrl/⌘ + **1** shows 100%. The zoom percentage opens a list of presets, next to **Fit** and **100%**.
+   - **Stays live:** menus open on hover and click as on the site. Clicking an item, category or link selects it in the editor.
+   - **Remembers:** each device keeps its own zoom and position for your user in this browser.
+   - **Phone and tablet** frames run the live menu at the device width, including the two-tap accordion, search and the button that stays at the bottom of the drawer.
+
+   Check labels, contrast, spacing, CTA links and any product-navigation settings.
 4. Save, then reload the editor to confirm the saved state. If another editor saved first, keep your current work and reload before reconciling changes; a conflict must not silently overwrite newer work.
 5. Follow every link on the actual staged page. The builder preview does not establish theme compatibility or replace keyboard and mobile checks.
 

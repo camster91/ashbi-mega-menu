@@ -35,12 +35,16 @@ window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
 setTimeout(() => {
  const linkRow = $('#abmm-nav-items > .abmm-nav-item-row').first();
  const megaRow = $('#abmm-nav-items > .abmm-nav-item-row').eq(1);
- assert.equal(linkRow.find('.abmm-link-options summary').text(), '[xx] Link options');
+ // Link options moved from a <details> box into a popover off the URL field.
+ assert.equal(linkRow.find('.abmm-link-options__toggle .screen-reader-text').text(), '[xx] Link options');
+ assert.equal(linkRow.find('.abmm-link-options__toggle').attr('title'), '[xx] Link options');
+ assert.equal(linkRow.find('.abmm-link-options__panel').attr('aria-label'), '[xx] Link options');
  assert.equal(linkRow.find('.abmm-duplicate-nav').text(), '[xx] Duplicate');
  assert.equal(linkRow.find('.abmm-duplicate-nav').attr('aria-label'), '[xx] Duplicate navigation item Home');
  assert.equal(linkRow.find('.abmm-remove-nav').attr('title'), '[xx] Remove navigation item');
  assert.equal(megaRow.find('.abmm-edit-mega').text(), '[xx] Edit content');
- assert.equal(megaRow.find('.abmm-mega-style-badge').text(), '[xx] With categories');
+ // The summary counts content; an empty mega menu says so.
+ assert.equal(megaRow.find('.abmm-mega-style-badge').text(), '[xx] No content yet');
  assert.doesNotMatch($('#abmm-nav-items').html(), />(Edit content|Duplicate|Link options)</, 'no untranslated builder labels remain');
  console.log('Builder labels use wp.i18n with the plugin text domain.');
  window.close();
