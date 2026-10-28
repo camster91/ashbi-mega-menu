@@ -1553,3 +1553,36 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
 /* Tool sub-headings are h3 under the Tools h2; keep their former size. */
 .abmm-import-upload > h3,
 .abmm-import-api > h3 {margin:0 0 8px;font-size:14px;line-height:1.4}
+
+/* First-run: start from existing pages */
+.abmm-page-picker {margin:16px 0 0;padding:16px 18px;border:1px solid var(--abmm-brand-line);border-radius:12px;background:#fff}
+.abmm-page-picker[hidden] {display:none}
+.abmm-page-picker legend {padding:0 4px;font-weight:600;color:var(--abmm-brand-ink)}
+.abmm-page-picker__list {max-height:280px;margin:8px 0 12px;padding:0;overflow:auto;list-style:none}
+.abmm-page-picker__list li {margin:0;padding:4px 0 4px calc(var(--abmm-depth,0) * 20px)}
+.abmm-page-picker__list label {display:flex;align-items:center;gap:8px}
+.abmm-page-picker__actions {display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.abmm-page-picker__count {color:var(--abmm-brand-muted)}
+
+/* Setup guide */
+.abmm-setup-guide {margin:0 0 24px;padding:18px 20px;border:1px solid var(--abmm-brand-line);border-radius:12px;background:#fff}
+.abmm-setup-guide__head {display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:10px}
+.abmm-setup-guide__head h2 {margin:0;font-size:16px}
+.abmm-setup-guide__progress {color:var(--abmm-brand-muted)}
+.abmm-setup-guide__hide {margin-inline-start:auto}
+.abmm-setup-guide__steps {display:grid;gap:8px;margin:0;padding:0;list-style:none;counter-reset:abmm-step}
+.abmm-setup-guide__steps li {position:relative;margin:0;padding:10px 12px 10px 44px;border-radius:10px;counter-increment:abmm-step}
+.abmm-setup-guide__steps li::before {content:counter(abmm-step);position:absolute;top:10px;left:12px;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#eef1f7;color:var(--abmm-brand-ink);font-size:12px;font-weight:600}
+.abmm-setup-guide__steps li.is-done::before {content:"\2713";background:#e3f3ea;color:#11643a}
+.abmm-setup-guide__steps li.is-next {background:#f6f8ff;outline:1px solid #d7defa}
+.abmm-setup-guide__steps p {margin:4px 0 8px;color:var(--abmm-brand-muted);max-width:72ch}
+.abmm-setup-guide__steps li:not(.is-next) p,
+.abmm-setup-guide__steps li:not(.is-next) .button,
+.abmm-setup-guide__steps li:not(.is-next) .button-link {display:none}
+.abmm-setup-guide__steps li.is-done strong {color:var(--abmm-brand-muted)}
+.abmm-setup-guide.is-complete li:last-child .button-link {display:inline}
+.abmm-setup-guide__status {position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.abmm-setup-guide__note {font-size:12.5px}
+.abmm-place-options li.is-recommended {padding:8px 10px;border-radius:8px;background:#f6f8ff}
+.abmm-badge--recommended {display:inline-block;margin-inline-start:6px;padding:1px 8px;border-radius:999px;background:#e3eaff;color:#1b3fbf;font-size:11.5px;font-weight:600}
+@media (min-width:960px) {.abmm-welcome__choices:has(.abmm-pages-choice) {grid-template-columns:repeat(3,minmax(0,1fr));max-width:1040px}}
