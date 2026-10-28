@@ -247,7 +247,8 @@ async function backupFixture(strings = {}) {
  const card = $('#abmm-preview [data-abmm-preview-item="1"] .abmm-mega__inner').children().last();
  assert.ok(card.is('a.abmm-mega__featured'),'the featured card is the last child of the panel content');
  assert.equal(card.attr('href'),'/new');
- assert.deepEqual(card.children().map((_,el)=>el.className).get(),['abmm-mega__featured-media','abmm-mega__featured-title','abmm-mega__featured-text','abmm-mega__featured-link']);
+ assert.deepEqual(card.children().map((_,el)=>el.className).get(),['abmm-mega__featured-media','abmm-mega__featured-body'],'the card uses the front end markup');
+ assert.deepEqual(card.find('.abmm-mega__featured-body').children().map((_,el)=>el.className).get(),['abmm-mega__featured-title','abmm-mega__featured-text','abmm-mega__featured-link']);
  assert.equal(card.find('img').attr('src'),'/img.jpg');
  assert.equal($('#abmm-preview [data-abmm-preview-item="0"] .abmm-mega__featured').length,0,'no card without a featured key');
  $('#abmm-nav-items .abmm-nav-item-row').eq(0).find('.abmm-edit-mega').trigger('click');
@@ -288,6 +289,18 @@ async function backupFixture(strings = {}) {
  saved = JSON.parse(f.requests[2].data.menu_data);
  assert.equal(saved.items[1].links[0].url,'/b');
  assert.equal(saved.items[1].links[0].target,'_blank');
+ f.close();
+ // Dashboard deep links: "Place & verify" opens the Place step, and the card's
+ // "N issues" pill opens the checklist on the Content tab.
+ f=await fixture(false,false,null,'demo',menu,'',"http://localhost/#placement"); $=f.$;
+ assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'#placement shows the Place panel');
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
+ assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step','#placement marks the Place step');
+ f.close();
+ f=await fixture(false,false,null,'demo',menu,'<section id="abmm-readiness-panel"><h2>Checklist</h2></section>',"http://localhost/#abmm-readiness-panel"); $=f.$;
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),false,'the checklist link opens the Content tab');
+ assert.equal($('[data-abmm-workflow="content"]').attr('aria-current'),'step');
+ assert.equal(f.window.document.activeElement,$('#abmm-readiness-panel')[0],'focus lands on the checklist');
  f.close();
  console.log('Admin viewport, drawer, keyboard tabs, sheet, save/retry, malformed load and explicit backup restore tests passed.');
  // Dashboard deep links: "Place & verify" opens the Place step, and the card's

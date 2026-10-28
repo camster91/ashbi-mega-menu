@@ -2919,14 +2919,25 @@
 	// Same markup as the front end: a card after the link columns.
 	function featuredPreviewMarkup(item) {
 		var f = featuredData(item);
-		if (!f || !f.show || featuredIsEmpty(f)) return '';
+		var title = String((f && f.title) || '').trim();
+		if (!f || !f.show || !title) return '';
 		var image = String(f.image_url || '').trim();
+		var text = String(f.text || '').trim();
+		var url = String(f.url || '').trim();
+		var hasLink = url !== '' && url !== '#';
+		var label = String(f.label || '').trim() || (hasLink ? __('Learn more', 'ashbi-mega-menu') : '');
 		var content =
-			(image ? '<span class="abmm-mega__featured-media"><img src="' + esc(image) + '" alt="" loading="lazy" /></span>' : '') +
-			(f.title ? '<span class="abmm-mega__featured-title">' + esc(f.title) + '</span>' : '') +
-			(f.text ? '<span class="abmm-mega__featured-text">' + esc(f.text) + '</span>' : '') +
-			(f.label ? '<span class="abmm-mega__featured-link">' + esc(f.label) + '</span>' : '');
-		return '<a class="abmm-mega__featured" href="' + esc(String(f.url || '').trim() || '#') + '">' + content + '</a>';
+			(image ? '<span class="abmm-mega__featured-media"><img src="' + esc(image) + '" alt="" loading="lazy" decoding="async" /></span>' : '') +
+			'<span class="abmm-mega__featured-body">' +
+			'<span class="abmm-mega__featured-title">' + esc(title) + '</span>' +
+			(text ? '<span class="abmm-mega__featured-text">' + esc(text) + '</span>' : '') +
+			(hasLink
+				? '<span class="abmm-mega__featured-link">' + esc(label) + '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h9.5M8.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+				: '') +
+			'</span>';
+		return hasLink
+			? '<a class="abmm-mega__featured" href="' + esc(url) + '">' + content + '</a>'
+			: '<div class="abmm-mega__featured">' + content + '</div>';
 	}
 
 	function renderFeaturesLinkList() {
@@ -3628,7 +3639,6 @@
 
 		var previewState = state.previewViewport + '-' + state.previewDrill;
 		$('#abmm-preview').attr('data-abmm-preview-state', previewState).html(html);
-		applyPreviewZoom();
 		var $preview = $('#abmm-preview');
 		$preview.find('.abmm-nav__brand-logo').on('error', function () {
 			$(this).replaceWith(
@@ -3647,12 +3657,13 @@
 			$selected.addClass('is-open');
 			$selected.find('> .abmm-nav__link').attr('aria-expanded', 'true');
 		}
-		// The open panel changes the stage height, so size the canvas again.
-		applyPreviewZoom();
-
 		if (mobilePreview && state.previewDrill !== 'root') {
 			$selected.attr('data-drill', state.previewDrill);
 		}
+		// Size the canvas once the open panel and the drill level are in place:
+		// measured earlier, Fit sees every item plus the whole panel and shrinks
+		// the phone or tablet frame.
+		applyPreviewZoom();
 
 		$preview.off('.abmmpreview')
 			.on('click.abmmpreview', 'a', function (event) {
