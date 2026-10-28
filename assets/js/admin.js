@@ -3506,7 +3506,13 @@
 		var stage = $('.abmm-preview-stage')[0];
 		if (stage && typeof window.ResizeObserver === 'function') {
 			// Keep the canvas height in step when a dropdown opens or closes.
-			new window.ResizeObserver(function () { applyPreviewZoom(); }).observe(stage);
+			// Resize in the next frame: changing the stage inside the observer's
+			// own callback makes browsers report a ResizeObserver loop.
+			var resizeFrame = 0;
+			new window.ResizeObserver(function () {
+				window.cancelAnimationFrame(resizeFrame);
+				resizeFrame = window.requestAnimationFrame(applyPreviewZoom);
+			}).observe(stage);
 		}
 	}
 
