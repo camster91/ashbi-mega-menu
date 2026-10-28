@@ -1,0 +1,93 @@
+name: Scheduled compatibility
+# Weekly run against supported and upcoming WordPress and PHP versions, so a
+# break in a WordPress beta or a new PHP release is found before users hit it.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+  # Changes to this workflow are tested in their own pull request.
+  pull_request:
+    paths:
+      - .github/workflows/scheduled.yml
+permissions:
+  contents: read
+jobs:
+  php:
+    name: PHP ${{ matrix.php }} unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+      - run: npm ci
+      - run: npm run build && npm test && npm run test:php
+      - name: PHP syntax
+        run: find admin includes src build -name '*.php' -exec php -l {} \; && php -l ashbi-mega-menu.php && php -l uninstall.php
+
+  wordpress:
+    name: WordPress ${{ matrix.wp }} on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { wp: '6.6', php: '8.2', core: 'https://wordpress.org/wordpress-6.6.zip' }
+          - { wp: latest, php: '8.2', core: '' }
+          - { wp: latest, php: '8.4', core: '' }
+          - { wp: nightly, php: '8.4', core: 'https://wordpress.org/nightly-builds/wordpress-latest.zip' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install -g @wordpress/env
+      - name: Start WordPress ${{ matrix.wp }}
+        env:
+          CORE: ${{ matrix.core }}
+          PHP: ${{ matrix.php }}
+        run: |
+          node -e 'const c={phpVersion:process.env.PHP,plugins:["."]}; if(process.env.CORE) c.core=process.env.CORE; require("fs").writeFileSync(".wp-env.json", JSON.stringify(c))'
+          wp-env start
+          wp-env run cli wp plugin activate ashbi-mega-menu
+      - name: Database tests
+        run: |
+          wp-env run cli wp core version
+          for t in smoke products import-roundtrip review-security; do
+            wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-$t.php
+          done
+          if [ -f tests/wordpress-nav-menu-import.php ]; then
+            wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-nav-menu-import.php
+          fi
+
+  report:
+    name: Open or update the tracking issue
+    needs: [php, wordpress]
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create scheduled-ci --color B60205 --description "Scheduled compatibility run failed" --force
+          body="The scheduled compatibility run failed on commit ${GITHUB_SHA}: ${RUN_URL}"
+          issue=$(gh issue list --label scheduled-ci --state open --json number -q '.[0].number')
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body "$body"
+          else
+            gh issue create --label scheduled-ci --title "Scheduled compatibility run failed" --body "$body
+
+          Triage it with docs/support-policy.md. Close this issue once a scheduled run passes again."
+          fi

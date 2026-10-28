@@ -780,6 +780,88 @@ class ABMM_Data {
 	}
 
 	/**
+	 * Create a draft menu from published pages chosen on first run.
+	 *
+	 * Pages keep the chosen order. A page whose parent was also chosen goes
+	 * into that parent's dropdown (one set of link columns); the others are
+	 * links in the menu bar. Nothing is placed on the site.
+	 *
+	 * @param int[] $page_ids Page IDs, in the order chosen.
+	 * @return string|false|WP_Error New menu ID, write failure, or an error.
+	 */
+	public function create_from_pages( $page_ids ) {
+		$pages = array();
+		foreach ( array_slice( array_unique( array_map( 'absint', (array) $page_ids ) ), 0, 50 ) as $page_id ) {
+			$page = $page_id ? get_post( $page_id ) : null;
+			if ( $page && 'page' === $page->post_type && 'publish' === $page->post_status ) {
+				$pages[ $page_id ] = $page;
+			}
+		}
+		if ( ! $pages ) {
+			return new WP_Error( 'abmm_no_pages', __( 'Choose at least one published page.', 'ashbi-mega-menu' ) );
+		}
+
+		$children = array();
+		foreach ( $pages as $page_id => $page ) {
+			$parent = (int) $page->post_parent;
+			$children[ isset( $pages[ $parent ] ) ? $parent : 0 ][] = $page_id;
+		}
+		$link = function ( $page ) {
+			$title = trim( wp_strip_all_tags( (string) $page->post_title ) );
+			return array(
+				'id'    => 'page_' . $page->ID,
+				'label' => '' !== $title ? $title : __( '(no title)', 'ashbi-mega-menu' ),
+				'url'   => (string) get_permalink( $page ),
+			);
+		};
+		$items = array();
+		foreach ( $children[0] ?? array() as $page_id ) {
+			$item = array_merge( $link( $pages[ $page_id ] ), array( 'type' => 'link' ) );
+			// Grandchildren follow their parent in the same dropdown.
+			$below   = array();
+			$collect = function ( $id ) use ( &$collect, &$below, $children, $pages, $link ) {
+				foreach ( $children[ $id ] ?? array() as $child ) {
+					$below[] = array_merge( $link( $pages[ $child ] ), array( 'description' => '', 'icon' => '' ) );
+					$collect( $child );
+				}
+			};
+			$collect( $page_id );
+			if ( $below ) {
+				$columns = max( 1, min( 4, (int) ceil( count( $below ) / 6 ) ) );
+				$groups  = array();
+				foreach ( array_chunk( $below, (int) ceil( count( $below ) / $columns ) ) as $index => $chunk ) {
+					$groups[] = array( 'id' => 'col_' . $page_id . '_' . $index, 'title' => '', 'links' => $chunk );
+				}
+				$item = array_merge(
+					$item,
+					array(
+						'type'              => 'mega',
+						'mega_style'        => 'platforms',
+						'hide_category_bar' => true,
+						'columns'           => $columns,
+						'categories'        => array( array( 'id' => 'cat_' . $page_id, 'title' => $item['label'], 'groups' => $groups ) ),
+						'links'             => array(),
+					)
+				);
+			}
+			$items[] = $item;
+		}
+
+		return $this->with_collection_lock(
+			function () use ( $items ) {
+				$id = $this->create_unlocked( __( 'Main menu', 'ashbi-mega-menu' ) );
+				if ( ! $id ) {
+					return false;
+				}
+				$menus               = $this->get_all();
+				$menus[ $id ]['items'] = $items;
+				$menus[ $id ]          = $this->sanitize_menu( $menus[ $id ] );
+				return update_option( ABMM_OPTION_KEY, $menus ) ? $id : false;
+			}
+		);
+	}
+
+	/**
 	 * Duplicate a menu with independent nested IDs.
 	 *
 	 * @param string $id Existing menu ID.
@@ -1163,9 +1245,32 @@ class ABMM_Data {
 					}
 				}
 			}
+
+			$out['featured'] = $this->sanitize_featured( $item['featured'] ?? array() );
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Sanitize the optional featured card of a mega item.
+	 *
+	 * Older menus have no card, so a missing or malformed value becomes an
+	 * empty, hidden card.
+	 *
+	 * @param mixed $featured Raw featured card data.
+	 * @return array
+	 */
+	private function sanitize_featured( $featured ) {
+		$featured = is_array( $featured ) ? $featured : array();
+		return array(
+			'show'      => ! empty( $featured['show'] ) && 'false' !== $featured['show'] && '0' !== $featured['show'],
+			'title'     => $this->sanitize_text( $featured['title'] ?? '' ),
+			'text'      => $this->sanitize_text( $featured['text'] ?? '' ),
+			'label'     => $this->sanitize_text( $featured['label'] ?? '' ),
+			'url'       => $this->sanitize_menu_url( $featured['url'] ?? '' ),
+			'image_url' => $this->sanitize_menu_url( $featured['image_url'] ?? '' ),
+		);
 	}
 
 	/**
@@ -1201,7 +1306,7 @@ class ABMM_Data {
 	private function sanitize_link_meta( $source ) {
 		$source = is_array( $source ) ? $source : array();
 		$target      = '_blank' === ( $source['target'] ?? '' ) ? '_blank' : '';
-		$allowed_rel = array( 'nofollow', 'sponsored', 'ugc', 'noopener', 'noreferrer' );
+		$allowed_rel = self::LINK_REL_TOKENS;
 		$rel         = array();
 		foreach ( preg_split( '/\s+/', strtolower( $this->scalar_string( $source['rel'] ?? '' ) ) ) as $token ) {
 			$token = sanitize_key( $token );
@@ -1448,6 +1553,11 @@ class ABMM_Data {
 	}
 
 	/**
+	 * Link rel values a menu link may carry.
+	 */
+	const LINK_REL_TOKENS = array( 'nofollow', 'sponsored', 'ugc', 'noopener', 'noreferrer' );
+
+	/**
 	 * Marks template links that still need a real destination.
 	 */
 	const SAMPLE_FRAGMENT = 'abmm-sample';
@@ -1464,5 +1574,468 @@ class ABMM_Data {
 
 	public static function demo_menus() {
 		return self::generic_starter();
+	}
+
+	/**
+	 * Convert a classic WordPress navigation menu into an Ashbi menu draft.
+	 *
+	 * A dry run: nothing is stored and the source menu is not changed.
+	 * Top-level items without children become links; items with children
+	 * become mega items. Their children become categories, or one columns-only
+	 * category when none of them has children. Deeper levels are flattened
+	 * into links, and the report lists what was flattened or skipped.
+	 *
+	 * @param int $term_id Navigation menu term ID.
+	 * @return array|WP_Error { menu: array, report: { imported, flattened, skipped, warnings } }
+	 */
+	public function import_from_nav_menu( $term_id ) {
+		$term_id = absint( $term_id );
+		$nav     = $term_id ? wp_get_nav_menu_object( $term_id ) : false;
+		if ( ! $nav ) {
+			return new WP_Error( 'abmm_nav_menu_missing', __( 'That WordPress menu no longer exists.', 'ashbi-mega-menu' ) );
+		}
+		$items = wp_get_nav_menu_items( $nav->term_id, array( 'update_post_term_cache' => false ) );
+		$rows  = array();
+		foreach ( is_array( $items ) ? $items : array() as $item ) {
+			$type   = (string) ( $item->type ?? '' );
+			$status = 'publish';
+			if ( 'post_type' === $type && ! empty( $item->object_id ) ) {
+				$status = (string) get_post_status( (int) $item->object_id );
+			}
+			$rows[] = array(
+				'id'          => (int) ( $item->db_id ?? $item->ID ?? 0 ),
+				'parent'      => (int) ( $item->menu_item_parent ?? 0 ),
+				'title'       => (string) ( $item->title ?? '' ),
+				'url'         => (string) ( $item->url ?? '' ),
+				'target'      => (string) ( $item->target ?? '' ),
+				'xfn'         => (string) ( $item->xfn ?? '' ),
+				'classes'     => is_array( $item->classes ?? null ) ? $item->classes : array(),
+				'description' => (string) ( $item->description ?? '' ),
+				'type'        => $type,
+				'status'      => $status,
+				'invalid'     => ! empty( $item->_invalid ),
+			);
+		}
+
+		return $this->finish_nav_import( $this->convert_nav_menu_items( $rows, (string) $nav->name ) );
+	}
+
+	/**
+	 * Convert a Site Editor navigation (a wp_navigation post from a block theme)
+	 * with the same rules and report as a classic menu.
+	 *
+	 * @param int $post_id wp_navigation post ID.
+	 * @return array|WP_Error { menu, report }
+	 */
+	public function import_from_navigation_post( $post_id ) {
+		$post = get_post( absint( $post_id ) );
+		if ( ! $post || 'wp_navigation' !== $post->post_type || 'trash' === $post->post_status ) {
+			return new WP_Error( 'abmm_nav_menu_missing', __( 'That navigation no longer exists.', 'ashbi-mega-menu' ) );
+		}
+		$rows        = array();
+		$next        = 0;
+		$unsupported = array();
+		$this->navigation_block_rows( parse_blocks( (string) $post->post_content ), 0, $rows, $next, $unsupported );
+		$title  = '' !== trim( (string) $post->post_title ) ? (string) $post->post_title : __( 'Navigation', 'ashbi-mega-menu' );
+		$result = $this->convert_nav_menu_items( $rows, $title );
+		if ( ! is_wp_error( $result ) ) {
+			foreach ( array_keys( $unsupported ) as $name ) {
+				$type = class_exists( 'WP_Block_Type_Registry' ) ? WP_Block_Type_Registry::get_instance()->get_registered( $name ) : null;
+				$result['report']['skipped'][] = array(
+					/* translators: %s: block name, such as Search. */
+					'label'  => $type && ! empty( $type->title ) ? sprintf( __( '%s block', 'ashbi-mega-menu' ), $type->title ) : $name,
+					'reason' => __( 'This block is not a link, so it was not imported.', 'ashbi-mega-menu' ),
+				);
+			}
+		}
+		return $this->finish_nav_import( $result );
+	}
+
+	/** Apply the JSON importer's limits to a converted menu. */
+	private function finish_nav_import( $result ) {
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		if ( class_exists( 'ABMM_Import_Export' ) ) {
+			$errors = ABMM_Import_Export::instance()->validate_payload( array( 'imported' => $result['menu'] ) );
+			if ( $errors ) {
+				return new WP_Error( 'abmm_nav_menu_limits', implode( ' ', $errors ) );
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Turn navigation blocks into the rows convert_nav_menu_items() reads.
+	 *
+	 * @param array $blocks      Parsed blocks.
+	 * @param int   $parent      Parent row ID (0 for the top level).
+	 * @param array $rows        Rows, appended to.
+	 * @param int   $next        Last row ID used.
+	 * @param array $unsupported Names of blocks that are not links, as keys.
+	 * @param int   $depth       Nesting guard.
+	 */
+	private function navigation_block_rows( $blocks, $parent, &$rows, &$next, &$unsupported, $depth = 0 ) {
+		if ( $depth > 32 ) {
+			return;
+		}
+		foreach ( (array) $blocks as $block ) {
+			$name  = (string) ( $block['blockName'] ?? '' );
+			$attrs = is_array( $block['attrs'] ?? null ) ? $block['attrs'] : array();
+			if ( '' === $name ) {
+				continue;
+			}
+			if ( 'core/navigation-link' === $name || 'core/navigation-submenu' === $name ) {
+				$id     = ++$next;
+				$rows[] = $this->navigation_link_row( $id, $parent, $attrs );
+				if ( 'core/navigation-submenu' === $name ) {
+					$this->navigation_block_rows( $block['innerBlocks'] ?? array(), $id, $rows, $next, $unsupported, $depth + 1 );
+				}
+			} elseif ( 'core/home-link' === $name ) {
+				$label  = trim( wp_strip_all_tags( (string) ( $attrs['label'] ?? '' ) ) );
+				$rows[] = $this->navigation_row( ++$next, $parent, '' !== $label ? $label : __( 'Home', 'ashbi-mega-menu' ), home_url( '/' ), $attrs );
+			} elseif ( 'core/page-list' === $name ) {
+				// The page list block shows the published page tree.
+				$pages    = get_pages( array( 'sort_column' => 'menu_order,post_title', 'post_status' => 'publish' ) );
+				$children = array();
+				foreach ( (array) $pages as $page ) {
+					$children[ (int) $page->post_parent ][] = $page;
+				}
+				$add = function ( $page_parent, $row_parent ) use ( &$add, &$children, &$rows, &$next ) {
+					foreach ( $children[ $page_parent ] ?? array() as $page ) {
+						$id     = ++$next;
+						$rows[] = $this->navigation_row( $id, $row_parent, (string) $page->post_title, (string) get_permalink( $page ), array(), 'post_type' );
+						$add( (int) $page->ID, $id );
+					}
+				};
+				$add( absint( $attrs['parentPageID'] ?? 0 ), $parent );
+			} else {
+				$unsupported[ $name ] = true;
+			}
+		}
+	}
+
+	/** A row for a navigation link or submenu block. */
+	private function navigation_link_row( $id, $parent, $attrs ) {
+		$kind   = (string) ( $attrs['kind'] ?? '' );
+		$object = absint( $attrs['id'] ?? 0 );
+		$url    = (string) ( $attrs['url'] ?? '' );
+		$row    = $this->navigation_row( $id, $parent, (string) ( $attrs['label'] ?? '' ), $url, $attrs, 'post-type' === $kind ? 'post_type' : 'custom' );
+		// A link to a post or term follows its current address, as the block does.
+		if ( $object && 'post-type' === $kind ) {
+			$status = get_post_status( $object );
+			if ( false === $status ) {
+				$row['invalid'] = true;
+			} else {
+				$row['status'] = (string) $status;
+				$row['url']    = (string) get_permalink( $object );
+			}
+		} elseif ( $object && 'taxonomy' === $kind ) {
+			$link = get_term_link( $object );
+			if ( is_wp_error( $link ) ) {
+				$row['invalid'] = true;
+			} else {
+				$row['url'] = (string) $link;
+			}
+		}
+		return $row;
+	}
+
+	private function navigation_row( $id, $parent, $label, $url, $attrs, $type = 'custom' ) {
+		return array(
+			'id'          => $id,
+			'parent'      => $parent,
+			'title'       => trim( wp_strip_all_tags( $label ) ),
+			'url'         => $url,
+			'target'      => ! empty( $attrs['opensInNewTab'] ) ? '_blank' : '',
+			'xfn'         => (string) ( $attrs['rel'] ?? '' ),
+			'classes'     => preg_split( '/\s+/', trim( (string) ( $attrs['className'] ?? '' ) ), -1, PREG_SPLIT_NO_EMPTY ),
+			'description' => (string) ( $attrs['description'] ?? '' ),
+			'type'        => $type,
+			'status'      => 'publish',
+			'invalid'     => false,
+		);
+	}
+
+	/**
+	 * Convert flattened navigation rows (see import_from_nav_menu()).
+	 *
+	 * @param array  $rows  Rows with id, parent, title, url, target, xfn,
+	 *                      classes, description, type, status and invalid.
+	 * @param string $title Source menu name.
+	 * @return array|WP_Error
+	 */
+	public function convert_nav_menu_items( $rows, $title ) {
+		$report = array(
+			'imported'  => 0,
+			'flattened' => array(),
+			'skipped'   => array(),
+			'warnings'  => array(),
+		);
+		$by_id    = array();
+		$children = array( 0 => array() );
+		foreach ( $rows as $row ) {
+			$by_id[ $row['id'] ] = $row;
+		}
+		foreach ( $rows as $row ) {
+			// An item whose parent is missing is shown at the top level, as WordPress does.
+			$parent = isset( $by_id[ $row['parent'] ] ) ? $row['parent'] : 0;
+			$children[ $parent ][] = $row['id'];
+			if ( ! isset( $children[ $row['id'] ] ) ) {
+				$children[ $row['id'] ] = array();
+			}
+		}
+		if ( empty( $children[0] ) ) {
+			return new WP_Error( 'abmm_nav_menu_empty', __( 'That WordPress menu has no items to import.', 'ashbi-mega-menu' ) );
+		}
+
+		// Decide which items can be imported; a skipped item takes its children with it.
+		$usable = array();
+		$skip   = function ( $id, $reason ) use ( &$skip, &$report, &$children, $by_id ) {
+			$report['skipped'][] = array( 'label' => $this->nav_row_label( $by_id[ $id ] ), 'reason' => $reason );
+			foreach ( $children[ $id ] as $child ) {
+				$skip( $child, __( 'Its parent item was skipped.', 'ashbi-mega-menu' ) );
+			}
+		};
+		$check = function ( $id ) use ( &$check, &$skip, &$usable, &$children, $by_id ) {
+			$row    = $by_id[ $id ];
+			$reason = $this->nav_row_problem( $row );
+			if ( '' !== $reason ) {
+				$skip( $id, $reason );
+				return;
+			}
+			$usable[ $id ] = true;
+			foreach ( $children[ $id ] as $child ) {
+				$check( $child );
+			}
+		};
+		foreach ( $children[0] as $id ) {
+			$check( $id );
+		}
+		$kids = function ( $id ) use ( &$children, &$usable ) {
+			return array_values( array_filter( $children[ $id ], function ( $child ) use ( &$usable ) {
+				return isset( $usable[ $child ] );
+			} ) );
+		};
+
+		// Flatten a subtree into links, depth first, noting levels below depth 3.
+		$flatten = function ( $id, $depth, $under ) use ( &$flatten, &$report, $kids, $by_id ) {
+			$links = array();
+			foreach ( $kids( $id ) as $child ) {
+				$links[] = $this->nav_row_link( $by_id[ $child ] );
+				$report['imported']++;
+				if ( $depth > 3 ) {
+					$report['flattened'][] = array(
+						'label' => $this->nav_row_label( $by_id[ $child ] ),
+						'depth' => $depth,
+						/* translators: %s: category name. */
+						'into'  => sprintf( __( 'a link in "%s"', 'ashbi-mega-menu' ), $under ),
+					);
+				}
+				$links = array_merge( $links, $flatten( $child, $depth + 1, $under ) );
+			}
+			return $links;
+		};
+
+		// Only a few rel values are supported; say which XFN values are dropped.
+		foreach ( array_keys( $usable ) as $id ) {
+			if ( '' === trim( $by_id[ $id ]['url'] ) && ! $kids( $id ) ) {
+				$report['warnings'][] = sprintf(
+					/* translators: %s: menu item label. */
+					__( '"%s" has no URL. Add one in the editor, or it shows as plain text.', 'ashbi-mega-menu' ),
+					$this->nav_row_label( $by_id[ $id ] )
+				);
+			}
+			$dropped = array_diff( preg_split( '/\s+/', strtolower( trim( $by_id[ $id ]['xfn'] ) ), -1, PREG_SPLIT_NO_EMPTY ), self::LINK_REL_TOKENS );
+			if ( $dropped ) {
+				$report['warnings'][] = sprintf(
+					/* translators: 1: rel values, 2: menu item label. */
+					__( 'The link relationship "%1$s" on "%2$s" is not supported and was not imported.', 'ashbi-mega-menu' ),
+					implode( ' ', $dropped ),
+					$this->nav_row_label( $by_id[ $id ] )
+				);
+			}
+		}
+
+		$items = array();
+		$top   = $kids( 0 );
+		$this->flag_duplicate_labels( $top, $by_id, '', $report );
+		foreach ( $top as $id ) {
+			$row  = $by_id[ $id ];
+			$item = array_merge(
+				array(
+					'id'    => 'wp_' . $id,
+					'label' => trim( $row['title'] ),
+					'url'   => trim( $row['url'] ),
+				),
+				$this->nav_row_meta( $row )
+			);
+			$report['imported']++;
+			if ( '' !== trim( $row['description'] ) ) {
+				$report['warnings'][] = sprintf(
+					/* translators: %s: menu item label. */
+					__( 'The description of "%s" was not imported: top-level items have no description.', 'ashbi-mega-menu' ),
+					$this->nav_row_label( $row )
+				);
+			}
+			$second = $kids( $id );
+			if ( ! $second ) {
+				$items[] = array_merge( $item, array( 'type' => 'link' ) );
+				continue;
+			}
+
+			$this->flag_duplicate_labels( $second, $by_id, $row['title'], $report );
+			$item = array_merge( $item, array( 'type' => 'mega', 'mega_style' => 'platforms', 'columns' => 3, 'categories' => array(), 'links' => array() ) );
+			$has_third = false;
+			foreach ( $second as $child ) {
+				if ( $kids( $child ) ) {
+					$has_third = true;
+					break;
+				}
+			}
+
+			if ( ! $has_third ) {
+				// One category without a category bar: the children are its links.
+				$links = array();
+				foreach ( $second as $child ) {
+					$links[] = $this->nav_row_link( $by_id[ $child ] );
+					$report['imported']++;
+				}
+				// The renderer draws one column per group: split long lists evenly
+				// into up to four columns of about six links.
+				$columns = max( 1, min( 4, (int) ceil( count( $links ) / 6 ) ) );
+				$groups  = array();
+				foreach ( array_chunk( $links, (int) ceil( count( $links ) / $columns ) ) as $index => $chunk ) {
+					$groups[] = array( 'id' => 'wpcol_' . $id . ( $index ? '_' . $index : '' ), 'title' => '', 'links' => $chunk );
+				}
+				$item['hide_category_bar'] = true;
+				$item['columns']           = $columns;
+				$item['categories'][]      = array(
+					'id'     => 'wpcat_' . $id,
+					'title'  => trim( $row['title'] ),
+					'groups' => $groups,
+				);
+			} else {
+				foreach ( $second as $child ) {
+					$cat_row = $by_id[ $child ];
+					$report['imported']++;
+					$this->flag_duplicate_labels( $kids( $child ), $by_id, $cat_row['title'], $report );
+					$cat_url = trim( $cat_row['url'] );
+					$item['categories'][] = array_merge(
+						array(
+							'id'          => 'wpcat_' . $child,
+							'title'       => trim( $cat_row['title'] ),
+							'description' => trim( $cat_row['description'] ),
+							// The category's own page becomes its "see all" link.
+							'panel_title' => '' !== $cat_url && '#' !== $cat_url ? trim( $cat_row['title'] ) : '',
+							'panel_url'   => '#' !== $cat_url ? $cat_url : '',
+							'panel_link'  => $this->nav_row_meta( $cat_row ),
+							'groups'      => array( array( 'id' => 'wpcol_' . $child, 'title' => '', 'links' => $flatten( $child, 3, trim( $cat_row['title'] ) ) ) ),
+						)
+					);
+				}
+			}
+			$items[] = $item;
+		}
+
+		$menu = $this->sanitize_menu(
+			array(
+				/* translators: %s: WordPress menu name. */
+				'title'    => sprintf( __( '%s (imported)', 'ashbi-mega-menu' ), '' !== trim( $title ) ? trim( $title ) : __( 'WordPress menu', 'ashbi-mega-menu' ) ),
+				'items'    => $items,
+				'cta'      => array( 'label' => '', 'url' => '', 'show' => false ),
+				'brand'    => array(
+					'show'          => false,
+					'title'         => get_bloginfo( 'name' ),
+					'url'           => home_url( '/' ),
+					'logo_url'      => '',
+					'logo_dark_url' => '',
+					'alt'           => '',
+					'logo_height'   => 40,
+				),
+				'settings' => self::default_settings(),
+			)
+		);
+		return array( 'menu' => $menu, 'report' => $report );
+	}
+
+	/**
+	 * Store a converted menu as a new, unplaced draft.
+	 *
+	 * @param array $menu Converted menu data.
+	 * @return string|WP_Error New menu ID.
+	 */
+	public function create_from_import( $menu ) {
+		return $this->with_collection_lock( function () use ( $menu ) {
+			$id    = $this->unique_menu_id( 'menu_' . wp_generate_password( 8, false, false ) );
+			$menus = $this->get_all();
+			$menus[ $id ] = $this->sanitize_menu( $menu );
+			if ( ! update_option( ABMM_OPTION_KEY, $menus ) ) {
+				return new WP_Error( 'abmm_nav_menu_save', __( 'The imported menu could not be saved.', 'ashbi-mega-menu' ) );
+			}
+			return $id;
+		} );
+	}
+
+	/** Why a navigation menu row cannot be imported, or '' when it can. */
+	private function nav_row_problem( $row ) {
+		if ( ! empty( $row['invalid'] ) ) {
+			return __( 'The page or post it links to no longer exists.', 'ashbi-mega-menu' );
+		}
+		if ( 'publish' !== $row['status'] ) {
+			return __( 'It links to content that is not published.', 'ashbi-mega-menu' );
+		}
+		if ( '' === trim( wp_strip_all_tags( $row['title'] ) ) ) {
+			return __( 'It has no label.', 'ashbi-mega-menu' );
+		}
+		$url = trim( $row['url'] );
+		if ( '' !== $url && '#' !== $url && '' === $this->sanitize_menu_url( $url ) ) {
+			return __( 'Its URL is not a safe web address.', 'ashbi-mega-menu' );
+		}
+		return '';
+	}
+
+	private function nav_row_label( $row ) {
+		$label = trim( wp_strip_all_tags( (string) $row['title'] ) );
+		/* translators: %d: navigation menu item ID. */
+		return '' !== $label ? $label : sprintf( __( 'Untitled item #%d', 'ashbi-mega-menu' ), (int) $row['id'] );
+	}
+
+	private function nav_row_meta( $row ) {
+		$classes = array_filter( array_map( 'trim', (array) $row['classes'] ), 'strlen' );
+		return array(
+			'target' => '_blank' === $row['target'] ? '_blank' : '',
+			'rel'    => trim( $row['xfn'] ),
+			'class'  => implode( ' ', $classes ),
+		);
+	}
+
+	private function nav_row_link( $row ) {
+		return array_merge(
+			array(
+				'id'          => 'wp_' . $row['id'],
+				'label'       => trim( $row['title'] ),
+				'url'         => trim( $row['url'] ),
+				'description' => trim( $row['description'] ),
+				'icon'        => '',
+			),
+			$this->nav_row_meta( $row )
+		);
+	}
+
+	/** Warn about sibling items that share a label, which visitors cannot tell apart. */
+	private function flag_duplicate_labels( $ids, $by_id, $parent_label, &$report ) {
+		$seen = array();
+		foreach ( $ids as $id ) {
+			$key = function_exists( 'mb_strtolower' ) ? mb_strtolower( trim( $by_id[ $id ]['title'] ) ) : strtolower( trim( $by_id[ $id ]['title'] ) );
+			if ( isset( $seen[ $key ] ) && 1 === $seen[ $key ] ) {
+				$report['warnings'][] = '' === $parent_label
+					/* translators: %s: menu item label. */
+					? sprintf( __( 'More than one top-level item is called "%s".', 'ashbi-mega-menu' ), $this->nav_row_label( $by_id[ $id ] ) )
+					/* translators: 1: menu item label, 2: parent item label. */
+					: sprintf( __( 'More than one item under "%2$s" is called "%1$s".', 'ashbi-mega-menu' ), $this->nav_row_label( $by_id[ $id ] ), trim( $parent_label ) );
+			}
+			$seen[ $key ] = ( $seen[ $key ] ?? 0 ) + 1;
+		}
 	}
 }

@@ -12,6 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ABMM_Admin {
 
 	/**
+	 * Per-administrator, per-site setup guide state: array( 'dismissed' => bool, 'verified' => bool ).
+	 * Stored as a user option, so on multisite each site keeps its own.
+	 */
+	const SETUP_GUIDE_META = 'abmm_setup_guide';
+
+	/**
 	 * @var ABMM_Admin|null
 	 */
 	private static $instance = null;
@@ -36,7 +42,10 @@ class ABMM_Admin {
 		add_action( 'wp_ajax_abmm_export_menu', array( $this, 'ajax_export_menu' ) );
 		add_action( 'wp_ajax_abmm_import_menu', array( $this, 'ajax_import_menu' ) );
 		add_action( 'wp_ajax_abmm_get_menu', array( $this, 'ajax_get_menu' ) );
+		add_action( 'wp_ajax_abmm_import_nav_menu', array( $this, 'ajax_import_nav_menu' ) );
+		add_action( 'wp_ajax_abmm_preview_markup', array( $this, 'ajax_preview_markup' ) );
 		add_action( 'wp_ajax_abmm_onboarding', array( $this, 'ajax_onboarding' ) );
+		add_action( 'wp_ajax_abmm_setup_guide', array( $this, 'ajax_setup_guide' ) );
 		add_action( 'wp_ajax_abmm_menu_references', array( $this, 'ajax_menu_references' ) );
 		add_action( 'wp_ajax_abmm_restore_menu', array( $this, 'ajax_restore_menu' ) );
 		add_action( 'wp_ajax_abmm_permanently_delete_menu', array( $this, 'ajax_permanently_delete_menu' ) );
@@ -99,10 +108,11 @@ class ABMM_Admin {
 		wp_enqueue_script( 'abmm-menu-search-preview', ABMM_PLUGIN_URL . 'assets/js/frontend.js', array(), ABMM_VERSION, true );
 		wp_localize_script( 'abmm-menu-search-preview', 'abmmRuntime', array( 'adminPreview' => true, 'searchStrings' => abmm_menu_search_strings() ) );
 
+		wp_enqueue_script( 'abmm-preview-canvas', ABMM_PLUGIN_URL . 'assets/js/preview-canvas.js', array(), ABMM_VERSION, true );
 		wp_enqueue_script(
 			'abmm-admin',
 			ABMM_PLUGIN_URL . 'assets/js/admin.js',
-			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview' ),
+			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview', 'abmm-preview-canvas' ),
 			ABMM_VERSION,
 			true
 		);
@@ -122,6 +132,14 @@ class ABMM_Admin {
 				'importMaxLabel' => size_format( ABMM_Import_Export::MAX_IMPORT_BYTES ),
 				'restUrl'   => rest_url( ABMM_Import_Export::REST_NAMESPACE ),
 				'restNonce' => wp_create_nonce( 'wp_rest' ),
+				'userId'    => get_current_user_id(),
+				// The phone and tablet previews load the live stylesheet and script
+				// in a frame at the device width, so its media queries apply.
+				'previewAssets' => array(
+					'css'     => add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/css/frontend.css' ),
+					'js'      => add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/js/frontend.js' ),
+					'runtime' => array( 'publicDistribution' => defined( 'ABMM_PUBLIC_DISTRIBUTION' ) && ABMM_PUBLIC_DISTRIBUTION, 'searchStrings' => abmm_menu_search_strings() ),
+				),
 				'strings'   => array(
 					'saved'           => __( 'Menu saved successfully!', 'ashbi-mega-menu' ),
 					'savedState'      => __( 'All changes saved.', 'ashbi-mega-menu' ),
@@ -142,7 +160,7 @@ class ABMM_Admin {
 					'deleteAgain'     => __( 'Click again to delete', 'ashbi-mega-menu' ),
 					'untitled'        => __( 'Untitled', 'ashbi-mega-menu' ),
 					'addCategory'     => __( 'Add Category', 'ashbi-mega-menu' ),
-					'addLink'         => __( 'Add Link', 'ashbi-mega-menu' ),
+					'addLink'         => __( 'Add link', 'ashbi-mega-menu' ),
 					'addNavItem'      => __( 'Add Menu Item', 'ashbi-mega-menu' ),
 					'copyShortcode'   => __( 'Shortcode copied!', 'ashbi-mega-menu' ),
 					'copyError'       => __( 'Automatic copy failed. The shortcode is selected below; press Ctrl+C or Command+C.', 'ashbi-mega-menu' ),
@@ -165,7 +183,9 @@ class ABMM_Admin {
 					'uploadIcon'      => __( 'Upload custom icon', 'ashbi-mega-menu' ),
 					'categoryTitle'   => __( 'Category title', 'ashbi-mega-menu' ),
 					'categoryDesc'    => __( 'Short description', 'ashbi-mega-menu' ),
-					'panelTitle'      => __( 'Heading (optional)', 'ashbi-mega-menu' ),
+					'panelTitle'      => __( '"See all" link text (optional)', 'ashbi-mega-menu' ),
+					'panelTitleHelp'  => __( 'Shown at the bottom of this category\'s panel. Add a link to make it clickable.', 'ashbi-mega-menu' ),
+					'panelTitleHint'  => __( 'e.g. See all products', 'ashbi-mega-menu' ),
 					'panelUrl'        => __( 'Heading link (optional)', 'ashbi-mega-menu' ),
 					'groupUrl'        => __( 'Column heading link (optional)', 'ashbi-mega-menu' ),
 					'linkLabel'       => __( 'Link label', 'ashbi-mega-menu' ),
@@ -196,14 +216,14 @@ class ABMM_Admin {
 					'checkName' => __( 'Add a menu name.', 'ashbi-mega-menu' ),
 					/* translators: %s: item number, label, count, or formatted file size. */
 					'checkLabel' => __( 'Add a label to top menu item %s.', 'ashbi-mega-menu' ),
-					/* translators: %s: item number, label, count, or formatted file size. */
+					/* translators: %s: mega menu label. */
 					'checkMega' => __( 'Add at least one labelled link with a real destination to %s.', 'ashbi-mega-menu' ),
 					'thisMega' => __( 'this mega menu', 'ashbi-mega-menu' ),
-					/* translators: %s: item number, label, count, or formatted file size. */
+					/* translators: %s: duplicated label. */
 					'checkDuplicate' => __( 'Rename duplicate top menu item "%s".', 'ashbi-mega-menu' ),
 					'checkDestination' => __( 'Add at least one labelled item with a real destination.', 'ashbi-mega-menu' ),
 					'checkCta' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ),
-					/* translators: %s: menu item label. */
+					/* translators: %s: the start of a menu item label. */
 					'checkLong' => __( 'Shorten "%s" so it fits in the menu bar.', 'ashbi-mega-menu' ),
 					/* translators: %s: link label. */
 					'checkUrl' => __( 'Check the link for "%s". It does not look like a web address.', 'ashbi-mega-menu' ),
@@ -272,6 +292,9 @@ class ABMM_Admin {
 			update_user_meta( $user_id, ABMM_ONBOARDING_META, 'returning-user' );
 		}
 		$show_onboarding = empty( $menus ) && ( ! $user_id || ! get_user_meta( $user_id, ABMM_ONBOARDING_META, true ) );
+		$placement_recommendation = $this->placement_recommendation();
+		$setup_guide              = $this->setup_guide_state( $menus, $readiness );
+		$onboarding_pages         = $show_onboarding ? get_pages( array( 'sort_column' => 'menu_order,post_title', 'post_status' => 'publish', 'number' => 200 ) ) : array();
 		$contextual_navigation_enabled = abmm_contextual_navigation_enabled();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only selection/filter; admin capability is checked and output is escaped.
 		$edit_id = isset( $_GET['edit'] ) ? sanitize_text_field( wp_unslash( $_GET['edit'] ) ) : '';
@@ -281,6 +304,103 @@ class ABMM_Admin {
 		} else {
 			include ABMM_PLUGIN_DIR . 'admin/views/list.php';
 		}
+	}
+
+	/**
+	 * AJAX: preview or import a classic WordPress navigation menu.
+	 *
+	 * Preview is a dry run. Import converts the menu again on the server and
+	 * stores it as a new draft; it never trusts converted data from the browser
+	 * and never changes the source menu or any theme location.
+	 */
+	public function ajax_import_nav_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
+		$this->verify_ajax();
+
+		// "term:ID" is a classic menu, "navigation:ID" a Site Editor navigation.
+		$source = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : '';
+		if ( '' === $source && isset( $_POST['term_id'] ) ) {
+			$source = 'term:' . absint( wp_unslash( $_POST['term_id'] ) );
+		}
+		$mode   = isset( $_POST['mode'] ) && 'import' === sanitize_key( wp_unslash( $_POST['mode'] ) ) ? 'import' : 'preview';
+		$store  = ABMM_Data::instance();
+		if ( preg_match( '/^navigation:(\d+)$/', $source, $match ) ) {
+			$result = $store->import_from_navigation_post( (int) $match[1] );
+		} elseif ( preg_match( '/^term:(\d+)$/', $source, $match ) ) {
+			$result = $store->import_from_nav_menu( (int) $match[1] );
+		} else {
+			$result = new WP_Error( 'abmm_nav_menu_missing', __( 'Choose a menu to import.', 'ashbi-mega-menu' ) );
+		}
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+		}
+
+		$data = array(
+			'title'   => $result['menu']['title'],
+			'summary' => $this->nav_import_summary( $result['menu'] ),
+			'report'  => $result['report'],
+		);
+		if ( 'import' === $mode ) {
+			$id = $store->create_from_import( $result['menu'] );
+			if ( is_wp_error( $id ) ) {
+				wp_send_json_error( array( 'message' => $id->get_error_message() ), 500 );
+			}
+			$data['id']       = $id;
+			$data['edit_url'] = admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) );
+		}
+		wp_send_json_success( $data );
+	}
+
+	/**
+	 * A short outline of a converted menu for the import preview.
+	 *
+	 * @param array $menu Converted menu.
+	 * @return array
+	 */
+	private function nav_import_summary( $menu ) {
+		$summary = array();
+		foreach ( $menu['items'] ?? array() as $item ) {
+			$row = array(
+				'label'      => (string) ( $item['label'] ?? '' ),
+				'type'       => (string) ( $item['type'] ?? 'link' ),
+				'categories' => array(),
+			);
+			foreach ( $item['categories'] ?? array() as $cat ) {
+				$count = 0;
+				foreach ( $cat['groups'] ?? array() as $group ) {
+					$count += count( $group['links'] ?? array() );
+				}
+				$row['categories'][] = array( 'title' => (string) ( $cat['title'] ?? '' ), 'links' => $count );
+			}
+			$row['columns_only'] = ! empty( $item['hide_category_bar'] );
+			$summary[] = $row;
+		}
+		return $summary;
+	}
+
+	/**
+	 * Render unsaved menu data with the live markup for the device preview.
+	 * Nothing is stored: the data is sanitized like a save and rendered.
+	 */
+	public function ajax_preview_markup() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
+		$this->verify_ajax();
+
+		$id  = isset( $_POST['menu_id'] ) ? sanitize_key( wp_unslash( $_POST['menu_id'] ) ) : '';
+		$raw = isset( $_POST['menu_data'] ) ? wp_unslash( $_POST['menu_data'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Decoded below and passed through sanitize_menu() before rendering.
+		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid menu data.', 'ashbi-mega-menu' ) ), 400 );
+		}
+		if ( strlen( $raw ) > ABMM_Import_Export::MAX_MENU_BYTES ) {
+			wp_send_json_error( array( 'message' => __( 'Menu data exceeds the 1 MB limit.', 'ashbi-mega-menu' ) ), 413 );
+		}
+		$data = json_decode( $raw, true, 32 );
+		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $data ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid menu data.', 'ashbi-mega-menu' ) ), 400 );
+		}
+
+		$menu = ABMM_Data::instance()->sanitize_menu( $data );
+		wp_send_json_success( array( 'html' => ABMM_Frontend::instance()->render_preview( $menu, '' !== $id ? $id : 'preview' ) ) );
 	}
 
 	/**
@@ -414,13 +534,19 @@ class ABMM_Admin {
 			$id = $data->create( __( 'New Mega Menu', 'ashbi-mega-menu' ) );
 		} elseif ( 'starter' === $choice ) {
 			$id = $data->create_from_starter();
+		} elseif ( 'pages' === $choice ) {
+			$page_ids = isset( $_POST['page_ids'] ) && is_array( $_POST['page_ids'] ) ? array_map( 'absint', wp_unslash( $_POST['page_ids'] ) ) : array();
+			$id       = $data->create_from_pages( $page_ids );
+			if ( is_wp_error( $id ) && 'abmm_no_pages' === $id->get_error_code() ) {
+				wp_send_json_error( array( 'message' => $id->get_error_message() ), 400 );
+			}
 		} elseif ( 'dismiss' !== $choice ) {
 			wp_send_json_error( array( 'message' => __( 'Choose a valid first-run option.', 'ashbi-mega-menu' ) ), 400 );
 		}
 		if ( is_wp_error( $id ) ) {
 			wp_send_json_error( array( 'message' => $id->get_error_message() ), 503 );
 		}
-		if ( in_array( $choice, array( 'blank', 'starter' ), true ) && ! $id ) {
+		if ( in_array( $choice, array( 'blank', 'starter', 'pages' ), true ) && ! $id ) {
 			wp_send_json_error( array( 'message' => __( 'The first menu could not be created.', 'ashbi-mega-menu' ) ), 500 );
 		}
 		update_user_meta( get_current_user_id(), ABMM_ONBOARDING_META, $choice );
@@ -430,6 +556,106 @@ class ABMM_Admin {
 				'url' => $id ? admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) ) : admin_url( 'admin.php?page=ashbi-mega-menu' ),
 			)
 		);
+	}
+
+	/**
+	 * The safest placement for the active theme.
+	 *
+	 * @return array { method: block|widget|shortcode, label, steps }
+	 */
+	public function placement_recommendation() {
+		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			return array(
+				'method' => 'block',
+				'label'  => __( 'Block in your Header', 'ashbi-mega-menu' ),
+				'steps'  => __( 'Your theme is a block theme. In Appearance → Editor, open the Header template part, add the Ashbi Mega Menu block next to the existing Navigation block and pick your menu.', 'ashbi-mega-menu' ),
+			);
+		}
+		global $wp_registered_sidebars;
+		if ( current_theme_supports( 'widgets' ) && ! empty( $wp_registered_sidebars ) ) {
+			return array(
+				'method' => 'widget',
+				'label'  => __( 'Widget', 'ashbi-mega-menu' ),
+				'steps'  => __( 'Your theme has widget areas. In Appearance → Widgets, add the Ashbi Mega Menu widget to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme.', 'ashbi-mega-menu' ),
+			);
+		}
+		return array(
+			'method' => 'shortcode',
+			'label'  => __( 'Shortcode or PHP', 'ashbi-mega-menu' ),
+			'steps'  => __( 'Your theme has no block header or widget areas. Paste the shortcode into a page or page builder, or ask a developer to call abmm_render_menu() in a child theme header.', 'ashbi-mega-menu' ),
+		);
+	}
+
+	/**
+	 * Setup guide progress for the current administrator.
+	 *
+	 * Create, edit and place are read from the site so they stay true; only
+	 * "checked on the live site" and hiding the guide are stored per user.
+	 *
+	 * @param array $menus     Active menus.
+	 * @param array $readiness Readiness per menu ID.
+	 * @return array
+	 */
+	public function setup_guide_state( $menus, $readiness ) {
+		$stored = get_user_option( self::SETUP_GUIDE_META, get_current_user_id() );
+		$stored = is_array( $stored ) ? $stored : array();
+		$ready  = '';
+		foreach ( $readiness as $menu_id => $result ) {
+			if ( ! empty( $result['ready'] ) ) {
+				$ready = (string) $menu_id;
+				break;
+			}
+		}
+		$placed = '';
+		foreach ( array_keys( $menus ) as $menu_id ) {
+			if ( $this->reference_summary( (string) $menu_id )['known'] > 0 ) {
+				$placed = (string) $menu_id;
+				break;
+			}
+		}
+		$first = $menus ? (string) array_key_first( $menus ) : '';
+		$steps = array(
+			'create' => ! empty( $menus ),
+			'edit'   => '' !== $ready,
+			// Theme files and page builders can't be detected; checking it live counts.
+			'place'  => '' !== $placed || ! empty( $stored['verified'] ),
+			'verify' => ! empty( $stored['verified'] ),
+		);
+		return array(
+			'steps'     => $steps,
+			'complete'  => ! in_array( false, $steps, true ),
+			'dismissed' => ! empty( $stored['dismissed'] ),
+			'menu_id'   => '' !== $placed ? $placed : ( '' !== $ready ? $ready : $first ),
+		);
+	}
+
+	/**
+	 * AJAX: hide, reopen or tick the setup guide for the current administrator.
+	 */
+	public function ajax_setup_guide() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
+		$this->verify_ajax();
+		$action = isset( $_POST['guide_action'] ) ? sanitize_key( wp_unslash( $_POST['guide_action'] ) ) : '';
+		$state  = get_user_option( self::SETUP_GUIDE_META, get_current_user_id() );
+		$state  = array_merge( array( 'dismissed' => false, 'verified' => false ), is_array( $state ) ? $state : array() );
+		switch ( $action ) {
+			case 'dismiss':
+				$state['dismissed'] = true;
+				break;
+			case 'reopen':
+				$state['dismissed'] = false;
+				break;
+			case 'verify':
+				$state['verified'] = true;
+				break;
+			case 'unverify':
+				$state['verified'] = false;
+				break;
+			default:
+				wp_send_json_error( array( 'message' => __( 'Unknown setup guide action.', 'ashbi-mega-menu' ) ), 400 );
+		}
+		update_user_option( get_current_user_id(), self::SETUP_GUIDE_META, array( 'dismissed' => (bool) $state['dismissed'], 'verified' => (bool) $state['verified'] ) );
+		wp_send_json_success( $state );
 	}
 
 	/**
@@ -501,9 +727,11 @@ class ABMM_Admin {
 				}
 			}
 
+			// Block-theme headers live in template parts, which 'any' leaves out.
+			$post_types = array_merge( array_values( get_post_types( array( 'public' => true ) ) ), array( 'wp_template', 'wp_template_part', 'wp_block' ) );
 			$posts = get_posts(
 				array(
-					'post_type'      => 'any',
+					'post_type'      => $post_types,
 					'post_status'    => 'any',
 					'posts_per_page' => -1,
 					's'              => $menu_id,

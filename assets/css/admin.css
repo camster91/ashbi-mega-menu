@@ -196,7 +196,8 @@
 .abmm-builder-wrap {
 	margin-right: 20px;
 	max-width: 100%;
-	overflow-x: hidden;
+	/* clip, not hidden: hidden makes this a scroll container and breaks the sticky top bar and inspector. */
+	overflow-x: clip;
 }
 
 .abmm-builder-topbar {
@@ -835,10 +836,10 @@ button.abmm-preset-card:hover {
 	gap: 0.75rem;
 	width: 100%;
 	padding: 0.9rem 1rem;
-	text-align: left;
+	text-align:start;
 	background: transparent;
 	border: none;
-	border-left: 3px solid transparent;
+	border-inline-start: 3px solid transparent;
 	cursor: pointer;
 	font-family: inherit;
 	color: var(--abmm-text);
@@ -905,7 +906,7 @@ button.abmm-preset-card:hover {
 }
 
 .abmm-preview .abmm-title--left .abmm-mega__panel-title {
-	text-align: left;
+	text-align:start;
 }
 
 .abmm-preview .abmm-mega__grid {
@@ -1732,7 +1733,7 @@ button.abmm-preset-card:hover {
 }
 
 .abmm-import-preview[hidden] { display: none; }
-.abmm-import-preview h4 { margin: 0 0 0.65rem; }
+.abmm-import-preview h3 { margin: 0 0 0.65rem; font-size: 14px; }
 .abmm-import-preview__list { margin: 0 0 0.75rem 1.25rem; list-style: disc; }
 .abmm-import-preview__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .abmm-import-preview .is-warning { color: #8a4b00; font-weight: 600; }
@@ -1789,13 +1790,13 @@ button.abmm-preset-card:hover {
 }
 
 /* Keep the editor readable on medium desktop screens. */
-@media (max-width: 1400px) and (min-width: 1101px) {
+@media (max-width: 1400px) and (min-width: 1200px) {
 	.abmm-builder {
 		grid-template-columns: minmax(0, 1fr) 320px;
 	}
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1199px) {
 	.abmm-builder {
 		grid-template-columns: 1fr;
 	}
@@ -2531,7 +2532,7 @@ body.abmm-builder-sheet-open {
 	overflow: hidden;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1199px) {
 	.abmm-builder {
 		grid-template-columns: minmax(0, 1fr);
 		gap: 0;
@@ -2962,23 +2963,42 @@ body.abmm-builder-sheet-open {
 	z-index: 4;
 }
 
-.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-header.is-mobile-open .abmm-nav__toggle,
-.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-header.is-mobile-open .abmm-nav__toggle {
-	display: none;
+/* As on the live site: brand, then the CTA, then the toggle at the far right.
+ * The open toggle turns into the X, so the drawer has no second title row. */
+.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-nav__toggle,
+.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-nav__toggle {
+	order: 1;
+	margin-right: -10px;
+	color: var(--abmm-nav-link);
+}
+
+.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-nav__toggle-bar,
+.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-nav__toggle-bar,
+.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-nav__toggle-bar::before,
+.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-nav__toggle-bar::before,
+.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-nav__toggle-bar::after,
+.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-nav__toggle-bar::after {
+	transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-header.is-mobile-open .abmm-nav__toggle-bar,
+.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-header.is-mobile-open .abmm-nav__toggle-bar {
+	background: transparent;
+}
+
+.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-header.is-mobile-open .abmm-nav__toggle-bar::before,
+.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-header.is-mobile-open .abmm-nav__toggle-bar::before {
+	transform: translateY(7px) rotate(45deg);
+}
+
+.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-header.is-mobile-open .abmm-nav__toggle-bar::after,
+.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-header.is-mobile-open .abmm-nav__toggle-bar::after {
+	transform: translateY(-7px) rotate(-45deg);
 }
 
 .abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-nav__drawer-head,
 .abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-nav__drawer-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0.75rem;
-	position: sticky;
-	top: 0;
-	z-index: 3;
-	padding: 0.65rem 1rem;
-	background: var(--abmm-header-bg);
-	border-bottom: 1px solid var(--abmm-border);
+	display: none;
 }
 
 .abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-nav__inner,
@@ -3038,7 +3058,19 @@ body.abmm-builder-sheet-open {
 
 .abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-nav__cta--bar,
 .abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-nav__cta--bar {
-	display: none;
+	display: inline-flex;
+	align-items: center;
+	flex: none;
+	min-height: 36px;
+	padding: 0 14px;
+	font-size: 14px;
+	white-space: nowrap;
+}
+
+/* One CTA: when the bar shows it, the drawer does not repeat it. */
+.abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-header:has(.abmm-nav__bar > .abmm-nav__cta--bar) .abmm-nav__cta--drawer,
+.abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-header:has(.abmm-nav__bar > .abmm-nav__cta--bar) .abmm-nav__cta--drawer {
+	display: none !important;
 }
 
 .abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview .abmm-nav__cta--drawer,

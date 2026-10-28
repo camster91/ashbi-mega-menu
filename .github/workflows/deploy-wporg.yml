@@ -1,0 +1,72 @@
+name: Deploy to WordPress.org
+# Publishes a GitHub release to the WordPress.org plugin directory over SVN.
+# Needs directory approval first, then two repository secrets (SVN_USERNAME,
+# SVN_PASSWORD) and, ideally, a "wordpress-org" environment with required
+# reviewers so every publish waits for a maintainer's approval.
+# Run it by hand with dry-run on to check the package without committing.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Build and check only; do not commit to SVN'
+        type: boolean
+        default: true
+permissions:
+  contents: write
+concurrency:
+  group: deploy-wporg
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: wordpress-org
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Versions agree with the release tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then node scripts/check-versions.js "${GITHUB_REF_NAME}"; else node scripts/check-versions.js; fi
+          echo "VERSION=$(node -p 'require("./package.json").version')" >> "$GITHUB_ENV"
+      - name: Build, test and package
+        run: |
+          npm run build:brand && npm run build:icons && npm run build
+          git diff --exit-code -- build src assets || { echo "The build changed committed files. Commit the build first."; exit 1; }
+          npm test && npm run test:php
+          npm run package
+          unzip -q "dist/ashbi-mega-menu-${VERSION}.zip" -d release
+      - name: Publish to WordPress.org SVN
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # 2.3.0
+        with:
+          dry-run: ${{ env.DRY_RUN }}
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ashbi-mega-menu
+          VERSION: ${{ env.VERSION }}
+          BUILD_DIR: release/ashbi-mega-menu
+          ASSETS_DIR: .wordpress-org
+      - name: Attach the package to the GitHub release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${GITHUB_REF_NAME}" "dist/ashbi-mega-menu-${VERSION}.zip" dist/SHA256SUMS dist/build-info.json dist/manifest.json --clobber
+      - name: Verify what WordPress.org serves
+        if: env.DRY_RUN != 'true'
+        run: node scripts/verify-wporg.js --wait
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wporg-release-${{ env.VERSION }}
+          path: |
+            dist/*.zip
+            dist/manifest.json
+            dist/SHA256SUMS
+            dist/build-info.json

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/camster91/ashbi-mega-menu/security/advisories/new
+    about: Do not post vulnerabilities in public issues. See SECURITY.md.
+  - name: Support policy and how to report problems
+    url: https://github.com/camster91/ashbi-mega-menu/blob/main/docs/support-policy.md
+    about: What support is offered and what to include in a report.
