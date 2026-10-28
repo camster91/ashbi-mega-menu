@@ -36,6 +36,7 @@ jobs:
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-smoke.php
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-products.php
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-import-roundtrip.php
+          wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-nav-menu-import.php
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-review-security.php
       - uses: actions/upload-artifact@v4
         if: always()
@@ -65,6 +66,7 @@ jobs:
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-smoke.php
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-products.php
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-import-roundtrip.php
+          wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-nav-menu-import.php
           wp-env run cli wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-review-security.php
   multisite-uninstall:
     runs-on: ubuntu-latest

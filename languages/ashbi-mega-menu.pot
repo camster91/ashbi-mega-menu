@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-28T18:21:27+00:00\n"
+"POT-Creation-Date: 2026-10-28T20:18:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ashbi-mega-menu\n"
@@ -18,7 +18,7 @@ msgstr ""
 #: ashbi-mega-menu.php
 #: admin/views/brand-strip.php:30
 #: admin/views/list.php:17
-#: includes/class-abmm-admin.php:67
+#: includes/class-abmm-admin.php:71
 #: includes/class-abmm-widget.php:25
 #: build/blocks/mega-menu/index.js:1
 #: src/blocks/mega-menu/edit.js:63
@@ -78,7 +78,7 @@ msgstr ""
 
 #: admin/views/builder.php:51
 #: admin/views/builder.php:52
-#: includes/class-abmm-admin.php:152
+#: includes/class-abmm-admin.php:156
 msgid "Menu name"
 msgstr ""
 
@@ -87,7 +87,7 @@ msgid "Rename this menu"
 msgstr ""
 
 #: admin/views/builder.php:54
-#: assets/js/admin.js:2750
+#: assets/js/admin.js:2854
 msgid "Mega menu"
 msgstr ""
 
@@ -97,7 +97,7 @@ msgstr ""
 
 #: admin/views/builder.php:57
 #: includes/class-abmm-product-profiles.php:363
-#: assets/js/admin.js:3082
+#: assets/js/admin.js:3186
 msgid "Edit"
 msgstr ""
 
@@ -132,9 +132,9 @@ msgstr ""
 #: admin/views/builder.php:455
 #: admin/views/builder.php:457
 #: admin/views/list.php:82
-#: admin/views/list.php:502
-#: admin/views/list.php:503
-#: admin/views/list.php:507
+#: admin/views/list.php:564
+#: admin/views/list.php:565
+#: admin/views/list.php:569
 #: includes/class-abmm-product-profiles.php:384
 msgid "(opens in a new tab)"
 msgstr ""
@@ -203,7 +203,7 @@ msgid "Editor sections"
 msgstr ""
 
 #: admin/views/builder.php:114
-#: assets/js/admin.js:2779
+#: assets/js/admin.js:2883
 msgid "Content"
 msgstr ""
 
@@ -325,13 +325,13 @@ msgstr ""
 
 #: admin/views/builder.php:177
 #: admin/views/builder.php:609
-#: includes/class-abmm-admin.php:188
+#: includes/class-abmm-admin.php:192
 msgid "Search or type URL"
 msgstr ""
 
 #: admin/views/builder.php:178
 #: admin/views/builder.php:610
-#: includes/class-abmm-admin.php:189
+#: includes/class-abmm-admin.php:193
 msgid "Select / edit link"
 msgstr ""
 
@@ -349,21 +349,21 @@ msgstr ""
 #: admin/views/builder.php:187
 #: assets/js/admin.js:113
 #: assets/js/admin.js:138
-#: assets/js/admin.js:3402
+#: assets/js/admin.js:3506
 msgid "Open in new tab"
 msgstr ""
 
 #: admin/views/builder.php:188
 #: assets/js/admin.js:114
 #: assets/js/admin.js:139
-#: assets/js/admin.js:3404
+#: assets/js/admin.js:3508
 msgid "Relationship"
 msgstr ""
 
 #: admin/views/builder.php:189
 #: assets/js/admin.js:117
 #: assets/js/admin.js:142
-#: assets/js/admin.js:3407
+#: assets/js/admin.js:3511
 msgid "CSS classes"
 msgstr ""
 
@@ -710,6 +710,7 @@ msgid "Keep this tab open and press Retry. Your changes are also kept in this br
 msgstr ""
 
 #: admin/views/builder.php:472
+#: admin/views/list.php:522
 msgid "Preview"
 msgstr ""
 
@@ -767,7 +768,7 @@ msgid "Drag or scroll to move around. Ctrl/Cmd + scroll or pinch to zoom."
 msgstr ""
 
 #: admin/views/builder.php:510
-#: assets/js/admin.js:4019
+#: assets/js/admin.js:4123
 msgid "Back to menu"
 msgstr ""
 
@@ -805,7 +806,7 @@ msgid "Links in 2, 3 or 4 columns"
 msgstr ""
 
 #: admin/views/builder.php:539
-#: assets/js/admin.js:3165
+#: assets/js/admin.js:3269
 msgid "Columns"
 msgstr ""
 
@@ -843,7 +844,7 @@ msgid "Each link can have an icon and a short description."
 msgstr ""
 
 #: admin/views/builder.php:575
-#: includes/class-abmm-admin.php:159
+#: includes/class-abmm-admin.php:163
 #: includes/class-abmm-product-profiles.php:442
 msgid "Add link"
 msgstr ""
@@ -877,9 +878,9 @@ msgid "One or two lines about it"
 msgstr ""
 
 #: admin/views/builder.php:603
-#: includes/class-abmm-admin.php:187
+#: includes/class-abmm-admin.php:191
 #: includes/class-abmm-product-profiles.php:412
-#: assets/js/admin.js:3444
+#: assets/js/admin.js:3548
 msgid "Link label"
 msgstr ""
 
@@ -889,10 +890,10 @@ msgstr ""
 
 #: admin/views/builder.php:607
 #: includes/class-abmm-icons.php:74
-#: assets/js/admin.js:2261
-#: assets/js/admin.js:2750
-#: assets/js/admin.js:3396
-#: assets/js/admin.js:3397
+#: assets/js/admin.js:2365
+#: assets/js/admin.js:2854
+#: assets/js/admin.js:3500
+#: assets/js/admin.js:3501
 msgid "Link"
 msgstr ""
 
@@ -901,14 +902,14 @@ msgid "Image"
 msgstr ""
 
 #: admin/views/builder.php:622
-#: assets/js/admin.js:2923
+#: assets/js/admin.js:3027
 msgid "Choose image"
 msgstr ""
 
 #: admin/views/builder.php:623
 #: includes/class-abmm-product-branding.php:540
-#: assets/js/admin.js:2760
-#: assets/js/admin.js:3080
+#: assets/js/admin.js:2864
+#: assets/js/admin.js:3184
 msgid "Remove"
 msgstr ""
 
@@ -941,7 +942,7 @@ msgid "Leave with recovery draft"
 msgstr ""
 
 #: admin/views/builder.php:652
-#: includes/class-abmm-admin.php:178
+#: includes/class-abmm-admin.php:182
 msgid "Choose an icon"
 msgstr ""
 
@@ -962,7 +963,7 @@ msgid "No icons match. Try another word, or upload your own icon."
 msgstr ""
 
 #: admin/views/builder.php:662
-#: includes/class-abmm-admin.php:179
+#: includes/class-abmm-admin.php:183
 msgid "Upload custom icon"
 msgstr ""
 
@@ -1184,7 +1185,7 @@ msgid "Clear search"
 msgstr ""
 
 #: admin/views/list.php:300
-#: includes/class-abmm-admin.php:157
+#: includes/class-abmm-admin.php:161
 msgid "Untitled"
 msgstr ""
 
@@ -1258,7 +1259,7 @@ msgid "Export"
 msgstr ""
 
 #: admin/views/list.php:392
-#: assets/js/admin.js:2759
+#: assets/js/admin.js:2863
 msgid "Duplicate"
 msgstr ""
 
@@ -1340,60 +1341,112 @@ msgstr ""
 msgid "Programmatically manage menus using the REST API or WP-CLI."
 msgstr ""
 
-#: admin/views/list.php:475
-msgid "Recovery snapshots"
-msgstr ""
-
-#: admin/views/list.php:475
-msgid "Undo an import by restoring an automatic backup."
-msgstr ""
-
-#: admin/views/list.php:478
-msgid "The last five backups are kept. Restoring replaces all current menus, after saving them as a new backup first."
-msgstr ""
-
-#: admin/views/list.php:479
-msgid "Refresh backups"
+#: admin/views/list.php:488
+msgid "Import from WordPress menu"
 msgstr ""
 
 #: admin/views/list.php:488
-msgid "Advanced options"
+msgid "Start from a menu you already built in WordPress."
 msgstr ""
 
-#: admin/views/list.php:488
-msgid "Section-specific navigation for larger sites."
-msgstr ""
-
-#: admin/views/list.php:493
-msgid "Contextual navigation for multi-section sites"
+#: admin/views/list.php:492
+msgid "This site has no WordPress menus to import yet. Build one under Appearance → Menus, or in the Site Editor for a block theme."
 msgstr ""
 
 #: admin/views/list.php:494
+msgid "Creates a new draft. The WordPress menu and your theme are not changed, and the draft is not placed anywhere until you place it."
+msgstr ""
+
+#. translators: %s: WordPress menu name.
+#: admin/views/list.php:497
+#: includes/class-abmm-data.php:1825
+msgid "WordPress menu"
+msgstr ""
+
+#: admin/views/list.php:500
+msgid "Appearance → Menus"
+msgstr ""
+
+#. translators: 1: WordPress menu name, 2: number of items.
+#: admin/views/list.php:505
+#, php-format
+msgid "%1$s (%2$d item)"
+msgid_plural "%1$s (%2$d items)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/views/list.php:512
+msgid "Site Editor navigation"
+msgstr ""
+
+#: admin/views/list.php:515
+#: includes/class-abmm-data.php:1520
+msgid "Navigation"
+msgstr ""
+
+#: admin/views/list.php:526
+msgid "Import as draft"
+msgstr ""
+
+#: admin/views/list.php:527
+#: assets/js/admin.js:1233
+msgid "Preview the menu first."
+msgstr ""
+
+#: admin/views/list.php:537
+msgid "Recovery snapshots"
+msgstr ""
+
+#: admin/views/list.php:537
+msgid "Undo an import by restoring an automatic backup."
+msgstr ""
+
+#: admin/views/list.php:540
+msgid "The last five backups are kept. Restoring replaces all current menus, after saving them as a new backup first."
+msgstr ""
+
+#: admin/views/list.php:541
+msgid "Refresh backups"
+msgstr ""
+
+#: admin/views/list.php:550
+msgid "Advanced options"
+msgstr ""
+
+#: admin/views/list.php:550
+msgid "Section-specific navigation for larger sites."
+msgstr ""
+
+#: admin/views/list.php:555
+msgid "Contextual navigation for multi-section sites"
+msgstr ""
+
+#: admin/views/list.php:556
 msgid "Advanced: add inherited local navigation and identity overrides for products, services, departments, documentation areas or locations. Leave disabled for a standard site menu."
 msgstr ""
 
-#: admin/views/list.php:495
+#: admin/views/list.php:557
 msgid "Save modules"
 msgstr ""
 
-#: admin/views/list.php:502
+#: admin/views/list.php:564
 msgid "Getting started"
 msgstr ""
 
-#: admin/views/list.php:503
+#: admin/views/list.php:565
 msgid "User guide"
 msgstr ""
 
-#: admin/views/list.php:505
+#: admin/views/list.php:567
 msgid "Show setup guide"
 msgstr ""
 
-#: admin/views/list.php:507
+#: admin/views/list.php:569
 msgid "Report an issue"
 msgstr ""
 
 #. translators: %s: plugin version number.
-#: admin/views/list.php:510
+#: admin/views/list.php:572
 #, php-format
 msgid "Version %s"
 msgstr ""
@@ -1401,7 +1454,7 @@ msgstr ""
 #: ashbi-mega-menu.php:62
 #: includes/class-abmm-frontend.php:274
 #: includes/class-abmm-product-branding.php:433
-#: assets/js/admin.js:4034
+#: assets/js/admin.js:4138
 msgid "Menu"
 msgstr ""
 
@@ -1443,14 +1496,14 @@ msgstr ""
 
 #: ashbi-mega-menu.php:73
 #: includes/class-abmm-frontend.php:265
-#: assets/js/admin.js:4023
+#: assets/js/admin.js:4127
 msgid "Open menu"
 msgstr ""
 
 #: ashbi-mega-menu.php:74
 #: includes/class-abmm-frontend.php:275
-#: assets/js/admin.js:4023
-#: assets/js/admin.js:4060
+#: assets/js/admin.js:4127
+#: assets/js/admin.js:4164
 msgid "Close menu"
 msgstr ""
 
@@ -1468,542 +1521,547 @@ msgstr ""
 msgid "menu"
 msgstr ""
 
-#: includes/class-abmm-admin.php:54
+#: includes/class-abmm-admin.php:58
 msgid "You do not have permission to manage plugin modules."
 msgstr ""
 
-#: includes/class-abmm-admin.php:68
-#: includes/class-abmm-admin.php:190
+#: includes/class-abmm-admin.php:72
+#: includes/class-abmm-admin.php:194
 msgid "Mega Menu"
 msgstr ""
 
-#: includes/class-abmm-admin.php:140
+#: includes/class-abmm-admin.php:144
 msgid "Menu saved successfully!"
 msgstr ""
 
-#: includes/class-abmm-admin.php:141
+#: includes/class-abmm-admin.php:145
 msgid "All changes saved."
 msgstr ""
 
-#: includes/class-abmm-admin.php:142
+#: includes/class-abmm-admin.php:146
 msgid "Unsaved changes."
 msgstr ""
 
-#: includes/class-abmm-admin.php:143
+#: includes/class-abmm-admin.php:147
 #: assets/js/admin.js:429
 msgid "Saving…"
 msgstr ""
 
-#: includes/class-abmm-admin.php:144
+#: includes/class-abmm-admin.php:148
 msgid "Retry save"
 msgstr ""
 
-#: includes/class-abmm-admin.php:145
+#: includes/class-abmm-admin.php:149
 msgid "Could not save. Your changes are still unsaved."
 msgstr ""
 
-#: includes/class-abmm-admin.php:146
+#: includes/class-abmm-admin.php:150
 msgid "The menu data was incomplete or malformed. Reload to try again. Your stored content was not changed."
 msgstr ""
 
-#: includes/class-abmm-admin.php:147
+#: includes/class-abmm-admin.php:151
 msgid "This menu uses an incompatible data format. Update the plugin or restore a compatible export before editing. Your stored content was not changed."
 msgstr ""
 
-#: includes/class-abmm-admin.php:148
+#: includes/class-abmm-admin.php:152
 msgid "Delete this menu? This cannot be undone."
 msgstr ""
 
-#: includes/class-abmm-admin.php:149
+#: includes/class-abmm-admin.php:153
 msgid "Remove this item?"
 msgstr ""
 
-#: includes/class-abmm-admin.php:150
+#: includes/class-abmm-admin.php:154
 msgid "This will overwrite the current menu. Continue?"
 msgstr ""
 
-#: includes/class-abmm-admin.php:151
-#: includes/class-abmm-admin.php:458
+#: includes/class-abmm-admin.php:155
+#: includes/class-abmm-admin.php:534
 #: includes/class-abmm-data.php:721
 msgid "New Mega Menu"
 msgstr ""
 
-#: includes/class-abmm-admin.php:153
+#: includes/class-abmm-admin.php:157
 msgid "Create Menu"
 msgstr ""
 
-#: includes/class-abmm-admin.php:154
+#: includes/class-abmm-admin.php:158
 msgid "The menu could not be duplicated."
 msgstr ""
 
-#: includes/class-abmm-admin.php:155
-#: includes/class-abmm-admin.php:209
+#: includes/class-abmm-admin.php:159
+#: includes/class-abmm-admin.php:213
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-abmm-admin.php:156
+#: includes/class-abmm-admin.php:160
 msgid "Click again to delete"
 msgstr ""
 
-#: includes/class-abmm-admin.php:158
+#: includes/class-abmm-admin.php:162
 msgid "Add Category"
 msgstr ""
 
-#: includes/class-abmm-admin.php:160
+#: includes/class-abmm-admin.php:164
 msgid "Add Menu Item"
 msgstr ""
 
-#: includes/class-abmm-admin.php:161
+#: includes/class-abmm-admin.php:165
 msgid "Shortcode copied!"
 msgstr ""
 
-#: includes/class-abmm-admin.php:162
+#: includes/class-abmm-admin.php:166
 msgid "Automatic copy failed. The shortcode is selected below; press Ctrl+C or Command+C."
 msgstr ""
 
-#: includes/class-abmm-admin.php:163
+#: includes/class-abmm-admin.php:167
 msgid "Creating menu…"
 msgstr ""
 
-#: includes/class-abmm-admin.php:164
+#: includes/class-abmm-admin.php:168
 msgid "The menu could not be created. Check your connection and permissions, then try again."
 msgstr ""
 
-#: includes/class-abmm-admin.php:165
+#: includes/class-abmm-admin.php:169
 msgid "Deleting menu…"
 msgstr ""
 
-#: includes/class-abmm-admin.php:166
+#: includes/class-abmm-admin.php:170
 msgid "Menu deleted."
 msgstr ""
 
-#: includes/class-abmm-admin.php:167
+#: includes/class-abmm-admin.php:171
 msgid "The menu could not be deleted. Nothing was removed. Try again."
 msgstr ""
 
-#: includes/class-abmm-admin.php:168
+#: includes/class-abmm-admin.php:172
 msgid "Archive menu"
 msgstr ""
 
-#: includes/class-abmm-admin.php:169
+#: includes/class-abmm-admin.php:173
 msgid "Checking placements…"
 msgstr ""
 
 #. translators: %1$s: menu title.
-#: includes/class-abmm-admin.php:171
+#: includes/class-abmm-admin.php:175
 #, php-format
 msgid "Archive “%1$s”?"
 msgstr ""
 
 #. translators: 1: number of block placements, 2: number of widget placements, 3: number of shortcodes in pages.
-#: includes/class-abmm-admin.php:173
+#: includes/class-abmm-admin.php:177
 #, php-format
 msgid "Used in: %1$d block(s), %2$d widget(s), %3$d shortcode(s)."
 msgstr ""
 
-#: includes/class-abmm-admin.php:174
+#: includes/class-abmm-admin.php:178
 msgid "Archive and keep recoverable"
 msgstr ""
 
-#: includes/class-abmm-admin.php:175
-#: includes/class-abmm-admin.php:423
+#: includes/class-abmm-admin.php:179
+#: includes/class-abmm-admin.php:499
 msgid "Menu archived. It can be restored below."
 msgstr ""
 
-#: includes/class-abmm-admin.php:176
-#: includes/class-abmm-admin.php:609
+#: includes/class-abmm-admin.php:180
+#: includes/class-abmm-admin.php:685
 msgid "Menu restored with its original ID."
 msgstr ""
 
-#: includes/class-abmm-admin.php:177
+#: includes/class-abmm-admin.php:181
 msgid "This menu changed on the server. Your local draft was preserved; reload or export it before continuing."
 msgstr ""
 
-#: includes/class-abmm-admin.php:180
+#: includes/class-abmm-admin.php:184
 msgid "Category title"
 msgstr ""
 
-#: includes/class-abmm-admin.php:181
+#: includes/class-abmm-admin.php:185
 msgid "Short description"
 msgstr ""
 
-#: includes/class-abmm-admin.php:182
+#: includes/class-abmm-admin.php:186
 msgid "\"See all\" link text (optional)"
 msgstr ""
 
-#: includes/class-abmm-admin.php:183
+#: includes/class-abmm-admin.php:187
 msgid "Shown at the bottom of this category's panel. Add a link to make it clickable."
 msgstr ""
 
-#: includes/class-abmm-admin.php:184
+#: includes/class-abmm-admin.php:188
 msgid "e.g. See all products"
 msgstr ""
 
-#: includes/class-abmm-admin.php:185
+#: includes/class-abmm-admin.php:189
 msgid "Heading link (optional)"
 msgstr ""
 
-#: includes/class-abmm-admin.php:186
+#: includes/class-abmm-admin.php:190
 msgid "Column heading link (optional)"
 msgstr ""
 
-#: includes/class-abmm-admin.php:191
+#: includes/class-abmm-admin.php:195
 msgid "Simple Link"
 msgstr ""
 
-#: includes/class-abmm-admin.php:192
+#: includes/class-abmm-admin.php:196
 msgid "Drag to reorder"
 msgstr ""
 
-#: includes/class-abmm-admin.php:193
+#: includes/class-abmm-admin.php:197
 msgid "Move up"
 msgstr ""
 
-#: includes/class-abmm-admin.php:194
-msgid "Move down"
-msgstr ""
-
-#. translators: %s: name of the item being moved.
-#: includes/class-abmm-admin.php:196
-#, php-format
-msgid "Move %s up"
-msgstr ""
-
-#. translators: %s: name of the item being moved.
 #: includes/class-abmm-admin.php:198
-#, php-format
-msgid "Move %s down"
+msgid "Move down"
 msgstr ""
 
 #. translators: %s: name of the item being moved.
 #: includes/class-abmm-admin.php:200
 #, php-format
+msgid "Move %s up"
+msgstr ""
+
+#. translators: %s: name of the item being moved.
+#: includes/class-abmm-admin.php:202
+#, php-format
+msgid "Move %s down"
+msgstr ""
+
+#. translators: %s: name of the item being moved.
+#: includes/class-abmm-admin.php:204
+#, php-format
 msgid "%s position controls"
 msgstr ""
 
-#: includes/class-abmm-admin.php:201
+#: includes/class-abmm-admin.php:205
 msgid "Menu exported successfully!"
 msgstr ""
 
-#: includes/class-abmm-admin.php:202
+#: includes/class-abmm-admin.php:206
 msgid "Export failed."
 msgstr ""
 
-#: includes/class-abmm-admin.php:203
+#: includes/class-abmm-admin.php:207
 msgid "Menu imported successfully!"
 msgstr ""
 
-#: includes/class-abmm-admin.php:204
+#: includes/class-abmm-admin.php:208
 msgid "Import failed. Check the file format."
 msgstr ""
 
-#: includes/class-abmm-admin.php:205
-#: includes/class-abmm-admin.php:825
+#: includes/class-abmm-admin.php:209
+#: includes/class-abmm-admin.php:901
 msgid "Invalid JSON file."
 msgstr ""
 
-#: includes/class-abmm-admin.php:206
+#: includes/class-abmm-admin.php:210
 msgid "No valid menus found in file."
 msgstr ""
 
-#: includes/class-abmm-admin.php:207
+#: includes/class-abmm-admin.php:211
 msgid "Review these changes before importing:"
 msgstr ""
 
-#: includes/class-abmm-admin.php:208
+#: includes/class-abmm-admin.php:212
 msgid "Confirm Import"
 msgstr ""
 
-#: includes/class-abmm-admin.php:210
+#: includes/class-abmm-admin.php:214
 msgid "This local draft is based on an older saved version. Download it before continuing. You may restore it for review, but saving is disabled; reload the saved version and reapply the changes you want."
 msgstr ""
 
-#: includes/class-abmm-admin.php:211
+#: includes/class-abmm-admin.php:215
 msgid "Restore the unsaved changes saved in this browser, or download them before discarding and continuing with the saved version."
 msgstr ""
 
-#: includes/class-abmm-admin.php:212
+#: includes/class-abmm-admin.php:216
 #: includes/class-abmm-data.php:410
 msgid "Add a menu name."
 msgstr ""
 
 #. translators: %s: item number, label, count, or formatted file size.
-#: includes/class-abmm-admin.php:214
+#: includes/class-abmm-admin.php:218
 #, php-format
 msgid "Add a label to top menu item %s."
 msgstr ""
 
 #. translators: %s: mega menu label.
-#: includes/class-abmm-admin.php:216
+#: includes/class-abmm-admin.php:220
 #: includes/class-abmm-data.php:439
 #, php-format
 msgid "Add at least one labelled link with a real destination to %s."
 msgstr ""
 
 #. translators: %s: mega menu label.
-#: includes/class-abmm-admin.php:217
+#: includes/class-abmm-admin.php:221
 #: includes/class-abmm-data.php:439
 msgid "this mega menu"
 msgstr ""
 
 #. translators: %s: duplicated label.
-#: includes/class-abmm-admin.php:219
+#: includes/class-abmm-admin.php:223
 #: includes/class-abmm-data.php:445
 #, php-format
 msgid "Rename duplicate top menu item \"%s\"."
 msgstr ""
 
-#: includes/class-abmm-admin.php:220
+#: includes/class-abmm-admin.php:224
 #: includes/class-abmm-data.php:448
 msgid "Add at least one labelled item with a real destination."
 msgstr ""
 
-#: includes/class-abmm-admin.php:221
+#: includes/class-abmm-admin.php:225
 #: includes/class-abmm-data.php:450
 msgid "Complete the enabled call-to-action label and destination."
 msgstr ""
 
 #. translators: %s: the start of a menu item label.
-#: includes/class-abmm-admin.php:223
+#: includes/class-abmm-admin.php:227
 #: includes/class-abmm-data.php:458
 #, php-format
 msgid "Shorten \"%s\" so it fits in the menu bar."
 msgstr ""
 
 #. translators: %s: link label.
-#: includes/class-abmm-admin.php:225
+#: includes/class-abmm-admin.php:229
 #: includes/class-abmm-data.php:481
 #, php-format
 msgid "Check the link for \"%s\". It does not look like a web address."
 msgstr ""
 
-#: includes/class-abmm-admin.php:226
+#: includes/class-abmm-admin.php:230
 #: includes/class-abmm-data.php:466
 msgid "Add a logo image or site title, or turn off \"Show logo\"."
 msgstr ""
 
-#: includes/class-abmm-admin.php:227
+#: includes/class-abmm-admin.php:231
 #: includes/class-abmm-data.php:468
 msgid "Check the logo image link. It does not look like a web address."
 msgstr ""
 
-#: includes/class-abmm-admin.php:228
+#: includes/class-abmm-admin.php:232
 msgid "Logo image not found"
 msgstr ""
 
-#: includes/class-abmm-admin.php:229
+#: includes/class-abmm-admin.php:233
 msgid "Ready to place."
 msgstr ""
 
 #. translators: %s: item number, label, count, or formatted file size.
-#: includes/class-abmm-admin.php:231
+#: includes/class-abmm-admin.php:235
 #, php-format
 msgid "%s thing(s) to fix before you place this menu."
 msgstr ""
 
-#: includes/class-abmm-admin.php:232
+#: includes/class-abmm-admin.php:236
 msgid "You have unsaved changes. Save first: the shortcode shows the saved version."
 msgstr ""
 
-#: includes/class-abmm-admin.php:233
+#: includes/class-abmm-admin.php:237
 msgid "Copy the shortcode, or use the block or widget."
 msgstr ""
 
-#: includes/class-abmm-admin.php:234
+#: includes/class-abmm-admin.php:238
 msgid "This menu still has items in its checklist. You can place it, but fix those first."
 msgstr ""
 
-#: includes/class-abmm-admin.php:235
+#: includes/class-abmm-admin.php:239
+#: assets/js/admin.js:1299
 msgid "Importing…"
 msgstr ""
 
-#: includes/class-abmm-admin.php:236
+#: includes/class-abmm-admin.php:240
 msgid "Preparing preview…"
 msgstr ""
 
 #. translators: %s: item number, label, count, or formatted file size.
-#: includes/class-abmm-admin.php:238
+#: includes/class-abmm-admin.php:242
 #, php-format
 msgid "The import file exceeds the %s limit."
 msgstr ""
 
-#: includes/class-abmm-admin.php:239
+#: includes/class-abmm-admin.php:243
 msgid "Loading recovery snapshots…"
 msgstr ""
 
-#: includes/class-abmm-admin.php:240
+#: includes/class-abmm-admin.php:244
 msgid "Snapshots could not be loaded."
 msgstr ""
 
 #. translators: 1: snapshot date, 2: number of menus.
-#: includes/class-abmm-admin.php:242
+#: includes/class-abmm-admin.php:246
 #, php-format
 msgid "%1$s — %2$s menu(s)"
 msgstr ""
 
-#: includes/class-abmm-admin.php:243
+#: includes/class-abmm-admin.php:247
 msgid "Export snapshot"
 msgstr ""
 
-#: includes/class-abmm-admin.php:244
+#: includes/class-abmm-admin.php:248
 msgid "Restore snapshot"
 msgstr ""
 
-#: includes/class-abmm-admin.php:245
+#: includes/class-abmm-admin.php:249
 msgid "Export a snapshot before restoring. Restore replaces every current menu."
 msgstr ""
 
-#: includes/class-abmm-admin.php:246
+#: includes/class-abmm-admin.php:250
 msgid "No recovery snapshots are available yet."
 msgstr ""
 
-#: includes/class-abmm-admin.php:247
+#: includes/class-abmm-admin.php:251
 msgid "Snapshot export failed."
 msgstr ""
 
-#: includes/class-abmm-admin.php:248
+#: includes/class-abmm-admin.php:252
 msgid "Snapshot exported. Keep the downloaded JSON file for recovery."
 msgstr ""
 
-#: includes/class-abmm-admin.php:249
+#: includes/class-abmm-admin.php:253
 msgid "Replace ALL current menus with this snapshot? Current menus will be backed up first. Published placements may change. Export your current menus before continuing."
 msgstr ""
 
-#: includes/class-abmm-admin.php:250
+#: includes/class-abmm-admin.php:254
 msgid "Replace menus with snapshot"
 msgstr ""
 
-#: includes/class-abmm-admin.php:251
+#: includes/class-abmm-admin.php:255
 msgid "Restoring snapshot…"
 msgstr ""
 
-#: includes/class-abmm-admin.php:252
+#: includes/class-abmm-admin.php:256
 msgid "Snapshot restore failed. Reload snapshots before retrying."
 msgstr ""
 
-#: includes/class-abmm-admin.php:253
+#: includes/class-abmm-admin.php:257
 msgid "Snapshot restored. Reloading menus…"
 msgstr ""
 
-#: includes/class-abmm-admin.php:316
-#: includes/class-abmm-admin.php:323
-#: includes/class-abmm-admin.php:340
-#: includes/class-abmm-admin.php:348
+#: includes/class-abmm-admin.php:332
+msgid "Choose a menu to import."
+msgstr ""
+
+#: includes/class-abmm-admin.php:392
+#: includes/class-abmm-admin.php:399
+#: includes/class-abmm-admin.php:416
+#: includes/class-abmm-admin.php:424
 msgid "Invalid menu data."
 msgstr ""
 
-#: includes/class-abmm-admin.php:319
-#: includes/class-abmm-admin.php:343
+#: includes/class-abmm-admin.php:395
+#: includes/class-abmm-admin.php:419
 msgid "Menu data exceeds the 1 MB limit."
 msgstr ""
 
-#: includes/class-abmm-admin.php:356
+#: includes/class-abmm-admin.php:432
 #: includes/class-abmm-data.php:99
 msgid "Reload this menu before saving so changes are not overwritten."
 msgstr ""
 
-#: includes/class-abmm-admin.php:359
+#: includes/class-abmm-admin.php:435
 #: includes/class-abmm-data.php:113
 msgid "This menu no longer exists."
 msgstr ""
 
-#: includes/class-abmm-admin.php:364
+#: includes/class-abmm-admin.php:440
 #: includes/class-abmm-data.php:120
 msgid "This menu changed on the server. Your local draft was not overwritten."
 msgstr ""
 
-#: includes/class-abmm-admin.php:391
+#: includes/class-abmm-admin.php:467
 msgid "Database save failed."
 msgstr ""
 
-#: includes/class-abmm-admin.php:421
+#: includes/class-abmm-admin.php:497
 msgid "The menu was not archived. Nothing was removed."
 msgstr ""
 
-#: includes/class-abmm-admin.php:437
+#: includes/class-abmm-admin.php:513
 msgid "The stored menu could not be found."
 msgstr ""
 
-#: includes/class-abmm-admin.php:468
+#: includes/class-abmm-admin.php:544
 msgid "Choose a valid first-run option."
 msgstr ""
 
-#: includes/class-abmm-admin.php:474
+#: includes/class-abmm-admin.php:550
 msgid "The first menu could not be created."
 msgstr ""
 
-#: includes/class-abmm-admin.php:494
+#: includes/class-abmm-admin.php:570
 msgid "Block in your Header"
 msgstr ""
 
-#: includes/class-abmm-admin.php:495
+#: includes/class-abmm-admin.php:571
 msgid "Your theme is a block theme. In Appearance → Editor, open the Header template part, add the Ashbi Mega Menu block next to the existing Navigation block and pick your menu."
 msgstr ""
 
-#: includes/class-abmm-admin.php:502
+#: includes/class-abmm-admin.php:578
 msgid "Widget"
 msgstr ""
 
-#: includes/class-abmm-admin.php:503
+#: includes/class-abmm-admin.php:579
 msgid "Your theme has widget areas. In Appearance → Widgets, add the Ashbi Mega Menu widget to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme."
 msgstr ""
 
-#: includes/class-abmm-admin.php:508
+#: includes/class-abmm-admin.php:584
 msgid "Shortcode or PHP"
 msgstr ""
 
-#: includes/class-abmm-admin.php:509
+#: includes/class-abmm-admin.php:585
 msgid "Your theme has no block header or widget areas. Paste the shortcode into a page or page builder, or ask a developer to call abmm_render_menu() in a child theme header."
 msgstr ""
 
-#: includes/class-abmm-admin.php:579
+#: includes/class-abmm-admin.php:655
 msgid "Unknown setup guide action."
 msgstr ""
 
-#: includes/class-abmm-admin.php:607
+#: includes/class-abmm-admin.php:683
 msgid "The menu could not be restored. Its ID may already be in use."
 msgstr ""
 
-#: includes/class-abmm-admin.php:624
+#: includes/class-abmm-admin.php:700
 msgid "Permanent deletion failed."
 msgstr ""
 
-#: includes/class-abmm-admin.php:626
-#: assets/js/admin.js:1514
+#: includes/class-abmm-admin.php:702
+#: assets/js/admin.js:1618
 msgid "Archived menu permanently deleted."
 msgstr ""
 
-#: includes/class-abmm-admin.php:675
+#: includes/class-abmm-admin.php:751
 msgid "Menus placed in theme templates, page builders or PHP cannot be detected. Check those before archiving."
 msgstr ""
 
-#: includes/class-abmm-admin.php:735
+#: includes/class-abmm-admin.php:811
 msgid "Database create failed."
 msgstr ""
 
-#: includes/class-abmm-admin.php:788
+#: includes/class-abmm-admin.php:864
 msgid "No file uploaded or upload error."
 msgstr ""
 
-#: includes/class-abmm-admin.php:798
+#: includes/class-abmm-admin.php:874
 msgid "Invalid upload metadata."
 msgstr ""
 
-#: includes/class-abmm-admin.php:809
+#: includes/class-abmm-admin.php:885
 msgid "Choose a .json export file."
 msgstr ""
 
 #. translators: %s: maximum formatted import size.
-#: includes/class-abmm-admin.php:812
+#: includes/class-abmm-admin.php:888
 #, php-format
 msgid "The import file is empty or exceeds the %s limit."
 msgstr ""
 
-#: includes/class-abmm-admin.php:816
+#: includes/class-abmm-admin.php:892
 msgid "Invalid upload."
 msgstr ""
 
-#: includes/class-abmm-admin.php:820
+#: includes/class-abmm-admin.php:896
 msgid "The import file could not be read safely."
 msgstr ""
 
@@ -2249,6 +2307,104 @@ msgstr ""
 msgid "Get started"
 msgstr ""
 
+#: includes/class-abmm-data.php:1476
+msgid "That WordPress menu no longer exists."
+msgstr ""
+
+#: includes/class-abmm-data.php:1514
+msgid "That navigation no longer exists."
+msgstr ""
+
+#. translators: %s: block name, such as Search.
+#: includes/class-abmm-data.php:1527
+#, php-format
+msgid "%s block"
+msgstr ""
+
+#: includes/class-abmm-data.php:1528
+msgid "This block is not a link, so it was not imported."
+msgstr ""
+
+#: includes/class-abmm-data.php:1577
+msgid "Home"
+msgstr ""
+
+#: includes/class-abmm-data.php:1670
+msgid "That WordPress menu has no items to import."
+msgstr ""
+
+#: includes/class-abmm-data.php:1678
+msgid "Its parent item was skipped."
+msgstr ""
+
+#. translators: %s: category name.
+#: includes/class-abmm-data.php:1713
+#, php-format
+msgid "a link in \"%s\""
+msgstr ""
+
+#. translators: %s: menu item label.
+#: includes/class-abmm-data.php:1726
+#, php-format
+msgid "\"%s\" has no URL. Add one in the editor, or it shows as plain text."
+msgstr ""
+
+#. translators: 1: rel values, 2: menu item label.
+#: includes/class-abmm-data.php:1734
+#, php-format
+msgid "The link relationship \"%1$s\" on \"%2$s\" is not supported and was not imported."
+msgstr ""
+
+#. translators: %s: menu item label.
+#: includes/class-abmm-data.php:1758
+#, php-format
+msgid "The description of \"%s\" was not imported: top-level items have no description."
+msgstr ""
+
+#. translators: %s: WordPress menu name.
+#: includes/class-abmm-data.php:1825
+#, php-format
+msgid "%s (imported)"
+msgstr ""
+
+#: includes/class-abmm-data.php:1855
+msgid "The imported menu could not be saved."
+msgstr ""
+
+#: includes/class-abmm-data.php:1864
+msgid "The page or post it links to no longer exists."
+msgstr ""
+
+#: includes/class-abmm-data.php:1867
+msgid "It links to content that is not published."
+msgstr ""
+
+#: includes/class-abmm-data.php:1870
+msgid "It has no label."
+msgstr ""
+
+#: includes/class-abmm-data.php:1874
+msgid "Its URL is not a safe web address."
+msgstr ""
+
+#. translators: %d: navigation menu item ID.
+#: includes/class-abmm-data.php:1882
+#, php-format
+msgid "Untitled item #%d"
+msgstr ""
+
+#. translators: %s: menu item label.
+#: includes/class-abmm-data.php:1915
+#, php-format
+msgid "More than one top-level item is called \"%s\"."
+msgstr ""
+
+#. translators: 1: menu item label, 2: parent item label.
+#: includes/class-abmm-data.php:1917
+#, php-format
+msgid "More than one item under \"%2$s\" is called \"%1$s\"."
+msgstr ""
+
 #: includes/class-abmm-frontend.php:252
 msgctxt "mobile menu button"
 msgid "Back"
@@ -2271,7 +2427,7 @@ msgid "%s navigation"
 msgstr ""
 
 #: includes/class-abmm-frontend.php:927
-#: assets/js/admin.js:2995
+#: assets/js/admin.js:3099
 msgid "Learn more"
 msgstr ""
 
@@ -2928,7 +3084,7 @@ msgid "Choose a main product page so the pages below it show these links."
 msgstr ""
 
 #: includes/class-abmm-product-profiles.php:323
-#: assets/js/admin.js:2569
+#: assets/js/admin.js:2673
 msgid "Active"
 msgstr ""
 
@@ -3032,8 +3188,8 @@ msgid "Pill links"
 msgstr ""
 
 #: includes/class-abmm-product-profiles.php:430
-#: assets/js/admin.js:2767
-#: assets/js/admin.js:2768
+#: assets/js/admin.js:2871
+#: assets/js/admin.js:2872
 msgid "Label"
 msgstr ""
 
@@ -3300,14 +3456,92 @@ msgstr ""
 msgid "%s existing menu(s) will be removed by Replace mode."
 msgstr ""
 
+#. translators: %s: the new menu's title.
+#: assets/js/admin.js:1249
+#, js-format
+msgid "Preview: %s"
+msgstr ""
+
+#: assets/js/admin.js:1250
+msgid "Menu bar"
+msgstr ""
+
+#. translators: %s: menu item label.
+#: assets/js/admin.js:1252
+#, js-format
+msgid "%s: link"
+msgstr ""
+
+#. translators: 1: menu item label, 2: number of links.
+#: assets/js/admin.js:1256
+#, js-format
+msgid "%1$s: mega menu with %2$d link"
+msgid_plural "%1$s: mega menu with %2$d links"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: menu item label, 2: number of categories, 3: number of links.
+#: assets/js/admin.js:1259
+#, js-format
+msgid "%1$s: mega menu with %2$d categories and %3$d links"
+msgstr ""
+
+#. translators: %d: number of menu entries.
+#: assets/js/admin.js:1262
+#, js-format
+msgid "%d entry will be imported."
+msgid_plural "%d entries will be imported."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/js/admin.js:1263
+msgid "Moved up a level"
+msgstr ""
+
+#. translators: 1: menu item label, 2: its depth in the WordPress menu, 3: where it now appears.
+#: assets/js/admin.js:1265
+#, js-format
+msgid "%1$s (level %2$d) is now %3$s."
+msgstr ""
+
+#: assets/js/admin.js:1267
+msgid "Skipped"
+msgstr ""
+
+#: assets/js/admin.js:1270
+msgid "Check after importing"
+msgstr ""
+
+#: assets/js/admin.js:1282
+msgid "Reading the WordPress menu…"
+msgstr ""
+
+#: assets/js/admin.js:1284
+#: assets/js/admin.js:1291
+msgid "The menu could not be read."
+msgstr ""
+
+#: assets/js/admin.js:1302
+#: assets/js/admin.js:1311
+msgid "The menu could not be imported."
+msgstr ""
+
+#: assets/js/admin.js:1306
+msgid "Imported as a draft. Opening it…"
+msgstr ""
+
+#: assets/js/admin.js:1308
+msgid "Open the draft"
+msgstr ""
+
 #. translators: 1: number of matching menus, 2: total number of menus.
-#: assets/js/admin.js:1260
+#: assets/js/admin.js:1363
 #, js-format
 msgid "%1$d of %2$d"
 msgstr ""
 
 #. translators: %d: number of menus matching the search.
-#: assets/js/admin.js:1264
+#: assets/js/admin.js:1367
 #, js-format
 msgid "%d menu found"
 msgid_plural "%d menus found"
@@ -3315,429 +3549,429 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of pages selected.
-#: assets/js/admin.js:1304
+#: assets/js/admin.js:1408
 #, js-format
 msgid "%d page selected"
 msgid_plural "%d pages selected"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/admin.js:1503
+#: assets/js/admin.js:1607
 msgid "Click again to permanently delete"
 msgstr ""
 
-#: assets/js/admin.js:1768
+#: assets/js/admin.js:1872
 msgid "Retry authenticated load"
 msgstr ""
 
-#: assets/js/admin.js:2245
+#: assets/js/admin.js:2349
 msgid "Item"
 msgstr ""
 
-#: assets/js/admin.js:2247
+#: assets/js/admin.js:2351
 msgid "Navigation item"
 msgstr ""
 
-#: assets/js/admin.js:2250
-#: assets/js/admin.js:3150
+#: assets/js/admin.js:2354
+#: assets/js/admin.js:3254
 msgid "Category"
 msgstr ""
 
-#: assets/js/admin.js:2254
+#: assets/js/admin.js:2358
 msgid "Column"
 msgstr ""
 
-#: assets/js/admin.js:2264
+#: assets/js/admin.js:2368
 msgid "Feature link"
 msgstr ""
 
-#: assets/js/admin.js:2302
+#: assets/js/admin.js:2406
 msgid "New Item"
 msgstr ""
 
-#: assets/js/admin.js:2332
+#: assets/js/admin.js:2436
 msgid "Navigation item removed."
 msgstr ""
 
-#: assets/js/admin.js:2332
+#: assets/js/admin.js:2436
 msgid "Navigation item restored."
 msgstr ""
 
-#: assets/js/admin.js:2346
-#: assets/js/admin.js:2748
-#: assets/js/admin.js:2824
+#: assets/js/admin.js:2450
+#: assets/js/admin.js:2852
+#: assets/js/admin.js:2928
 msgid "Untitled item"
 msgstr ""
 
 #. translators: %s: name of the duplicated menu item.
-#: assets/js/admin.js:2393
+#: assets/js/admin.js:2497
 #, js-format
 msgid "Duplicated %s. Review the copy before saving."
 msgstr ""
 
-#: assets/js/admin.js:2393
+#: assets/js/admin.js:2497
 msgid "menu item"
 msgstr ""
 
-#: assets/js/admin.js:2435
+#: assets/js/admin.js:2539
 msgid "New Feature"
 msgstr ""
 
-#: assets/js/admin.js:2450
+#: assets/js/admin.js:2554
 msgid "Feature link removed."
 msgstr ""
 
-#: assets/js/admin.js:2450
+#: assets/js/admin.js:2554
 msgid "Feature link restored."
 msgstr ""
 
-#: assets/js/admin.js:2478
+#: assets/js/admin.js:2582
 msgid "NEW"
 msgstr ""
 
-#: assets/js/admin.js:2484
+#: assets/js/admin.js:2588
 msgid "Overview"
 msgstr ""
 
-#: assets/js/admin.js:2489
-#: assets/js/admin.js:3129
+#: assets/js/admin.js:2593
+#: assets/js/admin.js:3233
 msgid "Column 1"
 msgstr ""
 
-#: assets/js/admin.js:2511
+#: assets/js/admin.js:2615
 msgid "Category removed."
 msgstr ""
 
-#: assets/js/admin.js:2511
+#: assets/js/admin.js:2615
 msgid "Category restored."
 msgstr ""
 
-#: assets/js/admin.js:2528
-#: assets/js/admin.js:3151
+#: assets/js/admin.js:2632
+#: assets/js/admin.js:3255
 msgid "Untitled category"
 msgstr ""
 
-#: assets/js/admin.js:2567
+#: assets/js/admin.js:2671
 msgid "Colour"
 msgstr ""
 
-#: assets/js/admin.js:2568
+#: assets/js/admin.js:2672
 msgid "Hover"
 msgstr ""
 
-#: assets/js/admin.js:2570
+#: assets/js/admin.js:2674
 msgid "Background"
 msgstr ""
 
-#: assets/js/admin.js:2571
+#: assets/js/admin.js:2675
 msgid "Border"
 msgstr ""
 
-#: assets/js/admin.js:2572
+#: assets/js/admin.js:2676
 msgid "Size (px)"
 msgstr ""
 
-#: assets/js/admin.js:2574
-#: assets/js/admin.js:2578
+#: assets/js/admin.js:2678
+#: assets/js/admin.js:2682
 msgid "Inherit"
 msgstr ""
 
-#: assets/js/admin.js:2575
+#: assets/js/admin.js:2679
 msgid "Radius (px)"
 msgstr ""
 
-#: assets/js/admin.js:2627
+#: assets/js/admin.js:2731
 msgid "Select a category on the left to edit its links."
 msgstr ""
 
 #. translators: 1: item name, 2: new position, 3: total number of items.
-#: assets/js/admin.js:2655
+#: assets/js/admin.js:2759
 #, js-format
 msgid "%1$s moved to position %2$s of %3$s."
 msgstr ""
 
 #. translators: %s: menu item name.
-#: assets/js/admin.js:2666
+#: assets/js/admin.js:2770
 #, js-format
 msgid "Show settings for %s"
 msgstr ""
 
 #. translators: %s: number of links.
-#: assets/js/admin.js:2699
+#: assets/js/admin.js:2803
 #, js-format
 msgid "%s link"
 msgid_plural "%s links"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/admin.js:2701
-#: assets/js/admin.js:2704
+#: assets/js/admin.js:2805
+#: assets/js/admin.js:2808
 msgid "No content yet"
 msgstr ""
 
 #. translators: 1: number of categories, for example "3 categories", 2: number of links, for example "12 links".
-#: assets/js/admin.js:2706
+#: assets/js/admin.js:2810
 #, js-format
 msgid "%1$s · %2$s"
 msgstr ""
 
 #. translators: %s: number of categories.
-#: assets/js/admin.js:2706
+#: assets/js/admin.js:2810
 #, js-format
 msgid "%s category"
 msgid_plural "%s categories"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/js/admin.js:2708
+#: assets/js/admin.js:2812
 msgid "No link yet"
 msgstr ""
 
 #. translators: %s: menu item name.
-#: assets/js/admin.js:2758
+#: assets/js/admin.js:2862
 #, js-format
 msgid "navigation item %s"
 msgstr ""
 
 #. translators: %s: menu item name.
-#: assets/js/admin.js:2759
+#: assets/js/admin.js:2863
 #, js-format
 msgid "Duplicate navigation item %s"
 msgstr ""
 
 #. translators: %s: menu item name.
-#: assets/js/admin.js:2760
+#: assets/js/admin.js:2864
 #, js-format
 msgid "Remove navigation item %s"
 msgstr ""
 
-#: assets/js/admin.js:2760
+#: assets/js/admin.js:2864
 msgid "Remove navigation item"
 msgstr ""
 
-#: assets/js/admin.js:2762
+#: assets/js/admin.js:2866
 msgid "Show or hide settings"
 msgstr ""
 
-#: assets/js/admin.js:2771
+#: assets/js/admin.js:2875
 msgid "Type"
 msgstr ""
 
-#: assets/js/admin.js:2780
+#: assets/js/admin.js:2884
 msgid "Edit content"
 msgstr ""
 
-#: assets/js/admin.js:2783
+#: assets/js/admin.js:2887
 msgid "URL"
 msgstr ""
 
-#: assets/js/admin.js:2917
+#: assets/js/admin.js:3021
 msgid "This image could not be loaded."
 msgstr ""
 
-#: assets/js/admin.js:2923
+#: assets/js/admin.js:3027
 msgid "Replace image"
 msgstr ""
 
-#: assets/js/admin.js:2962
+#: assets/js/admin.js:3066
 msgid "The media library is not available. Paste an image URL instead."
 msgstr ""
 
-#: assets/js/admin.js:2967
+#: assets/js/admin.js:3071
 msgid "Choose a featured image"
 msgstr ""
 
-#: assets/js/admin.js:2968
+#: assets/js/admin.js:3072
 msgid "Use image"
 msgstr ""
 
-#: assets/js/admin.js:3072
-#: assets/js/admin.js:3437
+#: assets/js/admin.js:3176
+#: assets/js/admin.js:3541
 msgid "Icon and icon style"
 msgstr ""
 
 #. translators: %s: category or link name.
-#: assets/js/admin.js:3072
-#: assets/js/admin.js:3439
+#: assets/js/admin.js:3176
+#: assets/js/admin.js:3543
 #, js-format
 msgid "Choose an icon for %s"
 msgstr ""
 
 #. translators: %s: category number.
-#: assets/js/admin.js:3074
+#: assets/js/admin.js:3178
 #, js-format
 msgid "Category %s title"
 msgstr ""
 
 #. translators: %s: category number.
-#: assets/js/admin.js:3075
+#: assets/js/admin.js:3179
 #, js-format
 msgid "Category %s description"
 msgstr ""
 
 #. translators: %s: category name.
-#: assets/js/admin.js:3079
+#: assets/js/admin.js:3183
 #, js-format
 msgid "category %s"
 msgstr ""
 
 #. translators: %s: category name.
-#: assets/js/admin.js:3080
+#: assets/js/admin.js:3184
 #, js-format
 msgid "Remove category %s"
 msgstr ""
 
-#: assets/js/admin.js:3080
+#: assets/js/admin.js:3184
 msgid "Remove category"
 msgstr ""
 
 #. translators: %s: category name.
-#: assets/js/admin.js:3082
+#: assets/js/admin.js:3186
 #, js-format
 msgid "Edit category %s"
 msgstr ""
 
-#: assets/js/admin.js:3082
+#: assets/js/admin.js:3186
 msgid "Edit links"
 msgstr ""
 
-#: assets/js/admin.js:3166
+#: assets/js/admin.js:3270
 msgid "Group links into columns. Drag a link to move it between columns."
 msgstr ""
 
-#: assets/js/admin.js:3168
+#: assets/js/admin.js:3272
 msgid "Add column"
 msgstr ""
 
 #. translators: %s: column number.
-#: assets/js/admin.js:3203
+#: assets/js/admin.js:3307
 #, js-format
 msgid "Column %s"
 msgstr ""
 
-#: assets/js/admin.js:3213
+#: assets/js/admin.js:3317
 msgid "Keep at least one column."
 msgstr ""
 
-#: assets/js/admin.js:3219
+#: assets/js/admin.js:3323
 msgid "Column removed."
 msgstr ""
 
-#: assets/js/admin.js:3219
+#: assets/js/admin.js:3323
 msgid "Column restored."
 msgstr ""
 
-#: assets/js/admin.js:3262
+#: assets/js/admin.js:3366
 msgid "New Link"
 msgstr ""
 
-#: assets/js/admin.js:3285
+#: assets/js/admin.js:3389
 msgid "Link removed."
 msgstr ""
 
-#: assets/js/admin.js:3285
+#: assets/js/admin.js:3389
 msgid "Link restored."
 msgstr ""
 
-#: assets/js/admin.js:3365
+#: assets/js/admin.js:3469
 msgid "Column heading"
 msgstr ""
 
-#: assets/js/admin.js:3367
+#: assets/js/admin.js:3471
 msgid "Column heading (e.g. Services)"
 msgstr ""
 
 #. translators: %s: column name.
-#: assets/js/admin.js:3371
+#: assets/js/admin.js:3475
 #, js-format
 msgid "column %s"
 msgstr ""
 
 #. translators: %s: column name.
-#: assets/js/admin.js:3372
+#: assets/js/admin.js:3476
 #, js-format
 msgid "Remove column %s"
 msgstr ""
 
-#: assets/js/admin.js:3372
+#: assets/js/admin.js:3476
 msgid "Remove column"
 msgstr ""
 
-#: assets/js/admin.js:3375
+#: assets/js/admin.js:3479
 msgid "No links yet. Add one, or drag a link here."
 msgstr ""
 
-#: assets/js/admin.js:3393
-#: assets/js/admin.js:3417
-#: assets/js/admin.js:3424
+#: assets/js/admin.js:3497
+#: assets/js/admin.js:3521
+#: assets/js/admin.js:3528
 msgid "Edit link"
 msgstr ""
 
-#: assets/js/admin.js:3416
-#: assets/js/admin.js:3423
+#: assets/js/admin.js:3520
+#: assets/js/admin.js:3527
 msgid "Add a link"
 msgstr ""
 
-#: assets/js/admin.js:3450
+#: assets/js/admin.js:3554
 msgid "Link description"
 msgstr ""
 
-#: assets/js/admin.js:3450
+#: assets/js/admin.js:3554
 msgid "Short description (optional)"
 msgstr ""
 
 #. translators: %s: link name.
-#: assets/js/admin.js:3456
+#: assets/js/admin.js:3560
 #, js-format
 msgid "link %s"
 msgstr ""
 
 #. translators: %s: link name.
-#: assets/js/admin.js:3457
+#: assets/js/admin.js:3561
 #, js-format
 msgid "Remove link %s"
 msgstr ""
 
-#: assets/js/admin.js:3457
+#: assets/js/admin.js:3561
 #: assets/js/product-admin.js:320
 msgid "Remove link"
 msgstr ""
 
 #. translators: %s: zoom percentage, such as 75%.
-#: assets/js/admin.js:3540
+#: assets/js/admin.js:3644
 #, js-format
 msgid "Zoom %s. Choose a zoom level"
 msgstr ""
 
-#: assets/js/admin.js:3795
+#: assets/js/admin.js:3899
 msgid "Phone preview"
 msgstr ""
 
-#: assets/js/admin.js:3795
+#: assets/js/admin.js:3899
 msgid "Tablet preview"
 msgstr ""
 
-#: assets/js/admin.js:4000
+#: assets/js/admin.js:4104
 msgid "Current section:"
 msgstr ""
 
-#: assets/js/admin.js:4019
+#: assets/js/admin.js:4123
 msgid "Back"
 msgstr ""
 
-#: assets/js/admin.js:4020
+#: assets/js/admin.js:4124
 msgid "Choose a link"
 msgstr ""
 
-#: assets/js/admin.js:4020
+#: assets/js/admin.js:4124
 msgid "Choose a section"
 msgstr ""
 
-#: assets/js/admin.js:4422
+#: assets/js/admin.js:4526
 msgid "Use icon"
 msgstr ""
 
-#: assets/js/admin.js:4457
+#: assets/js/admin.js:4561
 msgid "Icon style reset to the menu style."
 msgstr ""
 
