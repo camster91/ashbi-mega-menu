@@ -22,6 +22,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: wordpress-org
+    defaults:
+      run:
+        shell: bash
     env:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
     steps:
@@ -30,6 +33,9 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
       - run: npm ci
       - name: Versions agree with the release tag
         run: |
@@ -37,9 +43,12 @@ jobs:
           echo "VERSION=$(node -p 'require("./package.json").version')" >> "$GITHUB_ENV"
       - name: Build, test and package
         run: |
-          npm run build:brand && npm run build:icons && npm run build
+          npm run build:brand
+          npm run build:icons
+          npm run build
           git diff --exit-code -- build src assets || { echo "The build changed committed files. Commit the build first."; exit 1; }
-          npm test && npm run test:php
+          npm test
+          npm run test:php
           npm run package
           unzip -q "dist/ashbi-mega-menu-${VERSION}.zip" -d release
       - name: Publish to WordPress.org SVN

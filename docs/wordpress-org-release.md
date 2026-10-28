@@ -25,6 +25,23 @@ Handle each request with a narrowly scoped fix: one pull request per request whe
 2. Create a GitHub environment named `wordpress-org` with required reviewers, so every publish waits for a maintainer's approval.
 3. Run **Actions → Deploy to WordPress.org → Run workflow** with *dry-run* on. It builds, tests and packages the release and prepares the SVN commit without making it.
 
+The pinned deploy action requires SVN credentials and an existing directory repository even in dry-run mode. Do not add credentials or disable environment approval just to test a pull request. Before directory approval, validate the preparation locally:
+
+```sh
+npm ci
+npm run check:versions
+npm run build:brand
+npm run build:icons
+npm run build
+git diff --exit-code -- build src assets
+npm test
+npm run test:php
+npm run package
+(cd dist && shasum -a 256 -c SHA256SUMS)
+```
+
+Run these commands in a shell with `set -e` so a failure stops preparation. `npm run test:release` injects failures into the actual workflow commands and checks public ZIP verification against isolated fixtures. It makes no directory requests. This validates preparation and verification, while the full SVN dry run still requires the approved setup above.
+
 ## Publishing a release
 
 Follow [release-checklist.md](release-checklist.md). The publish step is automated:
@@ -35,7 +52,7 @@ Follow [release-checklist.md](release-checklist.md). The publish step is automat
    - rebuilds from source, confirms the build matches the committed files, runs the tests and packages the ZIP;
    - commits the unzipped package to `trunk`, tags it, and updates the directory `assets/` from `.wordpress-org/`;
    - attaches the ZIP, `SHA256SUMS`, `build-info.json` and `manifest.json` to the GitHub release;
-   - runs `scripts/verify-wporg.js --wait`, which waits until WordPress.org shows the new version, banner, icon and screenshots, and the public ZIP has exactly the release's files.
+   - runs `scripts/verify-wporg.js --wait`, which waits until WordPress.org shows the new version, banner, icon and screenshots, and the public ZIP has exactly the local release ZIP's filenames and uncompressed file bytes. ZIP timestamps, entry order, compression, comments and directory entries may differ.
 3. Look at the plugin page yourself as a final check.
 
-To check the live directory at any time: `npm run package && node scripts/verify-wporg.js`.
+To check the live directory at any time: `npm run package && node scripts/verify-wporg.js`. Keep the local versioned release ZIP together with `dist/manifest.json`; verification fails if either is missing or their file lists disagree.

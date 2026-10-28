@@ -44,7 +44,7 @@ On a staging site with MySQL or MariaDB, using the release ZIP (not the reposito
 
 - [ ] Git tag `vx.y.z` on the release commit; GitHub release created with the ZIP, `SHA256SUMS` and `build-info.json` attached, and the changelog.
 - [ ] WordPress.org (after directory approval): publishing the GitHub release runs **Deploy to WordPress.org**, which commits the unzipped release ZIP to `trunk`, tags it and updates `assets/` (see [wordpress-org-release.md](wordpress-org-release.md)). Approve the `wordpress-org` environment when asked.
-- [ ] After publication: the workflow's `verify-wporg.js` step passed (version, banner, icon, screenshots and public ZIP contents match `manifest.json`; WordPress.org repackages, so contents are compared, not the hash), and the plugin page looks right.
+- [ ] After publication: the workflow's `verify-wporg.js` step passed (version, banner, icon and screenshots match; public ZIP filenames match `manifest.json` and file bytes match the local release ZIP; WordPress.org repackages, so ZIP container metadata is ignored), and the plugin page looks right.
 
 ## 7. After release
 
