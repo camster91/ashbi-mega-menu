@@ -6,7 +6,7 @@ Release: `x.y.z` · Commit: `<sha>` · Release pull request: `#…` · Validatio
 
 ## 1. Version and notes
 
-- [ ] Version bumped in `ashbi-mega-menu.php` (header and `ABMM_VERSION`), `package.json` and `readme.txt` (`Stable tag`).
+- [ ] Version bumped in `ashbi-mega-menu.php` (header and `ABMM_VERSION`), `package.json`, `src/blocks/mega-menu/block.json` and `readme.txt` (`Stable tag`); `npm run check:versions` passes.
 - [ ] `Tested up to` in `readme.txt` matches the newest WordPress version actually tested (see the scheduled compatibility run).
 - [ ] `CHANGELOG.md` and the `readme.txt` changelog describe user-facing changes, in plain language, with no claims beyond the evidence in `docs/compatibility.md` and `docs/accessibility.md`.
 - [ ] Upgrade notice added to `readme.txt` if existing sites need to do anything.
@@ -43,8 +43,8 @@ On a staging site with MySQL or MariaDB, using the release ZIP (not the reposito
 ## 6. Publish
 
 - [ ] Git tag `vx.y.z` on the release commit; GitHub release created with the ZIP, `SHA256SUMS` and `build-info.json` attached, and the changelog.
-- [ ] WordPress.org SVN (after directory approval): copy the **unzipped release ZIP** into `trunk/`, `svn cp trunk tags/x.y.z`, update `assets/` from `.wordpress-org/` if changed, review `svn status` and `svn diff`, then commit.
-- [ ] After publication: the plugin page shows the new version, banner, icon and screenshots; the downloadable ZIP from WordPress.org has the same file list as `manifest.json` and only expected differences (WordPress.org may repackage, so compare contents, not the hash).
+- [ ] WordPress.org (after directory approval): publishing the GitHub release runs **Deploy to WordPress.org**, which commits the unzipped release ZIP to `trunk`, tags it and updates `assets/` (see [wordpress-org-release.md](wordpress-org-release.md)). Approve the `wordpress-org` environment when asked.
+- [ ] After publication: the workflow's `verify-wporg.js` step passed (version, banner, icon, screenshots and public ZIP contents match `manifest.json`; WordPress.org repackages, so contents are compared, not the hash), and the plugin page looks right.
 
 ## 7. After release
 

@@ -16,6 +16,7 @@
     "test:php": "php tests/menu-save-cache.php && php tests/first-run-setup.php && php tests/featured-card.php && php tests/preview-markup.php && php tests/backup-access.php && php tests/import-roundtrip.php && php tests/product-persistence.php && php tests/menu-zero-entrypoints.php && php tests/upload-metadata.php && php tests/cli-export.php && php tests/readiness-checks.php && php tests/uninstall-cleanup.php single && php tests/uninstall-cleanup.php multisite && php tests/uninstall-cleanup.php denied && php tests/uninstall-cleanup.php failure && php tests/uninstall-cleanup.php multi-network",
     "build:brand": "node scripts/build-brand.js",
     "test:e2e": "playwright test -c tests/e2e/playwright.config.js",
+    "check:versions": "node scripts/check-versions.js",
     "i18n": "node scripts/i18n.js",
     "i18n:check": "node scripts/i18n.js --check"
   },
