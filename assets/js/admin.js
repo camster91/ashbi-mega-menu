@@ -3550,8 +3550,14 @@
 		$(window).on('resize', function () { if (previewCanvas) previewCanvas.refresh(); });
 		var stage = $('.abmm-preview-stage')[0];
 		if (stage && typeof window.ResizeObserver === 'function') {
-			// A fitted canvas follows the frame when its height changes.
-			new window.ResizeObserver(function () { applyPreviewZoom(); }).observe(stage);
+			// A fitted canvas follows the frame when its height changes. Resize in
+			// the next frame: changing the stage inside the observer's own
+			// callback makes browsers report a ResizeObserver loop.
+			var resizeFrame = 0;
+			new window.ResizeObserver(function () {
+				window.cancelAnimationFrame(resizeFrame);
+				resizeFrame = window.requestAnimationFrame(applyPreviewZoom);
+			}).observe(stage);
 		}
 	}
 
