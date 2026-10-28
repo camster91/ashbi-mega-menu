@@ -1,6 +1,6 @@
 # Accessibility and compatibility verification
 
-This is the remaining verification procedure for issues #3 and #4, not a completed audit or a conformance claim. Record actual results in `docs/compatibility.md`, including commit, date, WordPress/PHP/database versions, theme/version, browser/version, operating system and assistive technology/version. Existing JSDOM tests verify interaction contracts without layout; PHP tests verify storage/rendering without a browser.
+This is the verification procedure for issues #3 and #4, not a conformance claim. Results so far are in [accessibility.md](accessibility.md). Record actual results in `docs/compatibility.md`, including commit, date, WordPress/PHP/database versions, theme/version, browser/version, operating system and assistive technology/version. Existing JSDOM tests verify interaction contracts without layout; PHP tests verify storage/rendering without a browser.
 
 ## Disposable fixture
 

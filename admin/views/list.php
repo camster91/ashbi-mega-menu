@@ -337,7 +337,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</summary>
 		<div class="abmm-import-panel__body">
 			<div class="abmm-import-upload">
-				<h4><?php esc_html_e( 'Import from JSON file', 'ashbi-mega-menu' ); ?></h4>
+				<h3><?php esc_html_e( 'Import from JSON file', 'ashbi-mega-menu' ); ?></h3>
 				<p class="description"><?php esc_html_e( 'Upload a .json file to preview changes before importing. Your current menus are backed up before replacement.', 'ashbi-mega-menu' ); ?></p>
 				<p class="description"><?php printf( /* translators: %s: maximum formatted import size. */ esc_html__( 'Maximum import file size: %s.', 'ashbi-mega-menu' ), esc_html( size_format( ABMM_Import_Export::MAX_IMPORT_BYTES ) ) ); ?></p>
 				<form class="abmm-import-form" id="abmm-import-form" enctype="multipart/form-data">
@@ -365,7 +365,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</form>
 			</div>
 			<div class="abmm-import-api">
-				<h4><?php esc_html_e( 'For developers & AI agents', 'ashbi-mega-menu' ); ?></h4>
+				<h3><?php esc_html_e( 'For developers & AI agents', 'ashbi-mega-menu' ); ?></h3>
 				<p class="description"><?php esc_html_e( 'Programmatically manage menus using the REST API or WP-CLI.', 'ashbi-mega-menu' ); ?></p>
 				<div class="abmm-api-refs">
 					<div class="abmm-api-ref">
@@ -412,7 +412,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	</section>
 
-	<footer class="abmm-dash-footer">
+	<div class="abmm-dash-footer">
 		<a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/getting-started.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Getting started', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a>
 		<a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/user-guide.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'User guide', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a>
 		<a href="https://github.com/camster91/ashbi-mega-menu/issues" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Report an issue', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a>
@@ -420,5 +420,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 		/* translators: %s: plugin version number. */
 		printf( esc_html__( 'Version %s', 'ashbi-mega-menu' ), esc_html( ABMM_VERSION ) );
 		?></span>
-	</footer>
+	</div>
 </div>

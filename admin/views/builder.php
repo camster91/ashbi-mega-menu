@@ -41,7 +41,7 @@ $menu['context'] = wp_parse_args(
 $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 ?>
 <div class="wrap abmm-wrap abmm-builder-wrap">
-	<header class="abmm-page-header abmm-builder-header abmm-builder-topbar">
+	<div class="abmm-page-header abmm-builder-header abmm-builder-topbar">
 		<img class="abmm-builder-header__logo" src="<?php echo esc_url( ABMM_PLUGIN_URL . 'assets/brand/icon.svg' ); ?>" width="40" height="40" alt="" />
 		<div class="abmm-builder-header__titles">
 			<a class="abmm-back abmm-guarded-exit" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>">
@@ -77,7 +77,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<span class="dashicons dashicons-yes" aria-hidden="true" hidden></span><span class="abmm-save-menu__label"><?php esc_html_e( 'Save changes', 'ashbi-mega-menu' ); ?></span>
 			</button>
 		</div>
-	</header>
+	</div>
 	<hr class="wp-header-end" />
 
 	<div class="abmm-builder-load-error" id="abmm-builder-load-error" role="alert" tabindex="-1" hidden>
@@ -463,7 +463,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 			</div>
 		</aside>
 
-		<main class="abmm-builder__main">
+		<div class="abmm-builder__main">
 			<div class="abmm-editor-chrome">
 				<button type="button" class="button abmm-builder-panel-toggle" aria-controls="abmm-builder-sidebar" aria-expanded="false">
 					<span class="dashicons dashicons-edit" aria-hidden="true"></span><?php esc_html_e( 'Edit menu', 'ashbi-mega-menu' ); ?>
@@ -629,7 +629,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					</div>
 				</section>
 			</div>
-		</main>
+		</div>
 		<div class="abmm-builder-panel-backdrop" id="abmm-builder-panel-backdrop" hidden aria-hidden="true"></div>
 	</div>
 </div>

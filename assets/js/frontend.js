@@ -640,9 +640,13 @@
 		// A bar low on the screen, such as a footer or sidebar widget, would
 		// leave no room for the drawer below it. Open from the top instead.
 		var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+		var coversBar = false;
 		if (viewportHeight && offset > viewportHeight - Math.min(320, viewportHeight / 2)) {
+			// The drawer now covers the bar and its close button: show the drawer's own.
+			coversBar = offset > adminOffset;
 			offset = adminOffset;
 		}
+		header.classList.toggle('abmm-drawer-covers-bar', coversBar);
 		header.style.setProperty('--abmm-mobile-offset', offset + 'px');
 	}
 

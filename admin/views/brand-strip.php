@@ -59,7 +59,7 @@ $abmm_header_current = (string) ( $abmm_page_header['current'] ?? '' );
 $abmm_header_actions = is_array( $abmm_page_header['actions'] ?? null ) ? $abmm_page_header['actions'] : array();
 $abmm_header_tabbed  = ! isset( $abmm_page_header['tabs'] ) || ! empty( $abmm_page_header['tabs'] );
 ?>
-<header class="abmm-dash-header abmm-page-header<?php echo $abmm_header_tabbed ? ' has-tabs' : ''; ?>">
+<div class="abmm-dash-header abmm-page-header<?php echo $abmm_header_tabbed ? ' has-tabs' : ''; ?>">
 	<div class="abmm-page-header__top">
 		<div class="abmm-logo-title">
 			<img src="<?php echo esc_url( ABMM_PLUGIN_URL . 'assets/brand/icon.svg' ); ?>" width="40" height="40" alt="" />
@@ -112,5 +112,5 @@ $abmm_header_tabbed  = ! isset( $abmm_page_header['tabs'] ) || ! empty( $abmm_pa
 			<?php endforeach; ?>
 		</nav>
 	<?php endif; ?>
-</header>
+</div>
 <hr class="wp-header-end" />

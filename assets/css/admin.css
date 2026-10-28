@@ -1733,7 +1733,7 @@ button.abmm-preset-card:hover {
 }
 
 .abmm-import-preview[hidden] { display: none; }
-.abmm-import-preview h4 { margin: 0 0 0.65rem; }
+.abmm-import-preview h3 { margin: 0 0 0.65rem; font-size: 14px; }
 .abmm-import-preview__list { margin: 0 0 0.75rem 1.25rem; list-style: disc; }
 .abmm-import-preview__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .abmm-import-preview .is-warning { color: #8a4b00; font-weight: 600; }

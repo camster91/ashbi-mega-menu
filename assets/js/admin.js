@@ -1071,7 +1071,7 @@
 
 	function renderImportPreview(preview, onConfirm) {
 		var $preview = $('#abmm-import-preview').empty().prop('hidden', false);
-		$('<h4 />').text(S.importPreview).appendTo($preview);
+		$('<h3 />').text(S.importPreview).appendTo($preview);
 		var $list = $('<ul class="abmm-import-preview__list" />').appendTo($preview);
 		(preview.changes || []).forEach(function (change) {
 			var labels = { create: __('Create', 'ashbi-mega-menu'), update: __('Update', 'ashbi-mega-menu'), create_copy: __('Create independent copy', 'ashbi-mega-menu') };
@@ -2787,10 +2787,10 @@
 			var stuck = $header.length && $header.css('position') === 'sticky';
 			var clearance = 16 + (stuck ? (parseFloat($header.css('top')) || 0) + ($header.outerHeight() || 0) : 32);
 			$('html, body').animate({ scrollTop: $('#abmm-mega-editor').offset().top - clearance }, 200);
-			// Opened from the drawer, the button that was pressed is now hidden: move focus into the editor.
-			if (!$(state.megaEditorOpener).is(':visible') || $(state.megaEditorOpener).is('.abmm-builder-panel-toggle')) {
-				setTimeout(function () { $('#abmm-mega-editor-title').trigger('focus'); }, 0);
-			}
+			// The editor replaces the preview, which comes before the inspector in
+			// tab order: move focus to its title so keyboard and screen-reader users
+			// land in it. Closing returns focus to the button that opened it.
+			setTimeout(function () { $('#abmm-mega-editor-title').trigger('focus'); }, 0);
 		}
 	}
 
@@ -3529,13 +3529,22 @@
 			else if (action === 'actual') previewCanvas.zoomTo(1, null, true);
 			else previewCanvas.step(action === 'in' ? 1 : -1);
 		});
-		$('.abmm-preview-zoom').on('click', '.abmm-preview-zoom__value', function () {
-			setZoomMenuOpen($(this).attr('aria-expanded') !== 'true', false);
+		$('.abmm-preview-zoom').on('click', '.abmm-preview-zoom__value', function (event) {
+			// Opened from the keyboard (Enter or Space), focus the first preset, as
+			// in a standard menu button; a mouse click leaves focus on the button.
+			setZoomMenuOpen($(this).attr('aria-expanded') !== 'true', event.detail === 0);
 		});
 		$('.abmm-preview-zoom').on('keydown', '.abmm-preview-zoom__value', function (event) {
-			if (event.key !== 'ArrowDown') return;
+			if (event.key === 'Escape' && $(this).attr('aria-expanded') === 'true') {
+				event.preventDefault();
+				setZoomMenuOpen(false);
+				return;
+			}
+			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
 			event.preventDefault();
-			setZoomMenuOpen(true, true);
+			setZoomMenuOpen(true, false);
+			var $items = $('#abmm-zoom-presets [role="menuitem"]');
+			(event.key === 'ArrowUp' ? $items.last() : $items.first()).trigger('focus');
 		});
 		$('#abmm-zoom-presets').on('click', '[data-abmm-zoom-preset]', function () {
 			var preset = String($(this).attr('data-abmm-zoom-preset'));
@@ -4198,18 +4207,19 @@
 						'</li>';
 				});
 				var colTitle = '';
+				var colTitleId = group.title ? 'abmm-preview-col-' + uid() : '';
 				if (group.title) {
 					colTitle =
-						'<h4 class="abmm-mega__col-title">' +
+						'<div class="abmm-mega__col-title" id="' + colTitleId + '">' +
 						(group.url
 							? '<a href="' + esc(group.url) + '">' + esc(group.title) + '</a>'
 							: esc(group.title)) +
-						'</h4>';
+						'</div>';
 				}
 				colsHtml +=
 					'<div class="abmm-mega__col">' +
 					colTitle +
-					'<ul class="abmm-mega__col-list">' +
+					'<ul class="abmm-mega__col-list"' + (colTitleId ? ' aria-labelledby="' + colTitleId + '"' : '') + '>' +
 					links +
 					'</ul></div>';
 			});
@@ -4256,11 +4266,11 @@
 				(active ? '' : ' hidden') +
 				'>' +
 				(cat.panel_title
-					? '<h3 class="abmm-mega__panel-title">' +
+					? '<p class="abmm-mega__panel-title">' +
 					  (cat.panel_url
 							? '<a href="' + esc(cat.panel_url) + '">' + esc(cat.panel_title) + '</a>'
 							: esc(cat.panel_title)) +
-					  '</h3>'
+					  '</p>'
 					: '') +
 				'<div class="abmm-mega__columns" style="--abmm-col-count:' +
 				Math.max(1, groups.length) +
