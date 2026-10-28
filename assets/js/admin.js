@@ -3508,6 +3508,8 @@
 		var shell = $('.abmm-preview-shell')[0];
 		var sizer = shell && shell.querySelector('.abmm-preview-sizer');
 		try { if (window.localStorage.getItem(HINT_KEY)) $('.abmm-canvas-hint').prop('hidden', true); } catch (e) { /* private window */ }
+		// The hint is a one-time nudge: it never stays over the frame for long.
+		setTimeout(hideCanvasHint, 8000);
 		if (shell && sizer && window.ABMMPreviewCanvas) {
 			previewCanvas = window.ABMMPreviewCanvas.create({
 				shell: shell,
