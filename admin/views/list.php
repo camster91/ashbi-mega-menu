@@ -317,6 +317,43 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</details>
 
+	<?php $abmm_nav_menus = function_exists( 'wp_get_nav_menus' ) ? wp_get_nav_menus() : array(); ?>
+	<details class="abmm-tool" id="abmm-nav-import-panel">
+		<summary>
+			<span class="abmm-tool__icon dashicons dashicons-menu" aria-hidden="true"></span>
+			<span class="abmm-tool__text"><strong><?php esc_html_e( 'Import from WordPress menu', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Start from a menu you already built under Appearance → Menus.', 'ashbi-mega-menu' ); ?></small></span>
+		</summary>
+		<div class="abmm-tool__body">
+			<?php if ( empty( $abmm_nav_menus ) ) : ?>
+				<p class="description abmm-nav-import__empty"><?php esc_html_e( 'This site has no classic WordPress menus to import. Menus built in the Site Editor (block themes) are not supported yet.', 'ashbi-mega-menu' ); ?></p>
+			<?php else : ?>
+				<p class="description"><?php esc_html_e( 'Creates a new draft. The WordPress menu and your theme are not changed, and the draft is not placed anywhere until you place it.', 'ashbi-mega-menu' ); ?></p>
+				<div class="abmm-nav-import__controls">
+					<label class="abmm-field">
+						<span><?php esc_html_e( 'WordPress menu', 'ashbi-mega-menu' ); ?></span>
+						<select id="abmm-nav-import-menu">
+							<?php foreach ( $abmm_nav_menus as $abmm_nav_menu ) : ?>
+								<option value="<?php echo esc_attr( (string) $abmm_nav_menu->term_id ); ?>">
+									<?php
+									/* translators: 1: WordPress menu name, 2: number of items. */
+									echo esc_html( sprintf( _n( '%1$s (%2$d item)', '%1$s (%2$d items)', (int) $abmm_nav_menu->count, 'ashbi-mega-menu' ), $abmm_nav_menu->name, (int) $abmm_nav_menu->count ) );
+									?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+					</label>
+					<button type="button" class="button abmm-nav-import-preview"><?php esc_html_e( 'Preview', 'ashbi-mega-menu' ); ?></button>
+				</div>
+				<div id="abmm-nav-import-result" class="abmm-nav-import__result" aria-live="polite" hidden></div>
+				<div class="abmm-nav-import__actions">
+					<button type="button" class="button button-primary abmm-nav-import-confirm" disabled aria-describedby="abmm-nav-import-hint"><?php esc_html_e( 'Import as draft', 'ashbi-mega-menu' ); ?></button>
+					<span class="description" id="abmm-nav-import-hint"><?php esc_html_e( 'Preview the menu first.', 'ashbi-mega-menu' ); ?></span>
+				</div>
+				<p id="abmm-nav-import-status" class="abmm-nav-import__status" role="status"></p>
+			<?php endif; ?>
+		</div>
+	</details>
+
 	<details class="abmm-tool" id="abmm-backup-panel">
 		<summary>
 			<span class="abmm-tool__icon dashicons dashicons-backup" aria-hidden="true"></span>

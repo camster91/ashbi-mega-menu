@@ -582,3 +582,19 @@
 .abmm-wrap .abmm-icon-style[open] > summary::before {transform:rotate(45deg)}
 /* The live drawer is min(420px, 100vw) wide; in the 390px phone frame it must fit the frame. */
 .abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview .abmm-nav__drawer {width:100%;max-width:100%;box-sizing:border-box}
+
+/* Import from a classic WordPress menu */
+.abmm-nav-import__controls {display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:12px 0}
+.abmm-nav-import__controls .abmm-field {flex:0 1 320px;margin:0}
+.abmm-nav-import__controls select {width:100%;max-width:none}
+.abmm-nav-import__result {margin:0 0 14px;padding:14px 16px;border:1px solid var(--abmm-brand-line);border-radius:10px;background:#fbfcfe}
+.abmm-nav-import__result[hidden] {display:none}
+.abmm-nav-import__title {margin:0 0 10px;font-size:14px}
+.abmm-nav-import__section h4 {margin:12px 0 4px;font-size:13px}
+.abmm-nav-import__section ul {margin:0;padding-left:18px;list-style:disc}
+.abmm-nav-import__section li {margin:2px 0}
+.abmm-nav-import__section.is-warning h4 {color:#9a5b00}
+.abmm-nav-import__count {margin:10px 0 0;font-weight:600}
+.abmm-nav-import__actions {display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.abmm-nav-import__status {min-height:1.4em;margin:8px 0 0}
+.abmm-nav-import__status.is-error {color:#b32d2e}

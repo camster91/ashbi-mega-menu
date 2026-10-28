@@ -975,8 +975,112 @@
 		});
 	}
 
+	/* Import from a classic WordPress menu: preview (a dry run), then import as a draft. */
+	function initNavMenuImport() {
+		var $panel = $('#abmm-nav-import-panel');
+		if (!$panel.length) return;
+		var $select = $('#abmm-nav-import-menu');
+		var $result = $('#abmm-nav-import-result');
+		var $confirm = $panel.find('.abmm-nav-import-confirm');
+		var $hint = $('#abmm-nav-import-hint');
+		var $status = $('#abmm-nav-import-status');
+		var previewed = '';
+
+		function status(message, isError) {
+			$status.text(message || '').toggleClass('is-error', !!isError).attr('role', isError ? 'alert' : 'status');
+		}
+
+		function reset() {
+			previewed = '';
+			$result.empty().prop('hidden', true);
+			$confirm.prop('disabled', true);
+			$hint.text(__('Preview the menu first.', 'ashbi-mega-menu')).prop('hidden', false);
+			status('');
+		}
+
+		function list(title, rows, className) {
+			if (!rows.length) return;
+			var $section = $('<div class="abmm-nav-import__section" />').addClass(className || '').appendTo($result);
+			$('<h4 />').text(title).appendTo($section);
+			var $ul = $('<ul />').appendTo($section);
+			rows.forEach(function (text) { $('<li />').text(text).appendTo($ul); });
+		}
+
+		function render(data) {
+			var report = data.report || {};
+			$result.empty().prop('hidden', false);
+			/* translators: %s: the new menu's title. */
+			$('<h3 class="abmm-nav-import__title" />').text(sprintf(__('Preview: %s', 'ashbi-mega-menu'), data.title || '')).appendTo($result);
+			list(__('Menu bar', 'ashbi-mega-menu'), (data.summary || []).map(function (item) {
+				/* translators: %s: menu item label. */
+				if (item.type !== 'mega') return sprintf(__('%s: link', 'ashbi-mega-menu'), item.label);
+				var links = (item.categories || []).reduce(function (sum, cat) { return sum + (cat.links || 0); }, 0);
+				if (item.columns_only) {
+					/* translators: 1: menu item label, 2: number of links. */
+					return sprintf(_n('%1$s: mega menu with %2$d link', '%1$s: mega menu with %2$d links', links, 'ashbi-mega-menu'), item.label, links);
+				}
+				/* translators: 1: menu item label, 2: number of categories, 3: number of links. */
+				return sprintf(__('%1$s: mega menu with %2$d categories and %3$d links', 'ashbi-mega-menu'), item.label, (item.categories || []).length, links);
+			}), 'is-outline');
+			/* translators: %d: number of menu entries. */
+			$('<p class="abmm-nav-import__count" />').text(sprintf(_n('%d entry will be imported.', '%d entries will be imported.', report.imported || 0, 'ashbi-mega-menu'), report.imported || 0)).appendTo($result);
+			list(__('Moved up a level', 'ashbi-mega-menu'), (report.flattened || []).map(function (row) {
+				/* translators: 1: menu item label, 2: its depth in the WordPress menu, 3: where it now appears. */
+				return sprintf(__('%1$s (level %2$d) is now %3$s.', 'ashbi-mega-menu'), row.label, row.depth, row.into);
+			}), 'is-info');
+			list(__('Skipped', 'ashbi-mega-menu'), (report.skipped || []).map(function (row) {
+				return row.label + ': ' + row.reason;
+			}), 'is-warning');
+			list(__('Check after importing', 'ashbi-mega-menu'), report.warnings || [], 'is-warning');
+		}
+
+		function request(mode) {
+			return $.post(abmmAdmin.ajaxUrl, { action: 'abmm_import_nav_menu', nonce: abmmAdmin.nonce, term_id: String($select.val() || ''), mode: mode });
+		}
+
+		$select.on('change', reset);
+		$panel.find('.abmm-nav-import-preview').on('click', function () {
+			var $button = $(this).prop('disabled', true);
+			var term = String($select.val() || '');
+			reset();
+			status(__('Reading the WordPress menu…', 'ashbi-mega-menu'));
+			request('preview').done(function (res) {
+				if (!res || !res.success || !res.data) { status(responseMessage(res, __('The menu could not be read.', 'ashbi-mega-menu')), true); return; }
+				render(res.data);
+				previewed = term;
+				$confirm.prop('disabled', false);
+				$hint.prop('hidden', true);
+				status('');
+			}).fail(function (xhr) {
+				status(requestErrorMessage(xhr, __('The menu could not be read.', 'ashbi-mega-menu')), true);
+			}).always(function () {
+				$button.prop('disabled', false);
+			});
+		});
+		$confirm.on('click', function () {
+			if (!previewed || previewed !== String($select.val() || '')) { reset(); return; }
+			$confirm.prop('disabled', true);
+			status(__('Importing…', 'ashbi-mega-menu'));
+			request('import').done(function (res) {
+				if (!res || !res.success || !res.data || !res.data.edit_url) {
+					status(responseMessage(res, __('The menu could not be imported.', 'ashbi-mega-menu')), true);
+					$confirm.prop('disabled', false);
+					return;
+				}
+				status(__('Imported as a draft. Opening it…', 'ashbi-mega-menu'));
+				// A link too, in case opening the editor is slow or blocked.
+				$status.append(' ', $('<a class="abmm-nav-import__open" />').attr('href', res.data.edit_url).text(__('Open the draft', 'ashbi-mega-menu')));
+				window.location.assign(res.data.edit_url);
+			}).fail(function (xhr) {
+				status(requestErrorMessage(xhr, __('The menu could not be imported.', 'ashbi-mega-menu')), true);
+				$confirm.prop('disabled', false);
+			});
+		});
+	}
+
 	function initListPage() {
 		initBackupRecovery();
+		initNavMenuImport();
 		initCardMenus();
 		$('.abmm-onboarding-choice').on('click', function () {
 			var $buttons = $('.abmm-onboarding-choice').prop('disabled', true);

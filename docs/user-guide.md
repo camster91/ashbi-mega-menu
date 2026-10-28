@@ -10,6 +10,8 @@ Start on a staging copy of your site. Creating a menu does not change the theme 
 
 ## Build and verify a menu
 
+Already have a menu under Appearance → Menus? [Import it](import-wordpress-menus.md) as a starting point.
+
 1. Open **Ashbi Mega Menu** and choose **Start from scratch** or **Use a template**. Give the menu a meaningful name.
 2. Add top-level links, or select **Mega Menu** for a panel with categories and columns. Replace sample labels and placeholder destinations. A panel toggle opens content; a link needs a real destination.
 3. Switch the preview between Desktop, Tablet and Mobile. The preview shows the menu at a real screen width, scaled to fit; use **−**, **+**, **Fit** or Ctrl/⌘ + scroll to zoom. Check labels, contrast, spacing, CTA links and any product-navigation settings.
