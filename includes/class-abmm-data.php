@@ -746,6 +746,88 @@ class ABMM_Data {
 	}
 
 	/**
+	 * Create a draft menu from published pages chosen on first run.
+	 *
+	 * Pages keep the chosen order. A page whose parent was also chosen goes
+	 * into that parent's dropdown (one set of link columns); the others are
+	 * links in the menu bar. Nothing is placed on the site.
+	 *
+	 * @param int[] $page_ids Page IDs, in the order chosen.
+	 * @return string|false|WP_Error New menu ID, write failure, or an error.
+	 */
+	public function create_from_pages( $page_ids ) {
+		$pages = array();
+		foreach ( array_slice( array_unique( array_map( 'absint', (array) $page_ids ) ), 0, 50 ) as $page_id ) {
+			$page = $page_id ? get_post( $page_id ) : null;
+			if ( $page && 'page' === $page->post_type && 'publish' === $page->post_status ) {
+				$pages[ $page_id ] = $page;
+			}
+		}
+		if ( ! $pages ) {
+			return new WP_Error( 'abmm_no_pages', __( 'Choose at least one published page.', 'ashbi-mega-menu' ) );
+		}
+
+		$children = array();
+		foreach ( $pages as $page_id => $page ) {
+			$parent = (int) $page->post_parent;
+			$children[ isset( $pages[ $parent ] ) ? $parent : 0 ][] = $page_id;
+		}
+		$link = function ( $page ) {
+			$title = trim( wp_strip_all_tags( (string) $page->post_title ) );
+			return array(
+				'id'    => 'page_' . $page->ID,
+				'label' => '' !== $title ? $title : __( '(no title)', 'ashbi-mega-menu' ),
+				'url'   => (string) get_permalink( $page ),
+			);
+		};
+		$items = array();
+		foreach ( $children[0] ?? array() as $page_id ) {
+			$item = array_merge( $link( $pages[ $page_id ] ), array( 'type' => 'link' ) );
+			// Grandchildren follow their parent in the same dropdown.
+			$below   = array();
+			$collect = function ( $id ) use ( &$collect, &$below, $children, $pages, $link ) {
+				foreach ( $children[ $id ] ?? array() as $child ) {
+					$below[] = array_merge( $link( $pages[ $child ] ), array( 'description' => '', 'icon' => '' ) );
+					$collect( $child );
+				}
+			};
+			$collect( $page_id );
+			if ( $below ) {
+				$columns = max( 1, min( 4, (int) ceil( count( $below ) / 6 ) ) );
+				$groups  = array();
+				foreach ( array_chunk( $below, (int) ceil( count( $below ) / $columns ) ) as $index => $chunk ) {
+					$groups[] = array( 'id' => 'col_' . $page_id . '_' . $index, 'title' => '', 'links' => $chunk );
+				}
+				$item = array_merge(
+					$item,
+					array(
+						'type'              => 'mega',
+						'mega_style'        => 'platforms',
+						'hide_category_bar' => true,
+						'columns'           => $columns,
+						'categories'        => array( array( 'id' => 'cat_' . $page_id, 'title' => $item['label'], 'groups' => $groups ) ),
+						'links'             => array(),
+					)
+				);
+			}
+			$items[] = $item;
+		}
+
+		return $this->with_collection_lock(
+			function () use ( $items ) {
+				$id = $this->create_unlocked( __( 'Main menu', 'ashbi-mega-menu' ) );
+				if ( ! $id ) {
+					return false;
+				}
+				$menus               = $this->get_all();
+				$menus[ $id ]['items'] = $items;
+				$menus[ $id ]          = $this->sanitize_menu( $menus[ $id ] );
+				return update_option( ABMM_OPTION_KEY, $menus ) ? $id : false;
+			}
+		);
+	}
+
+	/**
 	 * Duplicate a menu with independent nested IDs.
 	 *
 	 * @param string $id Existing menu ID.
@@ -1044,9 +1126,32 @@ class ABMM_Data {
 					}
 				}
 			}
+
+			$out['featured'] = $this->sanitize_featured( $item['featured'] ?? array() );
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Sanitize the optional featured card of a mega item.
+	 *
+	 * Older menus have no card, so a missing or malformed value becomes an
+	 * empty, hidden card.
+	 *
+	 * @param mixed $featured Raw featured card data.
+	 * @return array
+	 */
+	private function sanitize_featured( $featured ) {
+		$featured = is_array( $featured ) ? $featured : array();
+		return array(
+			'show'      => ! empty( $featured['show'] ) && 'false' !== $featured['show'] && '0' !== $featured['show'],
+			'title'     => $this->sanitize_text( $featured['title'] ?? '' ),
+			'text'      => $this->sanitize_text( $featured['text'] ?? '' ),
+			'label'     => $this->sanitize_text( $featured['label'] ?? '' ),
+			'url'       => $this->sanitize_menu_url( $featured['url'] ?? '' ),
+			'image_url' => $this->sanitize_menu_url( $featured['image_url'] ?? '' ),
+		);
 	}
 
 	/**
