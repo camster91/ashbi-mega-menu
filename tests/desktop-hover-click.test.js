@@ -22,6 +22,7 @@ const dom = new JSDOM(
 					</ul>
 				</nav>
 			</header>
+			<a id="after" href="/after">After the menu</a>
 		</body>
 	</html>`,
 	{ runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://example.test/' }
@@ -57,5 +58,22 @@ assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'a second click clo
 trigger.click();
 assert.equal(trigger.getAttribute('aria-expanded'), 'true', 'click without hover opens the panel');
 
-console.log('Desktop hover then click keeps the panel open.');
+// Tabbing out of the menu closes the panel and its scrim.
+const header = window.document.querySelector('.abmm-header');
+const inside = item.querySelector('.abmm-mega a');
+inside.focus();
+assert.equal(trigger.getAttribute('aria-expanded'), 'true', 'focus inside the panel keeps it open');
+window.document.getElementById('after').focus();
+assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'tabbing out of the menu closes the panel');
+assert.equal(item.querySelector('[data-abmm-mega-panel]').hidden, true);
+assert.equal(header.classList.contains('abmm-has-open-menu'), false, 'and removes the page scrim');
+
+// Clicking blank space (no new focus target) leaves an open panel alone.
+trigger.click();
+assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+inside.focus();
+inside.blur();
+assert.equal(trigger.getAttribute('aria-expanded'), 'true', 'a blur with no new focus target keeps the panel open');
+
+console.log('Desktop hover then click keeps the panel open, and tabbing out closes it.');
 dom.window.close();
