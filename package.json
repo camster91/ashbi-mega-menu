@@ -12,7 +12,8 @@
     "build": "wp-scripts build --webpack-src-dir=src",
     "build:icons": "node scripts/build-icons.js",
     "package": "node scripts/package.js",
-    "test": "node tests/mobile-enhancements.test.js && node tests/frontend-interactions.test.js && node tests/admin-interactions.test.js && node tests/nav-menu-import-ui.test.js && node tests/archive-interactions.test.js && node tests/desktop-hover-click.test.js && node tests/frontend-events.test.js && node tests/preview-canvas.test.js && node tests/admin-i18n.test.js && node tests/mobile-drawer-offset.test.js && node tests/readiness-ui.test.js",
+    "test": "npm run test:release && node tests/mobile-enhancements.test.js && node tests/frontend-interactions.test.js && node tests/admin-interactions.test.js && node tests/nav-menu-import-ui.test.js && node tests/archive-interactions.test.js && node tests/desktop-hover-click.test.js && node tests/frontend-events.test.js && node tests/preview-canvas.test.js && node tests/admin-i18n.test.js && node tests/mobile-drawer-offset.test.js && node tests/readiness-ui.test.js",
+    "test:release": "node --test tests/release-workflow.test.js tests/verify-wporg.test.js",
     "test:php": "php tests/menu-save-cache.php && php tests/extension-hooks.php && php tests/nav-menu-import.php && php tests/first-run-setup.php && php tests/featured-card.php && php tests/preview-markup.php && php tests/backup-access.php && php tests/import-roundtrip.php && php tests/product-persistence.php && php tests/menu-zero-entrypoints.php && php tests/upload-metadata.php && php tests/cli-export.php && php tests/readiness-checks.php && php tests/uninstall-cleanup.php single && php tests/uninstall-cleanup.php multisite && php tests/uninstall-cleanup.php denied && php tests/uninstall-cleanup.php failure && php tests/uninstall-cleanup.php multi-network",
     "build:brand": "node scripts/build-brand.js",
     "test:e2e": "playwright test -c tests/e2e/playwright.config.js",
@@ -29,6 +30,7 @@
     "adm-zip": "0.5.18",
     "axe-core": "4.14.0",
     "jquery": "3.7.1",
+    "js-yaml": "4.3.2",
     "jsdom": "26.1.0",
     "lucide-static": "1.54.0",
     "sharp": "0.35.5"
