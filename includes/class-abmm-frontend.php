@@ -29,6 +29,13 @@ class ABMM_Frontend {
 	private $render_sequence = 0;
 
 	/**
+	 * Whether the current render is the editor's device preview.
+	 *
+	 * @var bool
+	 */
+	private $preview_mode = false;
+
+	/**
 	 * @return ABMM_Frontend
 	 */
 	public static function instance() {
@@ -119,7 +126,37 @@ class ABMM_Frontend {
 		if ( ! $menu ) {
 			return '';
 		}
+		return $this->render_menu( $menu, $menu_id, $args );
+	}
 
+	/**
+	 * Render unsaved menu data for the editor's device preview.
+	 *
+	 * Uses the same markup as the live site, plus a data attribute on each link
+	 * so a click in the preview can select the matching link in the editor.
+	 *
+	 * @param array  $menu    Sanitized menu data.
+	 * @param string $menu_id Menu ID.
+	 * @return string HTML
+	 */
+	public function render_preview( $menu, $menu_id ) {
+		$this->preview_mode = true;
+		try {
+			return $this->render_menu( $menu, $menu_id, array( 'presentation' => 'stacked' ) );
+		} finally {
+			$this->preview_mode = false;
+		}
+	}
+
+	/**
+	 * Render menu data.
+	 *
+	 * @param array  $menu    Menu data.
+	 * @param string $menu_id Menu ID.
+	 * @param array  $args    Optional args.
+	 * @return string HTML
+	 */
+	private function render_menu( $menu, $menu_id, $args ) {
 		$settings = wp_parse_args(
 			$menu['settings'] ?? array(),
 			ABMM_Data::default_settings()
@@ -987,7 +1024,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 		$has_url   = ! empty( $link['url'] );
 		ob_start();
 		?>
-		<li class="abmm-mega__col-item">
+		<li class="abmm-mega__col-item"<?php echo $this->preview_link_attr( $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<?php if ( $has_url ) : ?>
 				<a <?php echo $this->link_attrs( $link, 'abmm-mega__col-link' . ( $has_icon ? ' has-icon' : '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $link['url'] ); ?>">
 			<?php else : ?>
@@ -1044,6 +1081,19 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 	}
 
 	/**
+	 * Preview-only link ID attribute, empty on the live site.
+	 *
+	 * @param array $link Link data.
+	 * @return string Escaped attribute with a leading space, or ''.
+	 */
+	private function preview_link_attr( $link ) {
+		if ( ! $this->preview_mode || empty( $link['id'] ) ) {
+			return '';
+		}
+		return ' data-abmm-link-id="' . esc_attr( (string) $link['id'] ) . '"';
+	}
+
+	/**
 	 * Render one grid link row.
 	 *
 	 * @param array $link Link data.
@@ -1054,7 +1104,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 		$has_url = ! empty( $link['url'] );
 		ob_start();
 		?>
-		<li class="abmm-mega__grid-item">
+		<li class="abmm-mega__grid-item"<?php echo $this->preview_link_attr( $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<?php if ( $has_url ) : ?>
 				<a <?php echo $this->link_attrs( $link, 'abmm-mega__grid-link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $link['url'] ); ?>">
 			<?php else : ?>

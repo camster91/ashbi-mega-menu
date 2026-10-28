@@ -476,9 +476,19 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				</div>
 				<div class="abmm-preview-zoom" role="group" aria-label="<?php esc_attr_e( 'Preview zoom', 'ashbi-mega-menu' ); ?>">
 					<button type="button" class="button" data-abmm-zoom="out" aria-label="<?php esc_attr_e( 'Zoom out', 'ashbi-mega-menu' ); ?>">&minus;</button>
-					<output class="abmm-preview-zoom__value" aria-live="polite">100%</output>
+					<div class="abmm-zoom-menu">
+						<button type="button" class="button abmm-preview-zoom__value" aria-haspopup="menu" aria-expanded="false" aria-controls="abmm-zoom-presets" title="<?php esc_attr_e( 'Zoom level', 'ashbi-mega-menu' ); ?>">100%</button>
+						<div class="abmm-zoom-menu__list" id="abmm-zoom-presets" role="menu" aria-label="<?php esc_attr_e( 'Zoom level', 'ashbi-mega-menu' ); ?>" hidden>
+							<?php foreach ( array( 25, 50, 75, 100, 150, 200 ) as $abmm_zoom_preset ) : ?>
+								<button type="button" role="menuitem" tabindex="-1" data-abmm-zoom-preset="<?php echo esc_attr( (string) ( $abmm_zoom_preset / 100 ) ); ?>"><?php echo esc_html( $abmm_zoom_preset . '%' ); ?></button>
+							<?php endforeach; ?>
+							<button type="button" role="menuitem" tabindex="-1" data-abmm-zoom-preset="fit" class="abmm-zoom-menu__fit"><?php esc_html_e( 'Zoom to fit', 'ashbi-mega-menu' ); ?><kbd aria-hidden="true">Ctrl 0</kbd></button>
+						</div>
+					</div>
 					<button type="button" class="button" data-abmm-zoom="in" aria-label="<?php esc_attr_e( 'Zoom in', 'ashbi-mega-menu' ); ?>">+</button>
-					<button type="button" class="button" data-abmm-zoom="fit" aria-pressed="true"><?php esc_html_e( 'Fit', 'ashbi-mega-menu' ); ?></button>
+					<span class="abmm-preview-zoom__divider" aria-hidden="true"></span>
+					<button type="button" class="button" data-abmm-zoom="fit" aria-pressed="true" title="<?php esc_attr_e( 'Zoom to fit (Ctrl/Cmd + 0)', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Fit', 'ashbi-mega-menu' ); ?></button>
+					<button type="button" class="button" data-abmm-zoom="actual" aria-pressed="false" title="<?php esc_attr_e( 'Actual size (Ctrl/Cmd + 1)', 'ashbi-mega-menu' ); ?>">100%</button>
 				</div>
 			</div>
 
@@ -489,6 +499,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 						<div class="abmm-preview" id="abmm-preview" data-abmm-preview-state="desktop-root"></div>
 					</div>
 				</div>
+				<p class="abmm-canvas-hint abmm-canvas-ui"><?php esc_html_e( 'Drag or scroll to move around. Ctrl/Cmd + scroll or pinch to zoom.', 'ashbi-mega-menu' ); ?></p>
 			</div>
 
 			<!-- Detail editor for selected mega item -->

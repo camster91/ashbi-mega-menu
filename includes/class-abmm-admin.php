@@ -36,6 +36,7 @@ class ABMM_Admin {
 		add_action( 'wp_ajax_abmm_export_menu', array( $this, 'ajax_export_menu' ) );
 		add_action( 'wp_ajax_abmm_import_menu', array( $this, 'ajax_import_menu' ) );
 		add_action( 'wp_ajax_abmm_get_menu', array( $this, 'ajax_get_menu' ) );
+		add_action( 'wp_ajax_abmm_preview_markup', array( $this, 'ajax_preview_markup' ) );
 		add_action( 'wp_ajax_abmm_onboarding', array( $this, 'ajax_onboarding' ) );
 		add_action( 'wp_ajax_abmm_menu_references', array( $this, 'ajax_menu_references' ) );
 		add_action( 'wp_ajax_abmm_restore_menu', array( $this, 'ajax_restore_menu' ) );
@@ -99,10 +100,11 @@ class ABMM_Admin {
 		wp_enqueue_script( 'abmm-menu-search-preview', ABMM_PLUGIN_URL . 'assets/js/frontend.js', array(), ABMM_VERSION, true );
 		wp_localize_script( 'abmm-menu-search-preview', 'abmmRuntime', array( 'adminPreview' => true, 'searchStrings' => abmm_menu_search_strings() ) );
 
+		wp_enqueue_script( 'abmm-preview-canvas', ABMM_PLUGIN_URL . 'assets/js/preview-canvas.js', array(), ABMM_VERSION, true );
 		wp_enqueue_script(
 			'abmm-admin',
 			ABMM_PLUGIN_URL . 'assets/js/admin.js',
-			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview' ),
+			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview', 'abmm-preview-canvas' ),
 			ABMM_VERSION,
 			true
 		);
@@ -122,6 +124,14 @@ class ABMM_Admin {
 				'importMaxLabel' => size_format( ABMM_Import_Export::MAX_IMPORT_BYTES ),
 				'restUrl'   => rest_url( ABMM_Import_Export::REST_NAMESPACE ),
 				'restNonce' => wp_create_nonce( 'wp_rest' ),
+				'userId'    => get_current_user_id(),
+				// The phone and tablet previews load the live stylesheet and script
+				// in a frame at the device width, so its media queries apply.
+				'previewAssets' => array(
+					'css'     => add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/css/frontend.css' ),
+					'js'      => add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/js/frontend.js' ),
+					'runtime' => array( 'publicDistribution' => defined( 'ABMM_PUBLIC_DISTRIBUTION' ) && ABMM_PUBLIC_DISTRIBUTION, 'searchStrings' => abmm_menu_search_strings() ),
+				),
 				'strings'   => array(
 					'saved'           => __( 'Menu saved successfully!', 'ashbi-mega-menu' ),
 					'savedState'      => __( 'All changes saved.', 'ashbi-mega-menu' ),
@@ -281,6 +291,31 @@ class ABMM_Admin {
 		} else {
 			include ABMM_PLUGIN_DIR . 'admin/views/list.php';
 		}
+	}
+
+	/**
+	 * Render unsaved menu data with the live markup for the device preview.
+	 * Nothing is stored: the data is sanitized like a save and rendered.
+	 */
+	public function ajax_preview_markup() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
+		$this->verify_ajax();
+
+		$id  = isset( $_POST['menu_id'] ) ? sanitize_key( wp_unslash( $_POST['menu_id'] ) ) : '';
+		$raw = isset( $_POST['menu_data'] ) ? wp_unslash( $_POST['menu_data'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Decoded below and passed through sanitize_menu() before rendering.
+		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid menu data.', 'ashbi-mega-menu' ) ), 400 );
+		}
+		if ( strlen( $raw ) > ABMM_Import_Export::MAX_MENU_BYTES ) {
+			wp_send_json_error( array( 'message' => __( 'Menu data exceeds the 1 MB limit.', 'ashbi-mega-menu' ) ), 413 );
+		}
+		$data = json_decode( $raw, true, 32 );
+		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $data ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid menu data.', 'ashbi-mega-menu' ) ), 400 );
+		}
+
+		$menu = ABMM_Data::instance()->sanitize_menu( $data );
+		wp_send_json_success( array( 'html' => ABMM_Frontend::instance()->render_preview( $menu, '' !== $id ? $id : 'preview' ) ) );
 	}
 
 	/**
