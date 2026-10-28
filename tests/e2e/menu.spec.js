@@ -124,3 +124,35 @@ test.describe('menu editor', () => {
 		expect(errors).toEqual([]);
 	});
 });
+
+test.describe('editor canvas', () => {
+	test.use({ viewport: { width: 1440, height: 900 } });
+
+	test('phone frame runs the live menu and selects in the editor; shortcuts zoom', async ({ page, browserName }) => {
+		await page.goto(pagePath(browserName));
+		const menuId = await page.locator('.abmm-header').first().getAttribute('data-abmm-id');
+		const errors = watchErrors(page);
+		await page.goto(`/wp-admin/admin.php?page=ashbi-mega-menu&edit=${encodeURIComponent(menuId)}`);
+		await expect(page.locator('#abmm-preview .abmm-nav')).toBeVisible();
+
+		const readout = page.locator('.abmm-preview-zoom__value');
+		await page.locator('.abmm-editor-chrome__label').click();
+		await page.keyboard.press('Control+1');
+		await expect(readout).toHaveText('100%');
+		await page.keyboard.press('Control+0');
+		await expect(page.locator('[data-abmm-zoom="fit"]')).toHaveAttribute('aria-pressed', 'true');
+
+		await page.locator('[data-abmm-preview-viewport="mobile"]').click();
+		const frame = page.frameLocator('#abmm-preview iframe.abmm-preview-device');
+		const header = frame.locator('.abmm-header');
+		await expect(header).toHaveClass(/is-mobile-open/);
+		await frame.locator('[data-abmm-mega-trigger]').first().click();
+		await expect(header).toHaveAttribute('data-drill-level', '2');
+
+		await frame.locator('[data-abmm-link-id] a').first().click();
+		await expect(page.locator('#abmm-mega-editor')).toBeVisible();
+		await expect(frame.locator('.abmm-canvas-selected')).toHaveCount(1);
+		expect(errors).toEqual([]);
+	});
+});
+
