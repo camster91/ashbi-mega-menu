@@ -196,6 +196,19 @@ class ABMM_Frontend {
 		if ( ! empty( $settings['header_transparent'] ) ) {
 			$classes[] = 'abmm-header--transparent';
 		}
+		/**
+		 * Whether an open desktop panel dims the page behind it.
+		 *
+		 * The scrim is purely visual: clicks pass through it and close the panel
+		 * like any other outside click. Return false to turn it off.
+		 *
+		 * @param bool   $show     Whether to show the scrim. Default true.
+		 * @param string $menu_id  Menu ID.
+		 * @param array  $settings Menu settings.
+		 */
+		if ( apply_filters( 'abmm_desktop_scrim', true, $menu_id, $settings ) ) {
+			$classes[] = 'abmm-has-scrim';
+		}
 
 		ob_start();
 		?>
@@ -205,17 +218,18 @@ class ABMM_Frontend {
 				<div class="abmm-nav__bar">
 					<?php echo $this->render_brand( $brand, 'bar' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<?php echo $this->render_product_context( $has_product_identity ? array() : $context, 'bar' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<button type="button" class="abmm-nav__toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $instance_id ); ?>-drawer" aria-label="<?php esc_attr_e( 'Open menu', 'ashbi-mega-menu' ); ?>">
-						<span class="abmm-nav__toggle-box" aria-hidden="true">
-							<span class="abmm-nav__toggle-bar"></span>
-						</span>
-					</button>
-
 					<?php if ( ! empty( $cta['show'] ) && ! empty( $cta['label'] ) ) : ?>
 						<a <?php echo $this->link_attrs( $cta, 'abmm-nav__cta abmm-nav__cta--bar' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $cta['url'] ?: '#' ); ?>">
 							<?php echo esc_html( $cta['label'] ); ?>
 						</a>
 					<?php endif; ?>
+
+					<?php // The toggle sits at the far right, after the CTA, and turns into the close button in place. ?>
+					<button type="button" class="abmm-nav__toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $instance_id ); ?>-drawer" aria-label="<?php esc_attr_e( 'Open menu', 'ashbi-mega-menu' ); ?>">
+						<span class="abmm-nav__toggle-box" aria-hidden="true">
+							<span class="abmm-nav__toggle-bar"></span>
+						</span>
+					</button>
 				</div>
 
 				<div class="abmm-nav__drawer" id="<?php echo esc_attr( $instance_id ); ?>-drawer">
@@ -241,9 +255,12 @@ class ABMM_Frontend {
 						<?php endif; ?>
 
 						<?php if ( ! empty( $cta['show'] ) && ! empty( $cta['label'] ) ) : ?>
-							<a <?php echo $this->link_attrs( $cta, 'abmm-nav__cta abmm-nav__cta--drawer' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $cta['url'] ?: '#' ); ?>">
-								<?php echo esc_html( $cta['label'] ); ?>
-							</a>
+							<?php // On phones this block sticks to the bottom of the drawer; on desktop it is just the bar's CTA. ?>
+							<div class="abmm-nav__drawer-foot">
+								<a <?php echo $this->link_attrs( $cta, 'abmm-nav__cta abmm-nav__cta--drawer' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $cta['url'] ?: '#' ); ?>">
+									<?php echo esc_html( $cta['label'] ); ?>
+								</a>
+							</div>
 						<?php endif; ?>
 					</div>
 				</div>
@@ -757,10 +774,15 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 		$icons           = ABMM_Icons::instance();
 		$columns_only    = ! empty( $item['hide_category_bar'] ) && 1 === count( $categories );
 		$columns_compact = $this->is_compact_mega_item( $item );
+		// One category needs no category rail: its columns use the full width.
+		$single_category = 1 === count( $categories );
+		$featured        = $this->render_featured_card( $item );
+		// Several categories collapse to an accordion on phones; the first starts open.
+		$collapsible     = count( $categories ) > 1 && ! $columns_only;
 
 		ob_start();
 		?>
-		<div class="abmm-mega abmm-mega--platforms<?php echo $columns_only ? ' abmm-mega--columns-only' : ''; ?><?php echo $columns_compact ? ' abmm-mega--columns-compact' : ''; ?>" id="<?php echo esc_attr( $uid ); ?>-panel" hidden data-abmm-mega-panel data-abmm-style="platforms">
+		<div class="abmm-mega abmm-mega--platforms<?php echo $columns_only ? ' abmm-mega--columns-only' : ''; ?><?php echo $columns_compact ? ' abmm-mega--columns-compact' : ''; ?><?php echo $single_category ? ' abmm-mega--single' : ''; ?><?php echo '' !== $featured ? ' abmm-mega--has-featured' : ''; ?>" id="<?php echo esc_attr( $uid ); ?>-panel" hidden data-abmm-mega-panel data-abmm-style="platforms">
 			<div class="abmm-mega__inner">
 				<?php if ( ! empty( $categories ) ) : ?>
 					<div class="abmm-mega__accordion" style="--abmm-section-count: <?php echo (int) max( 1, count( $categories ) ); ?>">
@@ -771,7 +793,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 							$active = 0 === $index;
 							$has_current = $this->category_has_current_descendant( $cat );
 							?>
-							<section class="abmm-mega__section<?php echo $active ? ' is-open' : ''; ?><?php echo $has_current ? ' is-current-ancestor' : ''; ?>" data-abmm-section="<?php echo esc_attr( $cat_id ); ?>" style="<?php echo esc_attr( $this->icon_override_vars( $cat ) ); ?>">
+							<section class="abmm-mega__section<?php echo $active ? ' is-open' : ''; ?><?php echo $collapsible ? ' abmm-mega__section--collapsible' : ''; ?><?php echo $has_current ? ' is-current-ancestor' : ''; ?>" data-abmm-section="<?php echo esc_attr( $cat_id ); ?>" style="<?php echo esc_attr( $this->icon_override_vars( $cat ) ); ?>">
 								<button
 									type="button"
 									class="abmm-mega__cat<?php echo $active ? ' is-active' : ''; ?>"
@@ -802,26 +824,91 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 									data-abmm-panel="<?php echo esc_attr( $cat_id ); ?>"
 									<?php echo $active ? '' : 'hidden'; ?>
 								>
+									<?php
+									// Phone layout: every category is a heading followed by its links in one
+									// scroll view. With several categories the heading is an accordion button.
+									$section_body_ids = $cat_uid . '-links' . ( ! empty( $cat['panel_title'] ) ? ' ' . $cat_uid . '-more' : '' );
+									?>
+									<h3 class="abmm-mega__section-title">
+										<?php if ( $collapsible ) : ?>
+											<button type="button" class="abmm-mega__section-toggle" aria-expanded="true" aria-controls="<?php echo esc_attr( $section_body_ids ); ?>" data-abmm-section-toggle>
+										<?php endif; ?>
+										<span class="abmm-mega__section-icon" aria-hidden="true"><?php echo $icons->render( $cat['icon'] ?? '', $cat['icon_url'] ?? '', 'abmm-icon abmm-icon--sm', $cat ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+										<span class="abmm-mega__section-label"><?php echo esc_html( $cat['title'] ); ?></span>
+										<?php if ( $collapsible ) : ?>
+												<svg class="abmm-mega__section-chevron" width="16" height="16" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+											</button>
+										<?php endif; ?>
+									</h3>
+
+									<?php echo $this->render_category_columns( $cat, $cat_uid . '-links' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+
 									<?php if ( ! empty( $cat['panel_title'] ) ) : ?>
-										<h3 class="abmm-mega__panel-title">
+										<?php // The "see all" link closes the panel as a footer strip, after the links it summarises. ?>
+										<p class="abmm-mega__panel-title" id="<?php echo esc_attr( $cat_uid . '-more' ); ?>">
 											<?php if ( ! empty( $cat['panel_url'] ) ) : ?>
 												<a <?php echo $this->link_attrs( array_merge( $cat['panel_link'] ?? $cat, array( 'url' => $cat['panel_url'] ) ), '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $cat['panel_url'] ); ?>"><?php echo esc_html( $cat['panel_title'] ); ?></a>
 											<?php else : ?>
 												<?php echo esc_html( $cat['panel_title'] ); ?>
 											<?php endif; ?>
-										</h3>
+										</p>
 									<?php endif; ?>
-
-									<?php echo $this->render_category_columns( $cat ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 								</div>
 							</section>
 						<?php endforeach; ?>
+						<?php echo $featured; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</div>
 				<?php endif; ?>
 			</div>
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Render the optional featured card of a mega item.
+	 *
+	 * Desktop shows it as a column on the right of the panel; phones show it as
+	 * a compact card at the end of the item's screen.
+	 *
+	 * @param array $item Mega item.
+	 * @return string Empty when the card is off or has no title.
+	 */
+	private function render_featured_card( $item ) {
+		$card = is_array( $item['featured'] ?? null ) ? $item['featured'] : array();
+		$title = trim( (string) ( $card['title'] ?? '' ) );
+		if ( empty( $card['show'] ) || '' === $title ) {
+			return '';
+		}
+
+		$text  = trim( (string) ( $card['text'] ?? '' ) );
+		$url   = trim( (string) ( $card['url'] ?? '' ) );
+		$image = trim( (string) ( $card['image_url'] ?? '' ) );
+		$label = trim( (string) ( $card['label'] ?? '' ) );
+		$has_link = '' !== $url && '#' !== $url;
+		if ( $has_link && '' === $label ) {
+			$label = __( 'Learn more', 'ashbi-mega-menu' );
+		}
+
+		$html = '';
+		if ( '' !== $image ) {
+			// Decorative: the title next to it carries the meaning.
+			$html .= '<span class="abmm-mega__featured-media"><img src="' . esc_url( $image ) . '" alt="" loading="lazy" decoding="async" /></span>';
+		}
+		$html .= '<span class="abmm-mega__featured-body">';
+		$html .= '<span class="abmm-mega__featured-title">' . esc_html( $title ) . '</span>';
+		if ( '' !== $text ) {
+			$html .= '<span class="abmm-mega__featured-text">' . esc_html( $text ) . '</span>';
+		}
+		if ( $has_link ) {
+			$html .= '<span class="abmm-mega__featured-link">' . esc_html( $label ) . '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h9.5M8.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+		}
+		$html .= '</span>';
+
+		if ( $has_link ) {
+			return '<a ' . $this->link_attrs( array( 'url' => $url ), 'abmm-mega__featured' ) . ' href="' . esc_url( $url ) . '">' . $html . '</a>';
+		}
+		return '<div class="abmm-mega__featured">' . $html . '</div>';
 	}
 
 	/**
@@ -851,10 +938,11 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 	/**
 	 * Render column groups inside a category panel.
 	 *
-	 * @param array $cat Category data.
+	 * @param array  $cat Category data.
+	 * @param string $id  Optional element ID for the columns wrapper.
 	 * @return string
 	 */
-	private function render_category_columns( $cat ) {
+	private function render_category_columns( $cat, $id = '' ) {
 		$groups = $this->category_groups( $cat );
 		if ( empty( $groups ) ) {
 			return '';
@@ -863,7 +951,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 		$count = count( $groups );
 		ob_start();
 		?>
-		<div class="abmm-mega__columns" style="--abmm-col-count: <?php echo (int) $count; ?>">
+		<div class="abmm-mega__columns"<?php echo '' !== $id ? ' id="' . esc_attr( $id ) . '"' : ''; ?> style="--abmm-col-count: <?php echo (int) $count; ?>">
 			<?php foreach ( $groups as $group ) : ?>
 				<div class="abmm-mega__col">
 					<?php if ( ! empty( $group['title'] ) ) : ?>
@@ -934,6 +1022,10 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 		$links         = $item['links'] ?? array();
 		$cols          = min( 4, max( 1, (int) ( $item['columns'] ?? $settings['grid_columns'] ?? 3 ) ) );
 		$compact_class = 1 === $cols ? ' abmm-mega--compact' : '';
+		$featured      = $this->render_featured_card( $item );
+		if ( '' !== $featured ) {
+			$compact_class .= ' abmm-mega--has-featured';
+		}
 
 		ob_start();
 		?>
@@ -944,6 +1036,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 						<?php echo $this->render_grid_link( $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<?php endforeach; ?>
 				</ul>
+				<?php echo $featured; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 		</div>
 		<?php

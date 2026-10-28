@@ -12,23 +12,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <div class="wrap abmm-wrap abmm-dashboard">
-	<header class="abmm-dash-header">
-		<div class="abmm-logo-title">
-			<img src="<?php echo esc_url( ABMM_PLUGIN_URL . 'assets/brand/icon.svg' ); ?>" width="44" height="44" alt="" />
-			<div>
-				<h1><?php esc_html_e( 'Ashbi Mega Menu', 'ashbi-mega-menu' ); ?></h1>
-				<p class="abmm-admin-intro"><?php esc_html_e( 'Build responsive mega menus with a visual editor.', 'ashbi-mega-menu' ); ?></p>
-			</div>
-		</div>
-		<?php if ( ! empty( $menus ) ) : ?>
-			<div class="abmm-admin-header__actions">
-				<button type="button" class="button button-primary abmm-create-menu">
-					<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
-					<?php esc_html_e( 'Create menu', 'ashbi-mega-menu' ); ?>
-				</button>
-			</div>
-		<?php endif; ?>
-	</header>
+	<?php
+	$abmm_page_header = array(
+		'title'   => __( 'Ashbi Mega Menu', 'ashbi-mega-menu' ),
+		'intro'   => __( 'Build responsive mega menus with a visual editor.', 'ashbi-mega-menu' ),
+		'current' => 'menus',
+		'tabs'    => ! empty( $contextual_navigation_enabled ),
+		'actions' => empty( $menus ) ? array() : array(
+			array(
+				'label'   => __( 'Create menu', 'ashbi-mega-menu' ),
+				'class'   => 'abmm-create-menu',
+				'primary' => true,
+				'icon'    => 'plus-alt2',
+			),
+		),
+	);
+	require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php';
+	?>
 
 	<div class="abmm-list-status" id="abmm-list-status" role="status" aria-live="polite" tabindex="-1"></div>
 
@@ -63,11 +63,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<button type="button" class="button button-primary abmm-create-menu"><?php esc_html_e( 'Create menu', 'ashbi-mega-menu' ); ?></button>
 		</div>
 	<?php else : ?>
-		<div class="abmm-section-head">
-			<h2><?php esc_html_e( 'Your menus', 'ashbi-mega-menu' ); ?></h2>
-			<span class="abmm-count"><?php echo esc_html( number_format_i18n( count( $menus ) ) ); ?></span>
+		<?php $abmm_has_toolbar = count( $menus ) > 6; ?>
+		<div class="abmm-section-head abmm-menus-head">
+			<h2 id="abmm-menus-title"><?php esc_html_e( 'Your menus', 'ashbi-mega-menu' ); ?></h2>
+			<span class="abmm-count" data-abmm-menu-count><?php echo esc_html( number_format_i18n( count( $menus ) ) ); ?></span>
+			<?php if ( $abmm_has_toolbar ) : ?>
+				<?php /* Search, sort and view need JavaScript, so they stay hidden until admin.js shows them. */ ?>
+				<div class="abmm-menu-toolbar" data-abmm-menu-toolbar data-abmm-user="<?php echo esc_attr( (string) get_current_user_id() ); ?>" hidden>
+					<div class="abmm-menu-search">
+						<label class="screen-reader-text" for="abmm-menu-search"><?php esc_html_e( 'Search menus', 'ashbi-mega-menu' ); ?></label>
+						<span class="dashicons dashicons-search" aria-hidden="true"></span>
+						<input type="search" id="abmm-menu-search" placeholder="<?php esc_attr_e( 'Search menus…', 'ashbi-mega-menu' ); ?>" autocomplete="off" data-abmm-menu-search />
+					</div>
+					<label class="screen-reader-text" for="abmm-menu-sort"><?php esc_html_e( 'Sort menus', 'ashbi-mega-menu' ); ?></label>
+					<select id="abmm-menu-sort" class="abmm-menu-sort" data-abmm-menu-sort>
+						<option value="recent"><?php esc_html_e( 'Newest first', 'ashbi-mega-menu' ); ?></option>
+						<option value="name"><?php esc_html_e( 'Name (A–Z)', 'ashbi-mega-menu' ); ?></option>
+					</select>
+					<div class="abmm-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Layout', 'ashbi-mega-menu' ); ?>">
+						<button type="button" class="abmm-view-toggle__button is-current" data-abmm-view="grid" aria-pressed="true" title="<?php esc_attr_e( 'Grid view', 'ashbi-mega-menu' ); ?>"><span class="dashicons dashicons-grid-view" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Grid view', 'ashbi-mega-menu' ); ?></span></button>
+						<button type="button" class="abmm-view-toggle__button" data-abmm-view="list" aria-pressed="false" title="<?php esc_attr_e( 'List view', 'ashbi-mega-menu' ); ?>"><span class="dashicons dashicons-list-view" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'List view', 'ashbi-mega-menu' ); ?></span></button>
+					</div>
+				</div>
+			<?php endif; ?>
 		</div>
-		<div class="abmm-menu-cards">
+		<?php if ( $abmm_has_toolbar ) : ?>
+			<p class="screen-reader-text" role="status" aria-live="polite" data-abmm-menu-results></p>
+			<div class="abmm-menu-noresults" data-abmm-menu-noresults hidden>
+				<span class="dashicons dashicons-search" aria-hidden="true"></span>
+				<strong><?php esc_html_e( 'No menus match your search', 'ashbi-mega-menu' ); ?></strong>
+				<button type="button" class="button-link" data-abmm-menu-clear><?php esc_html_e( 'Clear search', 'ashbi-mega-menu' ); ?></button>
+			</div>
+		<?php endif; ?>
+		<div class="abmm-menu-cards" data-abmm-menu-cards>
 			<?php
 			/*
 			 * A small, decorative schematic of each menu's header bar: a brand
@@ -94,6 +122,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 				);
 				$cta_r    = $radii[ $settings['cta_style'] ?? 'rounded' ] ?? 4;
 				$has_cta  = ! empty( $menu['cta']['show'] );
+				if ( empty( $items ) ) {
+					// An empty menu gets a calm "nothing here yet" illustration instead of a broken-looking bar.
+					$svg  = '<svg class="abmm-menu-thumb abmm-menu-thumb--empty" viewBox="0 0 320 50" preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">';
+					$svg .= '<rect x="40" y="14" width="240" height="32" rx="7" fill="#ffffff" stroke="#e3e8f1" opacity=".7"/>';
+					$svg .= '<rect x="24" y="6" width="272" height="34" rx="7" fill="#ffffff" stroke="#d7deea"/>';
+					$svg .= '<rect x="36" y="16" width="14" height="14" rx="4" fill="#e6ebf3"/>';
+					$svg .= '<rect x="55" y="20" width="26" height="6" rx="3" fill="#e6ebf3"/>';
+					$svg .= '<rect x="112" y="20" width="26" height="6" rx="3" fill="#eef1f6"/>';
+					$svg .= '<rect x="182" y="20" width="26" height="6" rx="3" fill="#eef1f6"/>';
+					$svg .= '<rect x="240" y="17" width="44" height="12" rx="6" fill="#eef1f6"/>';
+					$svg .= '<circle cx="160" cy="23" r="11" fill="' . $accent . '"/>';
+					$svg .= '<path d="M160 18v10M155 23h10" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>';
+					return $svg . '</svg>';
+				}
 				$bar_x    = 12;
 				$bar_w    = 296;
 				$bar_y    = 12;
@@ -129,9 +171,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 				$svg .= '<rect x="' . $bar_x . '" y="' . $bar_y . '" width="' . $bar_w . '" height="' . $bar_h . '" rx="7" fill="' . $header . '" stroke="' . $line . '"/>';
 				$svg .= '<rect x="' . ( $bar_x + 12 ) . '" y="' . ( $mid - 7 ) . '" width="14" height="14" rx="4" fill="' . $accent . '"/>';
 				$svg .= '<rect x="' . ( $bar_x + 31 ) . '" y="' . ( $mid - 3 ) . '" width="24" height="6" rx="3" fill="' . $ink . '" opacity=".8"/>';
-				if ( empty( $pills ) ) {
-					$svg .= '<rect x="' . ( $start + ( ( $end - $start - 96 ) / 2 ) ) . '" y="' . ( $mid - 4 ) . '" width="96" height="8" rx="4" fill="none" stroke="' . $ink . '" stroke-dasharray="3 3" opacity=".35"/>';
-				}
 				$panel_x = null;
 				foreach ( $pills as $index => $pill ) {
 					$x   += $index ? 10 : 0;
@@ -162,6 +201,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				return $svg . '</svg>';
 			};
 			?>
+			<?php $abmm_order = count( $menus ); ?>
 			<?php foreach ( $menus as $id => $menu ) : ?>
 				<?php
 				$abmm_menu_readiness = $readiness[ $id ] ?? array(
@@ -171,42 +211,70 @@ if ( ! defined( 'ABSPATH' ) ) {
 				$abmm_is_ready       = ! empty( $abmm_menu_readiness['ready'] );
 				$abmm_issues         = is_array( $abmm_menu_readiness['issues'] ?? null ) ? array_values( $abmm_menu_readiness['issues'] ) : array();
 				$abmm_issue_count    = count( $abmm_issues );
-				$abmm_first_issue    = $abmm_issue_count ? (string) ( $abmm_issues[0]['message'] ?? '' ) : '';
 				$abmm_title          = $menu['title'] ?: __( 'Untitled', 'ashbi-mega-menu' );
 				$abmm_shortcode      = '[ashbi_mega_menu id="' . $id . '"]';
 				$abmm_actions_id     = 'abmm-card-actions-' . sanitize_html_class( $id );
-				if ( $abmm_is_ready ) {
-					$abmm_status_label = __( 'Ready', 'ashbi-mega-menu' );
-				} elseif ( $abmm_issue_count ) {
-					$abmm_status_label = sprintf(
-						/* translators: %d: number of setup issues still to fix. */
-						_n( 'Draft · %d to fix', 'Draft · %d to fix', $abmm_issue_count, 'ashbi-mega-menu' ),
-						$abmm_issue_count
-					);
-				} else {
-					$abmm_status_label = __( 'Draft', 'ashbi-mega-menu' );
-				}
+				$abmm_issues_id      = 'abmm-card-issues-' . sanitize_html_class( $id );
+				$abmm_edit_url       = admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) );
+				$abmm_count          = count( $menu['items'] ?? array() );
+				$abmm_search_title   = function_exists( 'mb_strtolower' ) ? mb_strtolower( $abmm_title ) : strtolower( $abmm_title );
+				--$abmm_order;
 				?>
-				<div class="abmm-menu-card <?php echo $abmm_is_ready ? 'is-ready' : 'is-draft'; ?>" data-menu-id="<?php echo esc_attr( $id ); ?>">
+				<div class="abmm-menu-card <?php echo $abmm_is_ready ? 'is-ready' : 'is-draft'; ?><?php echo $abmm_count ? '' : ' is-empty'; ?>" data-menu-id="<?php echo esc_attr( $id ); ?>" data-abmm-title="<?php echo esc_attr( $abmm_search_title ); ?>" data-abmm-order="<?php echo esc_attr( (string) $abmm_order ); ?>">
 					<div class="abmm-menu-card__thumb">
 						<?php echo $abmm_thumbnail( $menu ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built from validated colours and numbers; attributes escaped above. ?>
+						<?php if ( ! $abmm_count ) : ?>
+							<span class="abmm-menu-card__thumb-label"><?php esc_html_e( 'Empty menu', 'ashbi-mega-menu' ); ?></span>
+						<?php endif; ?>
 					</div>
 					<div class="abmm-menu-card__body">
 						<div class="abmm-menu-card__head">
 							<h2 class="abmm-menu-card__title"><?php echo esc_html( $abmm_title ); ?></h2>
-							<span class="abmm-status <?php echo $abmm_is_ready ? 'abmm-status--ready' : 'abmm-status--draft'; ?>"<?php echo '' !== $abmm_first_issue ? ' title="' . esc_attr( $abmm_first_issue ) . '"' : ''; ?>><?php echo esc_html( $abmm_status_label ); ?></span>
+							<span class="abmm-status <?php echo $abmm_is_ready ? 'abmm-status--ready' : 'abmm-status--neutral'; ?>"><?php echo esc_html( $abmm_is_ready ? __( 'Ready', 'ashbi-mega-menu' ) : __( 'Draft', 'ashbi-mega-menu' ) ); ?></span>
 						</div>
 						<p class="abmm-menu-card__meta">
-							<?php
-							$abmm_count = count( $menu['items'] ?? array() );
-							printf(
-								/* translators: %d: number of top-level items */
-								esc_html( _n( '%d menu item', '%d menu items', $abmm_count, 'ashbi-mega-menu' ) ),
-								(int) $abmm_count
-							);
-							?>
+							<span>
+								<?php
+								printf(
+									/* translators: %d: number of top-level items */
+									esc_html( _n( '%d menu item', '%d menu items', $abmm_count, 'ashbi-mega-menu' ) ),
+									(int) $abmm_count
+								);
+								?>
+							</span>
 							<?php if ( ! empty( $menu['starter_source'] ) ) : ?>
 								<span class="abmm-menu-card__tag"><?php esc_html_e( 'Sample', 'ashbi-mega-menu' ); ?></span>
+							<?php endif; ?>
+							<?php if ( ! $abmm_is_ready && $abmm_issue_count ) : ?>
+								<span class="abmm-menu-card__issues">
+									<a class="abmm-menu-card__issues-link" href="<?php echo esc_url( $abmm_edit_url . '#abmm-readiness-panel' ); ?>" aria-describedby="<?php echo esc_attr( $abmm_issues_id ); ?>">
+										<span class="abmm-menu-card__issues-dot" aria-hidden="true"></span>
+										<?php
+										printf(
+											/* translators: %d: number of setup issues still to fix. */
+											esc_html( _n( '%d issue', '%d issues', $abmm_issue_count, 'ashbi-mega-menu' ) ),
+											(int) $abmm_issue_count
+										);
+										?>
+									</a>
+									<span class="abmm-menu-card__tip" role="tooltip" id="<?php echo esc_attr( $abmm_issues_id ); ?>">
+										<?php foreach ( array_slice( $abmm_issues, 0, 3 ) as $abmm_issue ) : ?>
+											<span class="abmm-menu-card__tip-item"><?php echo esc_html( (string) ( $abmm_issue['message'] ?? '' ) ); ?></span>
+										<?php endforeach; ?>
+										<?php if ( $abmm_issue_count > 3 ) : ?>
+											<span class="abmm-menu-card__tip-more">
+												<?php
+												printf(
+													/* translators: %d: number of further setup issues. */
+													esc_html( _n( 'and %d more', 'and %d more', $abmm_issue_count - 3, 'ashbi-mega-menu' ) ),
+													(int) ( $abmm_issue_count - 3 )
+												);
+												?>
+											</span>
+										<?php endif; ?>
+										<span class="abmm-menu-card__tip-hint"><?php esc_html_e( 'Open the checklist to fix it.', 'ashbi-mega-menu' ); ?></span>
+									</span>
+								</span>
 							<?php endif; ?>
 						</p>
 						<?php if ( $abmm_is_ready ) : ?>
@@ -214,16 +282,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 								<code><?php echo esc_html( $abmm_shortcode ); ?></code>
 								<button type="button" class="button button-small abmm-copy-shortcode" data-shortcode="<?php echo esc_attr( $abmm_shortcode ); ?>" title="<?php esc_attr_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Copy', 'ashbi-mega-menu' ); ?></button>
 							</div>
-						<?php else : ?>
-							<p class="abmm-menu-card__issue"><?php echo esc_html( '' !== $abmm_first_issue ? $abmm_first_issue : __( 'Finish setup in the editor before placing it.', 'ashbi-mega-menu' ) ); ?></p>
 						<?php endif; ?>
 					</div>
 					<div class="abmm-menu-card__actions">
-						<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) ) ); ?>">
+						<a class="button button-primary" href="<?php echo esc_url( $abmm_edit_url ); ?>">
 							<?php echo esc_html( $abmm_is_ready ? __( 'Edit Menu', 'ashbi-mega-menu' ) : __( 'Finish setup', 'ashbi-mega-menu' ) ); ?>
 						</a>
 						<?php if ( $abmm_is_ready ) : ?>
-							<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) . '#placement' ) ); ?>"><?php esc_html_e( 'Place & verify', 'ashbi-mega-menu' ); ?></a>
+							<a class="button" href="<?php echo esc_url( $abmm_edit_url . '#placement' ); ?>"><?php esc_html_e( 'Place & verify', 'ashbi-mega-menu' ); ?></a>
 						<?php endif; ?>
 						<div class="abmm-card-menu">
 							<button type="button" class="button abmm-card-menu__toggle" aria-haspopup="menu" aria-expanded="false" aria-controls="<?php echo esc_attr( $abmm_actions_id ); ?>">
@@ -256,7 +322,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<strong><?php echo esc_html( $abmm_entry['menu']['title'] ?? $id ); ?></strong>
 					<code><?php echo esc_html( $id ); ?></code>
 					<button type="button" class="button abmm-restore-menu" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Restore', 'ashbi-mega-menu' ); ?></button>
-					<button type="button" class="button-link-delete abmm-permanent-delete" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Permanently delete', 'ashbi-mega-menu' ); ?></button>
+					<button type="button" class="button-link button-link-delete abmm-permanent-delete" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Permanently delete', 'ashbi-mega-menu' ); ?></button>
 				</div>
 			<?php endforeach; ?>
 		</section>

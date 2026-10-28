@@ -64,9 +64,11 @@
 		return copy;
 	}
 
-	function wpLinkFieldHtml(urlValue, urlClass, textSelector, disabled) {
+	// A URL field with the WordPress link picker. Pass `optionsLink` to add the
+	// link options popover (new tab, rel, classes) as a third control.
+	function wpLinkFieldHtml(urlValue, urlClass, textSelector, disabled, optionsLink) {
 		return (
-			'<span class="abmm-wp-link">' +
+			'<div class="abmm-wp-link' + (optionsLink ? ' has-link-options' : '') + '">' +
 			'<input type="text" class="' +
 			esc(urlClass) +
 			' abmm-url-field" value="' +
@@ -84,24 +86,186 @@
 			'>' +
 			'<span class="dashicons dashicons-admin-links" aria-hidden="true"></span>' +
 			'</button>' +
-			'</span>'
+			(optionsLink ? linkOptionsHtml(optionsLink === true ? {} : optionsLink) : '') +
+			'</div>'
 		);
 	}
 
+	var popoverSeq = 0;
+
+	function linkHasOptions(link) {
+		return !!(link && (link.target === '_blank' || String(link.rel || '').trim() || String(link.class || '').trim()));
+	}
+
+	// Link options live in a small popover off the URL field, not in a box under every row.
 	function linkOptionsHtml(link) {
 		link = link || {};
+		var id = 'abmm-link-options-' + (++popoverSeq);
 		return (
-			'<details class="abmm-link-options"><summary>' + esc(__('Link options', 'ashbi-mega-menu')) + '</summary>' +
-			'<label><input type="checkbox" class="abmm-link-target"' +
+			'<div class="abmm-link-options abmm-popover' + (linkHasOptions(link) ? ' has-options' : '') + '">' +
+			'<button type="button" class="abmm-link-options__toggle abmm-popover__toggle" aria-expanded="false" aria-controls="' + id + '" title="' + esc(__('Link options', 'ashbi-mega-menu')) + '">' +
+			iconButtonContent('admin-generic', __('Link options', 'ashbi-mega-menu')) +
+			'</button>' +
+			'<div class="abmm-link-options__panel abmm-popover__panel" id="' + id + '" role="group" aria-label="' + esc(__('Link options', 'ashbi-mega-menu')) + '" hidden>' +
+			'<p class="abmm-popover__title" aria-hidden="true">' + esc(__('Link options', 'ashbi-mega-menu')) + '</p>' +
+			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
 			(link.target === '_blank' ? ' checked' : '') +
 			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
-			'<label>' + esc(__('Relationship', 'ashbi-mega-menu')) + '<input type="text" class="abmm-link-rel" value="' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
 			esc(link.rel || '') +
 			'" placeholder="nofollow sponsored" /></label>' +
-			'<label>' + esc(__('CSS classes', 'ashbi-mega-menu')) + '<input type="text" class="abmm-link-class" value="' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('CSS classes', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-class" value="' +
 			esc(link.class || '') +
-			'" /></label></details>'
+			'" /></label></div></div>'
 		);
+	}
+
+	// A heading link (category panel or column heading) behind one link button.
+	function headingLinkPopoverHtml(wrapClass, urlClass, textSelector, link, url) {
+		var id = 'abmm-heading-link-' + (++popoverSeq);
+		var hasUrl = String(url || '').trim() !== '';
+		return (
+			'<div class="abmm-heading-link abmm-popover ' + esc(wrapClass) + (hasUrl ? ' has-value' : '') + '">' +
+			'<button type="button" class="abmm-heading-link__toggle abmm-popover__toggle" aria-expanded="false" aria-controls="' + id + '" title="' + esc(__('Heading link', 'ashbi-mega-menu')) + '">' +
+			iconButtonContent('admin-links', __('Heading link', 'ashbi-mega-menu')) +
+			'</button>' +
+			'<div class="abmm-heading-link__panel abmm-popover__panel" id="' + id + '" role="group" aria-label="' + esc(__('Heading link', 'ashbi-mega-menu')) + '" hidden>' +
+			'<p class="abmm-popover__title" aria-hidden="true">' + esc(__('Heading link', 'ashbi-mega-menu')) + '</p>' +
+			'<p class="abmm-popover__hint">' + esc(__('Optional. Makes the heading itself clickable.', 'ashbi-mega-menu')) + '</p>' +
+			wpLinkFieldHtml(url || '', urlClass, textSelector, false) +
+			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
+			(link && link.target === '_blank' ? ' checked' : '') +
+			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
+			esc((link && link.rel) || '') +
+			'" placeholder="nofollow sponsored" /></label>' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('CSS classes', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-class" value="' +
+			esc((link && link.class) || '') +
+			'" /></label></div></div>'
+		);
+	}
+
+	function closePopover($popover, returnFocus) {
+		if (!$popover || !$popover.length) return;
+		$popover.removeClass('is-open');
+		$popover.find('> .abmm-popover__panel').prop('hidden', true);
+		var $toggle = $popover.find('> .abmm-popover__toggle').attr('aria-expanded', 'false');
+		if (returnFocus) $toggle.trigger('focus');
+	}
+
+	function openPopover($popover) {
+		$('.abmm-popover.is-open').not($popover).each(function () { closePopover($(this), false); });
+		$popover.addClass('is-open');
+		var $panel = $popover.find('> .abmm-popover__panel').prop('hidden', false);
+		$popover.find('> .abmm-popover__toggle').attr('aria-expanded', 'true');
+		// Open upwards when there is no room below, e.g. near the bottom of the inspector.
+		$popover.removeClass('is-above');
+		var panel = $panel[0];
+		if (panel && panel.getBoundingClientRect) {
+			var rect = panel.getBoundingClientRect();
+			if (rect.height && rect.bottom > window.innerHeight - 8 && rect.top - rect.height > 120) $popover.addClass('is-above');
+		}
+		setTimeout(function () {
+			$panel.find('input, button, select, textarea').filter(':visible').first().trigger('focus');
+		}, 0);
+	}
+
+	// Popovers follow the disclosure pattern: the button toggles, Escape closes
+	// and returns focus, and clicking or tabbing away closes.
+	function initPopovers() {
+		$(document).on('click', '.abmm-popover__toggle', function (event) {
+			event.preventDefault();
+			var $popover = $(this).closest('.abmm-popover');
+			if ($popover.hasClass('is-open')) closePopover($popover, false);
+			else openPopover($popover);
+		});
+		// Bound below the document so stopping propagation keeps the sheet's own
+		// Escape handler (on the document) from closing the whole sheet.
+		$('#abmm-builder').on('keydown', '.abmm-popover', function (event) {
+			if (event.key !== 'Escape' || !$(this).hasClass('is-open') || wordpressDialogIsOpen()) return;
+			event.preventDefault();
+			// Escape closes only the popover, not the sheet or dialog around it.
+			event.stopPropagation();
+			closePopover($(this), true);
+		});
+		$(document).on('focusout', '.abmm-popover.is-open', function (event) {
+			var popover = this;
+			var next = event.relatedTarget;
+			if (!next || $.contains(popover, next) || wordpressDialogIsOpen()) return;
+			closePopover($(popover), false);
+		});
+		$(document).on('mousedown', function (event) {
+			if (wordpressDialogIsOpen()) return;
+			$('.abmm-popover.is-open').each(function () {
+				if (!$.contains(this, event.target)) closePopover($(this), false);
+			});
+		});
+		$(document).on('input change', '.abmm-link-options input', function () {
+			var $popover = $(this).closest('.abmm-link-options');
+			$popover.toggleClass('has-options', $popover.find('.abmm-link-target').is(':checked') ||
+				String($popover.find('.abmm-link-rel').val() || '').trim() !== '' ||
+				String($popover.find('.abmm-link-class').val() || '').trim() !== '');
+		});
+		$(document).on('input change', '.abmm-link-edit input', function () {
+			syncLinkChip($(this).closest('.abmm-link-edit'));
+		});
+		$(document).on('input change', '.abmm-heading-link .abmm-url-field', function () {
+			$(this).closest('.abmm-heading-link').toggleClass('has-value', String($(this).val() || '').trim() !== '');
+		});
+	}
+
+	// "More actions" menu in the top bar (Export and help).
+	function initMoreMenu() {
+		var $wrap = $('.abmm-more-menu');
+		if (!$wrap.length) return;
+		var $toggle = $wrap.find('.abmm-more-menu__toggle');
+		var $list = $wrap.find('.abmm-more-menu__list');
+		function items() { return $list.find('[role="menuitem"]'); }
+		function close(returnFocus) {
+			$list.prop('hidden', true);
+			$wrap.removeClass('is-open');
+			$toggle.attr('aria-expanded', 'false');
+			if (returnFocus) $toggle.trigger('focus');
+		}
+		function open(focusLast) {
+			$list.prop('hidden', false);
+			$wrap.addClass('is-open');
+			$toggle.attr('aria-expanded', 'true');
+			var $items = items();
+			($items.length ? $items.eq(focusLast ? $items.length - 1 : 0) : $toggle).trigger('focus');
+		}
+		$toggle.on('click', function () {
+			if ($wrap.hasClass('is-open')) close(false);
+			else open(false);
+		});
+		$toggle.on('keydown', function (event) {
+			if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+				event.preventDefault();
+				open(event.key === 'ArrowUp');
+			}
+		});
+		$list.on('keydown', function (event) {
+			var $items = items();
+			var index = $items.index(document.activeElement);
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				event.stopPropagation();
+				close(true);
+			} else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+				event.preventDefault();
+				index = (index + (event.key === 'ArrowDown' ? 1 : -1) + $items.length) % $items.length;
+				$items.eq(index).trigger('focus');
+			} else if (event.key === 'Home' || event.key === 'End') {
+				event.preventDefault();
+				$items.eq(event.key === 'Home' ? 0 : $items.length - 1).trigger('focus');
+			} else if (event.key === 'Tab') {
+				close(false);
+			}
+		});
+		$list.on('click', '[role="menuitem"]', function () { close(true); });
+		$(document).on('mousedown', function (event) {
+			if ($wrap.hasClass('is-open') && !$.contains($wrap[0], event.target)) close(false);
+		});
 	}
 
 	function readLinkOptions($scope, link) {
@@ -237,6 +401,32 @@
 				.on('click', saveMenu)
 				.appendTo($el);
 		}
+		renderSaveButton();
+	}
+
+	// With nothing to save the button settles into a quiet "Saved" state;
+	// any change turns it back into the primary action.
+	function renderSaveButton() {
+		var $button = $('.abmm-save-menu');
+		if (!$button.length) return;
+		var saved = state.saveState === 'saved';
+		var saving = state.saveState === 'saving';
+		var label = saving ? __('Saving…', 'ashbi-mega-menu') : (saved ? __('Saved', 'ashbi-mega-menu') : __('Save changes', 'ashbi-mega-menu'));
+		// Update the children in place: rebuilding them between mousedown and
+		// mouseup (a field's blur changes the save state) would drop the click.
+		var $icon = $button.children('.dashicons');
+		var $label = $button.children('.abmm-save-menu__label');
+		if (!$icon.length || !$label.length) {
+			$button.empty();
+			$icon = $('<span class="dashicons dashicons-yes" aria-hidden="true"></span>').appendTo($button);
+			$label = $('<span class="abmm-save-menu__label" />').appendTo($button);
+		}
+		$button.toggleClass('is-saved', saved).toggleClass('is-saving', saving);
+		$icon.prop('hidden', !saved);
+		// Only touch the text when it changes: replacing the text node under the
+		// pointer makes WebKit drop the click.
+		if ($label.text() !== label) $label.text(label);
+		$button.attr('title', saved ? __('All changes are saved', 'ashbi-mega-menu') : __('Save this menu', 'ashbi-mega-menu'));
 	}
 
 	function markDirtyState() {
@@ -456,6 +646,7 @@
 	function setBuilderSection(section) {
 		section = ['content', 'design', 'settings', 'help'].indexOf(section) !== -1 ? section : 'content';
 		state.builderSection = section;
+		if (section !== 'help') state.lastEditSection = section;
 		$('.abmm-builder-sections [data-abmm-builder-section]').each(function () {
 			var $control = $(this);
 			var active = $control.data('abmm-builder-section') === section;
@@ -467,14 +658,21 @@
 			var $panel = $(this);
 			$panel.prop('hidden', $panel.data('abmm-builder-section-panel') !== section);
 		});
-		// The stepper marks where the user is: Design and Settings are part of Edit.
+		// One navigation: the stepper picks the stage, the tabs only exist inside
+		// Edit (Content, Design, Settings). Place and Check share the place panel.
+		$('.abmm-builder-sections').prop('hidden', section === 'help');
+		$('#abmm-builder-sidebar').toggleClass('is-place-step', section === 'help')
+			.find('.abmm-builder-sidebar__mobile-head strong')
+			.text(section === 'help' ? __('Place and check', 'ashbi-mega-menu') : __('Edit menu', 'ashbi-mega-menu'));
 		var step = section === 'help' ? (state.workflowStep === 'verify' ? 'verify' : 'help') : 'content';
 		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + step + '"]').attr('aria-current', 'step');
 	}
 
 	function initBuilderSections() {
-		// "Place & verify" on the dashboard links straight to the Place tab.
-		if (window.location.hash === '#placement') state.builderSection = 'help';
+		// "Place & verify" on the dashboard links straight to the Place tab; the
+		// card's "N issues" pill links to the checklist on the Content tab.
+		var hash = window.location.hash;
+		if (hash === '#placement') state.builderSection = 'help';
 		$('.abmm-builder-sections').on('click', '[data-abmm-builder-section]', function () {
 			state.workflowStep = '';
 			setBuilderSection(String($(this).data('abmm-builder-section') || 'content'));
@@ -492,7 +690,14 @@
 			setBuilderSection(String($next.data('abmm-builder-section') || 'content'));
 			$next.trigger('focus');
 		});
-		setBuilderSection('content');
+		setBuilderSection(state.builderSection);
+		if (hash === '#abmm-readiness-panel') {
+			var $checklist = $('#abmm-readiness-panel').attr('tabindex', '-1');
+			if ($checklist.length) {
+				if ($checklist[0].scrollIntoView) $checklist[0].scrollIntoView({ block: 'start' });
+				$checklist.trigger('focus');
+			}
+		}
 	}
 
 	function populateFormFromMenu() {
@@ -686,6 +891,19 @@
 		$('#abmm-preset').val('custom');
 		$('.abmm-preset-card').removeClass('is-active');
 		$('.abmm-preset-card[data-preset="custom"]').addClass('is-active');
+	}
+
+	// The Custom card shows the menu's own colours once they differ from a
+	// preset, and a quiet empty swatch until then.
+	function syncCustomPresetSwatch(s) {
+		var $card = $('.abmm-preset-card--custom');
+		if (!$card.length) return;
+		var custom = s.preset === 'custom';
+		$card.toggleClass('is-empty', !custom);
+		var colors = [s.header_bg, s.sidebar_bg, s.accent];
+		$card.find('.abmm-preset-card__swatches span:not(.abmm-preset-card__empty)').each(function (index) {
+			this.style.background = custom ? previewColorValue(colors[index], '') : '';
+		});
 	}
 
 	function previewColorValue(value, fallback) {
@@ -975,9 +1193,91 @@
 		});
 	}
 
+	// Dashboard search, sort and grid/list view. Only rendered for more than six menus.
+	function initMenuToolbar() {
+		var $toolbar = $('[data-abmm-menu-toolbar]');
+		var $grid = $('[data-abmm-menu-cards]');
+		if (!$toolbar.length || !$grid.length) return;
+		var key = 'abmmMenuView:' + ($toolbar.attr('data-abmm-user') || '0');
+		var $search = $toolbar.find('[data-abmm-menu-search]');
+		var $sort = $toolbar.find('[data-abmm-menu-sort]');
+		var $cards = $grid.children('.abmm-menu-card');
+		var $empty = $('[data-abmm-menu-noresults]');
+		var $results = $('[data-abmm-menu-results]');
+		var $count = $('[data-abmm-menu-count]');
+		var total = $cards.length;
+		var timer = null;
+		function read() {
+			try { return JSON.parse(window.localStorage.getItem(key) || '{}') || {}; } catch (error) { return {}; }
+		}
+		function write(prefs) {
+			try { window.localStorage.setItem(key, JSON.stringify(prefs)); } catch (error) { /* Private mode: the choice lasts for this visit. */ }
+		}
+		function setView(view) {
+			view = view === 'list' ? 'list' : 'grid';
+			$grid.toggleClass('is-list', view === 'list');
+			$toolbar.find('[data-abmm-view]').each(function () {
+				var on = $(this).attr('data-abmm-view') === view;
+				$(this).toggleClass('is-current', on).attr('aria-pressed', on ? 'true' : 'false');
+			});
+		}
+		function sortCards(by) {
+			var sorted = $cards.get().sort(function (a, b) {
+				if (by === 'name') return String($(a).attr('data-abmm-title')).localeCompare(String($(b).attr('data-abmm-title')));
+				return Number($(a).attr('data-abmm-order')) - Number($(b).attr('data-abmm-order'));
+			});
+			$grid.append(sorted);
+		}
+		function filter() {
+			var term = $.trim(String($search.val() || '')).toLowerCase();
+			var shown = 0;
+			$cards.each(function () {
+				var match = term === '' || String($(this).attr('data-abmm-title')).indexOf(term) !== -1;
+				this.hidden = !match;
+				if (match) shown++;
+			});
+			$empty.prop('hidden', shown > 0);
+			$count.text(term === '' ? String(total) : sprintf(
+				/* translators: 1: number of matching menus, 2: total number of menus. */
+				__('%1$d of %2$d', 'ashbi-mega-menu'), shown, total
+			));
+			$results.text(term === '' ? '' : sprintf(
+				/* translators: %d: number of menus matching the search. */
+				_n('%d menu found', '%d menus found', shown, 'ashbi-mega-menu'), shown
+			));
+		}
+		var prefs = read();
+		setView(prefs.view);
+		if (prefs.sort === 'name') $sort.val('name');
+		sortCards($sort.val());
+		$toolbar.prop('hidden', false);
+		$toolbar.on('click', '[data-abmm-view]', function () {
+			var view = $(this).attr('data-abmm-view');
+			setView(view);
+			prefs.view = view;
+			write(prefs);
+		});
+		$sort.on('change', function () {
+			sortCards($sort.val());
+			prefs.sort = $sort.val();
+			write(prefs);
+		});
+		$search.on('input', function () {
+			window.clearTimeout(timer);
+			timer = window.setTimeout(filter, 80);
+		}).on('keydown', function (e) {
+			if (e.key === 'Escape' && $search.val()) { e.preventDefault(); $search.val(''); filter(); }
+		});
+		$('[data-abmm-menu-clear]').on('click', function () {
+			$search.val('').trigger('focus');
+			filter();
+		});
+	}
+
 	function initListPage() {
 		initBackupRecovery();
 		initCardMenus();
+		initMenuToolbar();
 		$('.abmm-onboarding-choice').on('click', function () {
 			var $buttons = $('.abmm-onboarding-choice').prop('disabled', true);
 			$.post(abmmAdmin.ajaxUrl, {
@@ -1520,7 +1820,7 @@
 	}
 
 	function builderPanelIsNarrow() {
-		return window.matchMedia && window.matchMedia('(max-width: 1100px)').matches;
+		return window.matchMedia && window.matchMedia('(max-width: 1199px)').matches;
 	}
 
 	function megaEditorIsNarrow() {
@@ -1574,7 +1874,7 @@
 		if (narrow) {
 			if (!isSheet) {
 				setMegaEditorBackgroundInert(true);
-				$editor.attr({ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'abmm-mega-editor-title' });
+				$editor.attr({ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'abmm-mega-editor-eyebrow abmm-mega-editor-title' });
 			}
 			$backdrop.prop('hidden', false).attr('aria-hidden', 'false');
 		} else if (isSheet) {
@@ -1736,12 +2036,15 @@
 		});
 
 		initWpLink();
+		initPopovers();
+		initMoreMenu();
 		initBuilderSections();
 		$('[data-abmm-workflow]').on('click', function () {
 			var step = $(this).attr('data-abmm-workflow');
 			state.workflowStep = step;
-			setBuilderSection(step === 'content' ? 'content' : 'help');
-			if (window.matchMedia('(max-width: 782px)').matches) openBuilderPanel(this);
+			// Edit returns to the tab the user was last on.
+			setBuilderSection(step === 'content' ? (state.lastEditSection || 'content') : 'help');
+			if (builderPanelIsNarrow()) openBuilderPanel(this);
 			if (step === 'verify') $('#abmm-verification-panel').trigger('focus');
 		});
 		$('.abmm-copy-placement').on('click', function () {
@@ -1760,6 +2063,8 @@
 			state.previewCategoryId = '';
 			// Show the drawer straight away so tablet and phone previews show the menu, not just a hamburger.
 			state.previewMobileOpen = state.previewViewport !== 'desktop';
+			// Every device starts at Fit, so a phone never overflows the canvas.
+			state.previewZoom = 'fit';
 			$('.abmm-preview-viewports [data-abmm-preview-viewport]')
 				.removeClass('is-active')
 				.attr('aria-pressed', 'false');
@@ -1844,6 +2149,7 @@
 		bindModalKeyboard();
 		bindExitRecovery();
 		bindBuilderEvents();
+		initFeaturedEditor();
 		initIconModal();
 
 		// Export current menu from builder
@@ -1995,7 +2301,15 @@
 			var idx = getMenu().items.findIndex(function (it) {
 				return it.id === id;
 			});
-			openMegaEditor(idx);
+			if (idx < 0) return;
+			// From the inspector drawer, step out of the drawer so the content
+			// editor below the preview is visible; Done returns to the drawer toggle.
+			var opener = this;
+			if ($('#abmm-builder-sidebar').hasClass('is-open') && !megaEditorIsNarrow()) {
+				opener = $('.abmm-builder-panel-toggle').filter(':visible')[0] || opener;
+				closeBuilderPanel(false);
+			}
+			openMegaEditor(idx, opener);
 		});
 
 		$('#abmm-nav-items').on('click', '.abmm-duplicate-nav', function () {
@@ -2016,13 +2330,6 @@
 		});
 
 		$('.abmm-close-mega-editor').on('click', closeMegaEditor);
-
-		$('.abmm-open-selected-mega').on('click', function () {
-			if (state.previewItemIndex < 0) return;
-			var item = getMenu().items[state.previewItemIndex];
-			if (!item || item.type !== 'mega') return;
-			openMegaEditor(state.previewItemIndex);
-		});
 
 		$('.abmm-mega-style-card').on('click', function () {
 			var item = getMenu().items[state.editingItemIndex];
@@ -2125,7 +2432,7 @@
 		});
 
 		$('#abmm-cat-list').on('click', '.abmm-cat-row', function (e) {
-			if ($(e.target).closest('.abmm-row-actions, .abmm-pick-icon, .abmm-select-category, .abmm-icon-style').length) return;
+			if ($(e.target).closest('.abmm-row-actions, .abmm-pick-icon, .abmm-select-category').length) return;
 			if ($(this).hasClass('is-selected')) return;
 			selectCategory($(this).index());
 		});
@@ -2150,67 +2457,12 @@
 			if (!cat) return;
 			cat.title = $(this).closest('.abmm-cat-row').find('.abmm-cat-title').val();
 			cat.description = $(this).closest('.abmm-cat-row').find('.abmm-cat-desc').val();
-			renderPreview();
-		});
-
-		$('#abmm-features-link-list').on('input change', '.abmm-link-icon-color, .abmm-link-icon-size', function () {
-			var item = getMenu().items[state.editingItemIndex];
-			var id = $(this).closest('.abmm-link-row').data('id');
-			var link = item && (item.links || []).find(function (entry) { return entry.id === id; });
-			if (!link) return;
-			if ($(this).hasClass('abmm-link-icon-size')) {
-				link.icon_size = parseInt($(this).val(), 10) || 0;
-			} else {
-				link.icon_color = $(this).val() || '';
+			if (idx === state.editingCatIndex) {
+				$('#abmm-cat-detail .abmm-cat-detail__title').text(cat.title || __('Untitled category', 'ashbi-mega-menu'));
 			}
 			renderPreview();
 		});
 
-		$('#abmm-features-link-list').on('click', '.abmm-reset-icon-style', function () {
-			var item = getMenu().items[state.editingItemIndex];
-			var id = $(this).closest('.abmm-link-row').data('id');
-			var link = item && (item.links || []).find(function (entry) { return entry.id === id; });
-			resetIconStyle(link);
-			renderFeaturesLinkList();
-			renderPreview();
-		});
-
-		$('#abmm-features-link-list').on('input change', '.abmm-icon-advanced-field', function () {
-			var item = getMenu().items[state.editingItemIndex];
-			var id = $(this).closest('.abmm-link-row').data('id');
-			var link = item && (item.links || []).find(function (entry) { return entry.id === id; });
-			applyIconAdvancedField(link, $(this));
-			renderPreview();
-		});
-
-		$('#abmm-cat-list').on('input change', '.abmm-cat-icon-color, .abmm-cat-icon-size', function () {
-			var item = getMenu().items[state.editingItemIndex];
-			var idx = $(this).closest('.abmm-cat-row').index();
-			var cat = item && item.categories[idx];
-			if (!cat) return;
-			if ($(this).hasClass('abmm-cat-icon-size')) {
-				cat.icon_size = parseInt($(this).val(), 10) || 0;
-			} else {
-				cat.icon_color = $(this).val() || '';
-			}
-			renderPreview();
-		});
-
-		$('#abmm-cat-list').on('click', '.abmm-reset-icon-style', function (event) {
-			event.stopPropagation();
-			var item = getMenu().items[state.editingItemIndex];
-			var idx = $(this).closest('.abmm-cat-row').index();
-			resetIconStyle(item && item.categories[idx]);
-			renderCatList();
-			renderPreview();
-		});
-
-		$('#abmm-cat-list').on('input change', '.abmm-icon-advanced-field', function () {
-			var item = getMenu().items[state.editingItemIndex];
-			var idx = $(this).closest('.abmm-cat-row').index();
-			applyIconAdvancedField(item && item.categories[idx], $(this));
-			renderPreview();
-		});
 	}
 
 	function resetIconStyle(target) {
@@ -2235,29 +2487,71 @@
 		}
 	}
 
-	function iconAdvancedFieldsHtml(style) {
+	// Per-item icon style lives in the icon picker, next to the icon it styles.
+	function iconAppearanceHtml(style) {
 		style = style || {};
 		var settings = (getMenu() && getMenu().settings) || {};
+		function colorField(key, label, fallback) {
+			return '<label class="abmm-icon-appearance__field"><span>' + esc(label) + '</span>' +
+				'<input type="color" class="abmm-icon-advanced-field" data-icon-field="' + key + '" value="' +
+				esc(style[key] || settings[key] || fallback) + '" /></label>';
+		}
 		return (
-			'<details class="abmm-icon-style-editor"><summary>' + esc(__('State & container overrides', 'ashbi-mega-menu')) + '</summary>' +
-			'<div class="abmm-icon-style-editor__grid">' +
-			'<label>' + esc(__('Hover', 'ashbi-mega-menu')) + '<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_hover_color" value="' +
-			esc(style.icon_hover_color || settings.icon_hover_color || '#1a73e8') +
-			'" /></label>' +
-			'<label>' + esc(__('Active', 'ashbi-mega-menu')) + '<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_active_color" value="' +
-			esc(style.icon_active_color || settings.icon_active_color || '#1a73e8') +
-			'" /></label>' +
-			'<label>' + esc(__('Background', 'ashbi-mega-menu')) + '<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_background" value="' +
-			esc(style.icon_background || settings.icon_background || '#ffffff') +
-			'" /></label>' +
-			'<label>' + esc(__('Border', 'ashbi-mega-menu')) + '<input type="color" class="abmm-icon-advanced-field" data-icon-field="icon_border_color" value="' +
-			esc(style.icon_border_color || settings.icon_border_color || '#ffffff') +
-			'" /></label>' +
-			'<label>' + esc(__('Radius', 'ashbi-mega-menu')) + '<input type="number" min="0" max="24" class="abmm-icon-advanced-field" data-icon-field="icon_radius" value="' +
+			colorField('icon_color', __('Colour', 'ashbi-mega-menu'), '#2271b1') +
+			colorField('icon_hover_color', __('Hover', 'ashbi-mega-menu'), '#1a73e8') +
+			colorField('icon_active_color', __('Active', 'ashbi-mega-menu'), '#1a73e8') +
+			colorField('icon_background', __('Background', 'ashbi-mega-menu'), '#ffffff') +
+			colorField('icon_border_color', __('Border', 'ashbi-mega-menu'), '#ffffff') +
+			'<label class="abmm-icon-appearance__field"><span>' + esc(__('Size (px)', 'ashbi-mega-menu')) + '</span>' +
+			'<input type="number" min="12" max="64" class="abmm-icon-advanced-field" data-icon-field="icon_size" value="' +
+			esc(style.icon_size || '') + '" placeholder="' + esc(__('Inherit', 'ashbi-mega-menu')) + '" /></label>' +
+			'<label class="abmm-icon-appearance__field"><span>' + esc(__('Radius (px)', 'ashbi-mega-menu')) + '</span>' +
+			'<input type="number" min="0" max="24" class="abmm-icon-advanced-field" data-icon-field="icon_radius" value="' +
 			esc(style.icon_radius === '' || style.icon_radius == null ? '' : style.icon_radius) +
-			'" placeholder="' + esc(__('Inherit', 'ashbi-mega-menu')) + '" /></label>' +
-			'</div></details>'
+			'" placeholder="' + esc(__('Inherit', 'ashbi-mega-menu')) + '" /></label>'
 		);
+	}
+
+	function iconTargetObject(t) {
+		var item = getMenu() && getMenu().items[state.editingItemIndex];
+		if (!t || !item) return null;
+		if (t.type === 'cat') return (item.categories || [])[t.catIndex] || null;
+		if (t.type === 'feature-link') return (item.links || [])[t.linkIndex] || null;
+		if (t.type === 'link') {
+			var c = (item.categories || [])[t.catIndex];
+			return (c && c.links && c.links[t.linkIndex]) || null;
+		}
+		if (t.type === 'group-link') {
+			var gc = (item.categories || [])[t.catIndex];
+			var group = gc && (gc.groups || []).find(function (g) { return g.id === t.groupId; });
+			return (group && (group.links || []).find(function (l) { return l.id === t.linkId; })) || null;
+		}
+		return null;
+	}
+
+	function iconTargetButton(t) {
+		if (!t) return $();
+		if (t.type === 'cat') return $('#abmm-cat-list > .abmm-cat-row').eq(t.catIndex).find('.abmm-pick-icon');
+		if (t.type === 'feature-link') return $('#abmm-features-link-list > .abmm-link-row').eq(t.linkIndex).find('.abmm-pick-link-icon');
+		if (t.type === 'group-link') {
+			return $('#abmm-group-list .abmm-link-row').filter(function () { return $(this).data('id') === t.linkId; }).find('.abmm-pick-link-icon');
+		}
+		return $();
+	}
+
+	// Redraw only the icon tile, so the picker's opener keeps its place and focus.
+	function refreshIconTile(t) {
+		var target = iconTargetObject(t);
+		var $button = iconTargetButton(t);
+		if (!target || !$button.length) return false;
+		$button.html(iconMarkup(target.icon, target.icon_url, '', target.icon_color, target.icon_size, target));
+		return true;
+	}
+
+	function renderIconAppearance() {
+		var target = iconTargetObject(state.iconTarget);
+		$('#abmm-icon-appearance').prop('hidden', !target);
+		$('#abmm-icon-appearance-fields').html(target ? iconAppearanceHtml(target) : '');
 	}
 
 	function showCatPlaceholder() {
@@ -2305,11 +2599,46 @@
 		return sprintf(__('Show settings for %s', 'ashbi-mega-menu'), navItemName(item, itemIndex));
 	}
 
+	// A row summary that says something: "3 categories · 12 links" for a mega
+	// menu, the path for a link.
+	function megaLinkCount(item) {
+		if ((item.mega_style || 'platforms') === 'features') return (item.links || []).length;
+		var count = 0;
+		(item.categories || []).forEach(function (cat) {
+			(cat.groups || []).forEach(function (group) { count += (group.links || []).length; });
+			count += (cat.links || []).length;
+		});
+		return count;
+	}
+
+	function linkPathText(url) {
+		url = String(url || '').trim();
+		if (!url) return '';
+		var match = url.match(/^(?:https?:)?\/\/([^\/?#]+)(.*)$/i);
+		if (match) {
+			var host = match[1].toLowerCase();
+			var own = String(window.location && window.location.host || '').toLowerCase();
+			var rest = match[2] || '/';
+			// Same site: the path is what matters. Elsewhere: show the domain too.
+			return host === own ? rest : host.replace(/^www\./, '') + (rest === '/' ? '' : rest);
+		}
+		return url;
+	}
+
 	function navSummaryText(item) {
 		if (item.type === 'mega') {
-			return item.mega_style === 'features' ? __('Simple columns', 'ashbi-mega-menu') : __('With categories', 'ashbi-mega-menu');
+			var links = megaLinkCount(item);
+			/* translators: %s: number of links. */
+			var linksText = sprintf(_n('%s link', '%s links', links, 'ashbi-mega-menu'), links);
+			if ((item.mega_style || 'platforms') === 'features') {
+				return links ? linksText : __('No content yet', 'ashbi-mega-menu');
+			}
+			var cats = (item.categories || []).length;
+			if (!cats) return __('No content yet', 'ashbi-mega-menu');
+			/* translators: 1: number of categories, for example "3 categories", 2: number of links, for example "12 links". */
+			return sprintf(__('%1$s · %2$s', 'ashbi-mega-menu'), /* translators: %s: number of categories. */ sprintf(_n('%s category', '%s categories', cats, 'ashbi-mega-menu'), cats), linksText);
 		}
-		return String(item.url || '').trim() || __('No link yet', 'ashbi-mega-menu');
+		return linkPathText(item.url) || __('No link yet', 'ashbi-mega-menu');
 	}
 
 	function setNavRowExpanded($row, expanded) {
@@ -2381,13 +2710,12 @@
 				(isMega
 					? '<div class="abmm-nav-field abmm-nav-item-row__meta">' +
 						'<span class="abmm-nav-field__label">' + esc(__('Content', 'ashbi-mega-menu')) + '</span>' +
-						'<button type="button" class="button abmm-edit-mega">' + esc(__('Edit content', 'ashbi-mega-menu')) + '</button>' +
+						'<button type="button" class="button abmm-edit-mega"><span class="dashicons dashicons-edit" aria-hidden="true"></span>' + esc(__('Edit content', 'ashbi-mega-menu')) + '</button>' +
 						'</div>'
 					: '<div class="abmm-nav-field">' +
 						'<label for="' + urlId + '">' + esc(__('URL', 'ashbi-mega-menu')) + '</label>' +
-						wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false).replace('<input type="text" class="', '<input type="text" id="' + urlId + '" class="') +
-						'</div>' +
-						linkOptionsHtml(item)) +
+						wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false, item).replace('<input type="text" class="', '<input type="text" id="' + urlId + '" class="') +
+						'</div>') +
 				'</div>' +
 				'</li>'
 			);
@@ -2411,16 +2739,22 @@
 		});
 	}
 
-	function openMegaEditor(index) {
+	function openMegaEditor(index, opener) {
 		state.editingItemIndex = index;
-		state.megaEditorOpener = document.activeElement;
+		state.megaEditorOpener = opener || document.activeElement;
 		var item = getMenu().items[index];
+		// Filling in editor defaults is not an edit: keep a clean menu clean.
+		var wasClean = state.trackingChanges && !hasUnsavedChanges();
 		if (!item.mega_style) item.mega_style = 'platforms';
 		if (!item.columns) item.columns = item.mega_style === 'features' ? 2 : 3;
 		if (!item.categories) item.categories = [];
 		if (!item.links) item.links = [];
-		/* translators: %s: mega menu item name. */
-		$('#abmm-mega-editor-title').text(sprintf(__('Edit Mega Menu: %s', 'ashbi-mega-menu'), item.label || ''));
+		(item.categories || []).forEach(ensureCategoryGroups);
+		if (wasClean) {
+			state.savedSnapshot = JSON.stringify(getMenu());
+			markDirtyState();
+		}
+		$('#abmm-mega-editor-title').text(item.label || __('Untitled item', 'ashbi-mega-menu'));
 		$('#abmm-mega-editor').prop('hidden', false);
 		$('#abmm-nav-items .abmm-nav-item-row').removeClass('is-selected').eq(index).addClass('is-selected');
 		syncMegaEditorUI();
@@ -2430,7 +2764,15 @@
 				$('#abmm-mega-editor .abmm-close-mega-editor').trigger('focus');
 			}, 0);
 		} else {
-			$('html, body').animate({ scrollTop: $('#abmm-mega-editor').offset().top - 40 }, 200);
+			// Clear the sticky top bar when scrolling the editor into view.
+			var $header = $('.abmm-builder-header');
+			var stuck = $header.length && $header.css('position') === 'sticky';
+			var clearance = 16 + (stuck ? (parseFloat($header.css('top')) || 0) + ($header.outerHeight() || 0) : 32);
+			$('html, body').animate({ scrollTop: $('#abmm-mega-editor').offset().top - clearance }, 200);
+			// Opened from the drawer, the button that was pressed is now hidden: move focus into the editor.
+			if (!$(state.megaEditorOpener).is(':visible') || $(state.megaEditorOpener).is('.abmm-builder-panel-toggle')) {
+				setTimeout(function () { $('#abmm-mega-editor-title').trigger('focus'); }, 0);
+			}
 		}
 	}
 
@@ -2453,6 +2795,7 @@
 		$('.abmm-mega-style-card[data-style="' + style + '"]').addClass('is-active');
 		$('#abmm-mega-item-columns').val(String(item.columns || (style === 'features' ? 2 : 3)));
 		syncCategoryBarField(item);
+		syncFeaturedEditor(item);
 
 		if (style === 'features') {
 			$('#abmm-editor-platforms').prop('hidden', true);
@@ -2473,6 +2816,128 @@
 				showCatPlaceholder();
 			}
 		}
+	}
+
+	/* ---------- Featured card ---------- */
+	var FEATURED_KEYS = ['title', 'text', 'label', 'url', 'image_url'];
+
+	function featuredData(item) {
+		var f = item && item.featured;
+		return f && typeof f === 'object' && !Array.isArray(f) ? f : null;
+	}
+
+	function featuredIsEmpty(f) {
+		return !f || FEATURED_KEYS.every(function (key) { return String(f[key] || '').trim() === ''; });
+	}
+
+	// An item without a card keeps no `featured` key, so older menus and
+	// untouched items save exactly as before.
+	function updateFeatured(item, changes) {
+		var f = featuredData(item) || { show: false, title: '', text: '', label: '', url: '', image_url: '' };
+		Object.keys(changes).forEach(function (key) { f[key] = changes[key]; });
+		f.show = !!f.show;
+		if (!f.show && featuredIsEmpty(f)) delete item.featured;
+		else item.featured = f;
+	}
+
+	function syncFeaturedMedia(url) {
+		url = String(url || '').trim();
+		var $media = $('#abmm-featured-media');
+		var $thumb = $media.find('.abmm-featured-media__thumb').empty().removeClass('has-image is-broken');
+		if (url) {
+			$('<img alt="" />').attr('src', url).on('error', function () {
+				$thumb.addClass('is-broken').empty().append('<span class="dashicons dashicons-warning"></span>');
+				$thumb.attr('title', __('This image could not be loaded.', 'ashbi-mega-menu'));
+			}).appendTo($thumb);
+			$thumb.addClass('has-image').removeAttr('title');
+		} else {
+			$thumb.removeAttr('title').append('<span class="dashicons dashicons-format-image"></span>');
+		}
+		$media.find('.abmm-featured-choose-image').text(url ? __('Replace image', 'ashbi-mega-menu') : __('Choose image', 'ashbi-mega-menu'));
+		$media.find('.abmm-featured-remove-image').prop('hidden', !url);
+	}
+
+	function syncFeaturedEditor(item) {
+		var f = featuredData(item) || {};
+		var show = !!f.show;
+		$('#abmm-featured-show').prop('checked', show).attr('aria-checked', show ? 'true' : 'false');
+		$('#abmm-featured-fields').prop('hidden', !show);
+		$('#abmm-featured-editor').toggleClass('is-on', show);
+		$('#abmm-featured-editor .abmm-featured-input').each(function () {
+			$(this).val(f[$(this).data('featured-key')] || '');
+		});
+		syncFeaturedMedia(f.image_url);
+	}
+
+	function initFeaturedEditor() {
+		$('#abmm-featured-show').on('change', function () {
+			var item = getMenu().items[state.editingItemIndex];
+			if (!item) return;
+			var on = $(this).is(':checked');
+			updateFeatured(item, { show: on });
+			syncFeaturedEditor(item);
+			renderPreview();
+			if (on) setTimeout(function () { $('#abmm-featured-title').trigger('focus'); }, 0);
+		});
+		$('#abmm-featured-editor').on('input change', '.abmm-featured-input', function () {
+			var item = getMenu().items[state.editingItemIndex];
+			if (!item) return;
+			var key = String($(this).data('featured-key'));
+			var change = {};
+			change[key] = String($(this).val() || '');
+			updateFeatured(item, change);
+			if (key === 'image_url') syncFeaturedMedia(change[key]);
+			renderPreview();
+		});
+		$('#abmm-featured-editor').on('click', '.abmm-featured-choose-image', function () {
+			var opener = this;
+			if (!window.wp || typeof window.wp.media !== 'function') {
+				setStatus(__('The media library is not available. Paste an image URL instead.', 'ashbi-mega-menu'), true);
+				$('#abmm-featured-image').trigger('focus');
+				return;
+			}
+			var frame = window.wp.media({
+				title: __('Choose a featured image', 'ashbi-mega-menu'),
+				button: { text: __('Use image', 'ashbi-mega-menu') },
+				library: { type: 'image' },
+				multiple: false,
+			});
+			frame.on('select', function () {
+				var att = frame.state().get('selection').first().toJSON();
+				var url = (att.sizes && att.sizes.large && att.sizes.large.url) || att.url || '';
+				$('#abmm-featured-image').val(url).trigger('change');
+			});
+			frame.on('close', function () { setTimeout(function () { $(opener).trigger('focus'); }, 0); });
+			frame.open();
+		});
+		$('#abmm-featured-editor').on('click', '.abmm-featured-remove-image', function () {
+			$('#abmm-featured-image').val('').trigger('change');
+			$('#abmm-featured-editor .abmm-featured-choose-image').trigger('focus');
+		});
+	}
+
+	// Same markup as the front end: a card after the link columns.
+	function featuredPreviewMarkup(item) {
+		var f = featuredData(item);
+		var title = String((f && f.title) || '').trim();
+		if (!f || !f.show || !title) return '';
+		var image = String(f.image_url || '').trim();
+		var text = String(f.text || '').trim();
+		var url = String(f.url || '').trim();
+		var hasLink = url !== '' && url !== '#';
+		var label = String(f.label || '').trim() || (hasLink ? __('Learn more', 'ashbi-mega-menu') : '');
+		var content =
+			(image ? '<span class="abmm-mega__featured-media"><img src="' + esc(image) + '" alt="" loading="lazy" decoding="async" /></span>' : '') +
+			'<span class="abmm-mega__featured-body">' +
+			'<span class="abmm-mega__featured-title">' + esc(title) + '</span>' +
+			(text ? '<span class="abmm-mega__featured-text">' + esc(text) + '</span>' : '') +
+			(hasLink
+				? '<span class="abmm-mega__featured-link">' + esc(label) + '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 8h9.5M8.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+				: '') +
+			'</span>';
+		return hasLink
+			? '<a class="abmm-mega__featured" href="' + esc(url) + '">' + content + '</a>'
+			: '<div class="abmm-mega__featured">' + content + '</div>';
 	}
 
 	function renderFeaturesLinkList() {
@@ -2515,8 +2980,10 @@
 			}
 			updateBuilderSheetBodyLock();
 		}
-		if (state.megaEditorOpener && document.documentElement.contains(state.megaEditorOpener)) {
-			setTimeout(function () { $(state.megaEditorOpener).trigger('focus'); }, 0);
+		// Capture the opener: it is cleared below, before the timeout runs.
+		var opener = state.megaEditorOpener;
+		if (opener && document.documentElement.contains(opener)) {
+			setTimeout(function () { $(opener).trigger('focus'); }, 0);
 		}
 		state.megaEditorOpener = null;
 	}
@@ -2527,6 +2994,7 @@
 		if (!item) return;
 		syncCategoryBarField(item);
 
+		// A flat list: icon, name and description, with row actions on the right.
 		(item.categories || []).forEach(function (cat, i) {
 			var iconHtml = iconMarkup(cat.icon, cat.icon_url, '', cat.icon_color, cat.icon_size, cat);
 			var catName = cat.title || String(i + 1);
@@ -2534,25 +3002,17 @@
 				'<li class="abmm-cat-row' + (i === state.editingCatIndex ? ' is-selected' : '') + '" data-id="' + esc(cat.id) + '">' +
 				'<div class="abmm-cat-row__head">' +
 				'<span class="abmm-drag-handle" title="' + esc(S.dragHint) + '" aria-hidden="true"><span class="dashicons dashicons-menu"></span></span>' +
-				'<button type="button" class="abmm-pick-icon" title="' + esc(S.selectIcon) + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), catName)) + '">' + iconHtml + '</button>' +
+				'<button type="button" class="abmm-pick-icon" title="' + esc(__('Icon and icon style', 'ashbi-mega-menu')) + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), catName)) + '">' + iconHtml + '</button>' +
 				'<div class="abmm-cat-row__fields">' +
 				'<input type="text" class="abmm-cat-title" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s title', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.title) + '" placeholder="' + esc(S.categoryTitle) + '" />' +
 				'<input type="text" class="abmm-cat-desc" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s description', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.description) + '" placeholder="' + esc(S.categoryDesc) + '" />' +
 				'</div>' +
-				'<button type="button" class="button-link abmm-select-category" aria-pressed="' + (i === state.editingCatIndex ? 'true' : 'false') + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Edit category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Edit links', 'ashbi-mega-menu')) + '">' + iconButtonContent('arrow-right-alt2', __('Edit', 'ashbi-mega-menu')) + '</button>' +
-				'</div>' +
-				'<div class="abmm-cat-row__foot">' +
-				'<details class="abmm-icon-style"><summary>' + esc(__('Icon style', 'ashbi-mega-menu')) + '</summary><div class="abmm-icon-style__fields">' +
-				'<input type="color" class="abmm-icon-color abmm-cat-icon-color" value="' + esc(cat.icon_color || '#2271b1') + '" aria-label="' + esc(__('Icon color', 'ashbi-mega-menu')) + '" />' +
-				'<input type="number" class="abmm-icon-size abmm-cat-icon-size" min="12" max="64" value="' + esc(cat.icon_size || '') + '" placeholder="' + esc(__('Size', 'ashbi-mega-menu')) + '" aria-label="' + esc(__('Icon size override', 'ashbi-mega-menu')) + '" />' +
-				'<button type="button" class="button-link abmm-reset-icon-style" title="' + esc(__('Reset icon style to inherited values', 'ashbi-mega-menu')) + '">' + esc(__('Inherit', 'ashbi-mega-menu')) + '</button>' +
-				iconAdvancedFieldsHtml(cat) +
-				'</div></details>' +
 				'<span class="abmm-row-actions">' +
 				/* translators: %s: category name. */
 				reorderControlsHtml(sprintf(__('category %s', 'ashbi-mega-menu'), catName), i, item.categories.length) +
 				'<button type="button" class="button-link-delete abmm-remove-cat" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Remove category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Remove category', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
 				'</span>' +
+				'<button type="button" class="button-link abmm-select-category" aria-pressed="' + (i === state.editingCatIndex ? 'true' : 'false') + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Edit category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Edit links', 'ashbi-mega-menu')) + '">' + iconButtonContent('arrow-right-alt2', __('Edit', 'ashbi-mega-menu')) + '</button>' +
 				'</div>' +
 				'</li>'
 			);
@@ -2616,21 +3076,21 @@
 
 		ensureCategoryGroups(cat);
 
+		var panelTitleId = 'abmm-panel-title-' + state.editingCatIndex;
 		var html =
 			'<div class="abmm-cat-detail-inner">' +
-			'<label class="abmm-field"><span>' +
-			esc(S.panelTitle) +
-			'</span>' +
-			'<input type="text" class="abmm-panel-title" value="' +
+			'<div class="abmm-cat-detail__head">' +
+			'<p class="abmm-cat-detail__eyebrow">' + esc(__('Category', 'ashbi-mega-menu')) + '</p>' +
+			'<h3 class="abmm-cat-detail__title">' + esc(cat.title || __('Untitled category', 'ashbi-mega-menu')) + '</h3>' +
+			'</div>' +
+			'<div class="abmm-cat-detail__heading">' +
+			'<label class="abmm-cat-detail__label" for="' + panelTitleId + '">' + esc(S.panelTitle) + '</label>' +
+			'<div class="abmm-cat-detail__heading-row">' +
+			'<input type="text" id="' + panelTitleId + '" class="abmm-panel-title" value="' +
 			esc(cat.panel_title || '') +
-			'" /></label>' +
-			'<label class="abmm-field"><span>' +
-			esc(S.panelUrl) +
-			'</span>' +
-			wpLinkFieldHtml(cat.panel_url, 'abmm-panel-url', '.abmm-panel-title', false) +
-			'</label>' +
-			'<div class="abmm-panel-link-options">' +
-			linkOptionsHtml(cat.panel_link || {}) +
+			'" />' +
+			headingLinkPopoverHtml('abmm-panel-link-options', 'abmm-panel-url', '.abmm-panel-title', cat.panel_link || {}, cat.panel_url) +
+			'</div>' +
 			'</div>' +
 			'<div class="abmm-col-editor-head">' +
 			'<div>' +
@@ -2777,39 +3237,6 @@
 			renderPreview();
 		});
 
-		$detail.on('input.abmmCatDetail change.abmmCatDetail', '.abmm-link-icon-color, .abmm-link-icon-size', function () {
-			var $row = $(this).closest('.abmm-link-row');
-			var $block = $(this).closest('.abmm-group-block');
-			var group = cat.groups.find(function (g) { return g.id === $block.data('id'); });
-			var link = group && (group.links || []).find(function (l) { return l.id === $row.data('id'); });
-			if (!link) return;
-			if ($(this).hasClass('abmm-link-icon-size')) {
-				link.icon_size = parseInt($(this).val(), 10) || 0;
-			} else {
-				link.icon_color = $(this).val() || '';
-			}
-			renderPreview();
-		});
-
-		$detail.on('click.abmmCatDetail', '.abmm-reset-icon-style', function () {
-			var $row = $(this).closest('.abmm-link-row');
-			var $block = $(this).closest('.abmm-group-block');
-			var group = cat.groups.find(function (g) { return g.id === $block.data('id'); });
-			var link = group && (group.links || []).find(function (l) { return l.id === $row.data('id'); });
-			resetIconStyle(link);
-			renderCatDetail();
-			renderPreview();
-		});
-
-		$detail.on('input.abmmCatDetail change.abmmCatDetail', '.abmm-icon-advanced-field', function () {
-			var $row = $(this).closest('.abmm-link-row');
-			var $block = $(this).closest('.abmm-group-block');
-			var group = cat.groups.find(function (g) { return g.id === $block.data('id'); });
-			var link = group && (group.links || []).find(function (l) { return l.id === $row.data('id'); });
-			applyIconAdvancedField(link, $(this));
-			renderPreview();
-		});
-
 		$detail.on('click.abmmCatDetail', '.abmm-pick-link-icon', function () {
 			var $row = $(this).closest('.abmm-link-row');
 			var $block = $(this).closest('.abmm-group-block');
@@ -2854,11 +3281,13 @@
 		});
 	}
 
+	// A column is a flat section: heading, optional heading link, then its links.
 	function groupBlockHtml(group, groupIndex, groupLength) {
 		var linksHtml = '';
 		(group.links || []).forEach(function (link, index) {
-			linksHtml += linkRowHtml(link, index, group.links.length);
+			linksHtml += linkRowHtml(link, index, group.links.length, true);
 		});
+		var groupName = group.title || groupIndex + 1;
 
 		return (
 			'<div class="abmm-group-block" data-id="' +
@@ -2868,21 +3297,14 @@
 			'<input type="text" class="abmm-group-title" aria-label="' + esc(__('Column heading', 'ashbi-mega-menu')) + '" value="' +
 			esc(group.title || '') +
 			'" placeholder="' + esc(__('Column heading (e.g. Services)', 'ashbi-mega-menu')) + '" />' +
-			/* translators: %s: column name. */
+			headingLinkPopoverHtml('abmm-group-heading-options', 'abmm-group-url', '.abmm-group-title', group, group.url) +
 			'<span class="abmm-row-actions">' +
-			reorderControlsHtml(sprintf(__('column %s', 'ashbi-mega-menu'), group.title || groupIndex + 1), groupIndex, groupLength) +
-			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="' + /* translators: %s: column name. */ esc(sprintf(__('Remove column %s', 'ashbi-mega-menu'), group.title || groupIndex + 1)) + '" title="' + esc(__('Remove column', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove column', 'ashbi-mega-menu')) + '</button>' +
+			/* translators: %s: column name. */
+			reorderControlsHtml(sprintf(__('column %s', 'ashbi-mega-menu'), groupName), groupIndex, groupLength) +
+			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="' + /* translators: %s: column name. */ esc(sprintf(__('Remove column %s', 'ashbi-mega-menu'), groupName)) + '" title="' + esc(__('Remove column', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove column', 'ashbi-mega-menu')) + '</button>' +
 			'</span>' +
 			'</div>' +
-			'<label class="abmm-field abmm-field--compact"><span>' +
-			esc(S.groupUrl) +
-			'</span>' +
-			wpLinkFieldHtml(group.url, 'abmm-group-url', '.abmm-group-title', false) +
-			'</label>' +
-			'<div class="abmm-group-heading-options">' +
-			linkOptionsHtml(group) +
-			'</div>' +
-			'<ul class="abmm-sortable abmm-link-list abmm-group-link-list">' +
+			'<ul class="abmm-sortable abmm-link-list abmm-group-link-list" data-empty="' + esc(__('No links yet. Add one, or drag a link here.', 'ashbi-mega-menu')) + '">' +
 			linksHtml +
 			'</ul>' +
 			'<button type="button" class="button-link abmm-add-group-link"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>' +
@@ -2892,41 +3314,79 @@
 		);
 	}
 
-	function linkRowHtml(link, linkIndex, linkLength) {
+	// One line per link: icon, label (with an optional description under it),
+	// a quiet URL chip, then row actions. The chip is the one button that opens
+	// the link popover: URL with the WordPress link picker, and link options.
+	function linkEditPopoverHtml(link) {
+		link = link || {};
+		var id = 'abmm-link-edit-' + (++popoverSeq);
 		return (
-			'<li class="abmm-link-row" data-id="' +
+			'<div class="abmm-link-edit abmm-popover' + (linkHasOptions(link) ? ' has-options' : '') + '">' +
+			'<button type="button" class="abmm-link-edit__toggle abmm-popover__toggle" aria-expanded="false" aria-controls="' + id + '" title="' + esc(__('Edit link', 'ashbi-mega-menu')) + '">' +
+			linkChipContent(link.url) +
+			'</button>' +
+			'<div class="abmm-link-edit__panel abmm-popover__panel" id="' + id + '" role="group" aria-label="' + esc(__('Link', 'ashbi-mega-menu')) + '" hidden>' +
+			'<p class="abmm-popover__title" aria-hidden="true">' + esc(__('Link', 'ashbi-mega-menu')) + '</p>' +
+			wpLinkFieldHtml(link.url || '', 'abmm-link-url', '.abmm-link-label', false) +
+			'<div class="abmm-popover__divider" aria-hidden="true"></div>' +
+			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
+			(link.target === '_blank' ? ' checked' : '') +
+			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
+			'<div class="abmm-popover__pair">' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
+			esc(link.rel || '') +
+			'" placeholder="nofollow sponsored" /></label>' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('CSS classes', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-class" value="' +
+			esc(link.class || '') +
+			'" /></label></div></div></div>'
+		);
+	}
+
+	function linkChipContent(url) {
+		var path = linkPathText(url);
+		return '<span class="dashicons dashicons-admin-links" aria-hidden="true"></span>' +
+			'<span class="abmm-link-edit__url' + (path ? '' : ' is-empty') + '">' + esc(path || __('Add a link', 'ashbi-mega-menu')) + '</span>' +
+			'<span class="screen-reader-text">' + esc(__('Edit link', 'ashbi-mega-menu')) + '</span>';
+	}
+
+	function syncLinkChip($popover) {
+		var url = String($popover.find('.abmm-link-url').val() || '');
+		var path = linkPathText(url);
+		$popover.find('.abmm-link-edit__url').toggleClass('is-empty', !path).text(path || __('Add a link', 'ashbi-mega-menu'));
+		$popover.find('.abmm-link-edit__toggle').attr('title', url.trim() ? url.trim() : __('Edit link', 'ashbi-mega-menu'));
+		$popover.toggleClass('has-options', $popover.find('.abmm-link-target').is(':checked') ||
+			String($popover.find('.abmm-link-rel').val() || '').trim() !== '' ||
+			String($popover.find('.abmm-link-class').val() || '').trim() !== '');
+	}
+
+	function linkRowHtml(link, linkIndex, linkLength, withDescription) {
+		var linkName = link.label || linkIndex + 1;
+		return (
+			'<li class="abmm-link-row' + (withDescription ? ' has-description' : '') + '" data-id="' +
 			esc(link.id) +
 			'">' +
 			'<span class="abmm-drag-handle" title="' + esc(S.dragHint) + '" aria-hidden="true"><span class="dashicons dashicons-menu"></span></span>' +
-			'<button type="button" class="abmm-pick-link-icon" title="' +
-			esc(S.selectIcon) +
+			'<button type="button" class="abmm-pick-link-icon" title="' + esc(__('Icon and icon style', 'ashbi-mega-menu')) + '" aria-label="' +
+			/* translators: %s: link name. */
+			esc(sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), linkName)) +
 			'">' +
 			iconMarkup(link.icon, link.icon_url, '', link.icon_color, link.icon_size, link) +
 			'</button>' +
-			'<details class="abmm-icon-style"><summary>' + esc(__('Icon style', 'ashbi-mega-menu')) + '</summary><div class="abmm-icon-style__fields">' +
-			'<input type="color" class="abmm-icon-color abmm-link-icon-color" value="' +
-			esc(link.icon_color || '#8a8a96') +
-			'" aria-label="' + esc(__('Icon color', 'ashbi-mega-menu')) + '" />' +
-			'<input type="number" class="abmm-icon-size abmm-link-icon-size" min="12" max="64" value="' +
-			esc(link.icon_size || '') +
-			'" placeholder="' + esc(__('Size', 'ashbi-mega-menu')) + '" aria-label="' + esc(__('Icon size override', 'ashbi-mega-menu')) + '" />' +
-			'<button type="button" class="button-link abmm-reset-icon-style" title="' + esc(__('Reset icon style to inherited values', 'ashbi-mega-menu')) + '">' + esc(__('Inherit', 'ashbi-mega-menu')) + '</button>' +
-			iconAdvancedFieldsHtml(link) +
-			'</div></details>' +
+			'<div class="abmm-link-row__text">' +
 			'<input type="text" class="abmm-link-label" aria-label="' + esc(__('Link label', 'ashbi-mega-menu')) + '" value="' +
 			esc(link.label) +
 			'" placeholder="' +
 			esc(S.linkLabel) +
 			'" />' +
-			'<textarea class="abmm-link-description" aria-label="' + esc(__('Link description', 'ashbi-mega-menu')) + '" rows="2" placeholder="' + esc(__('Short excerpt (optional)', 'ashbi-mega-menu')) + '">' +
-			esc(link.description || '') +
-			'</textarea>' +
-			wpLinkFieldHtml(link.url || '', 'abmm-link-url', '.abmm-link-label', false) +
-			linkOptionsHtml(link) +
-			/* translators: %s: link name. */
+			(withDescription
+				? '<input type="text" class="abmm-link-description" aria-label="' + esc(__('Link description', 'ashbi-mega-menu')) + '" value="' + esc(link.description || '') + '" placeholder="' + esc(__('Short description (optional)', 'ashbi-mega-menu')) + '" />'
+				: '') +
+			'</div>' +
+			linkEditPopoverHtml(link) +
 			'<span class="abmm-row-actions">' +
-			reorderControlsHtml(sprintf(__('link %s', 'ashbi-mega-menu'), link.label || linkIndex + 1), linkIndex, linkLength) +
-			'<button type="button" class="button-link-delete abmm-remove-link" aria-label="' + /* translators: %s: link name. */ esc(sprintf(__('Remove link %s', 'ashbi-mega-menu'), link.label || linkIndex + 1)) + '" title="' + esc(__('Remove link', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove link', 'ashbi-mega-menu')) + '</button>' +
+			/* translators: %s: link name. */
+			reorderControlsHtml(sprintf(__('link %s', 'ashbi-mega-menu'), linkName), linkIndex, linkLength) +
+			'<button type="button" class="button-link-delete abmm-remove-link" aria-label="' + /* translators: %s: link name. */ esc(sprintf(__('Remove link %s', 'ashbi-mega-menu'), linkName)) + '" title="' + esc(__('Remove link', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove link', 'ashbi-mega-menu')) + '</button>' +
 			'</span>' +
 			'</li>'
 		);
@@ -2962,16 +3422,47 @@
 		var shell = $('.abmm-preview-shell')[0];
 		var stage = shell && shell.querySelector('.abmm-preview-stage');
 		var sizer = shell && shell.querySelector('.abmm-preview-sizer');
+		var preview = stage && stage.querySelector('.abmm-preview');
 		if (!stage || !sizer) return;
-		var width = PREVIEW_WIDTHS[state.previewViewport] || PREVIEW_WIDTHS.desktop;
-		var available = Math.max(160, shell.clientWidth - 32);
-		var scale = state.previewZoom === 'fit' || !state.previewZoom ? Math.min(1, available / width) : state.previewZoom;
+		var device = state.previewViewport;
+		var width = PREVIEW_WIDTHS[device] || PREVIEW_WIDTHS.desktop;
+		var current = state.previewScale || 1;
+		// The browser frame grows to hold an open dropdown, so the panel sits
+		// inside the window instead of hanging below it.
+		if (preview) {
+			preview.style.minHeight = '';
+			if (device === 'desktop') {
+				var previewTop = preview.getBoundingClientRect().top;
+				var needed = 0;
+				$(preview).find('.abmm-mega').filter(':visible').each(function () {
+					needed = Math.max(needed, (this.getBoundingClientRect().bottom - previewTop) / current + 24);
+				});
+				if (needed) preview.style.minHeight = Math.ceil(needed) + 'px';
+			}
+		}
+		var style = window.getComputedStyle ? window.getComputedStyle(shell) : null;
+		var padX = style ? (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0) : 32;
+		var padY = style ? (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0) : 32;
+		var available = Math.max(160, shell.clientWidth - padX);
+		var scale = state.previewZoom;
+		if (state.previewZoom === 'fit' || !state.previewZoom) {
+			scale = Math.min(1, available / width);
+			if (device !== 'desktop') {
+				// Devices also fit the window's height, so the whole phone (and its
+				// CTA) is visible without scrolling the canvas.
+				var top = Math.max(0, shell.getBoundingClientRect().top);
+				var availableHeight = Math.max(360, (window.innerHeight || 900) - Math.min(top, 220) - padY - 24);
+				var naturalHeight = stage.offsetHeight || 1;
+				scale = Math.min(scale, availableHeight / naturalHeight);
+			}
+			scale = Math.max(0.25, Math.floor(scale * 100) / 100);
+		}
 		state.previewScale = scale;
 		stage.style.width = width + 'px';
 		stage.style.transform = scale === 1 ? '' : 'scale(' + scale + ')';
 		sizer.style.width = Math.round(width * scale) + 'px';
 		// Open panels hang below the bar, so measure them too.
-		var height = stage.offsetHeight;
+		var height = Math.max(stage.offsetHeight, stage.scrollHeight);
 		var stageTop = stage.getBoundingClientRect().top;
 		$(stage).find('.abmm-mega').filter(':visible').each(function () {
 			height = Math.max(height, (this.getBoundingClientRect().bottom - stageTop) / scale + 24);
@@ -3015,7 +3506,13 @@
 		var stage = $('.abmm-preview-stage')[0];
 		if (stage && typeof window.ResizeObserver === 'function') {
 			// Keep the canvas height in step when a dropdown opens or closes.
-			new window.ResizeObserver(function () { applyPreviewZoom(); }).observe(stage);
+			// Resize in the next frame: changing the stage inside the observer's
+			// own callback makes browsers report a ResizeObserver loop.
+			var resizeFrame = 0;
+			new window.ResizeObserver(function () {
+				window.cancelAnimationFrame(resizeFrame);
+				resizeFrame = window.requestAnimationFrame(applyPreviewZoom);
+			}).observe(stage);
 		}
 	}
 
@@ -3026,6 +3523,7 @@
 		var style = settingsStyleAttr(s);
 		var className = settingsClassList(s);
 		var previewDrawerId = 'abmm-preview-drawer';
+		syncCustomPresetSwatch(s);
 
 		var itemsHtml = '';
 		(m.items || []).forEach(function (item, idx) {
@@ -3130,7 +3628,7 @@
 			'<div class="abmm-nav__drawer" id="' +
 			previewDrawerId +
 			'">' +
-			'<div class="abmm-nav__drawer-head"><span class="abmm-nav__drawer-title">' + esc(__('Menu', 'ashbi-mega-menu')) + '</span><button type="button" class="abmm-nav__drawer-close" data-abmm-preview-drawer-close aria-label="' + esc(__('Close menu', 'ashbi-mega-menu')) + '"><span aria-hidden="true">&times;</span></button></div>' +
+			/* No title row: as on the live site, the bar's toggle turns into the close button. */
 			drillMarkup +
 			'<div class="abmm-nav__inner">' +
 			previewBrandMarkup('drawer') +
@@ -3141,11 +3639,12 @@
 			previewCtaMarkup('drawer') +
 			'</div></div>' +
 			'<button type="button" class="abmm-nav__backdrop" data-abmm-preview-backdrop' + (mobileOpen ? '' : ' hidden') + ' aria-label="' + esc(__('Close menu', 'ashbi-mega-menu')) + '"></button>' +
-			'</nav></div>';
+			'</nav></div>' +
+			// A quiet page under the menu, so the desktop frame reads as a website.
+			(mobilePreview ? '' : '<div class="abmm-preview-page" aria-hidden="true"><span class="abmm-preview-page__eyebrow"></span><span class="abmm-preview-page__title"></span><span class="abmm-preview-page__title is-short"></span><span class="abmm-preview-page__line"></span><span class="abmm-preview-page__line is-short"></span><span class="abmm-preview-page__actions"><span></span><span></span></span></div>');
 
 		var previewState = state.previewViewport + '-' + state.previewDrill;
 		$('#abmm-preview').attr('data-abmm-preview-state', previewState).html(html);
-		applyPreviewZoom();
 		var $preview = $('#abmm-preview');
 		$preview.find('.abmm-nav__brand-logo').on('error', function () {
 			$(this).replaceWith(
@@ -3164,21 +3663,13 @@
 			$selected.addClass('is-open');
 			$selected.find('> .abmm-nav__link').attr('aria-expanded', 'true');
 		}
-		var selectedItem = m.items && m.items[state.previewItemIndex];
-		var $editSelected = $('.abmm-open-selected-mega');
-		if (selectedItem && selectedItem.type === 'mega') {
-			$editSelected
-				/* translators: %s: mega menu item name. */
-				.text(sprintf(__('Edit %s content', 'ashbi-mega-menu'), selectedItem.label || __('selected', 'ashbi-mega-menu')))
-				/* translators: %s: mega menu item name. */
-				.attr('aria-label', sprintf(__('Edit %s mega menu content', 'ashbi-mega-menu'), selectedItem.label || __('selected', 'ashbi-mega-menu')))
-				.prop('hidden', false);
-		} else {
-			$editSelected.prop('hidden', true);
-		}
 		if (mobilePreview && state.previewDrill !== 'root') {
 			$selected.attr('data-drill', state.previewDrill);
 		}
+		// Size the canvas once the open panel and the drill level are in place:
+		// measured earlier, Fit sees every item plus the whole panel and shrinks
+		// the phone or tablet frame.
+		applyPreviewZoom();
 
 		$preview.off('.abmmpreview')
 			.on('click.abmmpreview', 'a', function (event) {
@@ -3195,10 +3686,7 @@
 					state.previewCategoryId = '';
 				}
 				renderPreview();
-				setTimeout(function () {
-					var selector = state.previewMobileOpen ? '.abmm-nav__drawer-close' : '.abmm-nav__toggle';
-					$('#abmm-preview').find(selector).trigger('focus');
-				}, 0);
+				setTimeout(function () { $('#abmm-preview').find('.abmm-nav__toggle').trigger('focus'); }, 0);
 			})
 			.on('click.abmmpreview', '[data-abmm-preview-drawer-close], [data-abmm-preview-backdrop]', function () {
 				state.previewMobileOpen = false;
@@ -3252,8 +3740,21 @@
 				}, 0);
 			}
 		});
+		refreshNavSummaries();
 		renderReadiness();
 		markDirtyState();
+	}
+
+	// Keep each inspector row's summary ("3 categories · 12 links") current.
+	function refreshNavSummaries() {
+		var items = (getMenu() && getMenu().items) || [];
+		$('#abmm-nav-items > .abmm-nav-item-row').each(function () {
+			var id = $(this).data('id');
+			var item = items.find(function (candidate) { return candidate.id === id; });
+			if (!item) return;
+			var text = navSummaryText(item);
+			$(this).find('.abmm-mega-style-badge, .abmm-nav-item-row__url').text(text).attr('title', text);
+		});
 	}
 
 	function renderMegaPreview(item, itemIndex) {
@@ -3285,12 +3786,13 @@
 				cols +
 				'">' +
 				featLinks +
-				'</ul></div></div>'
+				'</ul>' + featuredPreviewMarkup(item) + '</div></div>'
 			);
 		}
 
 		var cats = item.categories || [];
 		var sections = '';
+		var featuredHtml = featuredPreviewMarkup(item);
 
 		cats.forEach(function (cat, i) {
 			var active = state.previewCategoryId ? String(cat.id) === String(state.previewCategoryId) : i === 0;
@@ -3389,7 +3891,7 @@
 				Math.max(1, groups.length) +
 				'">' +
 				colsHtml +
-				'</div></div></section>';
+				'</div>' + featuredHtml + '</div></section>';
 		});
 
 		var hideCategoryBar = !!item.hide_category_bar && cats.length === 1;
@@ -3497,11 +3999,34 @@
 			applyIcon('link', '');
 			closeIconModal();
 		});
+
+		$('#abmm-icon-appearance').on('input change', '.abmm-icon-advanced-field', function () {
+			var target = iconTargetObject(state.iconTarget);
+			if (!target) return;
+			if ($(this).data('icon-field') === 'icon_size') {
+				target.icon_size = parseInt($(this).val(), 10) || 0;
+			} else {
+				applyIconAdvancedField(target, $(this));
+			}
+			refreshIconTile(state.iconTarget);
+			renderPreview();
+		});
+
+		$('#abmm-icon-appearance').on('click', '.abmm-reset-icon-style', function () {
+			var target = iconTargetObject(state.iconTarget);
+			if (!target) return;
+			resetIconStyle(target);
+			renderIconAppearance();
+			refreshIconTile(state.iconTarget);
+			renderPreview();
+			setStatus(__('Icon style reset to the menu style.', 'ashbi-mega-menu'), false);
+		});
 	}
 
 	function openIconPicker(target, opener) {
 		state.iconTarget = target;
 		$('#abmm-icon-search').val('').trigger('input');
+		renderIconAppearance();
 		openBuilderModal('#abmm-icon-modal', opener || document.activeElement, '#abmm-icon-search');
 	}
 
@@ -3512,50 +4037,14 @@
 
 	function applyIcon(key, url) {
 		var t = state.iconTarget;
-		if (!t) return;
-		var item = getMenu().items[state.editingItemIndex];
-		if (!item) return;
-
-		if (t.type === 'cat') {
-			var cat = item.categories[t.catIndex];
-			if (cat) {
-				cat.icon = key;
-				cat.icon_url = url;
-			}
-			renderCatList();
-			if (state.editingCatIndex === t.catIndex) renderCatDetail();
-		} else if (t.type === 'link') {
-			var c = item.categories[t.catIndex];
-			var link = c && c.links && c.links[t.linkIndex];
-			if (link) {
-				link.icon = key;
-				link.icon_url = url;
-			}
-			renderCatDetail();
-		} else if (t.type === 'group-link') {
-			var gc = item.categories[t.catIndex];
-			var group =
-				gc &&
-				(gc.groups || []).find(function (g) {
-					return g.id === t.groupId;
-				});
-			var gl =
-				group &&
-				(group.links || []).find(function (l) {
-					return l.id === t.linkId;
-				});
-			if (gl) {
-				gl.icon = key;
-				gl.icon_url = url;
-			}
-			renderCatDetail();
-		} else if (t.type === 'feature-link') {
-			var fl = item.links && item.links[t.linkIndex];
-			if (fl) {
-				fl.icon = key;
-				fl.icon_url = url;
-			}
-			renderFeaturesLinkList();
+		var target = iconTargetObject(t);
+		if (!target) return;
+		target.icon = key;
+		target.icon_url = url;
+		if (!refreshIconTile(t)) {
+			if (t.type === 'cat') renderCatList();
+			else if (t.type === 'feature-link') renderFeaturesLinkList();
+			else renderCatDetail();
 		}
 		renderPreview();
 	}

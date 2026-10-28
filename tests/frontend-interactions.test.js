@@ -31,7 +31,8 @@ const dom = new JSDOM(
 												<span class="abmm-mega__cat-title">Finance</span>
 											</button>
 											<div class="abmm-mega__panel" id="finance-panel" hidden>
-												<a href="/accounts">Accounts</a>
+												<h3 class="abmm-mega__section-title"><button type="button" class="abmm-mega__section-toggle" aria-expanded="true" aria-controls="finance-links" data-abmm-section-toggle>Finance</button></h3>
+												<div class="abmm-mega__columns" id="finance-links"><a href="/accounts">Accounts</a></div>
 											</div>
 										</section>
 										<section class="abmm-mega__section" data-abmm-section="people">
@@ -39,7 +40,8 @@ const dom = new JSDOM(
 												<span class="abmm-mega__cat-title">People</span>
 											</button>
 											<div class="abmm-mega__panel" id="people-panel" hidden>
-												<a href="/people">People link</a>
+												<h3 class="abmm-mega__section-title"><button type="button" class="abmm-mega__section-toggle" aria-expanded="true" aria-controls="people-links" data-abmm-section-toggle>People</button></h3>
+												<div class="abmm-mega__columns" id="people-links"><a href="/people">People link</a></div>
 											</div>
 										</section>
 									</div>
@@ -152,26 +154,58 @@ toggle.click();
 assert.equal(header.classList.contains('is-mobile-open'), true);
 assert.equal(window.document.documentElement.classList.contains('abmm-drawer-open'), true);
 
+// A mega item opens to one screen: every category is a heading followed by its
+// links, so a link is two taps from the closed menu (Products, then the link)
+// rather than three (Products, a category, then the link).
+const productsItem = trigger.closest('.abmm-nav__item--mega');
 trigger.click();
 assert.equal(trigger.getAttribute('aria-expanded'), 'true');
-assert.equal(window.document.activeElement, categories[0]);
-
-categories[0].click();
+assert.equal(productsItem.getAttribute('data-drill'), 'links');
 assert.equal(header.getAttribute('data-drill-level'), '2');
+for (const category of categories) {
+	if (category.closest('.abmm-nav__item--resources')) continue;
+	assert.equal(category.getAttribute('aria-expanded'), 'true');
+	assert.equal(category.closest('.abmm-mega__section').querySelector('.abmm-mega__panel').hidden, false);
+}
 assert.equal(window.document.activeElement, firstLink);
+
+// Phone accordion: the first category starts open and the others collapsed,
+// so a link in the first category stays two taps away. A heading toggles its links.
+const [financeToggle, peopleToggle] = header.querySelectorAll('[data-abmm-section-toggle]');
+assert.equal(financeToggle.getAttribute('aria-expanded'), 'true');
+assert.equal(peopleToggle.getAttribute('aria-expanded'), 'false');
+assert.equal(peopleToggle.closest('.abmm-mega__section').classList.contains('is-collapsed'), true);
+peopleToggle.click();
+assert.equal(peopleToggle.getAttribute('aria-expanded'), 'true');
+assert.equal(peopleToggle.closest('.abmm-mega__section').classList.contains('is-collapsed'), false);
+assert.equal(header.getAttribute('data-drill-level'), '2');
+financeToggle.click();
+assert.equal(financeToggle.getAttribute('aria-expanded'), 'false');
+financeToggle.click();
 
 window.document.body.click();
 assert.equal(header.classList.contains('is-mobile-open'), true);
 assert.equal(header.getAttribute('data-drill-level'), '2');
 assert.equal(trigger.getAttribute('aria-expanded'), 'true');
 
+// Back returns to the menu and to the item that was opened.
 header.querySelector('[data-abmm-back]').click();
-assert.equal(header.getAttribute('data-drill-level'), '1');
-assert.equal(window.document.activeElement, categories[0]);
+assert.equal(header.hasAttribute('data-drill-level'), false);
+assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+assert.equal(productsItem.hasAttribute('data-drill'), false);
+assert.equal(window.document.activeElement, trigger);
+assert.equal(header.classList.contains('is-mobile-open'), true);
 
-categories[0].dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
-assert.equal(window.document.activeElement, categories[1]);
+// The bar's toggle is the close button while the drawer is open, so the focus
+// loop includes it: Shift+Tab from the toggle wraps to the drawer's last control.
+const drawerFocusable = Array.from(header.querySelectorAll('.abmm-nav__drawer a[href], .abmm-nav__drawer button')).filter((el) => el.getClientRects().length);
+toggle.focus();
+toggle.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+assert.equal(window.document.activeElement, drawerFocusable[drawerFocusable.length - 1]);
+window.document.activeElement.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+assert.equal(window.document.activeElement, toggle);
 
+trigger.click();
 window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 assert.equal(trigger.getAttribute('aria-expanded'), 'false');
 assert.equal(window.document.activeElement, trigger);
@@ -210,7 +244,6 @@ window.document.addEventListener('click', (event) => {
 function openFinance() {
 	toggle.click();
 	trigger.click();
-	categories[0].click();
 	assert.equal(header.getAttribute('data-drill-level'), '2');
 }
 function destinationClick(options = {}) {
@@ -306,8 +339,8 @@ assert.equal(header.classList.contains('abmm-is-searching'), false);
 toggle.click();
 trigger.click();
 assert.equal(header.querySelector('[data-abmm-back]').getAttribute('aria-label'), 'Back to menu');
-categories[0].click();
-assert.equal(header.querySelector('[data-abmm-back]').getAttribute('aria-label'), 'Back to Products');
+// Back always returns to the menu: there is no separate category screen.
+assert.equal(productsItem.getAttribute('data-drill'), 'links');
 drawerClose.click();
 
 // A menu opened on desktop must not retain its two-panel desktop state after
