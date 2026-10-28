@@ -247,7 +247,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<?php endif; ?>
 							<?php if ( ! $abmm_is_ready && $abmm_issue_count ) : ?>
 								<span class="abmm-menu-card__issues">
-									<a class="abmm-menu-card__issues-link" href="<?php echo esc_url( $abmm_edit_url . '#placement' ); ?>" aria-describedby="<?php echo esc_attr( $abmm_issues_id ); ?>">
+									<a class="abmm-menu-card__issues-link" href="<?php echo esc_url( $abmm_edit_url . '#abmm-readiness-panel' ); ?>" aria-describedby="<?php echo esc_attr( $abmm_issues_id ); ?>">
 										<span class="abmm-menu-card__issues-dot" aria-hidden="true"></span>
 										<?php
 										printf(

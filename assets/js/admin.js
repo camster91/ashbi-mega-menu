@@ -669,8 +669,10 @@
 	}
 
 	function initBuilderSections() {
-		// "Place & verify" on the dashboard links straight to the Place tab.
-		if (window.location.hash === '#placement') state.builderSection = 'help';
+		// "Place & verify" on the dashboard links straight to the Place tab; the
+		// card's "N issues" pill links to the checklist on the Content tab.
+		var hash = window.location.hash;
+		if (hash === '#placement') state.builderSection = 'help';
 		$('.abmm-builder-sections').on('click', '[data-abmm-builder-section]', function () {
 			state.workflowStep = '';
 			setBuilderSection(String($(this).data('abmm-builder-section') || 'content'));
@@ -688,7 +690,14 @@
 			setBuilderSection(String($next.data('abmm-builder-section') || 'content'));
 			$next.trigger('focus');
 		});
-		setBuilderSection('content');
+		setBuilderSection(state.builderSection);
+		if (hash === '#abmm-readiness-panel') {
+			var $checklist = $('#abmm-readiness-panel').attr('tabindex', '-1');
+			if ($checklist.length) {
+				if ($checklist[0].scrollIntoView) $checklist[0].scrollIntoView({ block: 'start' });
+				$checklist.trigger('focus');
+			}
+		}
 	}
 
 	function populateFormFromMenu() {

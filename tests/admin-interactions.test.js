@@ -7,7 +7,7 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 const menu = { title: 'Demo', items: [{ id: 'home', label: 'Home', type: 'link', url: '/' }], cta: {}, settings: { presentation:'unified' } };
 const sections = ['content', 'design', 'settings', 'help'];
 const tabs = ['content', 'design', 'settings'];
-async function fixture(narrow = false, malformed = false, draft = null, menuId = 'demo', menuData = menu, extraMain = '') {
+async function fixture(narrow = false, malformed = false, draft = null, menuId = 'demo', menuData = menu, extraMain = '', url = 'http://localhost/') {
  const dom = new JSDOM(`<body><div class="abmm-builder-topbar"><button class="abmm-save-menu">Save</button><button class="abmm-export-current-menu" data-menu-id="${menuId}">Export</button><span class="abmm-save-status"></span></div>
  <div id="abmm-draft-recovery" hidden><p class="abmm-draft-recovery__message"></p><button class="abmm-restore-draft">Restore</button><button class="abmm-download-draft">Download</button><button class="abmm-reload-server">Reload</button><button class="abmm-discard-draft">Discard</button></div>
  <button data-abmm-workflow="content">Edit</button><button data-abmm-workflow="help">Place</button><button data-abmm-workflow="verify">Verify</button>
@@ -18,7 +18,7 @@ async function fixture(narrow = false, malformed = false, draft = null, menuId =
  ${sections.map(s=>`<div class="abmm-builder-section-group" data-abmm-builder-section-panel="${s}"></div>`).join('')}
  <input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></aside>
  <main class="abmm-builder__main"><div class="abmm-preview-viewports">${['desktop','tablet','mobile'].map(s=>`<button data-abmm-preview-viewport="${s}">${s}</button>`).join('')}</div><div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div id="abmm-preview"></div></div>${extraMain}</main></div>
- <script id="abmm-menu-data" type="application/json">${malformed ? '{invalid' : JSON.stringify(menuData)}</script></body>`, { url:'http://localhost/', runScripts:'outside-only' });
+ <script id="abmm-menu-data" type="application/json">${malformed ? '{invalid' : JSON.stringify(menuData)}</script></body>`, { url, runScripts:'outside-only' });
  const { window } = dom;
  const $ = require('jquery')(window);
  window.jQuery = $;
@@ -290,4 +290,16 @@ async function backupFixture(strings = {}) {
  assert.equal(saved.items[1].links[0].target,'_blank');
  f.close();
  console.log('Admin viewport, drawer, keyboard tabs, sheet, save/retry, malformed load and explicit backup restore tests passed.');
+ // Dashboard deep links: "Place & verify" opens the Place step, and the card's
+ // "N issues" pill opens the checklist on the Content tab.
+ f=await fixture(false,false,null,'demo',menu,'',"http://localhost/#placement"); $=f.$;
+ assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'#placement shows the Place panel');
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
+ assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step','#placement marks the Place step');
+ f.close();
+ f=await fixture(false,false,null,'demo',menu,'<section id="abmm-readiness-panel"><h2>Checklist</h2></section>',"http://localhost/#abmm-readiness-panel"); $=f.$;
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),false,'the checklist link opens the Content tab');
+ assert.equal($('[data-abmm-workflow="content"]').attr('aria-current'),'step');
+ assert.equal(f.window.document.activeElement,$('#abmm-readiness-panel')[0],'focus lands on the checklist');
+ f.close();
 })().catch(error=>{console.error(error);process.exitCode=1;});
