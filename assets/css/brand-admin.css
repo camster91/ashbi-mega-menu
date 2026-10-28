@@ -423,13 +423,12 @@
 	.abmm-menu-card__tip::after {left:72px}
 }
 @media (prefers-reduced-motion:reduce) {.abmm-menu-card__tip {transition:none}}
-/* Narrow screens and 200%+ zoom: span the card instead of hanging off the
-   issue link, so the tip never runs past the screen edge or adds a scrollbar. */
-@media (max-width:782px) {
-	.abmm-menu-card__issues {position:static}
-	.abmm-menu-card__tip {left:12px;right:12px;width:auto;max-width:none}
-	.abmm-menu-card__tip::after {display:none}
-}
+/* Span the card instead of hanging off the issue link, so the tip never runs
+   past the screen edge (narrow screens, 200%+ zoom, long translations). */
+.abmm-menu-card__issues {position:static}
+.abmm-menu-card__tip,
+.abmm-dashboard .abmm-menu-card__tip {left:12px;right:12px;width:auto;max-width:none}
+.abmm-menu-card__tip::after {display:none}
 @media (forced-colors:active) {.abmm-menu-card__tip,.abmm-view-toggle__button.is-current {border:1px solid CanvasText}}
 
 /* "More actions" menu button and popover. */
