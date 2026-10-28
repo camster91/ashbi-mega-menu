@@ -27,6 +27,17 @@ class ABMM_Data {
 	public static function instance() {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
+			if ( function_exists( 'add_action' ) ) {
+				add_action( 'update_option_' . ABMM_OPTION_KEY, array( self::$instance, 'announce_collection_change' ), 10, 2 );
+				add_action(
+					'add_option_' . ABMM_OPTION_KEY,
+					function ( $option, $value ) {
+						self::$instance->announce_collection_change( array(), $value );
+					},
+					10,
+					2
+				);
+			}
 		}
 		return self::$instance;
 	}
@@ -479,6 +490,29 @@ class ABMM_Data {
 			if ( $this->looks_like_broken_url( $link['url'] ?? '' ) ) {
 				/* translators: %s: link label. */
 				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Check the link for "%s". It does not look like a web address.', 'ashbi-mega-menu' ), $link['label'] ?? '' ) );
+			}
+		}
+		/**
+		 * Filters the list of readiness issues for a saved menu.
+		 *
+		 * Add an issue to stop the dashboard showing the menu as ready. Each
+		 * issue is array( 'field' => string, 'message' => string ). This is the
+		 * server check used by the dashboard and REST; the editor's live
+		 * checklist runs in the browser and does not call this filter.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array $issues Issues found by the plugin.
+		 * @param array $menu   Sanitized menu data.
+		 */
+		$filtered = function_exists( 'apply_filters' ) ? apply_filters( 'abmm_menu_readiness_issues', $issues, $menu ) : $issues;
+		$issues   = array();
+		foreach ( is_array( $filtered ) ? $filtered : array() as $issue ) {
+			if ( is_array( $issue ) && '' !== trim( (string) ( $issue['message'] ?? '' ) ) ) {
+				$issues[] = array(
+					'field'   => sanitize_key( (string) ( $issue['field'] ?? '' ) ),
+					'message' => sanitize_text_field( (string) $issue['message'] ),
+				);
 			}
 		}
 		return array( 'ready' => empty( $issues ), 'issues' => $issues );
@@ -1071,7 +1105,92 @@ class ABMM_Data {
 			}
 		}
 
+		/**
+		 * Filters a menu after the plugin sanitized it, before it is stored,
+		 * imported, previewed or compared.
+		 *
+		 * The plugin drops keys it does not know. An add-on that stores its own
+		 * data in a menu keeps it under `extensions.<add-on-slug>`, reading it
+		 * from `$raw['extensions'][ $slug ]` and sanitizing it itself. The
+		 * plugin never reads that data. Returning a non-array is ignored.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array $menu Sanitized menu.
+		 * @param array $raw  Unsanitized input; never store it unsanitized.
+		 */
+		$filtered = function_exists( 'apply_filters' ) ? apply_filters( 'abmm_sanitize_menu', $menu, is_array( $data ) ? $data : array() ) : $menu;
+		if ( is_array( $filtered ) ) {
+			// Core keys keep the shape the plugin just produced.
+			foreach ( array_keys( $menu ) as $key ) {
+				if ( ! isset( $filtered[ $key ] ) || gettype( $filtered[ $key ] ) !== gettype( $menu[ $key ] ) ) {
+					$filtered[ $key ] = $menu[ $key ];
+				}
+			}
+			$extensions = array();
+			foreach ( (array) ( $filtered['extensions'] ?? array() ) as $slug => $value ) {
+				$slug = sanitize_key( (string) $slug );
+				if ( '' !== $slug ) {
+					$extensions[ $slug ] = $value;
+				}
+			}
+			unset( $filtered['extensions'] );
+			$menu = array_intersect_key( $filtered, $menu );
+			if ( $extensions ) {
+				$menu['extensions'] = $extensions;
+			}
+		}
+
 		return $menu;
+	}
+
+	/**
+	 * Fire lifecycle actions when the stored menu collection changes.
+	 *
+	 * Hooked to the menus option, so every path (editor save, import, CLI,
+	 * REST, create, duplicate, delete, archive) is covered in one place.
+	 *
+	 * @param mixed $old Previous collection.
+	 * @param mixed $new New collection.
+	 */
+	public function announce_collection_change( $old, $new ) {
+		$old = is_array( $old ) ? $old : array();
+		$new = is_array( $new ) ? $new : array();
+		foreach ( $new as $id => $menu ) {
+			$previous = $old[ $id ] ?? null;
+			if ( $previous === $menu ) {
+				continue;
+			}
+			/**
+			 * Fires after a menu is created or changed in storage.
+			 *
+			 * Use it to purge caches or sync elsewhere. Runs inside the plugin's
+			 * save lock: do not write menus from it.
+			 *
+			 * @since 1.1.0
+			 *
+			 * @param string     $id       Menu ID.
+			 * @param array      $menu     Stored menu.
+			 * @param array|null $previous Previous menu, or null when new.
+			 */
+			if ( function_exists( 'do_action' ) ) {
+				do_action( 'abmm_menu_saved', (string) $id, $menu, $previous );
+			}
+		}
+		foreach ( array_diff_key( $old, $new ) as $id => $menu ) {
+			/**
+			 * Fires after a menu leaves the active collection (deleted, archived
+			 * or replaced by an import).
+			 *
+			 * @since 1.1.0
+			 *
+			 * @param string $id   Menu ID.
+			 * @param array  $menu The menu as it was.
+			 */
+			if ( function_exists( 'do_action' ) ) {
+				do_action( 'abmm_menu_deleted', (string) $id, $menu );
+			}
+		}
 	}
 
 	/**
