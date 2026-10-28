@@ -15,6 +15,7 @@ jobs:
         with:
           php-version: '8.2'
       - run: npm ci
+      - run: npm run check:versions
       - run: npm run build:brand && npm run build:icons && npm run build && npm test && npm run test:php
       - name: PHP syntax
         run: find admin includes src build -name '*.php' -exec php -l {} \; && php -l ashbi-mega-menu.php && php -l uninstall.php
