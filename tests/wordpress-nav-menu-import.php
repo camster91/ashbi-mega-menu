@@ -56,10 +56,34 @@ try {
 	abmm_nav_assert( ! in_array( $new_id, $locations, true ), 'The draft is not assigned to a theme location.' );
 	$html = do_shortcode( '[ashbi_mega_menu id="' . $new_id . '"]' );
 	abmm_nav_assert( false !== strpos( $html, 'data-abmm-id="' . $new_id . '"' ) && false !== strpos( $html, 'Software' ), 'The imported draft renders with the live renderer.' );
+
+	// A Site Editor navigation with the same shape, in block markup.
+	$link = function ( $attrs ) { return '<!-- wp:navigation-link ' . wp_json_encode( $attrs ) . ' /-->'; };
+	$posts['navigation'] = wp_insert_post( array(
+		'post_type'    => 'wp_navigation',
+		'post_status'  => 'publish',
+		'post_title'   => 'ABMM QA header',
+		'post_content' => '<!-- wp:home-link {"label":"Start"} /-->'
+			. '<!-- wp:navigation-submenu {"label":"Products","url":"#","kind":"custom"} -->'
+			. $link( array( 'label' => 'Software', 'type' => 'page', 'id' => $posts['page'], 'kind' => 'post-type', 'url' => '/stale/', 'opensInNewTab' => true ) )
+			. $link( array( 'label' => 'Draft', 'type' => 'page', 'id' => $posts['draft'], 'kind' => 'post-type' ) )
+			. '<!-- /wp:navigation-submenu -->'
+			. '<!-- wp:search {"label":"Search"} /-->',
+	) );
+	abmm_nav_assert( $posts['navigation'] && ! is_wp_error( $posts['navigation'] ), 'Create a disposable Site Editor navigation.' );
+	$nav_content = get_post_field( 'post_content', $posts['navigation'] );
+	$block = $data->import_from_navigation_post( $posts['navigation'] );
+	abmm_nav_assert( ! is_wp_error( $block ), 'A real Site Editor navigation converts.' );
+	abmm_nav_assert( array( 'Start', 'Products' ) === array_column( $block['menu']['items'], 'label' ), 'Home link and submenu become top-level items.' );
+	$block_links = $block['menu']['items'][1]['categories'][0]['groups'][0]['links'];
+	abmm_nav_assert( array( 'Software' ) === array_column( $block_links, 'label' ) && get_permalink( $posts['page'] ) === $block_links[0]['url'] && '_blank' === $block_links[0]['target'], 'Page links follow the current permalink and keep new-tab.' );
+	$block_skipped = array_column( $block['report']['skipped'], 'label' );
+	abmm_nav_assert( in_array( 'Draft', $block_skipped, true ) && in_array( 'Search block', $block_skipped, true ), 'Unpublished pages and non-link blocks are reported as skipped.' );
+	abmm_nav_assert( $nav_content === get_post_field( 'post_content', $posts['navigation'] ), 'The Site Editor navigation is unchanged.' );
 } finally {
 	wp_delete_nav_menu( $menu_id );
 	foreach ( $posts as $post ) { wp_delete_post( $post, true ); }
 	if ( ! empty( $category['term_id'] ) ) { wp_delete_term( (int) $category['term_id'], 'category' ); }
 	$data->replace_all( $original );
 }
-WP_CLI::success( 'WordPress menu import: real menu conversion, report, draft creation and an untouched source passed.' );
+WP_CLI::success( 'WordPress menu import: classic and Site Editor conversion, report, draft creation and untouched sources passed.' );

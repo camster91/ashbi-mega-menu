@@ -1035,7 +1035,7 @@
 		}
 
 		function request(mode) {
-			return $.post(abmmAdmin.ajaxUrl, { action: 'abmm_import_nav_menu', nonce: abmmAdmin.nonce, term_id: String($select.val() || ''), mode: mode });
+			return $.post(abmmAdmin.ajaxUrl, { action: 'abmm_import_nav_menu', nonce: abmmAdmin.nonce, source: String($select.val() || ''), mode: mode });
 		}
 
 		$select.on('change', reset);

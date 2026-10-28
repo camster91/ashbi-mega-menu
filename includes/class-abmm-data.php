@@ -1393,11 +1393,45 @@ class ABMM_Data {
 			);
 		}
 
-		$result = $this->convert_nav_menu_items( $rows, (string) $nav->name );
+		return $this->finish_nav_import( $this->convert_nav_menu_items( $rows, (string) $nav->name ) );
+	}
+
+	/**
+	 * Convert a Site Editor navigation (a wp_navigation post from a block theme)
+	 * with the same rules and report as a classic menu.
+	 *
+	 * @param int $post_id wp_navigation post ID.
+	 * @return array|WP_Error { menu, report }
+	 */
+	public function import_from_navigation_post( $post_id ) {
+		$post = get_post( absint( $post_id ) );
+		if ( ! $post || 'wp_navigation' !== $post->post_type || 'trash' === $post->post_status ) {
+			return new WP_Error( 'abmm_nav_menu_missing', __( 'That navigation no longer exists.', 'ashbi-mega-menu' ) );
+		}
+		$rows        = array();
+		$next        = 0;
+		$unsupported = array();
+		$this->navigation_block_rows( parse_blocks( (string) $post->post_content ), 0, $rows, $next, $unsupported );
+		$title  = '' !== trim( (string) $post->post_title ) ? (string) $post->post_title : __( 'Navigation', 'ashbi-mega-menu' );
+		$result = $this->convert_nav_menu_items( $rows, $title );
+		if ( ! is_wp_error( $result ) ) {
+			foreach ( array_keys( $unsupported ) as $name ) {
+				$type = class_exists( 'WP_Block_Type_Registry' ) ? WP_Block_Type_Registry::get_instance()->get_registered( $name ) : null;
+				$result['report']['skipped'][] = array(
+					/* translators: %s: block name, such as Search. */
+					'label'  => $type && ! empty( $type->title ) ? sprintf( __( '%s block', 'ashbi-mega-menu' ), $type->title ) : $name,
+					'reason' => __( 'This block is not a link, so it was not imported.', 'ashbi-mega-menu' ),
+				);
+			}
+		}
+		return $this->finish_nav_import( $result );
+	}
+
+	/** Apply the JSON importer's limits to a converted menu. */
+	private function finish_nav_import( $result ) {
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
-		// The same limits as a JSON import apply to a converted menu.
 		if ( class_exists( 'ABMM_Import_Export' ) ) {
 			$errors = ABMM_Import_Export::instance()->validate_payload( array( 'imported' => $result['menu'] ) );
 			if ( $errors ) {
@@ -1408,7 +1442,99 @@ class ABMM_Data {
 	}
 
 	/**
-	 * Convert flattened navigation menu rows (see import_from_nav_menu()).
+	 * Turn navigation blocks into the rows convert_nav_menu_items() reads.
+	 *
+	 * @param array $blocks      Parsed blocks.
+	 * @param int   $parent      Parent row ID (0 for the top level).
+	 * @param array $rows        Rows, appended to.
+	 * @param int   $next        Last row ID used.
+	 * @param array $unsupported Names of blocks that are not links, as keys.
+	 * @param int   $depth       Nesting guard.
+	 */
+	private function navigation_block_rows( $blocks, $parent, &$rows, &$next, &$unsupported, $depth = 0 ) {
+		if ( $depth > 32 ) {
+			return;
+		}
+		foreach ( (array) $blocks as $block ) {
+			$name  = (string) ( $block['blockName'] ?? '' );
+			$attrs = is_array( $block['attrs'] ?? null ) ? $block['attrs'] : array();
+			if ( '' === $name ) {
+				continue;
+			}
+			if ( 'core/navigation-link' === $name || 'core/navigation-submenu' === $name ) {
+				$id     = ++$next;
+				$rows[] = $this->navigation_link_row( $id, $parent, $attrs );
+				if ( 'core/navigation-submenu' === $name ) {
+					$this->navigation_block_rows( $block['innerBlocks'] ?? array(), $id, $rows, $next, $unsupported, $depth + 1 );
+				}
+			} elseif ( 'core/home-link' === $name ) {
+				$label  = trim( wp_strip_all_tags( (string) ( $attrs['label'] ?? '' ) ) );
+				$rows[] = $this->navigation_row( ++$next, $parent, '' !== $label ? $label : __( 'Home', 'ashbi-mega-menu' ), home_url( '/' ), $attrs );
+			} elseif ( 'core/page-list' === $name ) {
+				// The page list block shows the published page tree.
+				$pages    = get_pages( array( 'sort_column' => 'menu_order,post_title', 'post_status' => 'publish' ) );
+				$children = array();
+				foreach ( (array) $pages as $page ) {
+					$children[ (int) $page->post_parent ][] = $page;
+				}
+				$add = function ( $page_parent, $row_parent ) use ( &$add, &$children, &$rows, &$next ) {
+					foreach ( $children[ $page_parent ] ?? array() as $page ) {
+						$id     = ++$next;
+						$rows[] = $this->navigation_row( $id, $row_parent, (string) $page->post_title, (string) get_permalink( $page ), array(), 'post_type' );
+						$add( (int) $page->ID, $id );
+					}
+				};
+				$add( absint( $attrs['parentPageID'] ?? 0 ), $parent );
+			} else {
+				$unsupported[ $name ] = true;
+			}
+		}
+	}
+
+	/** A row for a navigation link or submenu block. */
+	private function navigation_link_row( $id, $parent, $attrs ) {
+		$kind   = (string) ( $attrs['kind'] ?? '' );
+		$object = absint( $attrs['id'] ?? 0 );
+		$url    = (string) ( $attrs['url'] ?? '' );
+		$row    = $this->navigation_row( $id, $parent, (string) ( $attrs['label'] ?? '' ), $url, $attrs, 'post-type' === $kind ? 'post_type' : 'custom' );
+		// A link to a post or term follows its current address, as the block does.
+		if ( $object && 'post-type' === $kind ) {
+			$status = get_post_status( $object );
+			if ( false === $status ) {
+				$row['invalid'] = true;
+			} else {
+				$row['status'] = (string) $status;
+				$row['url']    = (string) get_permalink( $object );
+			}
+		} elseif ( $object && 'taxonomy' === $kind ) {
+			$link = get_term_link( $object );
+			if ( is_wp_error( $link ) ) {
+				$row['invalid'] = true;
+			} else {
+				$row['url'] = (string) $link;
+			}
+		}
+		return $row;
+	}
+
+	private function navigation_row( $id, $parent, $label, $url, $attrs, $type = 'custom' ) {
+		return array(
+			'id'          => $id,
+			'parent'      => $parent,
+			'title'       => trim( wp_strip_all_tags( $label ) ),
+			'url'         => $url,
+			'target'      => ! empty( $attrs['opensInNewTab'] ) ? '_blank' : '',
+			'xfn'         => (string) ( $attrs['rel'] ?? '' ),
+			'classes'     => preg_split( '/\s+/', trim( (string) ( $attrs['className'] ?? '' ) ), -1, PREG_SPLIT_NO_EMPTY ),
+			'description' => (string) ( $attrs['description'] ?? '' ),
+			'type'        => $type,
+			'status'      => 'publish',
+			'invalid'     => false,
+		);
+	}
+
+	/**
+	 * Convert flattened navigation rows (see import_from_nav_menu()).
 	 *
 	 * @param array  $rows  Rows with id, parent, title, url, target, xfn,
 	 *                      classes, description, type, status and invalid.

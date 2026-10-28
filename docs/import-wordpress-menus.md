@@ -1,12 +1,12 @@
 # Import a WordPress menu
 
-If you already built a navigation menu under **Appearance → Menus**, you can start from it instead of rebuilding it by hand.
+If you already built a navigation menu in WordPress, under **Appearance → Menus** or in the Site Editor of a block theme, you can start from it instead of rebuilding it by hand.
 
 1. Go to **Mega Menu** and open **Tools → Import from WordPress menu**.
 2. Pick the menu and select **Preview**. Nothing is saved yet.
 3. Read the preview, then select **Import as draft**. The new menu opens in the editor.
 
-The WordPress menu, your theme and its menu locations are not changed. The imported menu is a separate draft named "*Menu name* (imported)", and it is not placed anywhere until you place it (see [Place it in a page first](user-guide.md#place-it-in-a-page-first)).
+The WordPress menu or navigation, your theme and its menu locations are not changed. The imported menu is a separate draft named "*Menu name* (imported)", and it is not placed anywhere until you place it (see [Place it in a page first](user-guide.md#place-it-in-a-page-first)).
 
 ## How menus are converted
 
@@ -21,12 +21,27 @@ The WordPress menu, your theme and its menu locations are not changed. The impor
 
 Each item keeps its label, URL, "open in new tab" setting, CSS classes and description. Links to pages, posts, categories and custom URLs are all imported with the URL WordPress shows for them.
 
+### Site Editor navigation
+
+Block themes keep their menus as navigation blocks. They are converted with the same rules:
+
+| Block | Imported as |
+| --- | --- |
+| Custom Link, Page Link, Category Link | A link (a submenu's children follow the table above) |
+| Submenu | An item with children |
+| Home Link | A link to the site's home page |
+| Page List | The published pages, keeping the page tree |
+| Anything else (Search, Social Icons, Site Logo, Buttons, Spacer…) | Not imported, listed under **Skipped** |
+
+Links to pages, posts and categories use their current address, not the one saved in the block.
+
 ## What the preview reports
 
 - **Moved up a level:** items deeper than level 3, and where they now appear.
 - **Skipped:** items that are not imported, with the reason:
   - it links to a page or post that is not published (draft, pending, private or scheduled);
-  - the page or post it linked to was deleted;
+  - the page, post or category it linked to was deleted;
+  - it is a Site Editor block that is not a link;
   - it has no label;
   - its URL is not a safe web address (for example a `javascript:` link).
 
@@ -39,7 +54,6 @@ Each item keeps its label, URL, "open in new tab" setting, CSS classes and descr
 
 ## Limits
 
-- Only classic menus (Appearance → Menus) can be imported. Navigation built in the Site Editor of a block theme is not supported yet.
 - The same limits as a JSON import apply: a converted menu must stay under 1 MB.
 - Only administrators (`manage_options`) can import.
 - Icons, the call-to-action button, the logo and design settings are not part of a WordPress menu. Set them in the editor after importing.

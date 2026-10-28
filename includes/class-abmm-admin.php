@@ -295,10 +295,20 @@ class ABMM_Admin {
 		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 
-		$term_id = isset( $_POST['term_id'] ) ? absint( wp_unslash( $_POST['term_id'] ) ) : 0;
-		$mode    = isset( $_POST['mode'] ) && 'import' === sanitize_key( wp_unslash( $_POST['mode'] ) ) ? 'import' : 'preview';
-		$store   = ABMM_Data::instance();
-		$result  = $store->import_from_nav_menu( $term_id );
+		// "term:ID" is a classic menu, "navigation:ID" a Site Editor navigation.
+		$source = isset( $_POST['source'] ) ? sanitize_text_field( wp_unslash( $_POST['source'] ) ) : '';
+		if ( '' === $source && isset( $_POST['term_id'] ) ) {
+			$source = 'term:' . absint( wp_unslash( $_POST['term_id'] ) );
+		}
+		$mode   = isset( $_POST['mode'] ) && 'import' === sanitize_key( wp_unslash( $_POST['mode'] ) ) ? 'import' : 'preview';
+		$store  = ABMM_Data::instance();
+		if ( preg_match( '/^navigation:(\d+)$/', $source, $match ) ) {
+			$result = $store->import_from_navigation_post( (int) $match[1] );
+		} elseif ( preg_match( '/^term:(\d+)$/', $source, $match ) ) {
+			$result = $store->import_from_nav_menu( (int) $match[1] );
+		} else {
+			$result = new WP_Error( 'abmm_nav_menu_missing', __( 'Choose a menu to import.', 'ashbi-mega-menu' ) );
+		}
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
 		}

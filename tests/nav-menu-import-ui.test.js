@@ -11,7 +11,7 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 	virtualConsole.on('jsdomError', (error) => { if (!/navigation/i.test(error.message)) console.error(error); });
 	const dom = new JSDOM(`<body>
 		<details class="abmm-tool" id="abmm-nav-import-panel" open><div class="abmm-tool__body">
-			<select id="abmm-nav-import-menu"><option value="7">Main (12 items)</option><option value="9">Footer (3 items)</option></select>
+			<select id="abmm-nav-import-menu"><optgroup label="Appearance → Menus"><option value="term:7">Main (12 items)</option></optgroup><optgroup label="Site Editor navigation"><option value="navigation:9">Header</option></optgroup></select>
 			<button type="button" class="button abmm-nav-import-preview">Preview</button>
 			<div id="abmm-nav-import-result" hidden></div>
 			<button type="button" class="button button-primary abmm-nav-import-confirm" disabled aria-describedby="abmm-nav-import-hint">Import as draft</button>
@@ -35,7 +35,7 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 
 	$('.abmm-nav-import-preview').trigger('click');
 	assert.equal(requests.length, 1);
-	assert.deepEqual({ ...requests[0].data }, { action: 'abmm_import_nav_menu', nonce: 'test', term_id: '7', mode: 'preview' }, 'Preview asks for a dry run of the chosen menu');
+	assert.deepEqual({ ...requests[0].data }, { action: 'abmm_import_nav_menu', nonce: 'test', source: 'term:7', mode: 'preview' }, 'Preview asks for a dry run of the chosen menu');
 	assert.equal($('.abmm-nav-import-preview').prop('disabled'), true, 'Preview is busy while the request runs');
 	requests[0].d.resolve({ success: true, data: {
 		title: 'Main (imported)',
@@ -66,10 +66,10 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 	assert.equal($('#abmm-nav-import-hint').prop('hidden'), true);
 
 	// Picking another menu resets the preview.
-	$('#abmm-nav-import-menu').val('9').trigger('change');
+	$('#abmm-nav-import-menu').val('navigation:9').trigger('change');
 	assert.equal($result.prop('hidden'), true, 'Changing the menu clears the preview');
 	assert.equal($confirm.prop('disabled'), true, 'and needs a new preview');
-	$('#abmm-nav-import-menu').val('7').trigger('change');
+	$('#abmm-nav-import-menu').val('term:7').trigger('change');
 
 	// A failed preview explains itself and keeps import disabled.
 	$('.abmm-nav-import-preview').trigger('click');
@@ -82,7 +82,7 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 	$('.abmm-nav-import-preview').trigger('click');
 	requests[2].d.resolve({ success: true, data: { title: 'Main (imported)', summary: [], report: { imported: 1, flattened: [], skipped: [], warnings: [] } } });
 	$confirm.trigger('click');
-	assert.deepEqual({ ...requests[3].data }, { action: 'abmm_import_nav_menu', nonce: 'test', term_id: '7', mode: 'import' }, 'Import sends only the menu ID, not converted data');
+	assert.deepEqual({ ...requests[3].data }, { action: 'abmm_import_nav_menu', nonce: 'test', source: 'term:7', mode: 'import' }, 'Import sends only the menu ID, not converted data');
 	assert.equal($confirm.prop('disabled'), true, 'Import cannot be sent twice');
 	requests[3].d.resolve({ success: true, data: { id: 'menu_new', edit_url: '/wp-admin/admin.php?page=ashbi-mega-menu&edit=menu_new' } });
 	assert.equal($('#abmm-nav-import-status .abmm-nav-import__open').attr('href'), '/wp-admin/admin.php?page=ashbi-mega-menu&edit=menu_new', 'A successful import opens the new draft, with a link as a fallback');

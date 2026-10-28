@@ -108,7 +108,34 @@ function wp_get_nav_menu_object( $id ) {
 	return isset( $names[ $id ] ) ? (object) array( 'term_id' => $id, 'name' => $names[ $id ] ) : false;
 }
 function wp_get_nav_menu_items( $id ) { return 7 === (int) $id ? $GLOBALS['abmm_nav_items'] : array(); }
-function get_post_status( $id ) { return $GLOBALS['abmm_post_status'][ $id ] ?? 'publish'; }
+function get_post_status( $id ) { return array_key_exists( $id, $GLOBALS['abmm_post_status'] ) ? $GLOBALS['abmm_post_status'][ $id ] : 'publish'; }
+// Site Editor navigation fixture (post 50) and the WordPress functions it needs.
+function get_post( $id ) {
+	if ( 50 !== (int) $id ) { return null; }
+	return (object) array( 'ID' => 50, 'post_type' => 'wp_navigation', 'post_status' => 'publish', 'post_title' => 'Header', 'post_content' => 'blocks' );
+}
+function abmm_block( $name, $attrs = array(), $inner = array() ) { return array( 'blockName' => $name, 'attrs' => $attrs, 'innerBlocks' => $inner ); }
+function parse_blocks( $content ) {
+	return array(
+		abmm_block( 'core/home-link', array( 'label' => '' ) ),
+		abmm_block( 'core/navigation-submenu', array( 'label' => 'Shop <em>now</em>', 'url' => '/shop/', 'kind' => 'custom' ), array(
+			abmm_block( 'core/navigation-link', array( 'label' => 'Shirts', 'url' => '/old-shirts/', 'kind' => 'post-type', 'id' => 61, 'opensInNewTab' => true, 'rel' => 'sponsored', 'className' => 'is-new', 'description' => 'Cotton' ) ),
+			abmm_block( 'core/navigation-link', array( 'label' => 'Gone', 'url' => '/gone/', 'kind' => 'post-type', 'id' => 62 ) ),
+			abmm_block( 'core/navigation-link', array( 'label' => 'Shoes', 'url' => '', 'kind' => 'taxonomy', 'id' => 70 ) ),
+		) ),
+		abmm_block( 'core/page-list' ),
+		abmm_block( 'core/search' ),
+		array( 'blockName' => null, 'attrs' => array(), 'innerBlocks' => array() ),
+	);
+}
+function get_permalink( $post ) { $id = is_object( $post ) ? $post->ID : (int) $post; return 'https://example.test/?p=' . $id; }
+function get_term_link( $term ) { return 'https://example.test/category/' . (int) $term . '/'; }
+function get_pages( $args = array() ) {
+	return array(
+		(object) array( 'ID' => 80, 'post_parent' => 0, 'post_title' => 'About' ),
+		(object) array( 'ID' => 81, 'post_parent' => 80, 'post_title' => 'Team' ),
+	);
+}
 
 require_once dirname( __DIR__ ) . '/includes/class-abmm-icons.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-data.php';
@@ -157,6 +184,7 @@ abmm_nav( 16, 0, 'Bad link', 'javascript:alert(1)' );
 abmm_nav( 17, 999, 'Orphan', '/orphan/' );
 abmm_nav( 18, 10, 'No link', '' );
 $GLOBALS['abmm_post_status'][90] = 'draft';
+$GLOBALS['abmm_post_status'][62] = false;
 
 $store  = ABMM_Data::instance();
 $result = $store->import_from_nav_menu( 7 );
@@ -205,6 +233,22 @@ verify_import( array() === ( $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ] ??
 verify_import( is_wp_error( $store->import_from_nav_menu( 8 ) ), 'An empty WordPress menu is refused.' );
 verify_import( is_wp_error( $store->import_from_nav_menu( 404 ) ), 'A missing WordPress menu is refused.' );
 
+// Site Editor navigation: the same rules, from blocks.
+$block = $store->import_from_navigation_post( 50 );
+verify_import( ! is_wp_error( $block ), 'A Site Editor navigation converts.' );
+$bitems = $block['menu']['items'];
+verify_import( 'Header (imported)' === $block['menu']['title'], 'The draft is named after the navigation.' );
+verify_import( array( 'Home', 'Shop now', 'About' ) === array_column( $bitems, 'label' ), 'Home link, submenu (tags stripped) and page list become top-level items.' );
+verify_import( 'https://example.test/' === $bitems[0]['url'], 'The home link points at the site.' );
+$shop = $bitems[1]['categories'][0]['groups'][0]['links'];
+verify_import( ! empty( $bitems[1]['hide_category_bar'] ) && array( 'Shirts', 'Shoes' ) === array_column( $shop, 'label' ), 'Submenu links become columns; a deleted target is left out.' );
+verify_import( 'https://example.test/?p=61' === $shop[0]['url'] && '_blank' === $shop[0]['target'] && false !== strpos( $shop[0]['rel'], 'sponsored' ) && 'is-new' === $shop[0]['class'] && 'Cotton' === $shop[0]['description'], 'Post links follow the current permalink and keep their options.' );
+verify_import( 'https://example.test/category/70/' === $shop[1]['url'], 'Term links follow the term link.' );
+verify_import( 'mega' === $bitems[2]['type'] && 'Team' === $bitems[2]['categories'][0]['groups'][0]['links'][0]['label'], 'The page list keeps the page tree.' );
+$bskipped = array_column( $block['report']['skipped'], 'reason', 'label' );
+verify_import( isset( $bskipped['Gone'], $bskipped['core/search'] ), 'Deleted targets and non-link blocks are reported as skipped.' );
+verify_import( is_wp_error( $store->import_from_navigation_post( 51 ) ), 'A missing navigation is refused.' );
+
 // AJAX: gate, preview (dry run) and import.
 function nav_request( $post, $admin = true ) {
 	$GLOBALS['abmm_test_admin'] = $admin;
@@ -220,6 +264,10 @@ $base = array( 'action' => 'abmm_import_nav_menu', 'nonce' => 'valid-fixture-non
 verify_import( 403 === nav_request( $base, false )->getCode(), 'Only users with manage_options can import.' );
 verify_import( 403 === nav_request( array_merge( $base, array( 'nonce' => 'stale' ) ) )->getCode(), 'A bad nonce is refused.' );
 verify_import( 400 === nav_request( array_merge( $base, array( 'term_id' => '8' ) ) )->getCode(), 'An empty menu returns an error.' );
+verify_import( 400 === nav_request( array( 'nonce' => 'valid-fixture-nonce', 'source' => 'nonsense' ) )->getCode(), 'An unknown source is refused.' );
+$nav_preview = nav_request( array( 'nonce' => 'valid-fixture-nonce', 'source' => 'navigation:50' ) );
+verify_import( $nav_preview->response['success'] && 'Header (imported)' === $nav_preview->response['data']['title'], 'A Site Editor navigation can be previewed.' );
+verify_import( nav_request( array( 'nonce' => 'valid-fixture-nonce', 'source' => 'term:7' ) )->response['success'], 'A classic menu can be chosen by source.' );
 $preview = nav_request( $base );
 verify_import( $preview->response['success'] && ! isset( $preview->response['data']['id'] ), 'Preview succeeds without creating a menu.' );
 verify_import( 'Products' === $preview->response['data']['summary'][1]['label'] && 2 === count( $preview->response['data']['summary'][1]['categories'] ), 'Preview summarises the result.' );

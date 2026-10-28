@@ -317,29 +317,54 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</details>
 
-	<?php $abmm_nav_menus = function_exists( 'wp_get_nav_menus' ) ? wp_get_nav_menus() : array(); ?>
+	<?php
+	$abmm_nav_menus         = function_exists( 'wp_get_nav_menus' ) ? wp_get_nav_menus() : array();
+	$abmm_block_navigations = get_posts(
+		array(
+			'post_type'      => 'wp_navigation',
+			'post_status'    => array( 'publish', 'draft' ),
+			'posts_per_page' => 50,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+			'no_found_rows'  => true,
+		)
+	);
+	?>
 	<details class="abmm-tool" id="abmm-nav-import-panel">
 		<summary>
 			<span class="abmm-tool__icon dashicons dashicons-menu" aria-hidden="true"></span>
-			<span class="abmm-tool__text"><strong><?php esc_html_e( 'Import from WordPress menu', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Start from a menu you already built under Appearance → Menus.', 'ashbi-mega-menu' ); ?></small></span>
+			<span class="abmm-tool__text"><strong><?php esc_html_e( 'Import from WordPress menu', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Start from a menu you already built in WordPress.', 'ashbi-mega-menu' ); ?></small></span>
 		</summary>
 		<div class="abmm-tool__body">
-			<?php if ( empty( $abmm_nav_menus ) ) : ?>
-				<p class="description abmm-nav-import__empty"><?php esc_html_e( 'This site has no classic WordPress menus to import. Menus built in the Site Editor (block themes) are not supported yet.', 'ashbi-mega-menu' ); ?></p>
+			<?php if ( empty( $abmm_nav_menus ) && empty( $abmm_block_navigations ) ) : ?>
+				<p class="description abmm-nav-import__empty"><?php esc_html_e( 'This site has no WordPress menus to import yet. Build one under Appearance → Menus, or in the Site Editor for a block theme.', 'ashbi-mega-menu' ); ?></p>
 			<?php else : ?>
 				<p class="description"><?php esc_html_e( 'Creates a new draft. The WordPress menu and your theme are not changed, and the draft is not placed anywhere until you place it.', 'ashbi-mega-menu' ); ?></p>
 				<div class="abmm-nav-import__controls">
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'WordPress menu', 'ashbi-mega-menu' ); ?></span>
 						<select id="abmm-nav-import-menu">
-							<?php foreach ( $abmm_nav_menus as $abmm_nav_menu ) : ?>
-								<option value="<?php echo esc_attr( (string) $abmm_nav_menu->term_id ); ?>">
-									<?php
-									/* translators: 1: WordPress menu name, 2: number of items. */
-									echo esc_html( sprintf( _n( '%1$s (%2$d item)', '%1$s (%2$d items)', (int) $abmm_nav_menu->count, 'ashbi-mega-menu' ), $abmm_nav_menu->name, (int) $abmm_nav_menu->count ) );
-									?>
-								</option>
-							<?php endforeach; ?>
+							<?php if ( $abmm_nav_menus ) : ?>
+								<optgroup label="<?php esc_attr_e( 'Appearance → Menus', 'ashbi-mega-menu' ); ?>">
+									<?php foreach ( $abmm_nav_menus as $abmm_nav_menu ) : ?>
+										<option value="<?php echo esc_attr( 'term:' . $abmm_nav_menu->term_id ); ?>">
+											<?php
+											/* translators: 1: WordPress menu name, 2: number of items. */
+											echo esc_html( sprintf( _n( '%1$s (%2$d item)', '%1$s (%2$d items)', (int) $abmm_nav_menu->count, 'ashbi-mega-menu' ), $abmm_nav_menu->name, (int) $abmm_nav_menu->count ) );
+											?>
+										</option>
+									<?php endforeach; ?>
+								</optgroup>
+							<?php endif; ?>
+							<?php if ( $abmm_block_navigations ) : ?>
+								<optgroup label="<?php esc_attr_e( 'Site Editor navigation', 'ashbi-mega-menu' ); ?>">
+									<?php foreach ( $abmm_block_navigations as $abmm_navigation ) : ?>
+										<option value="<?php echo esc_attr( 'navigation:' . $abmm_navigation->ID ); ?>">
+											<?php echo esc_html( '' !== trim( $abmm_navigation->post_title ) ? $abmm_navigation->post_title : __( 'Navigation', 'ashbi-mega-menu' ) ); ?>
+										</option>
+									<?php endforeach; ?>
+								</optgroup>
+							<?php endif; ?>
 						</select>
 					</label>
 					<button type="button" class="button abmm-nav-import-preview"><?php esc_html_e( 'Preview', 'ashbi-mega-menu' ); ?></button>
