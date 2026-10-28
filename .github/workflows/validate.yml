@@ -127,10 +127,10 @@ jobs:
             env: '{"themes":["https://downloads.wordpress.org/theme/twentytwentyone.zip"]}'
           - setup: elementor
             specs: tests/e2e/compat.spec.js tests/e2e/menu.spec.js
-            env: '{"plugins":["https://downloads.wordpress.org/plugin/elementor.zip"]}'
+            env: '{"plugins":["https://downloads.wordpress.org/plugin/elementor.latest-stable.zip"]}'
           - setup: cache
             specs: tests/e2e/compat.spec.js tests/e2e/menu.spec.js
-            env: '{"plugins":["https://downloads.wordpress.org/plugin/cache-enabler.zip","https://downloads.wordpress.org/plugin/autoptimize.zip","https://downloads.wordpress.org/plugin/sqlite-object-cache.zip"],"config":{"WP_CACHE":true}}'
+            env: '{"plugins":["https://downloads.wordpress.org/plugin/cache-enabler.latest-stable.zip","https://downloads.wordpress.org/plugin/autoptimize.latest-stable.zip","https://downloads.wordpress.org/plugin/sqlite-object-cache.latest-stable.zip"],"config":{"WP_CACHE":true}}'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -144,6 +144,7 @@ jobs:
         env:
           EXTRA: ${{ matrix.env }}
         run: |
+          # Plugin ZIPs are the latest stable releases (a bare slug.zip is the development trunk).
           node -e 'const x=JSON.parse(process.env.EXTRA); const c={phpVersion:"8.2",plugins:["."],...x}; c.plugins=["."].concat(x.plugins||[]); require("fs").writeFileSync(".wp-env.json", JSON.stringify(c))'
           cat .wp-env.json
           wp-env start
