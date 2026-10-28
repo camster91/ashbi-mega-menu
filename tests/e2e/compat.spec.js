@@ -18,6 +18,9 @@ function watchErrors(page) {
 // Desktop: one click opens, a second closes. A menu bound twice (for example
 // by an optimizer loading the script twice) would toggle twice and stay shut.
 async function desktopWorks(page, header) {
+	// A narrow placement (a theme's content column or a widget area) correctly
+	// uses the phone layout even on a wide screen; test the layout it chose.
+	if (await header.locator('.abmm-nav__toggle').isVisible()) return phoneWorks(page, header);
 	const trigger = header.locator('[data-abmm-mega-trigger]').first();
 	await trigger.click();
 	await expect(trigger).toHaveAttribute('aria-expanded', 'true');
@@ -40,7 +43,8 @@ test.describe(`compatibility: ${setup || 'none'}`, () => {
 	test.skip(!setup, 'Set ABMM_E2E_SETUP to run the compatibility journeys.');
 	test.use(visitor);
 
-	const path = setup === 'elementor' ? '/?pagename=e2e-elementor' : '/?pagename=e2e-chromium';
+	// Clean URLs: page caches skip URLs with a query string.
+	const path = setup === 'elementor' ? '/e2e-elementor/' : '/e2e-chromium/';
 
 	test('a visitor can use the menu on desktop and on a phone', async ({ page }) => {
 		const errors = watchErrors(page);
@@ -49,7 +53,11 @@ test.describe(`compatibility: ${setup || 'none'}`, () => {
 		expect(first.status()).toBe(200);
 		const header = page.locator('.abmm-header').first();
 		await expect(header).toBeVisible();
-		if (setup === 'elementor') await expect(page.locator('.elementor .abmm-header')).toHaveCount(1);
+		if (setup === 'elementor') {
+			await expect(page.locator('.elementor .abmm-header')).toHaveCount(1);
+			// Elementor's full-width template gives the menu room for the desktop bar.
+			await expect(header.locator('.abmm-nav__toggle')).toBeHidden();
+		}
 		await desktopWorks(page, header);
 
 		await page.setViewportSize({ width: 390, height: 844 });
@@ -70,9 +78,7 @@ test.describe(`compatibility: ${setup || 'none'}`, () => {
 			await widget.scrollIntoViewIfNeeded();
 			await expect(widget).toBeVisible();
 			// A narrow widget area shows the phone-style toggle; either layout must open.
-			const toggle = widget.locator('.abmm-nav__toggle');
-			if (await toggle.isVisible()) await phoneWorks(page, widget);
-			else await desktopWorks(page, widget);
+			await desktopWorks(page, widget);
 			const ids = await menus.evaluateAll((els) => els.map((el) => el.id));
 			expect(new Set(ids).size, 'each placement has unique IDs').toBe(ids.length);
 		} else if (setup === 'cache') {

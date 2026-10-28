@@ -123,10 +123,13 @@ jobs:
       matrix:
         include:
           - setup: classic
+            specs: tests/e2e/compat.spec.js
             env: '{"themes":["https://downloads.wordpress.org/theme/twentytwentyone.zip"]}'
           - setup: elementor
+            specs: tests/e2e/compat.spec.js tests/e2e/menu.spec.js
             env: '{"plugins":["https://downloads.wordpress.org/plugin/elementor.zip"]}'
           - setup: cache
+            specs: tests/e2e/compat.spec.js tests/e2e/menu.spec.js
             env: '{"plugins":["https://downloads.wordpress.org/plugin/cache-enabler.zip","https://downloads.wordpress.org/plugin/autoptimize.zip","https://downloads.wordpress.org/plugin/sqlite-object-cache.zip"],"config":{"WP_CACHE":true}}'
     steps:
       - uses: actions/checkout@v4
@@ -157,7 +160,9 @@ jobs:
         run: wp-env run cli env ABMM_DISPOSABLE_TEST=1 ABMM_E2E_SETUP=${{ matrix.setup }} wp eval-file wp-content/plugins/ashbi-mega-menu/tests/e2e/seed.php
       - run: npx playwright install --with-deps chromium
       - name: Compatibility journeys (${{ matrix.setup }})
-        run: npm run test:e2e -- --project=chromium tests/e2e/compat.spec.js tests/e2e/menu.spec.js
+        # The generic desktop specs assume a full-width bar; Twenty Twenty-One's
+        # narrow content column puts the menu in its phone layout instead.
+        run: npm run test:e2e -- --project=chromium ${{ matrix.specs }}
         env:
           WP_BASE_URL: http://localhost:8888
           ABMM_E2E_SETUP: ${{ matrix.setup }}

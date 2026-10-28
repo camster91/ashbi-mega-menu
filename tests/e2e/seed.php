@@ -86,6 +86,8 @@ if ( 'classic' === $setup ) {
 		),
 	);
 	update_post_meta( $page, '_elementor_edit_mode', 'builder' );
+	// "Elementor Full Width": theme header and footer, full-width content, as for a builder-made header.
+	update_post_meta( $page, '_wp_page_template', 'elementor_header_footer' );
 	update_post_meta( $page, '_elementor_template_type', 'wp-page' );
 	update_post_meta( $page, '_elementor_version', defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : '3.0.0' );
 	update_post_meta( $page, '_elementor_data', wp_slash( wp_json_encode( $elementor ) ) );
