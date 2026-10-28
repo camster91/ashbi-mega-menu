@@ -125,9 +125,9 @@ jobs:
           - setup: classic
             env: '{"themes":["https://downloads.wordpress.org/theme/twentytwentyone.zip"]}'
           - setup: elementor
-            env: '{"plugins":["https://downloads.wordpress.org/plugin/elementor.latest-stable.zip"]}'
+            env: '{"plugins":["https://downloads.wordpress.org/plugin/elementor.zip"]}'
           - setup: cache
-            env: '{"plugins":["https://downloads.wordpress.org/plugin/cache-enabler.latest-stable.zip","https://downloads.wordpress.org/plugin/autoptimize.latest-stable.zip","https://downloads.wordpress.org/plugin/sqlite-object-cache.latest-stable.zip"],"config":{"WP_CACHE":true}}'
+            env: '{"plugins":["https://downloads.wordpress.org/plugin/cache-enabler.zip","https://downloads.wordpress.org/plugin/autoptimize.zip","https://downloads.wordpress.org/plugin/sqlite-object-cache.zip"],"config":{"WP_CACHE":true}}'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -148,12 +148,11 @@ jobs:
           wp-env run cli wp core version
           wp-env run cli wp plugin list --fields=name,version,status
           wp-env run cli wp theme list --fields=name,version,status
-      - name: Enable the persistent object cache
+      - name: Persistent object cache is active
         if: matrix.setup == 'cache'
         run: |
-          wp-env run cli wp eval 'if ( function_exists( "sqlite_object_cache" ) || class_exists( "SQLite_Object_Cache" ) ) { echo "plugin loaded\n"; }'
-          wp-env run cli bash -c 'cp wp-content/plugins/sqlite-object-cache/assets/drop-in/object-cache.php wp-content/object-cache.php 2>/dev/null || find wp-content/plugins/sqlite-object-cache -name "object-cache*.php" -exec cp {} wp-content/object-cache.php \;'
-          wp-env run cli wp eval 'echo wp_using_ext_object_cache() ? "object cache: active\n" : "object cache: inactive\n";'
+          wp-env run cli wp plugin list --fields=name,version,status
+          wp-env run cli wp eval 'if ( ! wp_using_ext_object_cache() ) { WP_CLI::error( "The object cache drop-in is not active." ); } echo "object cache: active\n";'
       - name: Seed
         run: wp-env run cli env ABMM_DISPOSABLE_TEST=1 ABMM_E2E_SETUP=${{ matrix.setup }} wp eval-file wp-content/plugins/ashbi-mega-menu/tests/e2e/seed.php
       - run: npx playwright install --with-deps chromium
