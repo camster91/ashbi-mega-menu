@@ -15,7 +15,9 @@
     "test": "node tests/mobile-enhancements.test.js && node tests/frontend-interactions.test.js && node tests/admin-interactions.test.js && node tests/archive-interactions.test.js && node tests/desktop-hover-click.test.js && node tests/preview-canvas.test.js && node tests/admin-i18n.test.js && node tests/mobile-drawer-offset.test.js && node tests/readiness-ui.test.js",
     "test:php": "php tests/menu-save-cache.php && php tests/first-run-setup.php && php tests/featured-card.php && php tests/preview-markup.php && php tests/backup-access.php && php tests/import-roundtrip.php && php tests/product-persistence.php && php tests/menu-zero-entrypoints.php && php tests/upload-metadata.php && php tests/cli-export.php && php tests/readiness-checks.php && php tests/uninstall-cleanup.php single && php tests/uninstall-cleanup.php multisite && php tests/uninstall-cleanup.php denied && php tests/uninstall-cleanup.php failure && php tests/uninstall-cleanup.php multi-network",
     "build:brand": "node scripts/build-brand.js",
-    "test:e2e": "playwright test -c tests/e2e/playwright.config.js"
+    "test:e2e": "playwright test -c tests/e2e/playwright.config.js",
+    "i18n": "node scripts/i18n.js",
+    "i18n:check": "node scripts/i18n.js --check"
   },
   "engines": {
     "node": ">=24.18.0"

@@ -19,6 +19,10 @@ jobs:
       - name: PHP syntax
         run: find admin includes src build -name '*.php' -exec php -l {} \; && php -l ashbi-mega-menu.php && php -l uninstall.php
       - run: npm run package && unzip dist/ashbi-mega-menu-1.0.4.zip -d release
+      - name: Translation template
+        run: |
+          curl -sSLo /tmp/wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          WP_CLI=/tmp/wp-cli.phar npm run i18n:check
       - uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e
         with:
           build-dir: release/ashbi-mega-menu
@@ -74,6 +78,8 @@ jobs:
           node -e 'require("fs").writeFileSync(".wp-env.json", JSON.stringify({phpVersion:"8.2",multisite:true,plugins:["."]}))'
           wp-env start
           wp-env run cli wp plugin activate ashbi-mega-menu --network
+      - name: Verify per-site menus, placement and import/export
+        run: wp-env run cli env ABMM_DISPOSABLE_TEST=1 wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-multisite.php
       - name: Verify site isolation and network uninstall
         run: wp-env run cli env ABMM_DISPOSABLE_TEST=1 ABMM_EXTRA_NETWORK=${{ matrix.extra-network }} wp eval-file wp-content/plugins/ashbi-mega-menu/tests/wordpress-multisite-uninstall.php
   browsers:

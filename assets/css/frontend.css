@@ -828,7 +828,7 @@ a.abmm-product-nav__identity:focus {
 	width: calc(var(--abmm-sidebar-width) - 0.15rem);
 	margin: 0;
 	padding: 0.65rem 0.75rem;
-	text-align: left;
+	text-align:start;
 	background: transparent !important;
 	border: 0;
 	border-bottom: 1px solid var(--abmm-border);
@@ -879,8 +879,8 @@ a.abmm-product-nav__identity:focus {
 .abmm-layout--stacked .abmm-mega__panel {
 	position: static;
 	top: auto;
-	left: auto;
-	right: auto;
+	inset-inline-start: auto;
+	inset-inline-end: auto;
 	grid-column: 1 / -1;
 	grid-row: 2;
 }
@@ -977,8 +977,8 @@ a.abmm-product-nav__identity:focus {
 .abmm-mega__panel {
 	position: absolute;
 	top: 0;
-	left: calc(var(--abmm-sidebar-width) + 0.25rem);
-	right: 0;
+	inset-inline-start: calc(var(--abmm-sidebar-width) + 0.25rem);
+	inset-inline-end: 0;
 	padding: 1.25rem 1.25rem 1.5rem;
 	background: var(--abmm-panel-bg);
 	min-width: 0;
@@ -993,8 +993,8 @@ a.abmm-product-nav__identity:focus {
 }
 
 .abmm-layout--sidebar-right .abmm-mega__panel {
-	left: 0;
-	right: calc(var(--abmm-sidebar-width) + 0.25rem);
+	inset-inline-start: 0;
+	inset-inline-end: calc(var(--abmm-sidebar-width) + 0.25rem);
 }
 
 .abmm-mega__panel[hidden] {
@@ -1019,7 +1019,7 @@ a.abmm-product-nav__identity:focus {
 }
 
 .abmm-title--left .abmm-mega__panel-title {
-	text-align: left;
+	text-align:start;
 }
 
 .abmm-title--center .abmm-mega__panel-title {
@@ -1887,8 +1887,8 @@ html.abmm-drawer-open {
 		display: block !important;
 		position: static;
 		top: auto;
-		left: auto;
-		right: auto;
+		inset-inline-start: auto;
+		inset-inline-end: auto;
 		width: auto;
 		margin: 0;
 		padding: 0;
@@ -1904,7 +1904,7 @@ html.abmm-drawer-open {
 		min-width: 0;
 		align-items: center;
 		padding: 0.95rem 1.15rem;
-		text-align: left;
+		text-align:start;
 		border: none;
 		border-bottom: 1px solid var(--abmm-border);
 		border-radius: 0;
@@ -2255,7 +2255,7 @@ html.abmm-drawer-open {
 		margin: 0;
 		padding: 0.95rem 1.15rem;
 		align-items: center;
-		text-align: left;
+		text-align:start;
 		border: none;
 		border-bottom: 1px solid var(--abmm-border);
 		border-radius: 0;
@@ -2527,21 +2527,21 @@ html.abmm-drawer-open {
 .abmm-header:not(.abmm-force-mobile).abmm-cats-upper .abmm-mega__cat-title {font-size:13px;letter-spacing:0.05em;text-transform:uppercase}
 .abmm-header:not(.abmm-force-mobile) .abmm-mega__cat-desc {font-size:12.5px}
 .abmm-header:not(.abmm-force-mobile) .abmm-mega__panel {padding:0.5rem 1.75rem 1.25rem;scrollbar-gutter:auto}
-.abmm-header:not(.abmm-force-mobile):not(.abmm-layout--stacked) .abmm-mega__accordion::before {content:"";position:absolute;top:12px;bottom:12px;left:calc(var(--abmm-sidebar-width) + 0.25rem);width:1px;background:var(--abmm-border);z-index:2;pointer-events:none}
-.abmm-header:not(.abmm-force-mobile).abmm-layout--sidebar-right .abmm-mega__accordion::before {left:auto;right:calc(var(--abmm-sidebar-width) + 0.25rem)}
+.abmm-header:not(.abmm-force-mobile):not(.abmm-layout--stacked) .abmm-mega__accordion::before {content:"";position:absolute;top:12px;bottom:12px;inset-inline-start:calc(var(--abmm-sidebar-width) + 0.25rem);width:1px;background:var(--abmm-border);z-index:2;pointer-events:none}
+.abmm-header:not(.abmm-force-mobile).abmm-layout--sidebar-right .abmm-mega__accordion::before {inset-inline-start:auto;inset-inline-end:calc(var(--abmm-sidebar-width) + 0.25rem)}
 /* Full width: the panel content lines up with the bar, sidebar under the brand and columns ending at the CTA. */
 .abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__cat {margin-inline:0}
-.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__accordion::before {left:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem)}
-.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__panel {left:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem);right:0.9rem;padding-right:0.6rem}
-.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__accordion::before {left:auto;right:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem)}
-.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__panel {left:0.9rem;right:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem);padding-left:0.6rem;padding-right:1.75rem}
+.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__accordion::before {inset-inline-start:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem)}
+.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__panel {inset-inline-start:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem);inset-inline-end:0.9rem;padding-inline-end:0.6rem}
+.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__accordion::before {inset-inline-start:auto;inset-inline-end:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem)}
+.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__panel {inset-inline-start:0.9rem;inset-inline-end:calc(1.5rem + var(--abmm-sidebar-width) - 0.75rem);padding-inline-start:0.6rem;padding-inline-end:1.75rem}
 .abmm-header:not(.abmm-force-mobile).abmm-full-width .abmm-mega--columns-only .abmm-mega__panel {margin-inline:-0.6rem;padding-inline:0.6rem}
 .abmm-header:not(.abmm-force-mobile) .abmm-mega__columns {gap:1rem 2rem}
 .abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title {margin:0 0 1rem;padding-inline:0;font-size:14px;font-weight:600}
-.abmm-header:not(.abmm-force-mobile).abmm-title--left .abmm-mega__panel-title {margin-inline:0;text-align:left}
+.abmm-header:not(.abmm-force-mobile).abmm-title--left .abmm-mega__panel-title {margin-inline:0;text-align:start}
 .abmm-header:not(.abmm-force-mobile).abmm-title--center .abmm-mega__panel-title {text-align:center}
 .abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a {color:var(--abmm-accent);text-decoration:none}
-.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a::after {content:"\2192";display:inline-block;margin-left:0.4em;transition:transform 0.15s ease}
+.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a::after {content:"\2192";display:inline-block;margin-inline-start:0.4em;transition:transform 0.15s ease}
 .abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a:hover::after {transform:translateX(3px)}
 .abmm-header:not(.abmm-force-mobile) .abmm-mega__col-title {font-size:11px}
 .abmm-header:not(.abmm-force-mobile) .abmm-mega__col-link {margin:0 -0.6rem;padding:0.5rem 0.6rem;border-radius:8px;gap:0.7rem;transition:background 0.15s ease,color 0.15s ease}
@@ -2840,12 +2840,12 @@ html.abmm-drawer-open {
 	}
 
 	.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked) .abmm-mega__panel {
-		right: 0;
+		inset-inline-end: 0;
 		padding: 0;
 	}
 
 	.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__panel {
-		left: 0;
+		inset-inline-start: 0;
 		padding: 0;
 	}
 
@@ -2908,7 +2908,7 @@ html.abmm-drawer-open {
 		font-size: 14px;
 		font-weight: 600;
 		line-height: 20px;
-		text-align: left;
+		text-align:start;
 	}
 
 	/* The strip belongs to the link columns: it starts after the category rail
@@ -2919,18 +2919,18 @@ html.abmm-drawer-open {
 		z-index: -1;
 		top: 0;
 		bottom: 0;
-		left: 0;
-		right: 0;
+		inset-inline-start: 0;
+		inset-inline-end: 0;
 		border-top: 1px solid var(--abmm-border);
 		background: var(--abmm-subtle);
 	}
 
 	.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--sidebar-right) .abmm-mega__panel-title {
-		padding-right: 1.5rem;
+		padding-inline-end: 1.5rem;
 	}
 
 	.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega__panel-title {
-		padding-left: 1.5rem;
+		padding-inline-start: 1.5rem;
 	}
 
 	.abmm-header:not(.abmm-force-mobile).abmm-title--center .abmm-mega__panel-title {
@@ -3267,7 +3267,7 @@ html.abmm-drawer-open {
 	background: transparent;
 	font-size: 15px;
 	font-weight: 600;
-	text-align: left;
+	text-align:start;
 }
 
 .abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__panel-title a {
@@ -3278,7 +3278,7 @@ html.abmm-drawer-open {
 .abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__panel-title a::after {
 	content: "\2192";
 	display: inline-block;
-	margin-left: 0.4em;
+	margin-inline-start: 0.4em;
 }
 
 /* Tablet: a designed sheet rather than a stretched phone. The sheet drops
@@ -3589,11 +3589,11 @@ html.abmm-drawer-open {
 	/* A full-width panel's category column reaches into the container's side
 	   padding; the strip stops where the bar's CTA ends. */
 	.abmm-header:not(.abmm-force-mobile).abmm-full-width:not(.abmm-layout--stacked):not(.abmm-layout--sidebar-right) .abmm-mega:not(.abmm-mega--single):not(.abmm-mega--columns-only) .abmm-mega__panel-title::before {
-		right: 1.5rem;
+		inset-inline-end: 1.5rem;
 	}
 
 	.abmm-header:not(.abmm-force-mobile).abmm-full-width.abmm-layout--sidebar-right .abmm-mega:not(.abmm-mega--single):not(.abmm-mega--columns-only) .abmm-mega__panel-title::before {
-		left: 1.5rem;
+		inset-inline-start: 1.5rem;
 	}
 
 	/* "See all" strip: a quieter tint. */
@@ -3854,3 +3854,7 @@ html.abmm-drawer-open {
 		transition: none !important;
 	}
 }
+
+/* Right-to-left: the "see all" arrow points the reading direction. */
+[dir="rtl"] .abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a::after {content:"\2190"}
+[dir="rtl"] .abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a:hover::after {transform:translateX(-3px)}

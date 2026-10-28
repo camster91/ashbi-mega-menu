@@ -215,14 +215,14 @@ class ABMM_Admin {
 					'checkName' => __( 'Add a menu name.', 'ashbi-mega-menu' ),
 					/* translators: %s: item number, label, count, or formatted file size. */
 					'checkLabel' => __( 'Add a label to top menu item %s.', 'ashbi-mega-menu' ),
-					/* translators: %s: item number, label, count, or formatted file size. */
+					/* translators: %s: mega menu label. */
 					'checkMega' => __( 'Add at least one labelled link with a real destination to %s.', 'ashbi-mega-menu' ),
 					'thisMega' => __( 'this mega menu', 'ashbi-mega-menu' ),
-					/* translators: %s: item number, label, count, or formatted file size. */
+					/* translators: %s: duplicated label. */
 					'checkDuplicate' => __( 'Rename duplicate top menu item "%s".', 'ashbi-mega-menu' ),
 					'checkDestination' => __( 'Add at least one labelled item with a real destination.', 'ashbi-mega-menu' ),
 					'checkCta' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ),
-					/* translators: %s: menu item label. */
+					/* translators: %s: the start of a menu item label. */
 					'checkLong' => __( 'Shorten "%s" so it fits in the menu bar.', 'ashbi-mega-menu' ),
 					/* translators: %s: link label. */
 					'checkUrl' => __( 'Check the link for "%s". It does not look like a web address.', 'ashbi-mega-menu' ),
