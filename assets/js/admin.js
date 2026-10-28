@@ -3656,6 +3656,8 @@
 			if (!target || !target.closest) return;
 			// Links mirror the live destination but must not leave the editor.
 			if (target.closest('a[href]')) event.preventDefault();
+			// Clicks replayed to restore the frame's state are not selections.
+			if (frame.contentWindow && frame.contentWindow.__abmmQuiet) return;
 			var selection = previewSelectionFrom(target, 'frame');
 			if (selection) selectFromPreview(selection);
 			setTimeout(function () { deviceFrame.state = captureFrameState(frame); }, 0);

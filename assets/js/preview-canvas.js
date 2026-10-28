@@ -236,9 +236,11 @@
 		}
 
 		/** Keep a fitted canvas fitted, and restore the device's saved view. */
+		// Re-fitting keeps the mode, so it is not saved: a refresh during a
+		// device switch must not overwrite the next device's remembered view.
 		function refresh() {
-			if (mode === 'fit') fit(false);
-			else render(false);
+			if (mode === 'fit') view = fitView(viewport(), options.content(), options.fitHeight());
+			render(false);
 		}
 
 		function restore() {
