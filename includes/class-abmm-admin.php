@@ -36,6 +36,7 @@ class ABMM_Admin {
 		add_action( 'wp_ajax_abmm_export_menu', array( $this, 'ajax_export_menu' ) );
 		add_action( 'wp_ajax_abmm_import_menu', array( $this, 'ajax_import_menu' ) );
 		add_action( 'wp_ajax_abmm_get_menu', array( $this, 'ajax_get_menu' ) );
+		add_action( 'wp_ajax_abmm_import_nav_menu', array( $this, 'ajax_import_nav_menu' ) );
 		add_action( 'wp_ajax_abmm_onboarding', array( $this, 'ajax_onboarding' ) );
 		add_action( 'wp_ajax_abmm_menu_references', array( $this, 'ajax_menu_references' ) );
 		add_action( 'wp_ajax_abmm_restore_menu', array( $this, 'ajax_restore_menu' ) );
@@ -281,6 +282,68 @@ class ABMM_Admin {
 		} else {
 			include ABMM_PLUGIN_DIR . 'admin/views/list.php';
 		}
+	}
+
+	/**
+	 * AJAX: preview or import a classic WordPress navigation menu.
+	 *
+	 * Preview is a dry run. Import converts the menu again on the server and
+	 * stores it as a new draft; it never trusts converted data from the browser
+	 * and never changes the source menu or any theme location.
+	 */
+	public function ajax_import_nav_menu() {
+		check_ajax_referer( 'abmm_admin', 'nonce' );
+		$this->verify_ajax();
+
+		$term_id = isset( $_POST['term_id'] ) ? absint( wp_unslash( $_POST['term_id'] ) ) : 0;
+		$mode    = isset( $_POST['mode'] ) && 'import' === sanitize_key( wp_unslash( $_POST['mode'] ) ) ? 'import' : 'preview';
+		$store   = ABMM_Data::instance();
+		$result  = $store->import_from_nav_menu( $term_id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+		}
+
+		$data = array(
+			'title'   => $result['menu']['title'],
+			'summary' => $this->nav_import_summary( $result['menu'] ),
+			'report'  => $result['report'],
+		);
+		if ( 'import' === $mode ) {
+			$id = $store->create_from_import( $result['menu'] );
+			if ( is_wp_error( $id ) ) {
+				wp_send_json_error( array( 'message' => $id->get_error_message() ), 500 );
+			}
+			$data['id']       = $id;
+			$data['edit_url'] = admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) );
+		}
+		wp_send_json_success( $data );
+	}
+
+	/**
+	 * A short outline of a converted menu for the import preview.
+	 *
+	 * @param array $menu Converted menu.
+	 * @return array
+	 */
+	private function nav_import_summary( $menu ) {
+		$summary = array();
+		foreach ( $menu['items'] ?? array() as $item ) {
+			$row = array(
+				'label'      => (string) ( $item['label'] ?? '' ),
+				'type'       => (string) ( $item['type'] ?? 'link' ),
+				'categories' => array(),
+			);
+			foreach ( $item['categories'] ?? array() as $cat ) {
+				$count = 0;
+				foreach ( $cat['groups'] ?? array() as $group ) {
+					$count += count( $group['links'] ?? array() );
+				}
+				$row['categories'][] = array( 'title' => (string) ( $cat['title'] ?? '' ), 'links' => $count );
+			}
+			$row['columns_only'] = ! empty( $item['hide_category_bar'] );
+			$summary[] = $row;
+		}
+		return $summary;
 	}
 
 	/**
