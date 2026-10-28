@@ -11,7 +11,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class ABMM_Admin {
 
-	/** Per-administrator setup guide state: array( 'dismissed' => bool, 'verified' => bool ). */
+	/**
+	 * Per-administrator, per-site setup guide state: array( 'dismissed' => bool, 'verified' => bool ).
+	 * Stored as a user option, so on multisite each site keeps its own.
+	 */
 	const SETUP_GUIDE_META = 'abmm_setup_guide';
 
 	/**
@@ -521,7 +524,7 @@ class ABMM_Admin {
 	 * @return array
 	 */
 	public function setup_guide_state( $menus, $readiness ) {
-		$stored = get_user_meta( get_current_user_id(), self::SETUP_GUIDE_META, true );
+		$stored = get_user_option( self::SETUP_GUIDE_META, get_current_user_id() );
 		$stored = is_array( $stored ) ? $stored : array();
 		$ready  = '';
 		foreach ( $readiness as $menu_id => $result ) {
@@ -560,7 +563,7 @@ class ABMM_Admin {
 		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
 		$action = isset( $_POST['guide_action'] ) ? sanitize_key( wp_unslash( $_POST['guide_action'] ) ) : '';
-		$state  = get_user_meta( get_current_user_id(), self::SETUP_GUIDE_META, true );
+		$state  = get_user_option( self::SETUP_GUIDE_META, get_current_user_id() );
 		$state  = array_merge( array( 'dismissed' => false, 'verified' => false ), is_array( $state ) ? $state : array() );
 		switch ( $action ) {
 			case 'dismiss':
@@ -578,7 +581,7 @@ class ABMM_Admin {
 			default:
 				wp_send_json_error( array( 'message' => __( 'Unknown setup guide action.', 'ashbi-mega-menu' ) ), 400 );
 		}
-		update_user_meta( get_current_user_id(), self::SETUP_GUIDE_META, array( 'dismissed' => (bool) $state['dismissed'], 'verified' => (bool) $state['verified'] ) );
+		update_user_option( get_current_user_id(), self::SETUP_GUIDE_META, array( 'dismissed' => (bool) $state['dismissed'], 'verified' => (bool) $state['verified'] ) );
 		wp_send_json_success( $state );
 	}
 

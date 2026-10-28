@@ -112,6 +112,10 @@ function get_current_user_id() { return $GLOBALS['abmm_user'] ?? 1; }
 $GLOBALS['abmm_meta'] = array();
 function get_user_meta( $user, $key, $single = false ) { return $GLOBALS['abmm_meta'][ $user ][ $key ] ?? ''; }
 function update_user_meta( $user, $key, $value ) { $GLOBALS['abmm_meta'][ $user ][ $key ] = $value; return true; }
+// User options are per site on multisite: key them by the current site.
+$GLOBALS['abmm_site'] = 1;
+function get_user_option( $key, $user ) { return $GLOBALS['abmm_meta'][ $user ][ 'site' . $GLOBALS['abmm_site'] . '_' . $key ] ?? false; }
+function update_user_option( $user, $key, $value ) { $GLOBALS['abmm_meta'][ $user ][ 'site' . $GLOBALS['abmm_site'] . '_' . $key ] = $value; return true; }
 $GLOBALS['abmm_block_theme'] = false;
 $GLOBALS['abmm_widgets'] = false;
 function wp_is_block_theme() { return $GLOBALS['abmm_block_theme']; }
@@ -193,6 +197,9 @@ verify_setup( $admin->setup_guide_state( $menus, $ready )['dismissed'], 'Skip: h
 $GLOBALS['abmm_user'] = 2;
 verify_setup( ! $admin->setup_guide_state( $menus, $ready )['dismissed'], 'Each administrator has their own guide state.' );
 $GLOBALS['abmm_user'] = 1;
+$GLOBALS['abmm_site'] = 2;
+verify_setup( ! $admin->setup_guide_state( $menus, $ready )['dismissed'], 'On multisite, each site has its own guide state.' );
+$GLOBALS['abmm_site'] = 1;
 setup_request( 'ajax_setup_guide', array( 'guide_action' => 'reopen' ) );
 verify_setup( ! $admin->setup_guide_state( $menus, $ready )['dismissed'], 'The guide can be reopened.' );
 setup_request( 'ajax_setup_guide', array( 'guide_action' => 'verify' ) );
