@@ -1294,6 +1294,53 @@
 		initBackupRecovery();
 		initCardMenus();
 		initMenuToolbar();
+		// Start from your pages: reveal the picker, then create a draft from the ticked pages.
+		var $picker = $('#abmm-page-picker');
+		function syncPageCount() {
+			var count = $picker.find('input[type="checkbox"]:checked').length;
+			/* translators: %d: number of pages selected. */
+			$picker.find('.abmm-page-picker__count').text(sprintf(_n('%d page selected', '%d pages selected', count, 'ashbi-mega-menu'), count));
+			$picker.find('.abmm-pages-create').prop('disabled', count === 0);
+		}
+		$('.abmm-pages-choice').on('click', function () {
+			var open = $(this).attr('aria-expanded') !== 'true';
+			$(this).attr('aria-expanded', open ? 'true' : 'false');
+			$picker.prop('hidden', !open);
+			syncPageCount();
+			if (open) $picker.find('input[type="checkbox"]').first().trigger('focus');
+		});
+		$picker.on('change', 'input[type="checkbox"]', syncPageCount);
+		$picker.on('click', '.abmm-pages-create', function () {
+			var ids = $picker.find('input[type="checkbox"]:checked').map(function () { return this.value; }).get();
+			if (!ids.length) return;
+			var $button = $(this).prop('disabled', true);
+			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_onboarding', nonce: abmmAdmin.nonce, choice: 'pages', page_ids: ids })
+				.done(function (res) {
+					if (res && res.success && res.data && res.data.url) { window.location = res.data.url; return; }
+					setListStatus(responseMessage(res, S.createError), true, true);
+					$button.prop('disabled', false);
+				})
+				.fail(function (xhr) {
+					setListStatus(requestErrorMessage(xhr, S.createError), true, true);
+					$button.prop('disabled', false);
+				});
+		});
+
+		// Setup guide: hide, reopen and the manual "checked on the site" step, saved per administrator.
+		$(document).on('click', '[data-guide-action]', function () {
+			var $button = $(this).prop('disabled', true);
+			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_setup_guide', nonce: abmmAdmin.nonce, guide_action: $button.attr('data-guide-action') })
+				.done(function (res) {
+					if (res && res.success) { window.location.reload(); return; }
+					setListStatus(responseMessage(res, S.saveError), true, true);
+					$button.prop('disabled', false);
+				})
+				.fail(function (xhr) {
+					setListStatus(requestErrorMessage(xhr, S.saveError), true, true);
+					$button.prop('disabled', false);
+				});
+		});
+
 		$('.abmm-onboarding-choice').on('click', function () {
 			var $buttons = $('.abmm-onboarding-choice').prop('disabled', true);
 			$.post(abmmAdmin.ajaxUrl, {

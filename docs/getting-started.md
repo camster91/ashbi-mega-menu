@@ -18,7 +18,10 @@ Installing the plugin does **not** change your site's header. Nothing shows on y
 2. Pick one:
    - **Start from scratch** — an empty menu.
    - **Use a template** — a small example menu to edit. Replace every sample label and link.
+   - **Start from your pages** — tick pages you already have. Top-level pages become links in the menu bar; child pages go in their parent's dropdown.
 3. Give the menu a clear name, like "Main navigation".
+
+Once you have a menu, the dashboard shows a **Setup guide**: add your links and save, place the menu (it recommends the safest method for your theme), then check it on your site. Steps tick themselves off as the plugin detects them; "Check it on your site" is yours to confirm. **Hide guide** hides it for you only, and **Show setup guide** at the bottom of the dashboard brings it back. Nothing is placed on your site automatically, and your theme's own menu is never changed.
 
 ## 3. Add your links
 
