@@ -354,7 +354,7 @@ class ABMM_Product_Profiles {
 										<span class="abmm-card-menu__dots" aria-hidden="true">&#8943;</span>
 										<span class="screen-reader-text">
 											<?php
-											/* translators: %s: product name. */
+											/* translators: %s: name of a menu or product. */
 											echo esc_html( sprintf( __( 'More actions for %s', 'ashbi-mega-menu' ), $item_title ) );
 											?>
 										</span>

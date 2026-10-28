@@ -10,6 +10,10 @@ if ( ! getenv( 'ABMM_DISPOSABLE_TEST' ) ) {
 	WP_CLI::error( 'Set ABMM_DISPOSABLE_TEST=1 to confirm this is a disposable site.' );
 }
 
+// Test-only locale switches for RTL and long-translation checks.
+wp_mkdir_p( WPMU_PLUGIN_DIR );
+copy( __DIR__ . '/mu-plugins/abmm-test-locale.php', WPMU_PLUGIN_DIR . '/abmm-test-locale.php' );
+
 $data = ABMM_Data::instance();
 foreach ( array( 'chromium', 'firefox', 'webkit' ) as $browser ) {
 	$id = $data->create_from_starter();

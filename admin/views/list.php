@@ -382,7 +382,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 								<span class="abmm-card-menu__dots" aria-hidden="true">&#8943;</span>
 								<span class="screen-reader-text">
 									<?php
-									/* translators: %s: menu title. */
+									/* translators: %s: name of a menu or product. */
 									echo esc_html( sprintf( __( 'More actions for %s', 'ashbi-mega-menu' ), $abmm_title ) );
 									?>
 								</span>

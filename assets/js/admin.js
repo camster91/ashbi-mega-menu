@@ -441,7 +441,9 @@
 		// Only touch the text when it changes: replacing the text node under the
 		// pointer makes WebKit drop the click.
 		if ($label.text() !== label) $label.text(label);
-		$button.attr('title', saved ? __('All changes are saved', 'ashbi-mega-menu') : sprintf(__('Save this menu (%s)', 'ashbi-mega-menu'), SAVE_SHORTCUT));
+		/* translators: %s: keyboard shortcut, such as Ctrl+S. */
+		var saveTitle = sprintf(__('Save this menu (%s)', 'ashbi-mega-menu'), SAVE_SHORTCUT);
+		$button.attr('title', saved ? __('All changes are saved', 'ashbi-mega-menu') : saveTitle);
 		$button.attr('aria-keyshortcuts', 'Control+S Meta+S');
 	}
 
@@ -3067,7 +3069,7 @@
 				'<li class="abmm-cat-row' + (i === state.editingCatIndex ? ' is-selected' : '') + '" data-id="' + esc(cat.id) + '">' +
 				'<div class="abmm-cat-row__head">' +
 				'<span class="abmm-drag-handle" title="' + esc(S.dragHint) + '" aria-hidden="true"><span class="dashicons dashicons-menu"></span></span>' +
-				'<button type="button" class="abmm-pick-icon" title="' + esc(__('Icon and icon style', 'ashbi-mega-menu')) + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), catName)) + '">' + iconHtml + '</button>' +
+				'<button type="button" class="abmm-pick-icon" title="' + esc(__('Icon and icon style', 'ashbi-mega-menu')) + '" aria-label="' + /* translators: %s: category or link name. */ esc(sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), catName)) + '">' + iconHtml + '</button>' +
 				'<div class="abmm-cat-row__fields">' +
 				'<input type="text" class="abmm-cat-title" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s title', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.title) + '" placeholder="' + esc(S.categoryTitle) + '" />' +
 				'<input type="text" class="abmm-cat-desc" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s description', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.description) + '" placeholder="' + esc(S.categoryDesc) + '" />' +
@@ -3433,7 +3435,7 @@
 			'">' +
 			'<span class="abmm-drag-handle" title="' + esc(S.dragHint) + '" aria-hidden="true"><span class="dashicons dashicons-menu"></span></span>' +
 			'<button type="button" class="abmm-pick-link-icon" title="' + esc(__('Icon and icon style', 'ashbi-mega-menu')) + '" aria-label="' +
-			/* translators: %s: link name. */
+			/* translators: %s: category or link name. */
 			esc(sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), linkName)) +
 			'">' +
 			iconMarkup(link.icon, link.icon_url, '', link.icon_color, link.icon_size, link) +
@@ -3534,6 +3536,7 @@
 		var percent = Math.round(view.scale * 100) + '%';
 		var $value = $('.abmm-preview-zoom__value');
 		if ($value.text() !== percent) {
+			/* translators: %s: zoom percentage, such as 75%. */
 			$value.text(percent).attr('aria-label', sprintf(__('Zoom %s. Choose a zoom level', 'ashbi-mega-menu'), percent));
 		}
 		$('[data-abmm-zoom="fit"]').attr('aria-pressed', mode === 'fit' ? 'true' : 'false');
