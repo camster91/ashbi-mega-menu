@@ -225,7 +225,10 @@ assert.equal(C.storageKey('x', ''), 'abmmCanvas:0:desktop');
 	device = 'mobile';
 	canvas.restore();
 	assert.equal(canvas.mode(), 'fit', 'another device starts at its own Fit');
+	// A refresh while switching (before restore) must not overwrite the next device's view.
 	device = 'desktop';
+	canvas.refresh();
+	assert.equal(JSON.parse(window.localStorage.getItem('abmmCanvas:3:desktop')).scale, 1.5, 'a fitted refresh does not save over another device');
 	canvas.restore();
 	assert.equal(canvas.view().scale, 1.5, 'switching back restores the saved desktop view');
 	assert.ok(changes.length > 0);
