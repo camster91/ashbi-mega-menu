@@ -4,7 +4,7 @@
 
 Found by building a full menu in the editor from scratch, as a site owner would.
 
-- **Simple-column links** can have a short description, like category links. It is shown under the link on the site and in the preview, and can be styled with the Description font settings. Links without one keep their exact markup.
+- **Simple-column links** can have a short description, like category links. It is shown under the link on the site and in the preview, and can be styled with the Description font settings and the Elementor widget's Descriptions controls. Links without one keep their exact markup.
 - **Logo**: a Media Library button next to the logo and dark-preset logo fields; the image's alternative text fills the logo alternative text when that is empty.
 - **Checklist**: a featured card with link text but no link is flagged, because the site hides link text that goes nowhere. The checklist count now uses a proper plural ("1 thing", "2 things").
 - **Undo and redo** no longer turn the chosen style preset into Custom: restoring colours is not treated as a colour edit.
