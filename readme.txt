@@ -68,9 +68,10 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 == Changelog ==
 
 = 1.2.1 =
+* The block's Wide and Full width alignment (and extra CSS classes) now apply on the site.
 * Simple-column links can have a short description, shown under the link.
 * Choose the logo from the Media Library.
-* The checklist flags featured-card link text that has no link (the text is hidden on the site).
+* The checklist flags featured-card link text that has no link (the text is hidden on the site), and an item about one dropdown opens that dropdown's editor.
 * Undo and redo no longer switch the chosen style preset to Custom.
 * While a dropdown's content is edited, the preview stays in view above it.
 * Screen readers announce a row's new name as soon as it is renamed.

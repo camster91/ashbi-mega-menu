@@ -647,7 +647,7 @@
 				});
 			});
 			if (usable === usableBefore) {
-				issues.push({ field: 'abmm-nav-items', message: S.checkMega.replace('%s', label || S.thisMega) });
+				issues.push({ field: 'abmm-nav-items', item: index, message: S.checkMega.replace('%s', label || S.thisMega) });
 			}
 		});
 		Object.keys(labels).forEach(function (label) {
@@ -657,12 +657,12 @@
 		if (menu.cta && menu.cta.show && !usableLink(menu.cta)) {
 			issues.push({ field: 'abmm-cta-url', message: S.checkCta });
 		}
-		(menu.items || []).forEach(function (item) {
+		(menu.items || []).forEach(function (item, index) {
 			var card = item.featured || {};
 			// The card hides its link text when there is no link, so the text would silently vanish.
 			if (item.type === 'mega' && card.show && String(card.title || '').trim() && String(card.label || '').trim() && !usableLink({ label: card.label, url: card.url })) {
 				/* translators: %s: mega menu label. */
-				issues.push({ field: 'abmm-nav-items', message: sprintf(__('The featured card in %s has link text but no link. Add a link or clear the text.', 'ashbi-mega-menu'), String(item.label || '').trim() || S.thisMega) });
+				issues.push({ field: 'abmm-featured-url', item: index, message: sprintf(__('The featured card in %s has link text but no link. Add a link or clear the text.', 'ashbi-mega-menu'), String(item.label || '').trim() || S.thisMega) });
 			}
 		});
 		(menu.items || []).forEach(function (item) {
@@ -737,7 +737,7 @@
 			.toggleClass('is-ready', result.ready);
 		result.issues.forEach(function (issue) {
 			$('<li><button type="button" class="button-link"></button></li>')
-				.find('button').text(issue.message).attr('data-field', issue.field).end()
+				.find('button').text(issue.message).attr('data-field', issue.field).attr('data-item', typeof issue.item === 'number' ? issue.item : null).end()
 				.appendTo($list);
 		});
 		// The shortcode is always available; a draft only gets a reminder.
@@ -2570,6 +2570,23 @@
 
 		$('.abmm-readiness-issues').on('click', 'button', function () {
 			var field = document.getElementById($(this).data('field'));
+			// An issue inside one dropdown opens that dropdown's content editor,
+			// then goes to the field to fix when the editor has one.
+			var itemIndex = parseInt($(this).attr('data-item'), 10);
+			var item = getMenu().items[itemIndex];
+			if (item && item.type === 'mega') {
+				if (state.editingItemIndex !== itemIndex) {
+					if (state.editingItemIndex >= 0) closeMegaEditor();
+					openMegaEditor(itemIndex, this);
+				}
+				if (field && $(field).closest('#abmm-mega-editor').length) {
+					setTimeout(function () {
+						if (field.scrollIntoView) field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+						field.focus({ preventScroll: true });
+					}, 250);
+				}
+				return;
+			}
 			if (field) {
 				field.scrollIntoView({ behavior: 'smooth', block: 'center' });
 				field.focus();

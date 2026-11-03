@@ -4,9 +4,10 @@
 
 Found by building a full menu in the editor from scratch, as a site owner would.
 
+- **Block alignment**: the Ashbi Mega Menu block offered Wide and Full width, but the site ignored them (and "Additional CSS class(es)"), so a block in a page's content column showed the phone menu. The choice now applies through the block wrapper; blocks without alignment or classes keep their exact markup.
 - **Simple-column links** can have a short description, like category links. It is shown under the link on the site and in the preview, and can be styled with the Description font settings and the Elementor widget's Descriptions controls. Links without one keep their exact markup.
 - **Logo**: a Media Library button next to the logo and dark-preset logo fields; the image's alternative text fills the logo alternative text when that is empty.
-- **Checklist**: a featured card with link text but no link is flagged, because the site hides link text that goes nowhere. The checklist count now uses a proper plural ("1 thing", "2 things").
+- **Checklist**: a featured card with link text but no link is flagged, because the site hides link text that goes nowhere. The checklist count now uses a proper plural ("1 thing", "2 things"). Clicking a checklist item about one dropdown opens that dropdown's content editor, at the field to fix when there is one.
 - **Undo and redo** no longer turn the chosen style preset into Custom: restoring colours is not treated as a colour edit.
 - **Editing a dropdown's content** keeps the preview on screen: the canvas gets shorter while the content editor is open, so the open dropdown and the editor fit together.
 - **Accessibility**: move, duplicate, remove and icon buttons of menu items, categories, columns and links are renamed as soon as their label changes, instead of announcing the old name until the list is redrawn.

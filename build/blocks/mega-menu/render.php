@@ -13,8 +13,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! isset( $attributes['menuId'] ) || ! is_scalar( $attributes['menuId'] ) || '' === (string) $attributes['menuId'] ) {
-	return;
-}
-
-echo ABMM_Frontend::instance()->render( $attributes['menuId'], array( 'context' => function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() && 'page' === ( $attributes['context'] ?? '' ) ? 'page' : '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+// Same output as the block's render callback, including its alignment wrapper.
+echo ABMM_Block::instance()->render_block( $attributes, $content ?? '', $block ?? null ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
