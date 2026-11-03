@@ -28,6 +28,11 @@ verify_roundtrip(''===$shortcode->shortcode(array('id'=>array('0'))), 'Malformed
 $block=ABMM_Block::instance();
 verify_roundtrip(strpos($block->render_block(array('menuId'=>'0'), '', null), 'data-menu="0"')!==false, 'Block zero did not render');
 verify_roundtrip(''===$block->render_block(array('menuId'=>array('0')), '', null), 'Malformed block ID was not rejected');
+// Wide/full alignment and extra classes need the block wrapper; without them the markup is unchanged.
+class WP_Block_Supports { public static $block_to_render = array( 'blockName' => 'ashbi-mega-menu/mega-menu' ); }
+function get_block_wrapper_attributes() { return 'class="wp-block-ashbi-mega-menu-mega-menu alignfull"'; }
+verify_roundtrip('<div class="wp-block-ashbi-mega-menu-mega-menu alignfull"><nav data-menu="first"></nav></div>'===$block->render_block(array('menuId'=>'first','align'=>'full'), '', null), 'Full-width block lost its alignment wrapper');
+verify_roundtrip('<nav data-menu="first"></nav>'===$block->render_block(array('menuId'=>'first'), '', null), 'A block without alignment gained a wrapper');
 ob_start();
 (new ABMM_Widget())->widget(array('before_widget'=>'','after_widget'=>''), array('menu_id'=>'0'));
 $html=ob_get_clean();

@@ -277,6 +277,19 @@ async function backupFixture(strings = {}) {
  saved = JSON.parse(f.requests[1].data.menu_data);
  assert.deepEqual(saved.items[0].featured,{show:true,title:'Launch',text:'',label:'',url:'',image_url:''});
  f.requests[1].d.resolve({success:true,data:{revision:'revision-3'}});
+ // A checklist item about one dropdown opens that dropdown's editor at the field to fix.
+ $('#abmm-nav-items .abmm-nav-item-row').eq(1).find('.abmm-edit-mega').trigger('click');
+ $('#abmm-featured-url').val('').trigger('input');
+ $('.abmm-close-mega-editor').trigger('click');
+ const featuredIssue = $('.abmm-readiness-issues button').filter((_, b) => $(b).text().includes('featured card'));
+ assert.equal(featuredIssue.attr('data-item'),'1','the issue knows which dropdown it is about');
+ featuredIssue.trigger('click');
+ assert.equal($('#abmm-mega-editor').prop('hidden'),false,'clicking it opens that dropdown');
+ assert.equal($('#abmm-mega-editor-title').text(),'Feat');
+ await new Promise((resolve) => f.window.setTimeout(resolve, 300));
+ assert.equal(f.window.document.activeElement.id,'abmm-featured-url','and moves to the featured link field');
+ $('#abmm-featured-url').val('/new').trigger('input');
+ $('.abmm-close-mega-editor').trigger('click');
  // Mega link rows: the URL is a quiet chip, and one button opens link editing and options.
  $('#abmm-nav-items .abmm-nav-item-row').eq(1).find('.abmm-edit-mega').trigger('click');
  const linkEdit = $('#abmm-features-link-list .abmm-link-edit').first();

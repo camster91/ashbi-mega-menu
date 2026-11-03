@@ -68,7 +68,14 @@ class ABMM_Block {
 			return '';
 		}
 		$context = function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() && 'page' === ( $attributes['context'] ?? '' ) ? 'page' : '';
-		return ABMM_Frontend::instance()->render( $menu_id, array( 'context' => $context ) );
+		$html    = ABMM_Frontend::instance()->render( $menu_id, array( 'context' => $context ) );
+		// Wide or full width and extra CSS classes chosen in the editor live on
+		// a wrapper. Without them the markup stays exactly as before.
+		$has_wrapper_settings = '' !== (string) ( $attributes['align'] ?? '' ) || '' !== trim( (string) ( $attributes['className'] ?? '' ) );
+		if ( '' !== $html && $has_wrapper_settings && function_exists( 'get_block_wrapper_attributes' ) && class_exists( 'WP_Block_Supports' ) && ! empty( WP_Block_Supports::$block_to_render ) ) {
+			$html = '<div ' . get_block_wrapper_attributes() . '>' . $html . '</div>';
+		}
+		return $html;
 	}
 
 	/**
