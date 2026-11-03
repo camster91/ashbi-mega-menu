@@ -97,8 +97,12 @@ class ABMM_Frontend {
 		);
 		wp_localize_script( 'abmm-frontend', 'abmmRuntime', array( 'publicDistribution' => defined( 'ABMM_PUBLIC_DISTRIBUTION' ) && ABMM_PUBLIC_DISTRIBUTION, 'searchStrings' => abmm_menu_search_strings() ) );
 
-		if ( ABMM_Data::instance()->get_all() ) {
-			wp_enqueue_style( 'abmm-frontend' );
+		// Classic menus bring their own stylesheet (see ABMM_Classic).
+		foreach ( ABMM_Data::instance()->get_all() as $menu ) {
+			if ( ! class_exists( 'ABMM_Classic' ) || ! ABMM_Classic::is_classic( $menu ) ) {
+				wp_enqueue_style( 'abmm-frontend' );
+				break;
+			}
 		}
 	}
 
@@ -148,6 +152,9 @@ class ABMM_Frontend {
 		if ( $filtered !== $menu ) {
 			$menu = ABMM_Data::instance()->sanitize_menu( $filtered );
 		}
+		$html = class_exists( 'ABMM_Classic' ) && ABMM_Classic::is_classic( $menu )
+			? ABMM_Classic::instance()->render_menu( $menu, (string) $menu_id, $args )
+			: $this->render_menu( $menu, $menu_id, $args );
 
 		/**
 		 * Filters the rendered menu HTML.
@@ -162,7 +169,7 @@ class ABMM_Frontend {
 		 * @param array  $menu    Menu that was rendered.
 		 * @param array  $args    Render arguments.
 		 */
-		return (string) apply_filters( 'abmm_menu_html', $this->render_menu( $menu, $menu_id, $args ), (string) $menu_id, $menu, $args );
+		return (string) apply_filters( 'abmm_menu_html', $html, (string) $menu_id, $menu, $args );
 	}
 
 

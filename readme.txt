@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.0.4
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,14 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 
 == Changelog ==
 
+= 1.1.0 =
+* Import menus, product navigation and branding from Easy Mega Menu, read-only, with a preview and a list of anything not copied exactly.
+* Imported menus keep Easy Mega Menu's exact look, markup and site CSS (Classic look), including the site's own icons.
+* Optionally answer [easy_mega_menu] shortcodes and emm_render_menu() after Easy Mega Menu is deactivated, so headers need no edits.
+* Optional fix so long phone submenus in classic menus scroll to the last link.
+* Phone and tablet previews show classic menus as they look on the site.
+* Menus created in Ashbi are unchanged.
+
 = 1.0.4 =
 * Keep a desktop mega menu open when it is clicked after opening on hover.
 * Fix cramped reorder, icon size and category fields in the editor, and add the missing right margin.
@@ -119,6 +127,9 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Generic sample content and public package isolation.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Adds an Easy Mega Menu importer and an optional [easy_mega_menu] shortcode takeover. Existing Ashbi menus render as before.
 
 = 1.0.4 =
 Back up before upgrading. Product editors opened before this upgrade must be reloaded before saving. Existing menu IDs and mobile settings are preserved.

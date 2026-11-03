@@ -1097,6 +1097,19 @@ class ABMM_Data {
 		$menu['cta']   = array_merge( $menu['cta'], $this->sanitize_link_meta( $cta ) );
 		$menu['brand'] = array_merge( $menu['brand'], $this->sanitize_link_meta( $brand ) );
 
+		// Classic (Easy Mega Menu) rendering is stored only on menus that use it,
+		// so every other menu keeps exactly the data it had.
+		if ( 'emm-classic' === ( $raw['render_mode'] ?? '' ) ) {
+			$menu['settings']['render_mode'] = 'emm-classic';
+			$edge_bleed                      = min( 64, absint( $this->scalar_string( $raw['classic_edge_bleed'] ?? 0 ) ) );
+			if ( $edge_bleed ) {
+				$menu['settings']['classic_edge_bleed'] = $edge_bleed;
+			}
+			if ( ! empty( $raw['classic_phone_scroll_fix'] ) ) {
+				$menu['settings']['classic_phone_scroll_fix'] = true;
+			}
+		}
+
 		if ( ! empty( $data['items'] ) && is_array( $data['items'] ) ) {
 			foreach ( $data['items'] as $item ) {
 				if ( is_array( $item ) ) {

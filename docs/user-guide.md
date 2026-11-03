@@ -111,6 +111,10 @@ Existing JSON exports and the import `--file` option remain supported.
 
 Use authenticated administration only. See source/tests for automation contracts; do not expose credentials in command history or public reports.
 
+## Switch from Easy Mega Menu
+
+**Ashbi Mega Menu → Easy Mega Menu import** appears when Easy Mega Menu's data is on the site. It copies menus (with the same IDs), product navigation and branding into Ashbi without changing Easy Mega Menu, and imported menus keep their exact Classic look. Test on a private draft page, then turn on **Handle [easy_mega_menu] shortcodes** and deactivate Easy Mega Menu. Reactivate Easy Mega Menu to switch back. Full steps: [migrating from Easy Mega Menu](migrate-from-easy-mega-menu.md).
+
 ## Troubleshooting
 
 | Symptom | What to check |

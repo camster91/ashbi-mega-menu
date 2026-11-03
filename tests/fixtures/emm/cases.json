@@ -1,0 +1,13 @@
+{
+ "home": "https://example.test",
+ "version": "1.6.76",
+ "pages": [
+  { "path": "/products/analytics/", "headers": [
+   { "id": "main_nav", "fixture": "expected-analytics-main_nav.html" },
+   { "id": "product_secondary", "fixture": "expected-analytics-product_secondary.html" }
+  ] },
+  { "path": "/", "headers": [
+   { "id": "main_nav", "fixture": "expected-home-main_nav.html" }
+  ] }
+ ]
+}

@@ -82,6 +82,16 @@ require_once dirname( __DIR__ ) . '/includes/class-abmm-icons.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-data.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-frontend.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-admin.php';
+require_once dirname( __DIR__ ) . '/includes/class-abmm-classic.php';
+require_once dirname( __DIR__ ) . '/includes/class-abmm-classic-icons.php';
+function add_query_arg( $key, $value, $url ) { return $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . $key . '=' . $value; }
+function wp_upload_dir() { return array( 'error' => 'no uploads in this test' ); }
+function abmm_contextual_navigation_enabled() { return false; }
+function trailingslashit( $path ) { return rtrim( $path, '/\\' ) . '/'; }
+function sanitize_file_name( $name ) { return preg_replace( '/[^A-Za-z0-9._-]/', '', (string) $name ); }
+function wp_add_inline_script() {}
+function wp_add_inline_style() {}
+function wp_json_encode( $data ) { return json_encode( $data ); }
 
 function verify_preview( $condition, $message ) {
 	if ( ! $condition ) {
@@ -150,4 +160,19 @@ $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ] = array( 'menu-1' => ABMM_Data:
 $live = ABMM_Frontend::instance()->render( 'menu-1' );
 verify_preview( false !== strpos( $live, 'abmm-mega__col-item' ) && false === strpos( $live, 'data-abmm-link-id' ), 'Live markup has no preview link IDs.' );
 
-echo "Device preview markup: gate, sanitizing, no storage and preview-only link IDs passed.\n";
+// Classic (Easy Mega Menu) menus preview with their own markup and assets.
+$GLOBALS['abmm_test_options'] = array();
+$classic_menu = $menu;
+$classic_menu['settings'] = array( 'render_mode' => 'emm-classic' );
+$classic = preview_request( array_merge( $valid, array( 'menu_data' => json_encode( $classic_menu ) ) ) );
+verify_preview( $classic->response['success'] && 0 === strpos( trim( $classic->response['data']['html'] ), '<header class="emm-header' ), 'A classic menu previews with the classic markup.' );
+$assets = $classic->response['data']['assets'];
+verify_preview( false !== strpos( $assets['css'], 'assets/classic/emm-frontend.css' ) && false !== strpos( $assets['js'], 'assets/classic/emm-frontend.js' ) && '' === $assets['inlineCss'], 'Classic previews load the classic stylesheet and script.' );
+verify_preview( false === stripos( $classic->response['data']['html'], 'javascript:' ), 'Classic previews are sanitized too.' );
+verify_preview( array() === $GLOBALS['abmm_test_options'], 'A classic preview stores nothing.' );
+$classic_menu['settings']['classic_phone_scroll_fix'] = true;
+$fixed = preview_request( array_merge( $valid, array( 'menu_data' => json_encode( $classic_menu ) ) ) );
+verify_preview( false !== strpos( $fixed->response['data']['assets']['inlineCss'], 'emm-phone-scroll-fix' ), 'The phone scroll fix shows in the classic preview.' );
+verify_preview( ! isset( $ok->response['data']['assets'] ), 'Ashbi menus keep the standard preview assets.' );
+
+echo "Device preview markup: gate, sanitizing, no storage, preview-only link IDs and classic previews passed.\n";

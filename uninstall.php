@@ -34,6 +34,8 @@ $abmm_option_keys = array(
 	'abmm_contextual_navigation_enabled',
 	'widget_abmm_widget',
 	'abmm_collection_lock',
+	'abmm_emm_takeover',
+	'abmm_classic_assets',
 );
 
 // Site options and recovery drafts belong to each site's own options table.
@@ -51,6 +53,17 @@ $abmm_cleanup_site = static function () use ( $abmm_option_keys ) {
 	foreach ( $abmm_recovery_options as $abmm_recovery_option ) {
 		delete_option( $abmm_recovery_option );
 		delete_option( str_replace( '_transient_', '_transient_timeout_', $abmm_recovery_option ) );
+	}
+
+	// Styles and icons copied from Easy Mega Menu by the importer (Easy Mega Menu's own files are untouched).
+	if ( function_exists( 'wp_upload_dir' ) && function_exists( 'wp_delete_file' ) ) {
+		$abmm_uploads = wp_upload_dir( null, false );
+		$abmm_classic = empty( $abmm_uploads['error'] ) ? rtrim( $abmm_uploads['basedir'], '/\\' ) . '/ashbi-mega-menu/classic' : '';
+		if ( '' !== $abmm_classic && is_dir( $abmm_classic ) ) {
+			foreach ( (array) glob( $abmm_classic . '/emm-*' ) as $abmm_file ) {
+				wp_delete_file( $abmm_file );
+			}
+		}
 	}
 };
 

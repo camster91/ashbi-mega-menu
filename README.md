@@ -4,7 +4,7 @@
 
 An open-source WordPress plugin for building responsive navigation with a visual editor. Licensed under GPL-2.0-or-later.
 
-**Status:** version 1.0.4 is the current release candidate for the existing WordPress.org submission under slug `ashbi-mega-menu`. Directory approval has not been granted.
+**Status:** version 1.1.0 is the current release candidate for the existing WordPress.org submission under slug `ashbi-mega-menu`. Directory approval has not been granted.
 
 [Release validation](https://github.com/camster91/ashbi-mega-menu/actions/runs/38441103680) covers the build, regression suite, official Plugin Check and WordPress database tests, including WordPress 6.6/PHP 8.2. See [security review](docs/security-review.md).
 
@@ -16,6 +16,7 @@ An open-source WordPress plugin for building responsive navigation with a visual
 - Menu import, export and archives.
 - Optional contextual navigation for products, services, departments, documentation or locations.
 - Revision checks prevent a stale editor from silently replacing newer changes.
+- Switch from Easy Mega Menu: a read-only importer, its exact Classic look, and an optional `[easy_mega_menu]` shortcode takeover. See [migrating from Easy Mega Menu](docs/migrate-from-easy-mega-menu.md).
 
 Activation starts with an empty menu list. An optional generic sample helps you get started; replace its placeholder links before using it. The plugin never automatically replaces your theme's header. New here? Read the [10-minute getting started guide](docs/getting-started.md), then [the user guide](docs/user-guide.md) for placement, duplicate-header prevention and recovery.
 
@@ -27,7 +28,7 @@ Upload the release ZIP through **Plugins → Add New → Upload Plugin**, activa
 
 Follow the [block-theme and classic-theme placement recipes](docs/user-guide.md#put-it-in-a-header). Chrome testing on a local WordPress installation covers the core create, edit, placement and responsive-navigation journey; see the [verification matrix](docs/compatibility.md) for its limits. Export menus and take a full-site backup before replacement imports or upgrades. Retained import backups restore the active menu collection; they do not restore header templates or the complete site.
 
-This plugin uses independent `abmm_` storage and identifiers. It is a separate plugin, not an automatic migration or replacement for another menu plugin.
+This plugin uses independent `abmm_` storage and identifiers. It never changes another plugin's data. Moving from Easy Mega Menu is a deliberate, reversible step: see [migrating from Easy Mega Menu](docs/migrate-from-easy-mega-menu.md).
 
 ## Development
 
