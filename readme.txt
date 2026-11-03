@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,14 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 
 == Changelog ==
 
+= 1.2.0 =
+* Fonts: use your site's font or a custom one, with sizes and weights for the menu bar, categories, links and descriptions.
+* Dropdown height: default, grow to fit, cap and scroll, or fixed.
+* Elementor widget with Elementor typography and colour controls, so global fonts apply.
+* "Edit mega menu" toolbar link on pages that show a menu.
+* Undo and redo in the menu editor.
+* Menus that don't use the new settings render exactly as before.
+
 = 1.1.0 =
 * Import menus, product navigation and branding from Easy Mega Menu, read-only, with a preview and a list of anything not copied exactly.
 * Imported menus keep Easy Mega Menu's exact look, markup and site CSS (Classic look), including the site's own icons.
@@ -127,6 +135,9 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Generic sample content and public package isolation.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Adds font and dropdown-height settings, an Elementor widget, a toolbar edit link and undo/redo. Existing menus render as before.
 
 = 1.1.0 =
 Adds an Easy Mega Menu importer and an optional [easy_mega_menu] shortcode takeover. Existing Ashbi menus render as before.

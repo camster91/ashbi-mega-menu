@@ -72,6 +72,28 @@ if ( function_exists( 'abmm_render_menu' ) ) {
 
 Keep a copy of the original child-theme file and avoid editing the parent theme. The helper does not remove an existing `wp_nav_menu()` call; a developer must deliberately manage that existing placement. Test with the active theme rather than assuming a recipe fits all headers.
 
+## Fonts and dropdown height
+
+Open **Design**:
+
+- **Fonts → Font**: *Menu default* keeps the menu's own font. *Same as my site* uses the font your theme or Elementor already loads (for example an Elementor global font). *Custom font* takes a list such as `Supreme, Arial, sans-serif`; the font must already be loaded on the site.
+- **Sizes and weights** for the menu bar, category titles, links and descriptions, plus menu bar letter spacing and letter case. They apply to the desktop menu; the phone drawer keeps its larger, touch-friendly text. Leave a field empty to keep the default.
+- **Dropdown height**: *Default* scrolls when the dropdown is taller than the screen allows; *Grow to fit all links* never scrolls (it can run below short screens); *Up to a height, then scroll*; *Always the same height*.
+
+Each group has **Reset to default**. The settings only add a small stylesheet for that menu; the menu's links and markup are unchanged. Site CSS marked `!important` still wins over these settings.
+
+## Undo and redo
+
+In the menu editor, **Undo** and **Redo** (top bar), or Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z (Ctrl+Y on Windows), step through this session's changes to content and design. Inside a text field the shortcuts undo your typing as usual. History starts when the editor opens and is not kept after you leave.
+
+## Elementor
+
+With Elementor active, search for the **Ashbi Mega Menu** widget. Choose the menu in the widget's Content tab; links, categories and icons are still edited in Ashbi Mega Menu (the widget links there). The Style tab sets typography and colours for the menu bar, category titles, links and descriptions with Elementor's own controls, so global fonts and colours work, and the dropdown background and height for that placement. The `[ashbi_mega_menu]` shortcode in Elementor's Shortcode widget keeps working.
+
+## Find the editor from your site
+
+When you are logged in as an administrator, pages that show a menu have **Edit mega menu** in the top toolbar. It opens that menu's editor; if the page shows several menus, choose one from its list.
+
 ## Product navigation
 
 **Product Navigation** shows extra links under your main menu on a product's pages. Each product has a main page; pages below it get the same links. **Navigation Coverage** lists which pages show which product, and **Product Branding** can show a product's own logo on its pages. In the block or widget enable **Use page product navigation** only when that contextual behavior is intended. The equivalent shortcode is:

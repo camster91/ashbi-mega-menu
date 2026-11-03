@@ -1,1 +1,6 @@
+# Always LF, so packages built on any platform print identical markup.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.zip binary
 tests/fixtures/emm/** -text

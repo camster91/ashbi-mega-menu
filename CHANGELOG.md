@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+- **Fonts** (Design tab): use the site's own font (theme or Elementor global font) or a custom font list, and set sizes and weights for the menu bar, category titles, links and descriptions, plus menu bar letter spacing and letter case. Sizes apply to the desktop menu; the phone drawer keeps its touch-friendly text.
+- **Dropdown height** (Design tab): keep the default, grow to fit all links, cap at a height and scroll, or use one fixed height.
+- Both work for Ashbi menus and imported Classic menus, are saved only when set, and print a small stylesheet scoped to that menu: menus that don't use them render exactly as before. Each group has a "Reset to default" button, and the editor preview updates live.
+- **Elementor widget** "Ashbi Mega Menu" (loaded only when Elementor is active): pick a menu, optionally show product navigation, and style the menu bar, category titles, links and descriptions with Elementor's typography and colour controls, so Elementor global fonts apply. The dropdown background and height can be set per widget. Shortcodes, the block and the WordPress widget are unchanged.
+- **Edit mega menu** in the toolbar on pages that show a menu, for administrators, linking to that menu's editor (one link per menu when a page shows several).
+- **Undo and redo** in the menu editor for the current session (buttons, Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z or Ctrl+Y outside text fields).
+
 ## 1.1.0
 
 - Switch from Easy Mega Menu without visible changes. **Easy Mega Menu import** (under Ashbi Mega Menu) reads Easy Mega Menu's menus, product profiles, product branding and page assignments without changing them, shows what will be copied and anything that cannot be copied exactly, keeps menu IDs, and saves a snapshot first. Existing Ashbi menus, profiles, branding and page assignments with the same ID are kept unless you choose to replace them; re-running the import refreshes what earlier imports created. Product settings are saved with the same locking and verification as the Product Navigation screens.

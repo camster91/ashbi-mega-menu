@@ -42,6 +42,7 @@
 		megaEditorOpener: null,
 		activeModal: '',
 		modalOpener: null,
+		history: { stack: [], index: -1, timer: null, applying: false },
 	};
 
 	function uid() {
@@ -372,6 +373,86 @@
 		state.savedSnapshot = JSON.stringify(getMenu());
 		state.trackingChanges = true;
 		updateSaveState('saved', S.savedState);
+		resetHistory();
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Undo and redo for this editing session (content and design).
+	 * Every change ends in markDirtyState(); a pause of 400ms makes one step,
+	 * so typing a label is one undo, not one per letter.
+	 * ------------------------------------------------------------------- */
+	var HISTORY_LIMIT = 100;
+
+	function resetHistory() {
+		var h = state.history;
+		clearTimeout(h.timer);
+		h.stack = [JSON.stringify(getMenu())];
+		h.index = 0;
+		renderHistoryButtons();
+	}
+
+	function scheduleHistory() {
+		var h = state.history;
+		if (h.applying || h.index < 0) return;
+		clearTimeout(h.timer);
+		h.timer = setTimeout(recordHistory, 400);
+	}
+
+	function recordHistory() {
+		var h = state.history;
+		var snapshot = JSON.stringify(getMenu());
+		if (snapshot === h.stack[h.index]) return;
+		h.stack = h.stack.slice(0, h.index + 1);
+		h.stack.push(snapshot);
+		if (h.stack.length > HISTORY_LIMIT) h.stack.shift();
+		h.index = h.stack.length - 1;
+		renderHistoryButtons();
+	}
+
+	function stepHistory(delta) {
+		var h = state.history;
+		// Finish a step that is still waiting for its pause first.
+		if (h.timer) { clearTimeout(h.timer); h.timer = null; recordHistory(); }
+		var next = h.index + delta;
+		if (next < 0 || next >= h.stack.length) return false;
+		h.index = next;
+		h.applying = true;
+		try {
+			if (state.editingItemIndex >= 0) closeMegaEditor();
+			state.menu = JSON.parse(h.stack[next]);
+			populateFormFromMenu();
+			renderNavItems();
+			renderPreview();
+		} finally {
+			h.applying = false;
+		}
+		renderHistoryButtons();
+		setStatus(delta < 0 ? __('Undone.', 'ashbi-mega-menu') : __('Redone.', 'ashbi-mega-menu'), false);
+		return true;
+	}
+
+	function renderHistoryButtons() {
+		var h = state.history;
+		$('.abmm-undo').prop('disabled', h.index <= 0);
+		$('.abmm-redo').prop('disabled', h.index < 0 || h.index >= h.stack.length - 1);
+	}
+
+	function initHistory() {
+		$('.abmm-undo').on('click', function () { stepHistory(-1); });
+		$('.abmm-redo').on('click', function () { stepHistory(1); });
+		$(document).on('keydown.abmmHistory', function (event) {
+			if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+			var key = String(event.key).toLowerCase();
+			var redo = (key === 'z' && event.shiftKey) || (key === 'y' && !event.shiftKey);
+			var undo = key === 'z' && !event.shiftKey;
+			if (!undo && !redo) return;
+			// Text fields keep the browser's own undo for what is being typed.
+			var target = event.target;
+			if (target && (target.isContentEditable || /^(input|textarea|select)$/i.test(target.tagName))) return;
+			if (!$('#abmm-builder').length || $('.abmm-modal:visible, #wp-link-wrap:visible').length) return;
+			if (stepHistory(undo ? -1 : 1)) event.preventDefault();
+		});
+		renderHistoryButtons();
 	}
 
 	function hasUnsavedChanges() {
@@ -449,6 +530,7 @@
 
 	function markDirtyState() {
 		if (!state.trackingChanges || state.loadFailed || state.isSaving) return;
+		scheduleHistory();
 		if (hasUnsavedChanges()) {
 			updateSaveState('dirty', S.unsavedState);
 			scheduleLocalDraft();
@@ -765,6 +847,13 @@
 		syncFullWidthField();
 		syncIconInheritField();
 		syncOptionalFeatureFields();
+		populateStyleForm(s.style);
+		var $renderMode = $('#abmm-render-mode');
+		if ($renderMode.length) {
+			$renderMode.val(s.render_mode === 'emm-classic' ? 'emm-classic' : '');
+			$('.abmm-classic-notice').prop('hidden', $renderMode.val() !== 'emm-classic');
+		}
+		$('#abmm-classic-phone-scroll-fix').prop('checked', !!s.classic_phone_scroll_fix);
 	}
 
 	function syncSettingsFromForm() {
@@ -838,6 +927,8 @@
 			show_cat_desc: $('#abmm-show-cat-desc').is(':checked'),
 			panel_title_align: $('#abmm-panel-title-align').val() || 'center',
 		};
+		var style = $('[data-abmm-style]').length ? readStyleForm() : normalizeStyle(previous.style);
+		if (Object.keys(style).length) m.settings.style = style;
 		if (renderMode === 'emm-classic') {
 			m.settings.render_mode = renderMode;
 			if (previous.classic_edge_bleed) m.settings.classic_edge_bleed = previous.classic_edge_bleed;
@@ -996,6 +1087,107 @@
 			previewNumberValue(s.header_z_index != null ? s.header_z_index : 1000, 1000, 0, 99999) +
 			';'
 		);
+	}
+
+	/* ---------------------------------------------------------------------
+	 * Fonts and dropdown height (settings.style). Mirrors ABMM_Style in PHP:
+	 * only values that are set are kept, so untouched menus stay unchanged.
+	 * ------------------------------------------------------------------- */
+	var STYLE_GROUPS = {
+		top: ['nav__list > .abmm-nav__item > .abmm-nav__link'],
+		cat: ['mega__cat-title', 'mega__section-title'],
+		desc: ['mega__cat-desc', 'mega__col-description'],
+		link: ['mega__col-label', 'mega__grid-label'],
+	};
+	var STYLE_WEIGHTS = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
+	var STYLE_TRANSFORMS = ['none', 'uppercase', 'lowercase', 'capitalize'];
+
+	var GENERIC_FAMILIES = ['serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded', 'emoji', 'math', 'fangsong'];
+
+	/** Same as ABMM_Style::sanitize_font_family(): every name quoted, so a stray quote can't break the CSS. */
+	function cleanFontFamily(value) {
+		return String(value || '').slice(0, 200).split(',').map(function (name) {
+			name = name.replace(/[^A-Za-z0-9 ._-]/g, '').replace(/\s+/g, ' ').trim();
+			if (!name) return '';
+			return GENERIC_FAMILIES.indexOf(name.toLowerCase()) !== -1 ? name.toLowerCase() : '"' + name + '"';
+		}).filter(Boolean).join(', ');
+	}
+
+	function normalizeStyle(raw) {
+		raw = raw || {};
+		var get = function (key) { return raw[key] == null ? '' : String(raw[key]).trim(); };
+		var out = {};
+		var mode = get('panel_height_mode');
+		if (['auto', 'fixed', 'max'].indexOf(mode) !== -1) {
+			out.panel_height_mode = mode;
+			if (mode !== 'auto') {
+				var height = Math.abs(parseInt(get('panel_height'), 10)) || 0;
+				out.panel_height = height ? Math.min(1200, Math.max(200, height)) : 520;
+			}
+		}
+		var fontMode = get('font_family_mode');
+		if (fontMode === 'inherit') out.font_family_mode = 'inherit';
+		else if (fontMode === 'custom' && cleanFontFamily(get('font_family'))) {
+			out.font_family_mode = 'custom';
+			out.font_family = cleanFontFamily(get('font_family'));
+		}
+		Object.keys(STYLE_GROUPS).forEach(function (group) {
+			var size = Math.abs(parseInt(get(group + '_font_size'), 10)) || 0;
+			if (size) out[group + '_font_size'] = Math.min(40, Math.max(10, size));
+			if (STYLE_WEIGHTS.indexOf(get(group + '_font_weight')) !== -1) out[group + '_font_weight'] = get(group + '_font_weight');
+		});
+		var spacing = get('top_letter_spacing');
+		if (spacing !== '' && isFinite(Number(spacing))) out.top_letter_spacing = String(Math.round(Math.min(10, Math.max(-2, Number(spacing))) * 10) / 10);
+		if (STYLE_TRANSFORMS.indexOf(get('top_text_transform')) !== -1) out.top_text_transform = get('top_text_transform');
+		return out;
+	}
+
+	/** Same CSS as ABMM_Style::css() for an Ashbi header, scoped to the editor preview. */
+	function styleCss(style, scope, media) {
+		style = style || {};
+		var rules = [];
+		var desk = [];
+		var deskScope = scope + ':not(.abmm-force-mobile)';
+		if (style.font_family_mode === 'inherit') rules.push(scope + ',' + scope + ' *{font-family:inherit}');
+		else if (style.font_family_mode === 'custom' && style.font_family) rules.push(scope + ',' + scope + ' *{font-family:' + cleanFontFamily(style.font_family) + '}');
+		Object.keys(STYLE_GROUPS).forEach(function (group) {
+			var d = [];
+			if (style[group + '_font_size']) d.push('font-size:' + parseInt(style[group + '_font_size'], 10) + 'px');
+			if (STYLE_WEIGHTS.indexOf(String(style[group + '_font_weight'] || '')) !== -1) d.push('font-weight:' + style[group + '_font_weight']);
+			if (group === 'top' && style.top_letter_spacing != null && isFinite(Number(style.top_letter_spacing))) d.push('letter-spacing:' + Number(style.top_letter_spacing) + 'px');
+			if (group === 'top' && STYLE_TRANSFORMS.indexOf(style.top_text_transform) !== -1) d.push('text-transform:' + style.top_text_transform);
+			if (d.length) desk.push(STYLE_GROUPS[group].map(function (target) { return deskScope + ' .abmm-' + target; }).join(',') + '{' + d.join(';') + '}');
+		});
+		var panel = deskScope + ' .abmm-mega__panel';
+		if (style.panel_height_mode === 'auto') desk.push(panel + '{max-height:none}');
+		else if (style.panel_height_mode === 'fixed') desk.push(panel + '{height:' + parseInt(style.panel_height, 10) + 'px;max-height:' + parseInt(style.panel_height, 10) + 'px;overflow-y:auto}');
+		else if (style.panel_height_mode === 'max') desk.push(panel + '{max-height:' + parseInt(style.panel_height, 10) + 'px;overflow-y:auto}');
+		if (desk.length) rules.push(media === false ? desk.join('') : '@media (min-width:901px){' + desk.join('') + '}');
+		return rules.join('');
+	}
+
+	function readStyleForm() {
+		var raw = {};
+		$('[data-abmm-style]').each(function () { raw[$(this).attr('data-abmm-style')] = $(this).val(); });
+		return normalizeStyle(raw);
+	}
+
+	function populateStyleForm(style) {
+		style = style || {};
+		$('[data-abmm-style]').each(function () {
+			var key = $(this).attr('data-abmm-style');
+			$(this).val(style[key] != null ? style[key] : (key === 'panel_height' ? 520 : ''));
+		});
+		syncStyleFields();
+	}
+
+	/** Show fields such as "Custom font names" only when they apply. */
+	function syncStyleFields() {
+		$('[data-abmm-style-when]').each(function () {
+			var rule = String($(this).attr('data-abmm-style-when')).split('=');
+			var current = String($('[data-abmm-style="' + rule[0] + '"]').val() || '');
+			$(this).prop('hidden', rule[1].split(',').indexOf(current) === -1);
+		});
 	}
 
 	function settingsClassList(s) {
@@ -2219,6 +2411,7 @@
 		initMoreMenu();
 		initBuilderSections();
 		initSaveShortcut();
+		initHistory();
 		$('[data-abmm-workflow]').on('click', function () {
 			var step = $(this).attr('data-abmm-workflow');
 			state.workflowStep = step;
@@ -2289,6 +2482,23 @@
 			'#abmm-classic-phone-scroll-fix',
 		].join(', ');
 
+		// Fonts and dropdown height.
+		$('#abmm-builder').on('change input', '[data-abmm-style]', function () {
+			syncStyleFields();
+			syncSettingsFromForm();
+			renderPreview();
+		});
+		$('#abmm-builder').on('click', '[data-abmm-style-reset]', function () {
+			var $group = $('[data-abmm-style-group="' + $(this).attr('data-abmm-style-reset') + '"]');
+			$group.find('[data-abmm-style]').each(function () {
+				$(this).val($(this).attr('data-abmm-style') === 'panel_height' ? 520 : '');
+			});
+			syncStyleFields();
+			syncSettingsFromForm();
+			renderPreview();
+			setStatus(__('Reset to default.', 'ashbi-mega-menu'), false);
+		});
+
 		$(designSelectors).on('change input', function () {
 			if ($(this).is('#abmm-render-mode')) {
 				$('.abmm-classic-notice').prop('hidden', $(this).val() !== 'emm-classic');
@@ -2328,6 +2538,7 @@
 		syncFullWidthField();
 		syncIconInheritField();
 		syncOptionalFeatureFields();
+		syncStyleFields();
 		renderPreview();
 		captureSavedState();
 		renderReadiness();
@@ -4194,6 +4405,8 @@
 
 		var previewState = state.previewViewport + '-' + state.previewDrill;
 		$('#abmm-preview').attr('data-abmm-preview-state', previewState).html(html);
+		var previewStyle = styleCss(s.style, '#abmm-preview .abmm-header.abmm-header', false);
+		if (previewStyle) $('#abmm-preview').append($('<style id="abmm-preview-style"></style>').text(previewStyle));
 		var $preview = $('#abmm-preview');
 		$preview.find('.abmm-nav__brand-logo').on('error', function () {
 			$(this).replaceWith(

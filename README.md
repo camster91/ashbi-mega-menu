@@ -4,7 +4,7 @@
 
 An open-source WordPress plugin for building responsive navigation with a visual editor. Licensed under GPL-2.0-or-later.
 
-**Status:** version 1.1.0 is the current release candidate for the existing WordPress.org submission under slug `ashbi-mega-menu`. Directory approval has not been granted.
+**Status:** version 1.2.0 is the current release candidate for the existing WordPress.org submission under slug `ashbi-mega-menu`. Directory approval has not been granted.
 
 [Release validation](https://github.com/camster91/ashbi-mega-menu/actions/runs/38441103680) covers the build, regression suite, official Plugin Check and WordPress database tests, including WordPress 6.6/PHP 8.2. See [security review](docs/security-review.md).
 
@@ -12,7 +12,8 @@ An open-source WordPress plugin for building responsive navigation with a visual
 
 - Visual menus with categories, links, icons, calls to action and design presets.
 - Desktop and mobile previews, plus optional browser-local mobile menu search.
-- Shortcode, block and widget placement.
+- Shortcode, block and widget placement, plus a native Elementor widget with Elementor typography and colour controls.
+- Per-menu fonts (including "same as my site") and dropdown height, an "Edit mega menu" toolbar link, and undo/redo in the editor.
 - Menu import, export and archives.
 - Optional contextual navigation for products, services, departments, documentation or locations.
 - Revision checks prevent a stale editor from silently replacing newer changes.
