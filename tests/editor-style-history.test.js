@@ -8,18 +8,18 @@ const menu = { title: 'Demo', items: [{ id: 'home', label: 'Home', type: 'link',
 
 const styleFields = `
 <details data-abmm-style-group="fonts">
-	<select data-abmm-style="font_family_mode"><option value=""></option><option value="inherit"></option><option value="custom"></option></select>
-	<label data-abmm-style-when="font_family_mode=custom"><input data-abmm-style="font_family"></label>
-	<input type="number" data-abmm-style="top_font_size">
-	<select data-abmm-style="top_font_weight"><option value=""></option><option value="500">500</option></select>
-	<input type="number" data-abmm-style="top_letter_spacing">
-	<select data-abmm-style="top_text_transform"><option value=""></option><option value="uppercase"></option></select>
-	<input type="number" data-abmm-style="link_font_size">
+	<select data-abmm-style-key="font_family_mode"><option value=""></option><option value="inherit"></option><option value="custom"></option></select>
+	<label data-abmm-style-when="font_family_mode=custom"><input data-abmm-style-key="font_family"></label>
+	<input type="number" data-abmm-style-key="top_font_size">
+	<select data-abmm-style-key="top_font_weight"><option value=""></option><option value="500">500</option></select>
+	<input type="number" data-abmm-style-key="top_letter_spacing">
+	<select data-abmm-style-key="top_text_transform"><option value=""></option><option value="uppercase"></option></select>
+	<input type="number" data-abmm-style-key="link_font_size">
 	<button type="button" data-abmm-style-reset="fonts">Reset fonts</button>
 </details>
 <details data-abmm-style-group="height">
-	<select data-abmm-style="panel_height_mode"><option value=""></option><option value="auto"></option><option value="max"></option><option value="fixed"></option></select>
-	<label data-abmm-style-when="panel_height_mode=max,fixed"><input type="number" data-abmm-style="panel_height" value="520"></label>
+	<select data-abmm-style-key="panel_height_mode"><option value=""></option><option value="auto"></option><option value="max"></option><option value="fixed"></option></select>
+	<label data-abmm-style-when="panel_height_mode=max,fixed"><input type="number" data-abmm-style-key="panel_height" value="520"></label>
 	<button type="button" data-abmm-style-reset="height">Reset height</button>
 </details>
 <button type="button" class="abmm-undo" disabled>Undo</button><button type="button" class="abmm-redo" disabled>Redo</button>`;
@@ -57,7 +57,7 @@ function savedSettings($, requests) {
 	return JSON.parse(last.data.menu_data).settings;
 }
 
-const set = ($, key, value) => $(`[data-abmm-style="${key}"]`).val(value).trigger('change');
+const set = ($, key, value) => $(`[data-abmm-style-key="${key}"]`).val(value).trigger('change');
 
 (async () => {
 	// A menu without style settings gains none from loading or saving.
@@ -95,7 +95,7 @@ const set = ($, key, value) => $(`[data-abmm-style="${key}"]`).val(value).trigge
 
 	// Reset clears one group only.
 	$('[data-abmm-style-reset="fonts"]').trigger('click');
-	assert.equal($('[data-abmm-style="top_font_size"]').val(), '', 'Reset empties the font fields.');
+	assert.equal($('[data-abmm-style-key="top_font_size"]').val(), '', 'Reset empties the font fields.');
 	assert.deepEqual(savedSettings($, requests).style, { panel_height_mode: 'fixed', panel_height: 420 }, 'Reset fonts keeps the height settings.');
 	$('[data-abmm-style-reset="height"]').trigger('click');
 	assert.equal(savedSettings($, requests).style, undefined, 'Resetting everything leaves no style group.');
@@ -112,23 +112,23 @@ const set = ($, key, value) => $(`[data-abmm-style="${key}"]`).val(value).trigge
 	await wait(window, 450);
 	assert.equal($('.abmm-undo').prop('disabled'), false, 'Undo is available after a change.');
 	$('.abmm-undo').trigger('click');
-	assert.equal($('[data-abmm-style="top_font_size"]').val(), '20', 'Undo steps back one pause-separated change.');
-	assert.equal($('[data-abmm-style="panel_height_mode"]').val(), '', 'Changes made together are undone together.');
+	assert.equal($('[data-abmm-style-key="top_font_size"]').val(), '20', 'Undo steps back one pause-separated change.');
+	assert.equal($('[data-abmm-style-key="panel_height_mode"]').val(), '', 'Changes made together are undone together.');
 	assert.equal($('.abmm-redo').prop('disabled'), false, 'Redo is available after undo.');
 	$('.abmm-redo').trigger('click');
-	assert.equal($('[data-abmm-style="top_font_size"]').val(), '22', 'Redo restores the change.');
+	assert.equal($('[data-abmm-style-key="top_font_size"]').val(), '22', 'Redo restores the change.');
 
 	const key = (target, init) => target.dispatchEvent(new window.KeyboardEvent('keydown', Object.assign({ bubbles: true, cancelable: true }, init)));
 	key(window.document.body, { key: 'z', ctrlKey: true });
-	assert.equal($('[data-abmm-style="top_font_size"]').val(), '20', 'Ctrl+Z undoes outside text fields.');
+	assert.equal($('[data-abmm-style-key="top_font_size"]').val(), '20', 'Ctrl+Z undoes outside text fields.');
 	key(window.document.body, { key: 'z', ctrlKey: true, shiftKey: true });
-	assert.equal($('[data-abmm-style="top_font_size"]').val(), '22', 'Ctrl+Shift+Z redoes.');
+	assert.equal($('[data-abmm-style-key="top_font_size"]').val(), '22', 'Ctrl+Shift+Z redoes.');
 	key($('#abmm-menu-title')[0], { key: 'z', ctrlKey: true });
-	assert.equal($('[data-abmm-style="top_font_size"]').val(), '22', 'Ctrl+Z inside a text field is left to the browser.');
+	assert.equal($('[data-abmm-style-key="top_font_size"]').val(), '22', 'Ctrl+Z inside a text field is left to the browser.');
 
 	$('.abmm-undo').trigger('click');
 	$('.abmm-undo').trigger('click');
-	assert.equal($('[data-abmm-style="top_font_size"]').val(), '', 'Undo goes back to the loaded menu.');
+	assert.equal($('[data-abmm-style-key="top_font_size"]').val(), '', 'Undo goes back to the loaded menu.');
 	assert.equal($('.abmm-undo').prop('disabled'), true, 'Undo stops at the loaded menu.');
 	set($, 'link_font_size', '14');
 	await wait(window, 450);

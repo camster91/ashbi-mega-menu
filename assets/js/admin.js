@@ -927,7 +927,7 @@
 			show_cat_desc: $('#abmm-show-cat-desc').is(':checked'),
 			panel_title_align: $('#abmm-panel-title-align').val() || 'center',
 		};
-		var style = $('[data-abmm-style]').length ? readStyleForm() : normalizeStyle(previous.style);
+		var style = $('[data-abmm-style-key]').length ? readStyleForm() : normalizeStyle(previous.style);
 		if (Object.keys(style).length) m.settings.style = style;
 		if (renderMode === 'emm-classic') {
 			m.settings.render_mode = renderMode;
@@ -1168,14 +1168,14 @@
 
 	function readStyleForm() {
 		var raw = {};
-		$('[data-abmm-style]').each(function () { raw[$(this).attr('data-abmm-style')] = $(this).val(); });
+		$('[data-abmm-style-key]').each(function () { raw[$(this).attr('data-abmm-style-key')] = $(this).val(); });
 		return normalizeStyle(raw);
 	}
 
 	function populateStyleForm(style) {
 		style = style || {};
-		$('[data-abmm-style]').each(function () {
-			var key = $(this).attr('data-abmm-style');
+		$('[data-abmm-style-key]').each(function () {
+			var key = $(this).attr('data-abmm-style-key');
 			$(this).val(style[key] != null ? style[key] : (key === 'panel_height' ? 520 : ''));
 		});
 		syncStyleFields();
@@ -1185,7 +1185,7 @@
 	function syncStyleFields() {
 		$('[data-abmm-style-when]').each(function () {
 			var rule = String($(this).attr('data-abmm-style-when')).split('=');
-			var current = String($('[data-abmm-style="' + rule[0] + '"]').val() || '');
+			var current = String($('[data-abmm-style-key="' + rule[0] + '"]').val() || '');
 			$(this).prop('hidden', rule[1].split(',').indexOf(current) === -1);
 		});
 	}
@@ -2483,15 +2483,15 @@
 		].join(', ');
 
 		// Fonts and dropdown height.
-		$('#abmm-builder').on('change input', '[data-abmm-style]', function () {
+		$('#abmm-builder').on('change input', '[data-abmm-style-key]', function () {
 			syncStyleFields();
 			syncSettingsFromForm();
 			renderPreview();
 		});
 		$('#abmm-builder').on('click', '[data-abmm-style-reset]', function () {
 			var $group = $('[data-abmm-style-group="' + $(this).attr('data-abmm-style-reset') + '"]');
-			$group.find('[data-abmm-style]').each(function () {
-				$(this).val($(this).attr('data-abmm-style') === 'panel_height' ? 520 : '');
+			$group.find('[data-abmm-style-key]').each(function () {
+				$(this).val($(this).attr('data-abmm-style-key') === 'panel_height' ? 520 : '');
 			});
 			syncStyleFields();
 			syncSettingsFromForm();

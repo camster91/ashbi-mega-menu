@@ -458,21 +458,21 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					foreach ( ABMM_Style::WEIGHTS as $abmm_w ) {
 						$options[ $abmm_w ] = $abmm_w;
 					}
-					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><select data-abmm-style="' . esc_attr( $key ) . '">';
+					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><select data-abmm-style-key="' . esc_attr( $key ) . '">';
 					foreach ( $options as $abmm_value => $abmm_text ) {
 						echo '<option value="' . esc_attr( $abmm_value ) . '"' . selected( (string) ( $abmm_style[ $key ] ?? '' ), (string) $abmm_value, false ) . '>' . esc_html( $abmm_text ) . '</option>';
 					}
 					echo '</select></label>';
 				};
 				$abmm_size = function ( $key, $label ) use ( $abmm_style ) {
-					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><input type="number" min="10" max="40" step="1" placeholder="' . esc_attr__( 'Default', 'ashbi-mega-menu' ) . '" data-abmm-style="' . esc_attr( $key ) . '" value="' . esc_attr( (string) ( $abmm_style[ $key ] ?? '' ) ) . '" /></label>';
+					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><input type="number" min="10" max="40" step="1" placeholder="' . esc_attr__( 'Default', 'ashbi-mega-menu' ) . '" data-abmm-style-key="' . esc_attr( $key ) . '" value="' . esc_attr( (string) ( $abmm_style[ $key ] ?? '' ) ) . '" /></label>';
 				};
 				?>
 				<details class="abmm-design-more" data-abmm-style-group="fonts">
 					<summary><?php esc_html_e( 'Fonts', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Font', 'ashbi-mega-menu' ); ?></span>
-						<select data-abmm-style="font_family_mode" aria-describedby="abmm-font-help">
+						<select data-abmm-style-key="font_family_mode" aria-describedby="abmm-font-help">
 							<option value="" <?php selected( $abmm_style['font_family_mode'] ?? '', '' ); ?>><?php esc_html_e( 'Menu default', 'ashbi-mega-menu' ); ?></option>
 							<option value="inherit" <?php selected( $abmm_style['font_family_mode'] ?? '', 'inherit' ); ?>><?php esc_html_e( 'Same as my site (theme or Elementor font)', 'ashbi-mega-menu' ); ?></option>
 							<option value="custom" <?php selected( $abmm_style['font_family_mode'] ?? '', 'custom' ); ?>><?php esc_html_e( 'Custom font', 'ashbi-mega-menu' ); ?></option>
@@ -481,7 +481,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					</label>
 					<label class="abmm-field" data-abmm-style-when="font_family_mode=custom">
 						<span><?php esc_html_e( 'Custom font names', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" data-abmm-style="font_family" value="<?php echo esc_attr( $abmm_style['font_family'] ?? '' ); ?>" placeholder="<?php esc_attr_e( 'Supreme, Arial, sans-serif', 'ashbi-mega-menu' ); ?>" />
+						<input type="text" data-abmm-style-key="font_family" value="<?php echo esc_attr( $abmm_style['font_family'] ?? '' ); ?>" placeholder="<?php esc_attr_e( 'Supreme, Arial, sans-serif', 'ashbi-mega-menu' ); ?>" />
 						<span class="description"><?php esc_html_e( 'The font must already be loaded on your site, for example by your theme or Elementor.', 'ashbi-mega-menu' ); ?></span>
 					</label>
 					<p class="description"><?php esc_html_e( 'Sizes and weights apply to the desktop menu. Leave a field empty to keep the menu default.', 'ashbi-mega-menu' ); ?></p>
@@ -491,11 +491,11 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					?>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Menu bar letter spacing (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" min="-2" max="10" step="0.1" placeholder="<?php esc_attr_e( 'Default', 'ashbi-mega-menu' ); ?>" data-abmm-style="top_letter_spacing" value="<?php echo esc_attr( $abmm_style['top_letter_spacing'] ?? '' ); ?>" />
+						<input type="number" min="-2" max="10" step="0.1" placeholder="<?php esc_attr_e( 'Default', 'ashbi-mega-menu' ); ?>" data-abmm-style-key="top_letter_spacing" value="<?php echo esc_attr( $abmm_style['top_letter_spacing'] ?? '' ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Menu bar letter case', 'ashbi-mega-menu' ); ?></span>
-						<select data-abmm-style="top_text_transform">
+						<select data-abmm-style-key="top_text_transform">
 							<option value=""><?php esc_html_e( 'Default', 'ashbi-mega-menu' ); ?></option>
 							<option value="none" <?php selected( $abmm_style['top_text_transform'] ?? '', 'none' ); ?>><?php esc_html_e( 'As typed', 'ashbi-mega-menu' ); ?></option>
 							<option value="uppercase" <?php selected( $abmm_style['top_text_transform'] ?? '', 'uppercase' ); ?>><?php esc_html_e( 'UPPERCASE', 'ashbi-mega-menu' ); ?></option>
@@ -518,7 +518,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<summary><?php esc_html_e( 'Dropdown height', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Height of the open dropdown (desktop)', 'ashbi-mega-menu' ); ?></span>
-						<select data-abmm-style="panel_height_mode" aria-describedby="abmm-panel-height-help">
+						<select data-abmm-style-key="panel_height_mode" aria-describedby="abmm-panel-height-help">
 							<option value="" <?php selected( $abmm_style['panel_height_mode'] ?? '', '' ); ?>><?php esc_html_e( 'Default (scrolls when taller than the screen allows)', 'ashbi-mega-menu' ); ?></option>
 							<option value="auto" <?php selected( $abmm_style['panel_height_mode'] ?? '', 'auto' ); ?>><?php esc_html_e( 'Grow to fit all links', 'ashbi-mega-menu' ); ?></option>
 							<option value="max" <?php selected( $abmm_style['panel_height_mode'] ?? '', 'max' ); ?>><?php esc_html_e( 'Up to a height, then scroll', 'ashbi-mega-menu' ); ?></option>
@@ -528,7 +528,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					</label>
 					<label class="abmm-field" data-abmm-style-when="panel_height_mode=max,fixed">
 						<span><?php esc_html_e( 'Height (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" min="200" max="1200" step="10" data-abmm-style="panel_height" value="<?php echo esc_attr( (string) ( $abmm_style['panel_height'] ?? 520 ) ); ?>" />
+						<input type="number" min="200" max="1200" step="10" data-abmm-style-key="panel_height" value="<?php echo esc_attr( (string) ( $abmm_style['panel_height'] ?? 520 ) ); ?>" />
 					</label>
 					<button type="button" class="button-link abmm-style-reset" data-abmm-style-reset="height"><?php esc_html_e( 'Reset height to default', 'ashbi-mega-menu' ); ?></button>
 				</details>
