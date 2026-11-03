@@ -134,8 +134,23 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<div class="abmm-optional-fields abmm-brand-fields">
 					<label class="abmm-field"><span><?php esc_html_e( 'Site title', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-title" value="<?php echo esc_attr( $menu['brand']['title'] ); ?>" /></label>
 					<label class="abmm-field"><span><?php esc_html_e( 'Brand URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-url" value="<?php echo esc_attr( $menu['brand']['url'] ); ?>" /></label>
-					<label class="abmm-field"><span><?php esc_html_e( 'Logo image URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-logo-url" value="<?php echo esc_attr( $menu['brand']['logo_url'] ); ?>" placeholder="https://…" /></label>
-					<label class="abmm-field"><span><?php esc_html_e( 'Dark-preset logo URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-logo-dark-url" value="<?php echo esc_attr( $menu['brand']['logo_dark_url'] ); ?>" placeholder="<?php esc_attr_e( 'Optional alternate logo', 'ashbi-mega-menu' ); ?>" /></label>
+					<?php
+					$abmm_logo_fields = array(
+						'abmm-brand-logo-url'      => array( __( 'Logo image URL', 'ashbi-mega-menu' ), $menu['brand']['logo_url'], 'https://…' ),
+						'abmm-brand-logo-dark-url' => array( __( 'Dark-preset logo URL', 'ashbi-mega-menu' ), $menu['brand']['logo_dark_url'], __( 'Optional alternate logo', 'ashbi-mega-menu' ) ),
+					);
+					foreach ( $abmm_logo_fields as $abmm_field_id => $abmm_field ) :
+						?>
+					<div class="abmm-field">
+						<label for="<?php echo esc_attr( $abmm_field_id ); ?>"><?php echo esc_html( $abmm_field[0] ); ?></label>
+						<div class="abmm-wp-link">
+							<input type="url" id="<?php echo esc_attr( $abmm_field_id ); ?>" class="abmm-url-field" value="<?php echo esc_attr( $abmm_field[1] ); ?>" placeholder="<?php echo esc_attr( $abmm_field[2] ); ?>" />
+							<button type="button" class="button abmm-choose-logo" data-abmm-target="#<?php echo esc_attr( $abmm_field_id ); ?>" title="<?php esc_attr_e( 'Choose from the Media Library', 'ashbi-mega-menu' ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: field name, e.g. Logo image URL. */ __( 'Choose an image for %s', 'ashbi-mega-menu' ), $abmm_field[0] ) ); ?>">
+								<span class="dashicons dashicons-format-image" aria-hidden="true"></span>
+							</button>
+						</div>
+					</div>
+					<?php endforeach; ?>
 					<label class="abmm-field"><span><?php esc_html_e( 'Logo alternative text', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-alt" value="<?php echo esc_attr( $menu['brand']['alt'] ); ?>" /></label>
 					<label class="abmm-field"><span><?php esc_html_e( 'Logo height (px)', 'ashbi-mega-menu' ); ?></span><input type="number" id="abmm-brand-logo-height" min="16" max="80" value="<?php echo esc_attr( $menu['brand']['logo_height'] ); ?>" /></label>
 				</div>
@@ -544,8 +559,9 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<ul class="abmm-place-options">
 					<li<?php echo 'block' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Block theme', 'ashbi-mega-menu' ); ?></strong><?php if ( 'block' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'In Appearance → Editor, add the Ashbi Mega Menu block to your Header and pick this menu.', 'ashbi-mega-menu' ); ?></li>
 					<li<?php echo 'widget' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Classic theme', 'ashbi-mega-menu' ); ?></strong><?php if ( 'widget' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'Add the Ashbi Mega Menu widget to a header area, or paste the shortcode.', 'ashbi-mega-menu' ); ?></li>
-					<li<?php echo 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Page builder', 'ashbi-mega-menu' ); ?></strong><?php if ( 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'Paste the shortcode into a shortcode element.', 'ashbi-mega-menu' ); ?></li>
+					<li<?php echo 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Page builder', 'ashbi-mega-menu' ); ?></strong><?php if ( 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'Paste the shortcode into a shortcode element in a full-width section.', 'ashbi-mega-menu' ); ?></li>
 				</ul>
+				<p class="description abmm-place-width"><?php esc_html_e( 'Give the menu the full width of the page. In a narrow column or sidebar it shows the phone menu, even on a wide screen.', 'ashbi-mega-menu' ); ?></p>
 				<p class="description abmm-place-rollback"><?php esc_html_e( 'Keep your theme\'s menu while you test. When the new menu works, remove the old one from the header so there is only one. To roll back, remove the Ashbi block, widget or shortcode: this plugin never changes your theme\'s menu.', 'ashbi-mega-menu' ); ?></p>
 				<details class="abmm-design-more abmm-disclosure"><summary><?php esc_html_e( 'For developers: PHP', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Add this to your child theme header.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
 			</section>

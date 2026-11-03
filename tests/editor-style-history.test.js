@@ -24,7 +24,7 @@ const styleFields = `
 </details>
 <button type="button" class="abmm-undo" disabled>Undo</button><button type="button" class="abmm-redo" disabled>Redo</button>`;
 
-async function fixture(menuData = menu, extra = '') {
+async function fixture(menuData = menu, extra = '', options = {}) {
 	const dom = new JSDOM(`<body><div class="abmm-builder-topbar"><button class="abmm-save-menu">Save</button><span class="abmm-save-status"></span></div>
 	<div id="abmm-builder" data-menu-id="demo" data-menu-revision="revision-1"><aside id="abmm-builder-sidebar">
 	<div class="abmm-builder-sections"><button data-abmm-builder-section="content">content</button><button data-abmm-builder-section="design">design</button></div>
@@ -38,6 +38,14 @@ async function fixture(menuData = menu, extra = '') {
 	window.matchMedia = () => ({ matches: false });
 	$.expr.pseudos.visible = (el) => !el.hidden && !el.closest('[hidden]');
 	$.fn.wpColorPicker = $.fn.sortable = function () { return this; };
+	if (options.colorPicker) {
+		// Like the real picker: setting a colour reports a change.
+		$.fn.wpColorPicker = function (arg) {
+			if (arg && typeof arg === 'object') this.data('picker', arg).addClass('wp-color-picker');
+			else if (arg === 'color') this.each(function () { const o = $(this).data('picker'); if (o && o.change) o.change(); });
+			return this;
+		};
+	}
 	window.abmmAdmin = { ajaxUrl: '/ajax', nonce: 'test', strings: new Proxy({}, { get: (_, key) => String(key) }), icons: [] };
 	const requests = [];
 	$.post = (_, data) => { const d = $.Deferred(); requests.push({ data, d }); return d.promise(); };
@@ -152,6 +160,21 @@ const set = ($, key, value) => $(`[data-abmm-style-key="${key}"]`).val(value).tr
 	const classicSaved = savedSettings($, requests);
 	assert.equal(classicSaved.render_mode, 'emm-classic', 'The undone state is what gets saved.');
 	assert.equal(classicSaved.classic_phone_scroll_fix, undefined, 'The undone phone fix is not saved.');
+	window.close();
+
+	// Undo and redo restore colours without turning the chosen preset into Custom.
+	const presetMenu = Object.assign({}, menu, { settings: { preset: 'bold', accent: '#c2410c' } });
+	f = await fixture(presetMenu, '<input type="hidden" id="abmm-preset" value="bold"><button type="button" class="abmm-preset-card is-active" data-preset="bold"></button><button type="button" class="abmm-preset-card" data-preset="custom"></button><input class="abmm-color" id="abmm-accent" value="#c2410c">', { colorPicker: true });
+	({ window, $, requests } = f);
+	set($, 'top_font_size', '20');
+	await wait(window, 450);
+	$('.abmm-undo').trigger('click');
+	await wait(window, 5);
+	assert.equal($('#abmm-preset').val(), 'bold', 'Undo keeps the chosen preset.');
+	assert.ok($('.abmm-preset-card[data-preset="bold"]').hasClass('is-active'), 'The chosen preset card stays selected.');
+	$('.abmm-redo').trigger('click');
+	await wait(window, 5);
+	assert.equal(savedSettings($, requests).preset, 'bold', 'Redo keeps the chosen preset too.');
 	window.close();
 
 	console.log('Editor style controls and undo/redo: saved values, exact preview CSS, reset, buttons and shortcuts passed.');

@@ -996,7 +996,8 @@ button.abmm-preset-card:hover {
 	margin: 0;
 }
 
-.abmm-wp-link .abmm-pick-url {
+.abmm-wp-link .abmm-pick-url,
+.abmm-wp-link .abmm-choose-logo {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -1009,7 +1010,8 @@ button.abmm-preset-card:hover {
 	height: auto;
 }
 
-.abmm-wp-link .abmm-pick-url .dashicons {
+.abmm-wp-link .abmm-pick-url .dashicons,
+.abmm-wp-link .abmm-choose-logo .dashicons {
 	font-size: 16px;
 	width: 16px;
 	height: 16px;

@@ -2,9 +2,10 @@
 /* A row-oriented flex basis otherwise becomes a 180px height in the sidebar. */
 .abmm-wrap .abmm-field > .abmm-wp-link,
 .abmm-wrap .abmm-nav-item-row__fields > .abmm-wp-link,
+.abmm-wrap .abmm-nav-field > .abmm-wp-link,
 .abmm-wrap .abmm-cat-row__fields > .abmm-wp-link {flex:0 0 auto;min-height:32px;width:100%}
 .abmm-wrap .abmm-wp-link .abmm-url-field {height:32px;min-height:32px;box-sizing:border-box}
-.abmm-wrap .abmm-wp-link .abmm-pick-url {height:32px;min-height:32px}
+.abmm-wrap .abmm-wp-link :is(.abmm-pick-url,.abmm-choose-logo) {height:32px;min-height:32px}
 .abmm-wrap .abmm-preview-shell {max-width:100%;box-sizing:border-box}
 .abmm-wrap .abmm-preview-shell .abmm-preview {min-width:0}
 .abmm-backup-row {display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 0;border-bottom:1px solid #dce2ef}
@@ -232,6 +233,8 @@
 /* Keep the preview in step with frontend.css. */
 .abmm-preview .abmm-mega__col-copy {display:flex;min-width:0;flex-direction:column;gap:.12rem}
 .abmm-preview .abmm-mega__col-description {display:block;max-width:30ch;color:var(--abmm-muted);font-size:12px;font-weight:400;line-height:1.35}
+.abmm-preview .abmm-mega__grid-copy {display:flex;min-width:0;flex-direction:column;gap:.12rem}
+.abmm-preview .abmm-mega__grid-description {display:block;max-width:36ch;color:var(--abmm-muted);font-size:12px;font-weight:400;line-height:1.35}
 .abmm-preview .abmm-nav__link,.abmm-preview .abmm-mega a {text-decoration:none}
 .abmm-preview .abmm-nav__cta--drawer {box-sizing:border-box}
 .abmm-workflow-nav .is-done:not([aria-current="step"]) > span {background:#1f9d55;color:#fff;font-size:0}
@@ -1050,15 +1053,15 @@
 /* The options toggle joins the URL field as its last segment: [url][link][options]. */
 .abmm-wrap .abmm-wp-link {align-items:stretch}
 .abmm-wrap .abmm-wp-link .abmm-url-field {border-color:#c3cad8;border-radius:8px 0 0 8px!important}
-.abmm-wrap .abmm-wp-link .abmm-pick-url {width:32px;min-width:32px;color:var(--abmm-brand-muted);background:#fff;border-color:#c3cad8;border-radius:0 8px 8px 0;box-shadow:none}
-.abmm-wrap .abmm-wp-link .abmm-pick-url:hover {color:var(--abmm-brand-blue);background:#f7f9ff}
+.abmm-wrap .abmm-wp-link :is(.abmm-pick-url,.abmm-choose-logo) {width:32px;min-width:32px;color:var(--abmm-brand-muted);background:#fff;border-color:#c3cad8;border-radius:0 8px 8px 0;box-shadow:none}
+.abmm-wrap .abmm-wp-link :is(.abmm-pick-url,.abmm-choose-logo):hover {color:var(--abmm-brand-blue);background:#f7f9ff}
 .abmm-wrap .abmm-wp-link.has-link-options .abmm-pick-url {border-radius:0}
 .abmm-wrap .abmm-wp-link > .abmm-link-options {margin:0 0 0 -1px}
 .abmm-wrap .abmm-link-options__toggle {position:relative;display:inline-grid;place-items:center;width:32px;height:32px;margin:0;padding:0;color:var(--abmm-brand-muted);background:#fff;border:1px solid #c3cad8;border-radius:0 8px 8px 0;box-shadow:none;cursor:pointer}
 .abmm-wrap .abmm-link-options__toggle:hover,
 .abmm-wrap .abmm-link-options__toggle[aria-expanded="true"] {color:var(--abmm-brand-ink);background:var(--abmm-ui-hover)}
 .abmm-wrap .abmm-link-options__toggle:focus-visible,
-.abmm-wrap .abmm-wp-link .abmm-pick-url:focus-visible {position:relative;z-index:1;outline:2px solid var(--abmm-brand-blue);outline-offset:-1px;box-shadow:none}
+.abmm-wrap .abmm-wp-link :is(.abmm-pick-url,.abmm-choose-logo):focus-visible {position:relative;z-index:1;outline:2px solid var(--abmm-brand-blue);outline-offset:-1px;box-shadow:none}
 .abmm-wrap .abmm-link-options__toggle .dashicons,
 .abmm-wrap .abmm-heading-link__toggle .dashicons {width:16px;height:16px;font-size:16px;line-height:1}
 .abmm-wrap .abmm-link-options.has-options .abmm-link-options__toggle {color:var(--abmm-brand-blue)}
@@ -1514,6 +1517,8 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
    ------------------------------------------------------------------------ */
 .abmm-wrap .abmm-preview-shell,
 .abmm-wrap .abmm-preview-shell[data-abmm-preview-viewport] {position:relative;height:clamp(440px,calc(100vh - 250px),1600px);min-height:0;padding:0;overflow:hidden;cursor:grab;touch-action:none;overscroll-behavior:contain;background-color:#f3f5f9;background-image:radial-gradient(circle,#c9d1df 1px,transparent 1.2px);background-size:16px 16px;user-select:none;-webkit-user-select:none}
+/* While a dropdown's content is edited below, a shorter canvas keeps both in view. */
+.abmm-wrap.is-editing-mega .abmm-preview-shell[data-abmm-preview-viewport] {height:clamp(320px,calc(100vh - 520px),620px)}
 .abmm-wrap .abmm-preview-shell.is-panning,.abmm-wrap .abmm-preview-shell.is-panning * {cursor:grabbing!important}
 .abmm-wrap .abmm-preview-shell .abmm-preview {cursor:auto;user-select:text;-webkit-user-select:text}
 .abmm-preview-shell .abmm-preview-sizer {position:absolute;top:0;left:0;margin:0;transform-origin:0 0;will-change:transform}

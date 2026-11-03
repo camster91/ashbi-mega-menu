@@ -154,7 +154,7 @@ class ABMM_Admin {
 					'confirmImport'   => __( 'This will overwrite the current menu. Continue?', 'ashbi-mega-menu' ),
 					'newMenu'         => __( 'New Mega Menu', 'ashbi-mega-menu' ),
 					'menuName'        => __( 'Menu name', 'ashbi-mega-menu' ),
-					'createMenu'      => __( 'Create Menu', 'ashbi-mega-menu' ),
+					'createMenu'      => __( 'Create menu', 'ashbi-mega-menu' ),
 					'duplicateError'  => __( 'The menu could not be duplicated.', 'ashbi-mega-menu' ),
 					'cancel'          => __( 'Cancel', 'ashbi-mega-menu' ),
 					'deleteAgain'     => __( 'Click again to delete', 'ashbi-mega-menu' ),
@@ -231,8 +231,6 @@ class ABMM_Admin {
 					'checkLogo' => __( 'Check the logo image link. It does not look like a web address.', 'ashbi-mega-menu' ),
 					'logoBroken' => __( 'Logo image not found', 'ashbi-mega-menu' ),
 					'checkPassed' => __( 'Ready to place.', 'ashbi-mega-menu' ),
-					/* translators: %s: item number, label, count, or formatted file size. */
-					'checkPending' => __( '%s thing(s) to fix before you place this menu.', 'ashbi-mega-menu' ),
 					'placementUnsaved' => __( 'You have unsaved changes. Save first: the shortcode shows the saved version.', 'ashbi-mega-menu' ),
 					'placementSaved' => __( 'Copy the shortcode, or use the block or widget.', 'ashbi-mega-menu' ),
 					'placementDraft' => __( 'This menu still has items in its checklist. You can place it, but fix those first.', 'ashbi-mega-menu' ),

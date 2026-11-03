@@ -90,6 +90,8 @@ async function backupFixture(strings = {}) {
   assert.equal(toggle(0).attr('aria-expanded'),'false','one item is open at a time');
   rows().eq(1).find('.abmm-nav-label').val('Renamed').trigger('input');
   assert.equal(rows().eq(1).find('.abmm-nav-item-row__title').text(),'Renamed','collapsed title follows the label field');
+  assert.equal(rows().eq(1).find('.abmm-remove-nav').attr('aria-label'),'Remove navigation item Renamed','row buttons are renamed with the label, for screen readers');
+  assert.equal(rows().eq(1).find('.abmm-duplicate-nav').attr('aria-label'),'Duplicate navigation item Renamed');
   rows().eq(1).find('.abmm-duplicate-nav').trigger('click');
   assert.equal(toggle(2).attr('aria-expanded'),'true','a duplicated item opens straight away');
   assert.equal(toggle(1).attr('aria-expanded'),'false');
@@ -291,8 +293,15 @@ async function backupFixture(strings = {}) {
  linkEdit.find('.abmm-link-rel').trigger($.Event('keydown',{key:'Escape'}));
  assert.equal(chip.attr('aria-expanded'),'false');
  assert.equal(f.window.document.activeElement,chip[0],'Escape returns focus to the chip');
+ // Simple-column links take a description, shown in the preview; their buttons follow the label.
+ const featRow = $('#abmm-features-link-list .abmm-link-row').first();
+ featRow.find('.abmm-link-description').val('All the news').trigger('input');
+ featRow.find('.abmm-link-label').val('Blog').trigger('input');
+ assert.equal(featRow.find('.abmm-remove-link').attr('aria-label'),'Remove link Blog','link buttons follow the label');
+ assert.equal($('#abmm-preview [data-abmm-preview-item="1"] .abmm-mega__grid-description').text(),'All the news','simple-column descriptions show in the preview');
  $('.abmm-save-menu').trigger('click');
  saved = JSON.parse(f.requests[2].data.menu_data);
+ assert.equal(saved.items[1].links[0].description,'All the news','the description is saved');
  assert.equal(saved.items[1].links[0].url,'/b');
  assert.equal(saved.items[1].links[0].target,'_blank');
  f.close();
