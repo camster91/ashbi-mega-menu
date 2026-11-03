@@ -68,7 +68,9 @@ function add_shortcode() {}
 function apply_filters( $tag, $value ) { return $value; }
 function wp_register_style() {}
 function wp_register_script() {}
-function wp_enqueue_style() {}
+function wp_enqueue_style( $handle ) { $GLOBALS['abmm_test_styles'][ $handle ] = true; }
+function wp_localize_script() {}
+function abmm_menu_search_strings() { return array(); }
 function wp_enqueue_script() {}
 function wp_add_inline_script() {}
 function wp_json_encode( $data, $flags = 0, $depth = 512 ) { return json_encode( $data, $flags, $depth ); }
@@ -141,6 +143,12 @@ foreach ( $abmm_cases['pages'] as $page ) {
 		++$checked;
 	}
 }
+
+// Only classic menus: the classic stylesheet is queued early and Ashbi's is not.
+$GLOBALS['abmm_test_styles'] = array();
+ABMM_Frontend::instance()->register_assets();
+ABMM_Classic::instance()->register_assets();
+verify_classic( isset( $GLOBALS['abmm_test_styles']['abmm-classic'] ) && ! isset( $GLOBALS['abmm_test_styles']['abmm-frontend'] ), 'A site whose menus are all classic loads only the classic stylesheet.' );
 
 // Menus created in Ashbi keep Ashbi's markup.
 $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ]['plain'] = ABMM_Data::instance()->sanitize_menu( array( 'title' => 'Plain', 'items' => array( array( 'id' => 'a', 'label' => 'A', 'type' => 'link', 'url' => '/a/' ) ) ) );
