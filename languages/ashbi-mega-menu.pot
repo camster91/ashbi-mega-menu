@@ -4274,3 +4274,11 @@ msgid "%d menu copied."
 msgid_plural "%d menus copied."
 msgstr[0] ""
 msgstr[1] ""
+
+#: admin/views/builder.php:225
+msgid "Let long phone submenus scroll to the last link"
+msgstr ""
+
+#: admin/views/builder.php:228
+msgid "Fixes an Easy Mega Menu problem where the last links of a long category could not be reached on phones. The phone menu then scrolls as one list. Off keeps the original behaviour."
+msgstr ""

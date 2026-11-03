@@ -224,6 +224,9 @@ class ABMM_Classic {
 		if ( $bleed ) {
 			wp_add_inline_script( 'abmm-classic', 'window.abmmClassic=' . wp_json_encode( array( 'edgeBleed' => $bleed ) ) . ';', 'before' );
 		}
+		if ( $this->any_classic_menu_has( 'classic_phone_scroll_fix' ) ) {
+			wp_add_inline_style( 'abmm-classic', self::phone_scroll_fix_css() );
+		}
 		// While Easy Mega Menu is active its own stylesheet (the same rules) is
 		// already queued, so live pages stay byte for byte as they were; classic
 		// menus rendered by Ashbi then queue this one themselves.
@@ -246,6 +249,51 @@ class ABMM_Classic {
 			}
 		}
 		return $config;
+	}
+
+	/**
+	 * Whether any classic menu turns on a boolean classic setting.
+	 *
+	 * @param string $key Setting key.
+	 * @return bool
+	 */
+	private function any_classic_menu_has( $key ) {
+		foreach ( ABMM_Data::instance()->get_all() as $menu ) {
+			if ( ! empty( $menu['settings'][ $key ] ) && self::is_classic( $menu ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Optional fix for long phone submenus. In Easy Mega Menu's phone drawer a
+	 * category's link list is its own scroll box, sized to the screen but
+	 * starting below the drawer's header, so its last links end up below the
+	 * screen and cannot be scrolled into view. This lets the list grow and the
+	 * drawer scroll instead. Printed only when a menu turns it on.
+	 *
+	 * @return string
+	 */
+	public static function phone_scroll_fix_css() {
+		$rule = '.emm-header.emm-phone-scroll-fix .emm-mega__panel{max-height:none!important;overflow:visible!important}';
+		return '@media (max-width:900px){' . $rule . '}' . str_replace( '.emm-header.emm-phone-scroll-fix', '.emm-header.emm-force-mobile.emm-phone-scroll-fix', $rule );
+	}
+
+	/**
+	 * Stylesheet, script and extra CSS for the editor's phone and tablet frames.
+	 *
+	 * @param array $menu Menu being previewed (may be unsaved).
+	 * @return array{css:string,js:string,inlineCss:string}
+	 */
+	public function preview_assets( $menu ) {
+		$site    = $this->site_assets();
+		$css_url = $this->upload_url( $site['css'] );
+		return array(
+			'css'       => $css_url ? add_query_arg( 'ver', $site['version'] ? $site['version'] : ABMM_VERSION, $css_url ) : add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/classic/emm-frontend.css' ),
+			'js'        => add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/classic/emm-frontend.js' ),
+			'inlineCss' => ! empty( $menu['settings']['classic_phone_scroll_fix'] ) ? self::phone_scroll_fix_css() : '',
+		);
 	}
 
 	/**
@@ -391,6 +439,10 @@ class ABMM_Classic {
 		}
 		if ( ! empty( $settings['header_transparent'] ) ) {
 			$classes[] = 'emm-header--transparent';
+		}
+		// Ashbi addition, off unless chosen: see phone_scroll_fix_css().
+		if ( ! empty( $settings['classic_phone_scroll_fix'] ) ) {
+			$classes[] = 'emm-phone-scroll-fix';
 		}
 
 		ob_start();

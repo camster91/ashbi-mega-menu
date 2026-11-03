@@ -221,6 +221,11 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 						</select>
 						<span class="description" id="abmm-render-mode-help"><?php esc_html_e( 'Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Switching to Ashbi changes how the menu looks on your site.', 'ashbi-mega-menu' ); ?></span>
 					</label>
+					<label class="abmm-field abmm-field--toggle abmm-classic-notice">
+						<span><?php esc_html_e( 'Let long phone submenus scroll to the last link', 'ashbi-mega-menu' ); ?></span>
+						<input type="checkbox" id="abmm-classic-phone-scroll-fix" aria-describedby="abmm-classic-phone-scroll-fix-help" <?php checked( ! empty( $abmm_settings['classic_phone_scroll_fix'] ) ); ?> />
+					</label>
+					<p class="description abmm-classic-notice" id="abmm-classic-phone-scroll-fix-help"><?php esc_html_e( 'Fixes an Easy Mega Menu problem where the last links of a long category could not be reached on phones. The phone menu then scrolls as one list. Off keeps the original behaviour.', 'ashbi-mega-menu' ); ?></p>
 					<div class="notice notice-info inline abmm-classic-notice">
 						<p><?php esc_html_e( 'This menu was imported from Easy Mega Menu and keeps its Classic look on your site. The preview here shows its content in Ashbi\'s style, and colour and size changes below still apply. Check the final look on your site.', 'ashbi-mega-menu' ); ?></p>
 					</div>

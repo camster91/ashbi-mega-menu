@@ -14,7 +14,9 @@ Ashbi Mega Menu 1.1 can take over from Easy Mega Menu without visitors seeing a 
 
 **Classic look.** Imported menus render with Easy Mega Menu's own markup (`<header class="emm-header …">`, `emm-` classes, `--emm-*` variables), its stylesheet and its script. Site CSS or snippets that target `emm-` classes keep working. Because the stylesheet and sprite are copied from your installed Easy Mega Menu, any site-specific styles and your own icons stay exactly as they were. If Easy Mega Menu's files are not found, Ashbi uses its bundled classic stylesheet and generic icons and says so before you import.
 
-Colour, size and width changes made later in Ashbi's Design tab still apply to classic menus. To move a menu to Ashbi's own style, change **Design → Site look** to **Ashbi**; that changes how the menu looks on your site.
+Colour, size and width changes made later in Ashbi's Design tab still apply to classic menus. The phone and tablet previews in the editor show the Classic look; the desktop preview shows the content in Ashbi's style.
+
+**Long phone submenus.** In Easy Mega Menu's phone menu, the last links of a long category (for example the last few links under a large "Human Resources" group) can sit below the screen and cannot be scrolled into view. Imported menus keep that behaviour so nothing changes on the switch. To fix it, tick **Design → Let long phone submenus scroll to the last link** on the menu: the phone menu then scrolls as one list. To move a menu to Ashbi's own style, change **Design → Site look** to **Ashbi**; that changes how the menu looks on your site.
 
 **Not copied exactly.** The import screen lists, per menu, any value that would not survive unchanged (for example a setting Ashbi does not have, or an icon missing from the copied icon set). An empty list means the menu is copied exactly.
 

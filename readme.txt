@@ -71,6 +71,8 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 * Import menus, product navigation and branding from Easy Mega Menu, read-only, with a preview and a list of anything not copied exactly.
 * Imported menus keep Easy Mega Menu's exact look, markup and site CSS (Classic look), including the site's own icons.
 * Optionally answer [easy_mega_menu] shortcodes and emm_render_menu() after Easy Mega Menu is deactivated, so headers need no edits.
+* Optional fix so long phone submenus in classic menus scroll to the last link.
+* Phone and tablet previews show classic menus as they look on the site.
 * Menus created in Ashbi are unchanged.
 
 = 1.0.4 =

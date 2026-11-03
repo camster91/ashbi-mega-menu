@@ -1105,6 +1105,9 @@ class ABMM_Data {
 			if ( $edge_bleed ) {
 				$menu['settings']['classic_edge_bleed'] = $edge_bleed;
 			}
+			if ( ! empty( $raw['classic_phone_scroll_fix'] ) ) {
+				$menu['settings']['classic_phone_scroll_fix'] = true;
+			}
 		}
 
 		if ( ! empty( $data['items'] ) && is_array( $data['items'] ) ) {

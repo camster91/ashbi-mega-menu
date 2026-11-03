@@ -84,6 +84,42 @@ test.describe('classic menu on desktop', () => {
 	});
 });
 
+test.describe('classic menu in the editor', () => {
+	test.use({ viewport: { width: 1440, height: 900 } });
+
+	test('shows the Classic notice, keeps the look on save and previews the classic phone menu', async ({ page }) => {
+		const errors = watchErrors(page);
+		await page.goto('/wp-admin/admin.php?page=ashbi-mega-menu&edit=main_nav');
+		await page.locator('[data-abmm-builder-section="design"]').click();
+		await expect(page.locator('#abmm-render-mode')).toHaveValue('emm-classic');
+		await expect(page.locator('.abmm-classic-notice').first()).toBeVisible();
+
+		await page.locator('[data-abmm-preview-viewport="mobile"]').click();
+		const frame = page.frameLocator('#abmm-preview iframe.abmm-preview-device');
+		await expect(frame.locator('header.emm-header')).toHaveCount(1);
+		await expect(frame.locator('link[href*="assets/classic/emm-frontend.css"]')).toHaveCount(1);
+		await frame.locator('.emm-nav__toggle').click();
+		await frame.locator('[data-emm-mega-trigger]').first().click();
+		await frame.locator('.emm-mega__cat[data-emm-cat="people"]').click();
+		// Selecting a category in the frame opens it in the editor.
+		await expect(page.locator('#abmm-mega-editor')).toBeVisible();
+
+		// Turning on the phone scroll fix and saving keeps the menu classic.
+		await page.locator('[data-abmm-builder-section="design"]').click();
+		const fix = page.locator('#abmm-classic-phone-scroll-fix');
+		if (!(await fix.isChecked())) {
+			await fix.check();
+			const saved = page.waitForResponse((response) =>
+				response.url().includes('admin-ajax.php') && (response.request().postData() || '').includes('action=abmm_save_menu'));
+			await page.locator('.abmm-save-menu').first().click();
+			expect((await (await saved).json()).success).toBe(true);
+		}
+		await page.goto('/?pagename=e2e-classic');
+		await expect(page.locator('header.emm-header[data-emm-id="main_nav"]')).toHaveClass(/\bemm-phone-scroll-fix\b/);
+		expect(errors).toEqual([]);
+	});
+});
+
 test.describe('classic menu on a phone', () => {
 	test.use({ viewport: { width: 360, height: 800 }, hasTouch: true });
 

@@ -6,6 +6,8 @@
 - Classic look: imported menus render with Easy Mega Menu's own markup (`emm-` classes and `--emm-*` variables), stylesheet and script, so site CSS written for Easy Mega Menu keeps working. The importer copies the site's Easy Mega Menu stylesheet and icon sprite into uploads, so custom icons keep their exact artwork after Easy Mega Menu is deactivated. A **Site look** setting switches a menu to Ashbi's style deliberately.
 - **Handle [easy_mega_menu] shortcodes**: after Easy Mega Menu is deactivated, Ashbi answers its shortcode (with `id`, `context`, `presentation` and `review_post_id`) and the `emm_render_menu()` / `emm_get_menu()` theme helpers, so header templates need no edits. Reactivating Easy Mega Menu switches back at once.
 - Classic assets keep NitroPack's `nitro-exclude` marker, like Easy Mega Menu's. Sites whose menus are all classic no longer load Ashbi's own stylesheet.
+- Optional fix for classic menus: **Let long phone submenus scroll to the last link** (off by default) for Easy Mega Menu's phone drawer, where the last links of a long category could not be reached.
+- The editor's phone and tablet previews show classic menus with their own markup and styles, and clicking a category or top item there selects it.
 - Menus created in Ashbi are unchanged.
 
 ## 1.0.4

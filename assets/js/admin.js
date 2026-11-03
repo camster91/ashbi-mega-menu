@@ -841,6 +841,8 @@
 		if (renderMode === 'emm-classic') {
 			m.settings.render_mode = renderMode;
 			if (previous.classic_edge_bleed) m.settings.classic_edge_bleed = previous.classic_edge_bleed;
+			var $phoneFix = $('#abmm-classic-phone-scroll-fix');
+			if ($phoneFix.length ? $phoneFix.is(':checked') : previous.classic_phone_scroll_fix) m.settings.classic_phone_scroll_fix = true;
 		}
 	}
 
@@ -2284,6 +2286,7 @@
 			'#abmm-uppercase-cats',
 			'#abmm-show-cat-desc',
 			'#abmm-render-mode',
+			'#abmm-classic-phone-scroll-fix',
 		].join(', ');
 
 		$(designSelectors).on('change input', function () {
@@ -3772,11 +3775,13 @@
 		return JSON.stringify(value).replace(/</g, '\\u003c');
 	}
 
-	function deviceDocument(html) {
-		var assets = window.abmmAdmin.previewAssets;
+	function deviceDocument(html, menuAssets) {
+		// Classic (Easy Mega Menu) menus bring their own stylesheet and script.
+		var assets = menuAssets && menuAssets.css && menuAssets.js ? $.extend({}, window.abmmAdmin.previewAssets, menuAssets) : window.abmmAdmin.previewAssets;
+		var inlineCss = menuAssets && menuAssets.inlineCss ? '<style>' + String(menuAssets.inlineCss).replace(/<\//g, '<\\/') + '</style>' : '';
 		var lang = document.documentElement.getAttribute('lang') || 'en';
 		return '<!doctype html><html lang="' + esc(lang) + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
-			'<link rel="stylesheet" href="' + esc(assets.css) + '">' +
+			'<link rel="stylesheet" href="' + esc(assets.css) + '">' + inlineCss +
 			'<style>html,body{margin:0;background:#fff}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#1e1e1e}' +
 			'.abmm-preview-doc__page{padding:28px 20px;display:grid;gap:14px}.abmm-preview-doc__page span{display:block;height:12px;border-radius:6px;background:#eef1f6}' +
 			'.abmm-preview-doc__page .is-title{height:26px;width:72%}.abmm-preview-doc__page .is-short{width:46%}' +
@@ -3861,7 +3866,7 @@
 		}
 	}
 
-	function writeDeviceFrame(html) {
+	function writeDeviceFrame(html, menuAssets) {
 		var $preview = $('#abmm-preview');
 		var frame = $preview.find('iframe.abmm-preview-device')[0];
 		if (!frame) return;
@@ -3872,7 +3877,7 @@
 			markCanvasSelection();
 			$preview.removeClass('is-loading');
 		};
-		frame.srcdoc = deviceDocument(html);
+		frame.srcdoc = deviceDocument(html, menuAssets);
 	}
 
 	function requestDeviceMarkup() {
@@ -3887,7 +3892,7 @@
 			.then(function (result) {
 				if (seq !== deviceFrame.seq) return;
 				if (!result || !result.success || !result.data || typeof result.data.html !== 'string') throw new Error('preview');
-				writeDeviceFrame(result.data.html);
+				writeDeviceFrame(result.data.html, result.data.assets);
 			})
 			.catch(function () {
 				if (seq !== deviceFrame.seq) return;
@@ -3926,15 +3931,16 @@
 	function previewSelectionFrom(target, source) {
 		var linkEl = target.closest('[data-abmm-link-id]');
 		if (linkEl) return { kind: 'link', id: String(linkEl.getAttribute('data-abmm-link-id')), source: source };
-		var catEl = target.closest('[data-abmm-cat]');
-		if (catEl) return { kind: 'cat', id: String(catEl.getAttribute('data-abmm-cat')), source: source };
-		if (target.closest('.abmm-nav__cta')) return { kind: 'cta', source: source };
-		var itemEl = target.closest('[data-abmm-preview-item], .abmm-nav__list > [data-abmm-item-id]');
+		// Classic (Easy Mega Menu) frames use emm- names for the same parts.
+		var catEl = target.closest('[data-abmm-cat], [data-emm-cat]');
+		if (catEl) return { kind: 'cat', id: String(catEl.getAttribute('data-abmm-cat') || catEl.getAttribute('data-emm-cat')), source: source };
+		if (target.closest('.abmm-nav__cta, .emm-nav__cta')) return { kind: 'cta', source: source };
+		var itemEl = target.closest('[data-abmm-preview-item], .abmm-nav__list > [data-abmm-item-id], .emm-nav__list > [data-emm-item-id]');
 		if (itemEl) {
 			var items = getMenu().items || [];
 			var index = itemEl.hasAttribute('data-abmm-preview-item')
 				? Number(itemEl.getAttribute('data-abmm-preview-item'))
-				: items.map(function (item) { return String(item.id); }).indexOf(String(itemEl.getAttribute('data-abmm-item-id')));
+				: items.map(function (item) { return String(item.id); }).indexOf(String(itemEl.getAttribute('data-abmm-item-id') || itemEl.getAttribute('data-emm-item-id')));
 			if (items[index]) return { kind: 'item', id: String(items[index].id), source: source };
 		}
 		return null;

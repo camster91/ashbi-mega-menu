@@ -70,6 +70,7 @@ function wp_register_style() {}
 function wp_register_script() {}
 function wp_enqueue_style( $handle ) { $GLOBALS['abmm_test_styles'][ $handle ] = true; }
 function wp_localize_script() {}
+function wp_add_inline_style( $handle, $css ) { $GLOBALS['abmm_test_inline_css'] = ( $GLOBALS['abmm_test_inline_css'] ?? '' ) . $css; }
 function abmm_menu_search_strings() { return array(); }
 function wp_enqueue_script() {}
 function wp_add_inline_script() {}
@@ -149,6 +150,23 @@ $GLOBALS['abmm_test_styles'] = array();
 ABMM_Frontend::instance()->register_assets();
 ABMM_Classic::instance()->register_assets();
 verify_classic( isset( $GLOBALS['abmm_test_styles']['abmm-classic'] ) && ! isset( $GLOBALS['abmm_test_styles']['abmm-frontend'] ), 'A site whose menus are all classic loads only the classic stylesheet.' );
+
+// The phone scroll fix is off by default (the parity cases above prove the
+// markup) and, when chosen, adds one class and one inline stylesheet.
+verify_classic( empty( $GLOBALS['abmm_test_inline_css'] ), 'No phone scroll fix CSS unless a menu turns it on.' );
+$first_id = array_key_first( $menus );
+$fixed    = $menus[ $first_id ];
+$fixed['settings']['classic_phone_scroll_fix'] = true;
+$fixed = ABMM_Data::instance()->sanitize_menu( $fixed );
+verify_classic( true === $fixed['settings']['classic_phone_scroll_fix'], 'The phone scroll fix is kept on classic menus.' );
+$GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ][ $first_id ] = $fixed;
+$with_fix = ABMM_Frontend::instance()->render( $first_id );
+verify_classic( 1 === preg_match( '/<header class="emm-header [^"]*\bemm-phone-scroll-fix"/', $with_fix ), 'The fix adds its class to the header.' );
+ABMM_Classic::instance()->register_assets();
+verify_classic( false !== strpos( $GLOBALS['abmm_test_inline_css'] ?? '', '.emm-header.emm-phone-scroll-fix .emm-mega__panel{max-height:none!important;overflow:visible!important}' ), 'The fix prints its stylesheet.' );
+$GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ][ $first_id ] = $menus[ $first_id ];
+$ashbi_fix = ABMM_Data::instance()->sanitize_menu( array( 'title' => 'Ashbi', 'items' => array(), 'settings' => array( 'classic_phone_scroll_fix' => true ) ) );
+verify_classic( ! isset( $ashbi_fix['settings']['classic_phone_scroll_fix'] ), 'Ashbi menus never store classic settings.' );
 
 // Menus created in Ashbi keep Ashbi's markup.
 $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ]['plain'] = ABMM_Data::instance()->sanitize_menu( array( 'title' => 'Plain', 'items' => array( array( 'id' => 'a', 'label' => 'A', 'type' => 'link', 'url' => '/a/' ) ) ) );

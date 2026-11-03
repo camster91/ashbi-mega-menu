@@ -400,6 +400,16 @@ class ABMM_Admin {
 		}
 
 		$menu = ABMM_Data::instance()->sanitize_menu( $data );
+		if ( class_exists( 'ABMM_Classic' ) && ABMM_Classic::is_classic( $menu ) ) {
+			// Classic menus preview with their own markup and assets, as on the site.
+			$classic = ABMM_Classic::instance();
+			wp_send_json_success(
+				array(
+					'html'   => $classic->render_menu( $menu, '' !== $id ? $id : 'preview', array( 'presentation' => 'stacked' ) ),
+					'assets' => $classic->preview_assets( $menu ),
+				)
+			);
+		}
 		wp_send_json_success( array( 'html' => ABMM_Frontend::instance()->render_preview( $menu, '' !== $id ? $id : 'preview' ) ) );
 	}
 
