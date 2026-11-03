@@ -24,14 +24,14 @@ const styleFields = `
 </details>
 <button type="button" class="abmm-undo" disabled>Undo</button><button type="button" class="abmm-redo" disabled>Redo</button>`;
 
-async function fixture() {
+async function fixture(menuData = menu, extra = '') {
 	const dom = new JSDOM(`<body><div class="abmm-builder-topbar"><button class="abmm-save-menu">Save</button><span class="abmm-save-status"></span></div>
 	<div id="abmm-builder" data-menu-id="demo" data-menu-revision="revision-1"><aside id="abmm-builder-sidebar">
 	<div class="abmm-builder-sections"><button data-abmm-builder-section="content">content</button><button data-abmm-builder-section="design">design</button></div>
-	<div class="abmm-builder-section-group" data-abmm-builder-section-panel="content"></div><div class="abmm-builder-section-group" data-abmm-builder-section-panel="design">${styleFields}</div>
+	<div class="abmm-builder-section-group" data-abmm-builder-section-panel="content"></div><div class="abmm-builder-section-group" data-abmm-builder-section-panel="design">${styleFields}${extra}</div>
 	<input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></aside>
 	<main class="abmm-builder__main"><div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div id="abmm-preview"></div></div></main></div>
-	<script id="abmm-menu-data" type="application/json">${JSON.stringify(menu)}</script></body>`, { url: 'http://localhost/', runScripts: 'outside-only' });
+	<script id="abmm-menu-data" type="application/json">${JSON.stringify(menuData)}</script></body>`, { url: 'http://localhost/', runScripts: 'outside-only' });
 	const { window } = dom;
 	const $ = require('jquery')(window);
 	window.jQuery = $;
@@ -79,14 +79,19 @@ const set = ($, key, value) => $(`[data-abmm-style="${key}"]`).val(value).trigge
 	set($, 'panel_height', '420');
 	assert.equal($('[data-abmm-style-when="panel_height_mode=max,fixed"]').prop('hidden'), false, 'The height field appears for a fixed height.');
 	const scope = '#abmm-preview .abmm-header.abmm-header';
-	const expected = 'SCOPE,SCOPE *{font-family:inherit}@media (min-width:901px){SCOPE .abmm-nav__list > .abmm-nav__item > .abmm-nav__link{font-size:18px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase}SCOPE .abmm-mega__col-label,SCOPE .abmm-mega__grid-label{font-size:15px}SCOPE .abmm-mega__panel{height:420px;max-height:420px;overflow-y:auto}}'.split('SCOPE').join(scope);
+	// The site wraps the desktop rules in @media (min-width:901px); the desktop
+	// preview is a desktop view whatever the admin window's width, so it doesn't.
+	const siteCss = 'SCOPE,SCOPE *{font-family:inherit}@media (min-width:901px){SCOPE:not(.abmm-force-mobile) .abmm-nav__list > .abmm-nav__item > .abmm-nav__link{font-size:18px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase}SCOPE:not(.abmm-force-mobile) .abmm-mega__col-label,SCOPE:not(.abmm-force-mobile) .abmm-mega__grid-label{font-size:15px}SCOPE:not(.abmm-force-mobile) .abmm-mega__panel{height:420px;max-height:420px;overflow-y:auto}}';
+	const expected = siteCss.replace('@media (min-width:901px){', '').replace(/}$/, '').split('SCOPE').join(scope);
 	assert.equal($('#abmm-preview-style').text(), expected, 'The preview CSS matches the CSS printed on the site.');
 	assert.deepEqual(savedSettings($, requests).style, { panel_height_mode: 'fixed', panel_height: 420, font_family_mode: 'inherit', top_font_size: 18, top_font_weight: '500', link_font_size: 15, top_letter_spacing: '0.5', top_text_transform: 'uppercase' }, 'Only the values that were set are saved.');
 
 	// Custom font names are cleaned the same way as on the server.
 	set($, 'font_family_mode', 'custom');
 	set($, 'font_family', 'Supreme, Arial; } body { color: red');
-	assert.equal(savedSettings($, requests).style.font_family, 'Supreme, Arial body color red', 'A font list cannot break out of its CSS rule.');
+	assert.equal(savedSettings($, requests).style.font_family, '"Supreme", "Arial body color red"', 'A font list cannot break out of its CSS rule.');
+	set($, 'font_family', 'Supreme", Sans-Serif');
+	assert.equal(savedSettings($, requests).style.font_family, '"Supreme", sans-serif', 'A stray quote is removed and every name re-quoted, as on the server.');
 
 	// Reset clears one group only.
 	$('[data-abmm-style-reset="fonts"]').trigger('click');
@@ -128,6 +133,25 @@ const set = ($, key, value) => $(`[data-abmm-style="${key}"]`).val(value).trigge
 	set($, 'link_font_size', '14');
 	await wait(window, 450);
 	assert.equal($('.abmm-redo').prop('disabled'), true, 'A new change after undo clears redo.');
+	window.close();
+
+	// Undo also restores the classic look controls.
+	const classicMenu = Object.assign({}, menu, { settings: { render_mode: 'emm-classic' } });
+	f = await fixture(classicMenu, '<select id="abmm-render-mode"><option value="emm-classic">Classic</option><option value="">Ashbi</option></select><input type="checkbox" id="abmm-classic-phone-scroll-fix"><p class="abmm-classic-notice">Notice</p>');
+	({ window, $, requests } = f);
+	$('#abmm-render-mode').val('emm-classic');
+	$('#abmm-classic-phone-scroll-fix').prop('checked', true).trigger('change');
+	await wait(window, 450);
+	$('#abmm-render-mode').val('').trigger('change');
+	await wait(window, 450);
+	$('.abmm-undo').trigger('click');
+	assert.equal($('#abmm-render-mode').val(), 'emm-classic', 'Undo brings back the Classic look.');
+	assert.equal($('.abmm-classic-notice').prop('hidden'), false, 'The Classic notice comes back with it.');
+	$('.abmm-undo').trigger('click');
+	assert.equal($('#abmm-classic-phone-scroll-fix').prop('checked'), false, 'Undo turns the phone scroll fix back off.');
+	const classicSaved = savedSettings($, requests);
+	assert.equal(classicSaved.render_mode, 'emm-classic', 'The undone state is what gets saved.');
+	assert.equal(classicSaved.classic_phone_scroll_fix, undefined, 'The undone phone fix is not saved.');
 	window.close();
 
 	console.log('Editor style controls and undo/redo: saved values, exact preview CSS, reset, buttons and shortcuts passed.');

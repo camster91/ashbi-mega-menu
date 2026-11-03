@@ -848,6 +848,12 @@
 		syncIconInheritField();
 		syncOptionalFeatureFields();
 		populateStyleForm(s.style);
+		var $renderMode = $('#abmm-render-mode');
+		if ($renderMode.length) {
+			$renderMode.val(s.render_mode === 'emm-classic' ? 'emm-classic' : '');
+			$('.abmm-classic-notice').prop('hidden', $renderMode.val() !== 'emm-classic');
+		}
+		$('#abmm-classic-phone-scroll-fix').prop('checked', !!s.classic_phone_scroll_fix);
 	}
 
 	function syncSettingsFromForm() {
@@ -1096,8 +1102,15 @@
 	var STYLE_WEIGHTS = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
 	var STYLE_TRANSFORMS = ['none', 'uppercase', 'lowercase', 'capitalize'];
 
+	var GENERIC_FAMILIES = ['serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded', 'emoji', 'math', 'fangsong'];
+
+	/** Same as ABMM_Style::sanitize_font_family(): every name quoted, so a stray quote can't break the CSS. */
 	function cleanFontFamily(value) {
-		return String(value || '').replace(/[^A-Za-z0-9 ,'"._-]/g, '').replace(/\s+/g, ' ').replace(/^[ ,]+|[ ,]+$/g, '').slice(0, 200);
+		return String(value || '').slice(0, 200).split(',').map(function (name) {
+			name = name.replace(/[^A-Za-z0-9 ._-]/g, '').replace(/\s+/g, ' ').trim();
+			if (!name) return '';
+			return GENERIC_FAMILIES.indexOf(name.toLowerCase()) !== -1 ? name.toLowerCase() : '"' + name + '"';
+		}).filter(Boolean).join(', ');
 	}
 
 	function normalizeStyle(raw) {
@@ -1130,10 +1143,11 @@
 	}
 
 	/** Same CSS as ABMM_Style::css() for an Ashbi header, scoped to the editor preview. */
-	function styleCss(style, scope) {
+	function styleCss(style, scope, media) {
 		style = style || {};
 		var rules = [];
 		var desk = [];
+		var deskScope = scope + ':not(.abmm-force-mobile)';
 		if (style.font_family_mode === 'inherit') rules.push(scope + ',' + scope + ' *{font-family:inherit}');
 		else if (style.font_family_mode === 'custom' && style.font_family) rules.push(scope + ',' + scope + ' *{font-family:' + cleanFontFamily(style.font_family) + '}');
 		Object.keys(STYLE_GROUPS).forEach(function (group) {
@@ -1142,13 +1156,13 @@
 			if (STYLE_WEIGHTS.indexOf(String(style[group + '_font_weight'] || '')) !== -1) d.push('font-weight:' + style[group + '_font_weight']);
 			if (group === 'top' && style.top_letter_spacing != null && isFinite(Number(style.top_letter_spacing))) d.push('letter-spacing:' + Number(style.top_letter_spacing) + 'px');
 			if (group === 'top' && STYLE_TRANSFORMS.indexOf(style.top_text_transform) !== -1) d.push('text-transform:' + style.top_text_transform);
-			if (d.length) desk.push(STYLE_GROUPS[group].map(function (target) { return scope + ' .abmm-' + target; }).join(',') + '{' + d.join(';') + '}');
+			if (d.length) desk.push(STYLE_GROUPS[group].map(function (target) { return deskScope + ' .abmm-' + target; }).join(',') + '{' + d.join(';') + '}');
 		});
-		var panel = scope + ' .abmm-mega__panel';
+		var panel = deskScope + ' .abmm-mega__panel';
 		if (style.panel_height_mode === 'auto') desk.push(panel + '{max-height:none}');
 		else if (style.panel_height_mode === 'fixed') desk.push(panel + '{height:' + parseInt(style.panel_height, 10) + 'px;max-height:' + parseInt(style.panel_height, 10) + 'px;overflow-y:auto}');
 		else if (style.panel_height_mode === 'max') desk.push(panel + '{max-height:' + parseInt(style.panel_height, 10) + 'px;overflow-y:auto}');
-		if (desk.length) rules.push('@media (min-width:901px){' + desk.join('') + '}');
+		if (desk.length) rules.push(media === false ? desk.join('') : '@media (min-width:901px){' + desk.join('') + '}');
 		return rules.join('');
 	}
 
@@ -4391,7 +4405,7 @@
 
 		var previewState = state.previewViewport + '-' + state.previewDrill;
 		$('#abmm-preview').attr('data-abmm-preview-state', previewState).html(html);
-		var previewStyle = styleCss(s.style, '#abmm-preview .abmm-header.abmm-header');
+		var previewStyle = styleCss(s.style, '#abmm-preview .abmm-header.abmm-header', false);
 		if (previewStyle) $('#abmm-preview').append($('<style id="abmm-preview-style"></style>').text(previewStyle));
 		var $preview = $('#abmm-preview');
 		$preview.find('.abmm-nav__brand-logo').on('error', function () {

@@ -158,13 +158,16 @@ class ABMM_Elementor_Widget extends Widget_Base {
 			)
 		);
 		if ( $hover ) {
-			$targets = 'top' === $key ? $parts : array( 'mega__col-link:hover .{p}-mega__col-label', 'mega__grid-link:hover .{p}-mega__grid-label' );
+			// Hover, keyboard focus and (for the menu bar) the item whose dropdown is open.
+			$selector = 'top' === $key
+				? ABMM_Elementor::selector( array( 'nav__list > .{p}-nav__item > .{p}-nav__link:hover', 'nav__list > .{p}-nav__item > .{p}-nav__link:focus-visible', 'nav__list > .{p}-nav__item.is-open > .{p}-nav__link' ) )
+				: ABMM_Elementor::selector( array( 'mega__col-link:hover .{p}-mega__col-label', 'mega__col-link:focus-visible .{p}-mega__col-label', 'mega__grid-link:hover .{p}-mega__grid-label', 'mega__grid-link:focus-visible .{p}-mega__grid-label' ) );
 			$this->add_control(
 				$key . '_hover_color',
 				array(
 					'label'     => __( 'Hover colour', 'ashbi-mega-menu' ),
 					'type'      => Controls_Manager::COLOR,
-					'selectors' => array( ABMM_Elementor::selector( $targets, 'top' === $key ? ':hover' : '' ) => 'color: {{VALUE}};' ),
+					'selectors' => array( $selector => 'color: {{VALUE}};' ),
 				)
 			);
 		}
@@ -193,7 +196,7 @@ class ABMM_Elementor_Widget extends Widget_Base {
 		if ( $style ) {
 			$css = '';
 			foreach ( array( 'abmm', 'emm' ) as $prefix ) {
-				$css .= ABMM_Style::css( $style, '.elementor-element-' . sanitize_html_class( $this->get_id() ) . ' .' . $prefix . '-header.' . $prefix . '-header', $prefix );
+				$css .= ABMM_Style::css( $style, '.elementor-element-' . sanitize_html_class( $this->get_id() ) . ' .' . str_repeat( $prefix . '-header.', 3 ) . $prefix . '-header', $prefix );
 			}
 			echo '<style>' . wp_strip_all_tags( $css ) . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSS built from sanitized numbers and fixed selectors.
 		}

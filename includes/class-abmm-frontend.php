@@ -88,7 +88,7 @@ class ABMM_Frontend {
 			$admin_bar->add_node(
 				array(
 					'parent' => 'abmm-edit-menu',
-					'id'     => 'abmm-edit-menu-' . sanitize_html_class( $menu_id ),
+					'id'     => 'abmm-edit-menu-' . substr( md5( $menu_id ), 0, 10 ),
 					'title'  => esc_html( '' !== $title ? $title : $menu_id ),
 					'href'   => $link( $menu_id ),
 				)

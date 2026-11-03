@@ -117,7 +117,7 @@ verify_style(
 		'panel_height_mode'  => 'max',
 		'panel_height'       => 1200,
 		'font_family_mode'   => 'custom',
-		'font_family'        => 'Supreme, "Helvetica Neue" body color red',
+		'font_family'        => '"Supreme", "Helvetica Neue body color red"',
 		'top_font_size'      => 10,
 		'top_font_weight'    => '600',
 		'cat_font_size'      => 40,
@@ -127,12 +127,17 @@ verify_style(
 	'Style values are clamped, unknown values dropped and the font list cannot close the CSS rule: ' . json_encode( $style )
 );
 
+// A stray quote can never open a CSS string: every name is re-quoted.
+verify_style( '"Supreme", sans-serif' === ABMM_Style::sanitize_font_family( 'Supreme", Sans-Serif' ), 'Unbalanced quotes are removed and generic families stay bare.' );
+verify_style( ABMM_Style::sanitize_font_family( '"Supreme", sans-serif' ) === '"Supreme", sans-serif', 'A cleaned font list is stable.' );
+
 // The exact CSS (tests/editor-style-history.test.js checks the editor builds the same).
 $sample = array( 'font_family_mode' => 'inherit', 'top_font_size' => 18, 'top_font_weight' => '500', 'top_letter_spacing' => '0.5', 'top_text_transform' => 'uppercase', 'link_font_size' => 15, 'panel_height_mode' => 'fixed', 'panel_height' => 420 );
 $css    = ABMM_Style::css( $sample, 'SCOPE', 'abmm' );
-$expect = 'SCOPE,SCOPE *{font-family:inherit}@media (min-width:901px){SCOPE .abmm-nav__list > .abmm-nav__item > .abmm-nav__link{font-size:18px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase}SCOPE .abmm-mega__col-label,SCOPE .abmm-mega__grid-label{font-size:15px}SCOPE .abmm-mega__panel{height:420px;max-height:420px;overflow-y:auto}}';
+$expect = 'SCOPE,SCOPE *{font-family:inherit}@media (min-width:901px){SCOPE:not(.abmm-force-mobile) .abmm-nav__list > .abmm-nav__item > .abmm-nav__link{font-size:18px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase}SCOPE:not(.abmm-force-mobile) .abmm-mega__col-label,SCOPE:not(.abmm-force-mobile) .abmm-mega__grid-label{font-size:15px}SCOPE:not(.abmm-force-mobile) .abmm-mega__panel{height:420px;max-height:420px;overflow-y:auto}}';
 verify_style( $expect === $css, "The style CSS is exact:\n$css" );
-verify_style( false !== strpos( ABMM_Style::css( array( 'panel_height_mode' => 'auto' ), 'S', 'emm' ), 'S .emm-mega__panel{max-height:none}' ), 'Classic menus get the same rules with emm- classes.' );
+verify_style( false === strpos( ABMM_Style::css( $sample, 'SCOPE', 'abmm', false ), '@media' ), 'The editor preview can ask for the rules without the media query.' );
+verify_style( false !== strpos( ABMM_Style::css( array( 'panel_height_mode' => 'auto' ), 'S', 'emm' ), 'S:not(.emm-force-mobile) .emm-mega__panel{max-height:none}' ), 'Classic menus get the same rules with emm- classes.' );
 verify_style( '.abmm-header.abmm-header.abmm-header[data-abmm-id="a\"b"]' === ABMM_Style::scope( 'a"b', 'abmm' ), 'Menu IDs are escaped inside the scope selector.' );
 
 // Stored on the menu, printed for it, markup still unchanged.
@@ -159,7 +164,7 @@ $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ] = array( 'old' => $data->saniti
 $GLOBALS['abmm_test_inline'] = array();
 ABMM_Frontend::instance()->register_assets();
 ABMM_Classic::instance()->register_assets();
-verify_style( ! isset( $GLOBALS['abmm_test_inline']['abmm-frontend'] ) && false !== strpos( $GLOBALS['abmm_test_inline']['abmm-classic'] ?? '', '.emm-header.emm-header.emm-header[data-emm-id="old"] .emm-mega__panel{height:420px' ), 'Classic menus print their CSS with the classic stylesheet.' );
+verify_style( ! isset( $GLOBALS['abmm_test_inline']['abmm-frontend'] ) && false !== strpos( $GLOBALS['abmm_test_inline']['abmm-classic'] ?? '', '.emm-header.emm-header.emm-header[data-emm-id="old"]:not(.emm-force-mobile) .emm-mega__panel{height:420px' ), 'Classic menus print their CSS with the classic stylesheet.' );
 
 // Toolbar: "Edit mega menu" for the menus on this page, administrators only.
 class ABMM_Test_Admin_Bar {
@@ -180,7 +185,17 @@ verify_style( 1 === count( $bar->nodes ) && false !== strpos( $bar->nodes['abmm-
 $frontend->render( 'second' );
 $bar = new ABMM_Test_Admin_Bar();
 $frontend->admin_bar_edit_link( $bar );
-verify_style( 3 === count( $bar->nodes ) && 'abmm-edit-menu' === $bar->nodes['abmm-edit-menu-second']['parent'] && false === strpos( $bar->nodes['abmm-edit-menu-second']['title'], '<b>' ), 'Several menus get one escaped link each.' );
+$second = $bar->nodes[ 'abmm-edit-menu-' . substr( md5( 'second' ), 0, 10 ) ] ?? array();
+verify_style( 3 === count( $bar->nodes ) && 'abmm-edit-menu' === ( $second['parent'] ?? '' ) && false === strpos( $second['title'] ?? '<b>', '<b>' ), 'Several menus get one escaped link each.' );
+// IDs that differ only in characters a class name drops still get separate links.
+$GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ]['main.nav'] = $plain;
+$GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ]['mainnav']  = $plain;
+$rendered->setValue( $frontend, array() );
+$frontend->render( 'main.nav' );
+$frontend->render( 'mainnav' );
+$bar = new ABMM_Test_Admin_Bar();
+$frontend->admin_bar_edit_link( $bar );
+verify_style( 3 === count( $bar->nodes ), 'Similar menu IDs do not overwrite each other in the toolbar.' );
 $GLOBALS['abmm_test_admin'] = false;
 $bar = new ABMM_Test_Admin_Bar();
 $frontend->admin_bar_edit_link( $bar );
@@ -215,12 +230,24 @@ $widget = $manager->widgets[0];
 verify_style( 'ashbi-mega-menu' === $widget->get_name() && 'Ashbi Mega Menu' === $widget->get_title(), 'The Elementor widget registers.' );
 $widget->test_register();
 verify_style( array( 'main' => 'Main (main)' ) === $widget->controls['menu_id']['options'] && 'main' === $widget->controls['menu_id']['default'], 'The widget lists stored menus.' );
-verify_style( false !== strpos( $widget->groups['top_typography']['selector'], '{{WRAPPER}} .abmm-nav__list > .abmm-nav__item > .abmm-nav__link' ) && false !== strpos( $widget->groups['top_typography']['selector'], '{{WRAPPER}} .emm-nav__list > .emm-nav__item > .emm-nav__link' ), 'Typography controls style both looks, so Elementor global fonts apply.' );
+verify_style( false !== strpos( $widget->groups['top_typography']['selector'], '{{WRAPPER}} .abmm-header.abmm-header.abmm-header .abmm-nav__list > .abmm-nav__item > .abmm-nav__link' ) && false !== strpos( $widget->groups['top_typography']['selector'], '{{WRAPPER}} .emm-header.emm-header.emm-header .emm-nav__list > .emm-nav__item > .emm-nav__link' ), 'Typography controls style both looks, so Elementor global fonts apply.' );
+// The widget is the more specific choice: its selectors must outrank the menu's own Design-tab rules.
+$weight = function ( $selector ) { return substr_count( $selector, '.' ) + substr_count( $selector, '[' ); };
+$wrapper = '.elementor-1 .elementor-element.elementor-element-abc123';
+$widget_top = str_replace( '{{WRAPPER}}', $wrapper, explode( ', ', $widget->groups['top_typography']['selector'] )[0] );
+$menu_top   = ABMM_Style::scope( 'main', 'abmm' ) . ':not(.abmm-force-mobile) .abmm-nav__list > .abmm-nav__item > .abmm-nav__link';
+verify_style( $weight( $widget_top ) > $weight( $menu_top ), 'Elementor typography outranks menu-level font settings.' );
+$hover = array_keys( $widget->controls['top_hover_color']['selectors'] )[0];
+foreach ( explode( ', ', $hover ) as $part ) {
+	verify_style( 1 === preg_match( '/(:hover|:focus-visible)$|\.is-open > /', $part ), 'The menu bar hover colour only targets hover, focus and the open item: ' . $part );
+}
 verify_style( isset( $widget->groups['cat_typography'], $widget->groups['link_typography'], $widget->groups['desc_typography'], $widget->controls['link_hover_color'], $widget->controls['panel_background'] ), 'Category, link and description typography, colours and the dropdown background are offered.' );
 $widget->settings = array( 'menu_id' => 'main', 'panel_height_mode' => 'max', 'panel_height' => 380 );
 $seq->setValue( ABMM_Frontend::instance(), 0 );
 $out = $widget->test_render();
-verify_style( false !== strpos( $out, '<style>' ) && false !== strpos( $out, '.elementor-element-abc123 .abmm-header.abmm-header .abmm-mega__panel{max-height:380px;overflow-y:auto}' ), 'The widget scopes its dropdown height to itself.' );
+$widget_panel = '.elementor-element-abc123 .abmm-header.abmm-header.abmm-header.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel';
+verify_style( false !== strpos( $out, '<style>' ) && false !== strpos( $out, $widget_panel . '{max-height:380px;overflow-y:auto}' ), 'The widget scopes its dropdown height to itself.' );
+verify_style( $weight( $widget_panel ) > $weight( ABMM_Style::scope( 'main', 'abmm' ) . ':not(.abmm-force-mobile) .abmm-mega__panel' ), 'The widget height outranks the menu height.' );
 verify_style( false !== strpos( $out, 'class="abmm-header' ), 'The widget renders the menu.' );
 $widget->settings = array( 'menu_id' => 'main' );
 verify_style( false === strpos( $widget->test_render(), '<style>' ), 'No widget CSS without a height choice.' );

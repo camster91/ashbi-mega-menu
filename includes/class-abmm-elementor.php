@@ -35,15 +35,21 @@ class ABMM_Elementor {
 	/**
 	 * Selectors for one part of the menu in both looks (Ashbi and Classic).
 	 *
-	 * @param string[] $parts Class suffixes, e.g. 'mega__col-label'.
-	 * @param string   $state Optional state suffix such as ':hover'.
+	 * The repeated header class makes a widget's Style settings outrank the
+	 * menu's own Design-tab fonts (ABMM_Style), since the widget is the more
+	 * specific choice for this placement.
+	 *
+	 * @param string[] $parts  Class suffixes, e.g. 'mega__col-label'.
+	 * @param string[] $states Optional state suffixes such as ':hover'.
 	 * @return string
 	 */
-	public static function selector( $parts, $state = '' ) {
+	public static function selector( $parts, $states = array( '' ) ) {
 		$selectors = array();
 		foreach ( array( 'abmm', 'emm' ) as $p ) {
 			foreach ( $parts as $part ) {
-				$selectors[] = '{{WRAPPER}} .' . $p . '-' . str_replace( '{p}', $p, $part ) . $state;
+				foreach ( (array) $states as $state ) {
+					$selectors[] = '{{WRAPPER}} .' . $p . '-header.' . $p . '-header.' . $p . '-header .' . $p . '-' . str_replace( '{p}', $p, $part ) . $state;
+				}
 			}
 		}
 		return implode( ', ', $selectors );

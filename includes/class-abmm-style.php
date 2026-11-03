@@ -82,16 +82,27 @@ class ABMM_Style {
 		return $out;
 	}
 
+	/** Generic font families, written without quotes. */
+	const GENERIC_FAMILIES = array( 'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded', 'emoji', 'math', 'fangsong' );
+
 	/**
-	 * A CSS font-family list: names, quotes, spaces, commas, hyphens and dots only.
+	 * A CSS font-family list. Each name is reduced to letters, digits, spaces,
+	 * dots, hyphens and underscores and written in double quotes (generic
+	 * families stay bare), so a stray quote can never open a CSS string.
 	 *
-	 * @param string $family Raw value.
+	 * @param string $family Raw value, e.g. `Supreme, "Helvetica Neue", sans-serif`.
 	 * @return string
 	 */
 	public static function sanitize_font_family( $family ) {
-		$family = preg_replace( '/[^A-Za-z0-9 ,\'"._-]/', '', (string) $family );
-		$family = trim( preg_replace( '/\s+/', ' ', (string) $family ), ' ,' );
-		return substr( $family, 0, 200 );
+		$names = array();
+		foreach ( explode( ',', substr( (string) $family, 0, 200 ) ) as $name ) {
+			$name = trim( preg_replace( '/\s+/', ' ', preg_replace( '/[^A-Za-z0-9 ._-]/', '', $name ) ) );
+			if ( '' === $name ) {
+				continue;
+			}
+			$names[] = in_array( strtolower( $name ), self::GENERIC_FAMILIES, true ) ? strtolower( $name ) : '"' . $name . '"';
+		}
+		return implode( ', ', $names );
 	}
 
 	/**
@@ -100,13 +111,19 @@ class ABMM_Style {
 	 * @param array  $style  Sanitized style settings.
 	 * @param string $scope  Selector for this menu's header element.
 	 * @param string $prefix Class prefix: 'abmm' or 'emm'.
+	 * @param bool   $media  Wrap desktop rules in a min-width media query. The
+	 *                       editor's desktop preview passes false: it is a
+	 *                       desktop view whatever the admin window's width.
 	 * @return string
 	 */
-	public static function css( $style, $scope, $prefix ) {
+	public static function css( $style, $scope, $prefix, $media = true ) {
 		$style = is_array( $style ) ? $style : array();
 		$p     = 'emm' === $prefix ? 'emm' : 'abmm';
 		$rules = array();
 		$desk  = array();
+		// Narrow placements switch a header to the phone drawer at any width;
+		// desktop sizes and heights must not reach that drawer.
+		$desk_scope = $scope . ':not(.' . $p . '-force-mobile)';
 
 		if ( 'inherit' === ( $style['font_family_mode'] ?? '' ) ) {
 			$rules[] = $scope . ',' . $scope . ' *{font-family:inherit}';
@@ -134,14 +151,14 @@ class ABMM_Style {
 			if ( $declarations ) {
 				$selectors = array();
 				foreach ( $targets as $target ) {
-					$selectors[] = $scope . ' .' . $p . '-' . str_replace( '{p}', $p, $target );
+					$selectors[] = $desk_scope . ' .' . $p . '-' . str_replace( '{p}', $p, $target );
 				}
 				$desk[] = implode( ',', $selectors ) . '{' . implode( ';', $declarations ) . '}';
 			}
 		}
 
 		$mode  = $style['panel_height_mode'] ?? '';
-		$panel = $scope . ' .' . $p . '-mega__panel';
+		$panel = $desk_scope . ' .' . $p . '-mega__panel';
 		if ( 'auto' === $mode ) {
 			$desk[] = $panel . '{max-height:none}';
 		} elseif ( 'fixed' === $mode ) {
@@ -152,7 +169,7 @@ class ABMM_Style {
 		}
 
 		if ( $desk ) {
-			$rules[] = '@media (min-width:901px){' . implode( '', $desk ) . '}';
+			$rules[] = $media ? '@media (min-width:901px){' . implode( '', $desk ) . '}' : implode( '', $desk );
 		}
 		return implode( '', $rules );
 	}
