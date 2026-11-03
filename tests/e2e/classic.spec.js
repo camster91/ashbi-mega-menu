@@ -98,7 +98,12 @@ test.describe('classic menu in the editor', () => {
 		const frame = page.frameLocator('#abmm-preview iframe.abmm-preview-device');
 		await expect(frame.locator('header.emm-header')).toHaveCount(1);
 		await expect(frame.locator('link[href*="assets/classic/emm-frontend.css"]')).toHaveCount(1);
-		await frame.locator('.emm-nav__toggle').click();
+		// Like Ashbi menus, the phone preview reopens the drawer itself once the
+		// frame has loaded; open it by hand only if that has not happened.
+		const frameHeader = frame.locator('header.emm-header');
+		const openedByPreview = await expect(frameHeader).toHaveClass(/\bis-mobile-open\b/, { timeout: 5000 }).then(() => true, () => false);
+		if (!openedByPreview) await frame.locator('.emm-nav__toggle').click();
+		await expect(frameHeader).toHaveClass(/\bis-mobile-open\b/);
 		await frame.locator('[data-emm-mega-trigger]').first().click();
 		await frame.locator('.emm-mega__cat[data-emm-cat="people"]').click();
 		// Selecting a category in the frame opens it in the editor.
