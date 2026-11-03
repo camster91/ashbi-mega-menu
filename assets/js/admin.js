@@ -770,6 +770,10 @@
 	function syncSettingsFromForm() {
 		var m = getMenu();
 		var headerZIndex = parseInt($('#abmm-header-z-index').val(), 10);
+		var previous = m.settings || {};
+		// Classic (Easy Mega Menu) rendering has no form fields except the look picker.
+		var $renderMode = $('#abmm-render-mode');
+		var renderMode = $renderMode.length ? String($renderMode.val() || '') : String(previous.render_mode || '');
 		m.title = $('#abmm-menu-title').val();
 		m.cta = {
 			show: $('#abmm-cta-show').is(':checked'),
@@ -834,6 +838,10 @@
 			show_cat_desc: $('#abmm-show-cat-desc').is(':checked'),
 			panel_title_align: $('#abmm-panel-title-align').val() || 'center',
 		};
+		if (renderMode === 'emm-classic') {
+			m.settings.render_mode = renderMode;
+			if (previous.classic_edge_bleed) m.settings.classic_edge_bleed = previous.classic_edge_bleed;
+		}
 	}
 
 	function syncFullWidthField() {
@@ -2275,9 +2283,13 @@
 			'#abmm-panel-title-align',
 			'#abmm-uppercase-cats',
 			'#abmm-show-cat-desc',
+			'#abmm-render-mode',
 		].join(', ');
 
 		$(designSelectors).on('change input', function () {
+			if ($(this).is('#abmm-render-mode')) {
+				$('.abmm-classic-notice').prop('hidden', $(this).val() !== 'emm-classic');
+			}
 			if (
 				$(this).is(
 					'#abmm-layout, #abmm-nav-align, #abmm-grid-cols, #abmm-full-width, #abmm-panel-width, #abmm-sidebar-width, #abmm-border-radius, #abmm-shadow, #abmm-cta-style, #abmm-panel-title-align, #abmm-uppercase-cats, #abmm-show-cat-desc'

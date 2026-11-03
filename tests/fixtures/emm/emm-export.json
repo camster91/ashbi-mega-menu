@@ -1,0 +1,131 @@
+{
+ "format": "easy-mega-menu",
+ "menus": {
+  "main_nav": {
+   "title": "Main Navigation",
+   "starter_source": "",
+   "items": [
+    {
+     "id": "home", "label": "Home", "url": "https://example.test/", "type": "link", "target": "", "rel": "", "class": "",
+     "mega_style": "platforms", "hide_category_bar": false, "columns": 3, "categories": [], "links": []
+    },
+    {
+     "id": "products", "label": "Products", "url": "#", "type": "mega", "target": "", "rel": "", "class": "",
+     "mega_style": "platforms", "hide_category_bar": false, "columns": 3,
+     "categories": [
+      {
+       "id": "finance", "title": "Finance & Spend", "description": "Money in and out", "icon": "wallet", "icon_url": "",
+       "panel_title": "Finance tools", "panel_url": "https://example.test/finance/",
+       "icon_color": "#0f766e", "icon_hover_color": "", "icon_active_color": "", "icon_size": 26, "icon_background": "", "icon_border_color": "", "icon_radius": "",
+       "panel_link": { "target": "", "rel": "", "class": "" },
+       "groups": [
+        {
+         "id": "get_paid", "title": "Get paid", "url": "https://example.test/get-paid/", "target": "", "rel": "", "class": "",
+         "links": [
+          { "id": "invoicing", "label": "Invoicing", "description": "Send and track invoices", "url": "https://example.test/invoicing/", "icon": "document", "icon_url": "", "icon_color": "#c2410c", "icon_hover_color": "#111111", "icon_active_color": "", "icon_size": 0, "icon_background": "#fff1e8", "icon_border_color": "", "icon_radius": "4", "target": "", "rel": "", "class": "" },
+          { "id": "expenses", "label": "Expenses", "description": "", "url": "https://example.test/expenses/?tab=a&b=c", "icon": "card", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "_blank", "rel": "noopener", "class": "track-me" }
+         ]
+        },
+        {
+         "id": "plan", "title": "", "url": "", "target": "", "rel": "", "class": "",
+         "links": [
+          { "id": "budgets", "label": "Budgets (soon)", "description": "", "url": "", "icon": "", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" },
+          { "id": "custom_icon", "label": "Uploaded icon", "description": "", "url": "https://example.test/custom/", "icon": "", "icon_url": "https://example.test/wp-content/uploads/icon.png", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 30, "icon_background": "", "icon_border_color": "#e5e5ea", "icon_radius": "6", "target": "", "rel": "", "class": "" }
+         ]
+        }
+       ],
+       "links": []
+      },
+      {
+       "id": "people", "title": "People", "description": "", "icon": "users", "icon_url": "", "panel_title": "", "panel_url": "",
+       "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "",
+       "panel_link": { "target": "", "rel": "", "class": "" },
+       "groups": [
+        {
+         "id": "insights", "title": "Insights", "url": "", "target": "", "rel": "", "class": "",
+         "links": [
+          { "id": "analytics", "label": "Analytics", "description": "", "url": "https://example.test/products/analytics/", "icon": "pie-chart", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" },
+          { "id": "unknown_icon", "label": "Hiring", "description": "", "url": "/hiring/", "icon": "not-a-real-icon", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" }
+         ]
+        }
+       ],
+       "links": []
+      }
+     ],
+     "links": []
+    },
+    {
+     "id": "company", "label": "Company", "url": "#", "type": "mega", "target": "", "rel": "", "class": "",
+     "mega_style": "features", "hide_category_bar": false, "columns": 1, "categories": [],
+     "links": [
+      { "id": "about", "label": "About", "description": "", "url": "https://example.test/about/", "icon": "building", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" },
+      { "id": "careers", "label": "Careers", "description": "", "url": "", "icon": "briefcase", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" }
+     ]
+    },
+    {
+     "id": "contact", "label": "Contact", "url": "https://example.test/contact/", "type": "link", "target": "_blank", "rel": "nofollow noopener", "class": "menu-contact",
+     "mega_style": "platforms", "hide_category_bar": false, "columns": 3, "categories": [], "links": []
+    }
+   ],
+   "cta": { "label": "Book a demo", "url": "https://example.test/demo/", "show": true, "target": "", "rel": "", "class": "" },
+   "brand": { "show": true, "title": "", "url": "https://example.test/", "logo_url": "https://example.test/logo.svg", "logo_dark_url": "", "alt": "Example Co", "logo_height": 40, "target": "", "rel": "", "class": "" },
+   "context": { "show": false, "label": "", "url": "" },
+   "settings": {
+    "preset": "custom", "presentation": "stacked", "layout": "sidebar-left", "sidebar_bg": "#ffffff", "active_bg": "#eef4ff", "panel_bg": "#ffffff", "header_bg": "#ffffff", "header_transparent": false, "header_z_index": 1200,
+    "accent": "#1a73e8", "text_color": "#2c2c2c", "nav_link_color": "#2c2c2c", "nav_hover_color": "#1a73e8", "muted_color": "#6b6b6b", "border_color": "#e5e5ea", "cta_text": "#ffffff",
+    "icon_inherit_text": false, "icon_color": "#334155", "icon_hover_color": "#1a73e8", "icon_active_color": "#1a73e8", "icon_size": 22, "icon_background": "", "icon_border_color": "", "icon_radius": 0,
+    "grid_columns": 4, "panel_width": 1200, "full_width": false, "sidebar_width": 300, "border_radius": 8, "shadow": "none", "nav_align": "right", "cta_style": "pill", "uppercase_cats": true, "show_cat_desc": false, "panel_title_align": "center"
+   }
+  },
+  "product_secondary": {
+   "title": "Product Secondary Navigation",
+   "starter_source": "",
+   "items": [
+    {
+     "id": "features", "label": "Features", "url": "#", "type": "mega", "target": "", "rel": "", "class": "",
+     "mega_style": "features", "hide_category_bar": false, "columns": 3, "categories": [],
+     "links": [
+      { "id": "f1", "label": "Approvals", "description": "", "url": "https://example.test/features/approvals/", "icon": "check-circle", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" },
+      { "id": "f2", "label": "Reports", "description": "", "url": "https://example.test/features/reports/", "icon": "chart", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" },
+      { "id": "f3", "label": "Mobile", "description": "", "url": "https://example.test/features/mobile/", "icon": "phone", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" }
+     ]
+    },
+    {
+     "id": "resources", "label": "Resources", "url": "#", "type": "mega", "target": "", "rel": "", "class": "",
+     "mega_style": "platforms", "hide_category_bar": true, "columns": 3,
+     "categories": [
+      {
+       "id": "learn", "title": "Learn", "description": "", "icon": "lightbulb", "icon_url": "", "panel_title": "", "panel_url": "",
+       "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "",
+       "panel_link": { "target": "", "rel": "", "class": "" },
+       "groups": [
+        {
+         "id": "guides", "title": "", "url": "", "target": "", "rel": "", "class": "",
+         "links": [
+          { "id": "r1", "label": "Guides", "description": "", "url": "https://example.test/guides/", "icon": "document", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" },
+          { "id": "r2", "label": "Webinars", "description": "", "url": "https://example.test/webinars/", "icon": "calendar", "icon_url": "", "icon_color": "", "icon_hover_color": "", "icon_active_color": "", "icon_size": 0, "icon_background": "", "icon_border_color": "", "icon_radius": "", "target": "", "rel": "", "class": "" }
+         ]
+        }
+       ],
+       "links": []
+      }
+     ],
+     "links": []
+    },
+    {
+     "id": "pricing", "label": "Pricing", "url": "https://example.test/pricing/", "type": "link", "target": "", "rel": "", "class": "",
+     "mega_style": "platforms", "hide_category_bar": false, "columns": 3, "categories": [], "links": []
+    }
+   ],
+   "cta": { "label": "", "url": "", "show": false, "target": "", "rel": "", "class": "" },
+   "brand": { "show": false, "title": "", "url": "", "logo_url": "", "logo_dark_url": "", "alt": "", "logo_height": 40, "target": "", "rel": "", "class": "" },
+   "context": { "show": false, "label": "", "url": "" },
+   "settings": {
+    "preset": "classic", "presentation": "stacked", "layout": "sidebar-left", "sidebar_bg": "#f0f0f5", "active_bg": "#ffffff", "panel_bg": "#ffffff", "header_bg": "#ffffff", "header_transparent": true, "header_z_index": 900,
+    "accent": "#1a73e8", "text_color": "#2c2c2c", "nav_link_color": "#2c2c2c", "nav_hover_color": "#1a73e8", "muted_color": "#6b6b6b", "border_color": "#e5e5ea", "cta_text": "#ffffff",
+    "icon_inherit_text": true, "icon_color": "#2c2c2c", "icon_hover_color": "#1a73e8", "icon_active_color": "#1a73e8", "icon_size": 22, "icon_background": "", "icon_border_color": "", "icon_radius": 0,
+    "grid_columns": 3, "panel_width": 1000, "full_width": true, "sidebar_width": 280, "border_radius": 8, "shadow": "medium", "nav_align": "center", "cta_style": "rounded", "uppercase_cats": false, "show_cat_desc": true, "panel_title_align": "left"
+   }
+  }
+ }
+}

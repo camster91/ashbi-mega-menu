@@ -44,6 +44,36 @@ foreach ( array( 'chromium', 'firefox', 'webkit' ) as $browser ) {
 	update_post_meta( $page, '_abmm_e2e_menu', $id );
 	WP_CLI::log( "{$browser}: menu {$id}, page /?pagename={$slug}" );
 }
+// Switching from Easy Mega Menu: its stored menus (it is not installed here),
+// imported into classic mode, with Ashbi answering the old shortcode.
+$emm_export = json_decode( (string) file_get_contents( dirname( __DIR__ ) . '/fixtures/emm/emm-export.json' ), true );
+update_option( 'emm_menus', $emm_export['menus'] );
+$emm_import = ABMM_EMM_Migration::instance()->import( true );
+if ( is_wp_error( $emm_import ) ) {
+	WP_CLI::error( $emm_import->get_error_message() );
+}
+update_option( ABMM_EMM_Migration::TAKEOVER_OPTION, true );
+foreach ( array( 'e2e-classic' => '[easy_mega_menu id="main_nav"]', 'e2e-classic-ashbi' => '[ashbi_mega_menu id="main_nav"]' ) as $emm_slug => $emm_shortcode ) {
+	$existing = get_page_by_path( $emm_slug );
+	if ( $existing ) {
+		wp_delete_post( $existing->ID, true );
+	}
+	$page = wp_insert_post(
+		array(
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+			'post_title'   => 'E2E ' . $emm_slug,
+			'post_name'    => $emm_slug,
+			'post_content' => '<!-- wp:group {"align":"full","layout":{"type":"default"}} --><div class="wp-block-group alignfull"><!-- wp:shortcode -->' . $emm_shortcode . '<!-- /wp:shortcode --></div><!-- /wp:group --><!-- wp:paragraph --><p>Page content after the menu.</p><!-- /wp:paragraph -->',
+		),
+		true
+	);
+	if ( is_wp_error( $page ) ) {
+		WP_CLI::error( $page->get_error_message() );
+	}
+}
+WP_CLI::log( 'classic: Easy Mega Menu menus imported; /?pagename=e2e-classic uses [easy_mega_menu]' );
+
 // Compatibility setups (CI "compat" job). Each places the chromium menu the way that setup would.
 $setup   = (string) getenv( 'ABMM_E2E_SETUP' );
 $menu_id = (string) get_post_meta( (int) get_page_by_path( 'e2e-chromium' )->ID, '_abmm_e2e_menu', true );

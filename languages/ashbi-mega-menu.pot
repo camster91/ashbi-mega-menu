@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Ashbi Mega Menu 1.0.4\n"
+"Project-Id-Version: Ashbi Mega Menu 1.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ashbi-mega-menu\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4067,3 +4067,210 @@ msgstr ""
 msgctxt "block description"
 msgid "Display a mega menu built visually in the Ashbi Mega Menu admin."
 msgstr ""
+
+#: includes/class-abmm-emm-migration.php:157
+msgid "Icon \"%s\" is not in the copied icon set; the link icon is shown instead."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:182
+msgid "%s was not copied (Ashbi has no matching setting)."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:192
+msgid "%s changed while copying."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:324
+msgid "Easy Mega Menu has no menus to import."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:423
+msgid "Easy Mega Menu files were not found, so the bundled classic styles and generic icons are used."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:428
+msgid "Easy Mega Menu styles or icons could not be read."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:432
+msgid "The uploads folder is not writable."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:439
+msgid "Easy Mega Menu styles or icons were not usable."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:448
+msgid "The copied styles could not be saved."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:459
+msgid "Easy Mega Menu styles and icons were copied."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:565
+msgid "Import from Easy Mega Menu"
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:566
+msgid "Easy Mega Menu import"
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:575
+msgid "You do not have permission to import menus."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:589
+msgid "You do not have permission to change this setting."
+msgstr ""
+
+#: admin/views/emm-import.php:22
+msgid "Copy your Easy Mega Menu menus into Ashbi Mega Menu. Easy Mega Menu's data is only read: nothing in it is changed or deleted, so you can switch back at any time."
+msgstr ""
+
+#: admin/views/emm-import.php:25
+msgid "Import finished. Easy Mega Menu was not changed."
+msgstr ""
+
+#: admin/views/emm-import.php:27
+msgid "The import did not finish and no menus were changed. Try again, or restore a snapshot from Tools."
+msgstr ""
+
+#: admin/views/emm-import.php:29
+msgid "Setting saved."
+msgstr ""
+
+#: admin/views/emm-import.php:33
+msgid "Last import"
+msgstr ""
+
+#. translators: %s: menu IDs.
+#: admin/views/emm-import.php:37
+msgid "Kept your existing Ashbi menus: %s"
+msgstr ""
+
+#. translators: 1: product profiles, 2: branding settings, 3: pages.
+#: admin/views/emm-import.php:40
+msgid "Product navigation: %1$d profiles, %2$d branding settings and %3$d page assignments copied."
+msgstr ""
+
+#: admin/views/emm-import.php:44
+msgid "1. Check what will be copied"
+msgstr ""
+
+#: admin/views/emm-import.php:46
+msgid "No Easy Mega Menu menus were found on this site."
+msgstr ""
+
+#: admin/views/emm-import.php:52
+msgid "ID (kept)"
+msgstr ""
+
+#: admin/views/emm-import.php:53
+msgid "Top items"
+msgstr ""
+
+#: admin/views/emm-import.php:55
+msgid "Not copied exactly"
+msgstr ""
+
+#: admin/views/emm-import.php:64
+msgid "An Ashbi menu already uses this ID. It is kept unless you choose to replace it below."
+msgstr ""
+
+#: admin/views/emm-import.php:66
+msgid "Imported before: it will be updated."
+msgstr ""
+
+#: admin/views/emm-import.php:74
+msgid "Nothing, everything matches."
+msgstr ""
+
+#. translators: 1: product profiles, 2: branding settings, 3: pages.
+#: admin/views/emm-import.php:88
+msgid "Also copied: %1$d product profiles, %2$d product branding settings and %3$d page assignments."
+msgstr ""
+
+#. translators: %s: Easy Mega Menu version.
+#: admin/views/emm-import.php:92
+msgid "Styles and icons will be copied from Easy Mega Menu %s, so the menus look exactly the same."
+msgstr ""
+
+#: admin/views/emm-import.php:94
+msgid "Easy Mega Menu's files were not found. The bundled classic styles and generic icons will be used; your own icons may show as a link icon."
+msgstr ""
+
+#: admin/views/emm-import.php:102
+msgid "Replace Ashbi menus that use the same ID"
+msgstr ""
+
+#: admin/views/emm-import.php:104
+msgid "Import menus"
+msgstr ""
+
+#: admin/views/emm-import.php:105
+msgid "A snapshot of your Ashbi menus is saved first."
+msgstr ""
+
+#: admin/views/emm-import.php:109
+msgid "2. Test before you switch"
+msgstr ""
+
+#: admin/views/emm-import.php:110
+msgid "Imported menus use the Classic (Easy Mega Menu) look. Put one on a private draft page with the Ashbi shortcode and compare it with your live header:"
+msgstr ""
+
+#: admin/views/emm-import.php:113
+msgid "3. Switch"
+msgstr ""
+
+#: admin/views/emm-import.php:114
+msgid "Turn this on, then deactivate Easy Mega Menu (do not delete it). Your headers keep their [easy_mega_menu] shortcodes and Ashbi answers them. To switch back, reactivate Easy Mega Menu: it takes over again straight away."
+msgstr ""
+
+#: admin/views/emm-import.php:118
+msgid "Handle [easy_mega_menu] shortcodes"
+msgstr ""
+
+#: admin/views/emm-import.php:121
+msgid "Easy Mega Menu is active, so it still answers its own shortcodes. Ashbi takes over only after you deactivate it."
+msgstr ""
+
+#: admin/views/emm-import.php:123
+msgid "Ashbi is answering [easy_mega_menu] shortcodes now."
+msgstr ""
+
+#: admin/views/emm-import.php:125
+msgid "Easy Mega Menu is not active. Turning this on makes your headers show the imported menus."
+msgstr ""
+
+#: admin/views/emm-import.php:128
+msgid "Save"
+msgstr ""
+
+#: admin/views/builder.php:217
+msgid "Site look"
+msgstr ""
+
+#: admin/views/builder.php:219
+msgid "Classic (Easy Mega Menu)"
+msgstr ""
+
+#: admin/views/builder.php:220
+msgid "Ashbi"
+msgstr ""
+
+#: admin/views/builder.php:222
+msgid "Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Switching to Ashbi changes how the menu looks on your site."
+msgstr ""
+
+#: admin/views/builder.php:225
+msgid "This menu was imported from Easy Mega Menu and keeps its Classic look on your site. The preview here shows its content in Ashbi's style, and colour and size changes below still apply. Check the final look on your site."
+msgstr ""
+
+#. translators: %d: number of menus.
+#: admin/views/emm-import.php:35
+msgid "%d menu copied."
+msgid_plural "%d menus copied."
+msgstr[0] ""
+msgstr[1] ""

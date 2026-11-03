@@ -1,0 +1,111 @@
+// Menus imported from Easy Mega Menu, shown through the old [easy_mega_menu]
+// shortcode with Easy Mega Menu not installed: the classic header, its own
+// styles and script, and the same mouse, keyboard and phone behaviour.
+const { test, expect } = require('@playwright/test');
+
+const classicPage = '/?pagename=e2e-classic';
+
+function watchErrors(page) {
+	const errors = [];
+	page.on('pageerror', (error) => errors.push(error.message));
+	page.on('console', (message) => {
+		if (message.type() === 'error') errors.push(message.text());
+	});
+	return errors;
+}
+
+test.describe('classic menu on desktop', () => {
+	test.use({ viewport: { width: 1280, height: 800 } });
+
+	test('the old shortcode renders the classic header with only classic assets', async ({ page }) => {
+		const errors = watchErrors(page);
+		await page.goto(classicPage);
+		const header = page.locator('header.emm-header[data-emm-id="main_nav"]');
+		await expect(header).toHaveCount(1);
+		await expect(header).toHaveAttribute('data-emm-initialized', 'true');
+		await expect(page.locator('link#abmm-classic-css')).toHaveCount(1);
+		await expect(page.locator('script#abmm-classic-js')).toHaveCount(1);
+		// No Ashbi-style menu on the page, so Ashbi's own assets stay away.
+		await expect(page.locator('link#abmm-frontend-css')).toHaveCount(0);
+		await expect(page.locator('script#abmm-frontend-js')).toHaveCount(0);
+		// The bundled sprite draws the icons.
+		const use = header.locator('.emm-icon--svg use').first();
+		await expect(use).toHaveAttribute('href', /assets\/classic\/emm-sprite\.svg\?ver=[^#]+#emm-icon-/);
+		expect(errors).toEqual([]);
+	});
+
+	test('hover opens the panel, categories switch and Escape closes', async ({ page }) => {
+		const errors = watchErrors(page);
+		await page.goto(classicPage);
+		const header = page.locator('header.emm-header').first();
+		const trigger = header.locator('[data-emm-mega-trigger]').first();
+		const panel = page.locator('#' + (await trigger.getAttribute('aria-controls')));
+
+		await trigger.hover();
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await expect(panel).toBeVisible();
+		await expect(panel.locator('.emm-mega__panel.is-active')).toContainText('Invoicing');
+
+		const people = panel.locator('.emm-mega__cat[data-emm-cat="people"]');
+		await people.hover();
+		await expect(people).toHaveAttribute('aria-expanded', 'true');
+		await expect(panel.locator('.emm-mega__panel.is-active')).toContainText('Analytics');
+
+		await page.keyboard.press('Escape');
+		await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+		await expect(panel).toBeHidden();
+		expect(errors).toEqual([]);
+	});
+
+	test('keyboard: Enter opens, Escape closes and returns focus', async ({ page }) => {
+		await page.goto(classicPage);
+		const trigger = page.locator('header.emm-header [data-emm-mega-trigger]').first();
+		await trigger.focus();
+		await page.keyboard.press('Enter');
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await page.keyboard.press('Escape');
+		await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+		await expect(trigger).toBeFocused();
+	});
+
+	test('both shortcodes print the same classic header', async ({ page }) => {
+		const markup = async (path) => {
+			await page.goto(path);
+			return page.locator('header.emm-header').first().evaluate((el) => {
+				const copy = el.cloneNode(true);
+				copy.removeAttribute('data-emm-initialized');
+				return copy.outerHTML.replace(/emm-main_nav-\d+/g, 'emm-main_nav-N');
+			});
+		};
+		expect(await markup('/?pagename=e2e-classic-ashbi')).toBe(await markup(classicPage));
+	});
+});
+
+test.describe('classic menu on a phone', () => {
+	test.use({ viewport: { width: 360, height: 800 }, hasTouch: true });
+
+	test('drawer opens, drills into a category, goes back and closes', async ({ page }) => {
+		const errors = watchErrors(page);
+		await page.goto(classicPage);
+		const header = page.locator('header.emm-header').first();
+		const toggle = header.locator('.emm-nav__toggle');
+		await toggle.click();
+		await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+		await expect(header.locator('.emm-nav__drawer')).toBeVisible();
+
+		await header.locator('[data-emm-mega-trigger]').first().click();
+		const finance = header.locator('.emm-mega__cat[data-emm-cat="finance"]');
+		await expect(finance).toBeVisible();
+		await finance.click();
+		await expect(header.locator('a.emm-mega__col-link', { hasText: 'Invoicing' })).toBeVisible();
+
+		const back = header.locator('[data-emm-back]').first();
+		await back.click();
+		await expect(finance).toBeVisible();
+
+		// While drilled in, the drawer covers the bar, so its own close button is the one in view.
+		await header.locator('[data-emm-drawer-close]:visible, .emm-nav__toggle:visible').first().click();
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+		expect(errors).toEqual([]);
+	});
+});

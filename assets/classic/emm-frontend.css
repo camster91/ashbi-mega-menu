@@ -1,0 +1,2659 @@
+/**
+ * Ashbi Mega Menu — Classic (Easy Mega Menu compatible) styles.
+ * Ported from Easy Mega Menu 1.6.76 with site-specific rules removed;
+ * class names stay `emm-` so existing site CSS keeps matching.
+ *
+ * Easy Mega Menu — Frontend styles
+ * Desktop: sidebar categories + feature grid
+ * Mobile: hamburger drawer + accordion mega
+ */
+
+.emm-header {
+	--emm-sidebar-bg: #f0f0f5;
+	--emm-active-bg: #ffffff;
+	--emm-panel-bg: #ffffff;
+	--emm-header-bg: #ffffff;
+	--emm-accent: #1a73e8;
+	--emm-grid-cols: 3;
+	--emm-text: #2c2c2c;
+	--emm-nav-link: #2c2c2c;
+	--emm-nav-hover: #1a73e8;
+	--emm-muted: #6b6b6b;
+	--emm-border: #e5e5ea;
+	--emm-cta-text: #ffffff;
+	--emm-panel-width: 1000px;
+	--emm-sidebar-width: 280px;
+	--emm-radius: 8px;
+	--emm-admin-offset: 0px;
+	--emm-mobile-offset: 52px;
+	position: relative;
+	z-index: var(--emm-z-index, 1000);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-size: 14px;
+	line-height: 1.45;
+	background: var(--emm-header-bg);
+	border-bottom: 0;
+	color: var(--emm-text);
+	overflow: visible;
+}
+
+.emm-header--transparent {
+	background: transparent;
+}
+
+/* Raise only the menu that is currently open so adjacent shared and product
+ * navigation bars never draw through one another. */
+.emm-header.emm-has-open-menu {
+	z-index: calc(var(--emm-z-index, 1000) + 100);
+}
+
+/* Elementor templates can place the shared and product navigations in
+ * separate ancestor stacking contexts. Lift the active template root so the
+ * open panel stays above the adjacent navigation bar. */
+.emm-stack-host--active {
+	position: relative !important;
+	z-index: 10000 !important;
+}
+
+/* Preserve the inactive header's layout space while preventing its controls
+ * from drawing through a panel that physically intersects it. */
+.emm-header.emm-obscured-by-open-menu {
+	visibility: hidden;
+	opacity: 0 !important;
+	pointer-events: none;
+	transition: none !important;
+}
+
+.emm-header *,
+.emm-header *::before,
+.emm-header *::after {
+	box-sizing: border-box;
+}
+
+.emm-nav {
+	position: relative;
+	overflow: visible;
+}
+
+/* Desktop: bar is unused visually; drawer is always visible as the nav row */
+.emm-nav__bar {
+	display: none;
+}
+
+.emm-nav__drawer {
+	display: block;
+}
+
+.emm-nav__backdrop {
+	display: none;
+}
+
+.emm-nav__inner {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 1.5rem;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 1.5rem;
+	min-height: 64px;
+}
+
+.emm-nav__identity {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+	gap: 0.75rem;
+	flex: 0 1 auto;
+}
+
+.emm-nav__identity--bar {
+	display: none;
+}
+
+.emm-nav__utility {
+	background: #f5f7fa;
+	border-bottom: 1px solid #e5e5ea;
+	color: #41444d;
+	font-size: 12px;
+	line-height: 1.2;
+}
+
+.emm-nav__utility-inner {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.55rem;
+	min-height: 30px;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 1.5rem;
+}
+
+.emm-nav__utility a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.emm-nav__utility a:hover,
+.emm-nav__utility a:focus-visible {
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.emm-nav__utility span {
+	color: #9aa0aa;
+}
+
+@media (max-width: 900px) {
+	.emm-header .emm-nav__identity--bar { display: inline-flex; margin-right: auto; max-width: calc(100% - 56px); }
+	.emm-header .emm-nav__identity--drawer { display: none; }
+	.emm-header .emm-nav__identity .emm-nav__brand { margin-right: 0; flex-shrink: 0; }
+	.emm-header .emm-nav__identity .emm-nav__brand-logo { max-width: min(120px, 30vw); height: auto; max-height: 34px; }
+	.emm-header .emm-nav__identity .emm-nav__product-name {
+		font-size: 16px;
+		white-space: nowrap;
+		overflow-wrap: normal;
+	}
+	.emm-header .emm-nav__utility { display: none; }
+	.emm-header .emm-nav__identity .emm-nav__product-wordmark { max-width: min(120px, 30vw); height: min(var(--emm-product-wordmark-height, 40px), 34px); }
+	.emm-header .emm-nav__identity .emm-nav__product-name--wordmark,
+	.emm-header .emm-nav__identity .emm-nav__product-wordmark { flex-shrink: 0; }
+}
+
+.emm-header.emm-force-mobile .emm-nav__identity--bar { display: inline-flex; margin-right: auto; max-width: calc(100% - 56px); }
+.emm-header.emm-force-mobile .emm-nav__identity--drawer { display: none; }
+.emm-header.emm-force-mobile .emm-nav__identity .emm-nav__brand { margin-right: 0; flex-shrink: 0; }
+.emm-header.emm-force-mobile .emm-nav__identity .emm-nav__brand-logo { max-width: min(120px, 30vw); height: auto; max-height: 34px; }
+.emm-header.emm-force-mobile .emm-nav__identity .emm-nav__product-name {
+	font-size: 16px;
+	white-space: nowrap;
+	overflow-wrap: normal;
+}
+.emm-header.emm-force-mobile .emm-nav__utility { display: none; }
+.emm-header.emm-force-mobile .emm-nav__identity .emm-nav__product-wordmark { max-width: min(120px, 30vw); height: min(var(--emm-product-wordmark-height, 40px), 34px); }
+.emm-header.emm-force-mobile .emm-nav__identity .emm-nav__product-name--wordmark,
+.emm-header.emm-force-mobile .emm-nav__identity .emm-nav__product-wordmark { flex-shrink: 0; }
+
+.emm-nav__product-name {
+	border-left: 1px solid var(--emm-border, #bbb);
+	padding-left: 0.75rem;
+	color: var(--emm-nav-link, #333);
+	font-family: var(--emm-product-font-family, inherit);
+	font-weight: var(--emm-product-font-weight, 600);
+	font-size: var(--emm-product-font-size, 20px);
+	line-height: 1.2;
+	text-decoration: none;
+	overflow-wrap: anywhere;
+	min-width: 0;
+}
+
+.emm-nav__product-name:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 3px;
+}
+
+.emm-nav__product-name--wordmark {
+	font-size: 0;
+	line-height: 0;
+}
+
+.emm-nav__product-wordmark {
+	display: block;
+	width: auto;
+	max-width: 180px;
+	height: var(--emm-product-wordmark-height, var(--emm-brand-logo-height, 40px));
+	object-fit: contain;
+}
+
+.emm-nav__brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.65rem;
+	flex: 0 1 auto;
+	min-width: 0;
+	color: var(--emm-nav-link);
+	font-weight: 700;
+	line-height: 1.2;
+	text-decoration: none;
+}
+
+.emm-nav__brand:hover,
+.emm-nav__brand:focus {
+	color: var(--emm-nav-hover);
+}
+
+.emm-header .emm-nav__brand-logo {
+	display: block;
+	width: auto;
+	max-width: 180px;
+	height: var(--emm-brand-logo-height, 40px);
+	object-fit: contain;
+}
+
+.emm-nav__brand-fallback {
+	display: none;
+	font-size: 18px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.emm-nav__brand--logo-failed .emm-nav__brand-logo {
+	display: none;
+}
+
+.emm-nav__brand--logo-failed .emm-nav__brand-fallback {
+	display: inline;
+}
+
+.emm-nav__brand-title {
+	overflow: hidden;
+	max-width: 18rem;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.emm-nav__brand--bar {
+	display: none;
+}
+
+.emm-nav__context {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+	max-width: 16rem;
+	color: var(--emm-nav-link);
+	font-size: 17px;
+	font-weight: 650;
+	line-height: 1.2;
+	text-decoration: none;
+}
+
+.emm-nav__brand + .emm-nav__context {
+	border-left: 1px solid var(--emm-border);
+	margin-left: 0.15rem;
+	padding-left: 0.9rem;
+}
+
+.emm-nav__context:hover,
+.emm-nav__context:focus {
+	color: var(--emm-nav-hover);
+}
+
+.emm-nav__context-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.emm-nav__context--bar {
+	display: none;
+}
+
+/* Product-local navigation is a second information-architecture level, not a
+ * second header. It deliberately has no duplicate brand or corporate links. */
+.emm-product-nav--rail {
+	border-top: 1px solid var(--emm-border);
+	background: var(--emm-header-bg);
+	background: color-mix(in srgb, var(--emm-header-bg) 96%, var(--emm-sidebar-bg));
+}
+
+.emm-product-nav__inner {
+	display: flex;
+	align-items: center;
+	gap: 1.1rem;
+	max-width: 1200px;
+	min-height: 46px;
+	margin: 0 auto;
+	padding: 0 1.5rem;
+}
+
+.emm-product-nav__identity {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+	color: var(--emm-text);
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.3;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.emm-header .emm-product-nav__identity .emm-product-nav__wordmark {
+	display: block;
+	width: auto;
+	max-width: 160px;
+	height: var(--emm-product-wordmark-height, 20px);
+	object-fit: contain;
+}
+
+/* Elementor sticky containers can keep a narrowed desktop inline position
+ * after the navigation switches to its mobile drawer. Anchor only the active
+ * sticky branch to the viewport while the drawer is open. */
+@media (max-width: 900px) {
+	.elementor-sticky--active.emm-stack-host--active {
+		left: 0 !important;
+		right: 0 !important;
+		width: 100% !important;
+		max-width: 100vw !important;
+	}
+}
+
+a.emm-product-nav__identity:hover,
+a.emm-product-nav__identity:focus {
+	color: var(--emm-nav-hover);
+}
+
+.emm-product-nav__identity::after {
+	content: "";
+	width: 1px;
+	height: 1.25rem;
+	margin-left: 0.1rem;
+	background: var(--emm-border);
+}
+
+.emm-product-nav__list {
+	display: flex;
+	align-items: center;
+	gap: 0.1rem;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	flex: 1;
+	overflow-x: auto;
+	scrollbar-width: thin;
+}
+
+.emm-product-nav__link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 0.55rem 0.5rem;
+	border-radius: 4px;
+	color: var(--emm-nav-link) !important;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.3;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+
+.emm-product-nav__link:hover,
+.emm-product-nav__link:focus,
+.emm-product-nav__link.is-current {
+	color: var(--emm-nav-hover) !important;
+	text-decoration: underline !important;
+	text-decoration-thickness: 0.14em !important;
+	text-underline-offset: 0.3em;
+}
+
+.emm-product-nav__cta {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 36px;
+	padding: 0.45rem 0.8rem;
+	border-radius: calc(var(--emm-radius) * 0.75);
+	background: var(--emm-accent);
+	color: var(--emm-cta-text) !important;
+	font-size: 14px;
+	font-weight: 650;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+
+.emm-product-nav__cta:hover,
+.emm-product-nav__cta:focus {
+	filter: brightness(1.08);
+	color: var(--emm-cta-text) !important;
+}
+
+.emm-product-nav--drawer {
+	display: none;
+}
+
+/* The unified row is opt-in through the shortcode/render argument. It is
+ * intentionally hidden until the header explicitly requests it, so existing
+ * live placements continue to use the stacked presentation unchanged. */
+.emm-product-nav--unified {
+	display: none;
+}
+
+.emm-product-nav__identity:focus-visible,
+.emm-product-nav__link:focus-visible,
+.emm-product-nav__cta:focus-visible {
+	outline: 3px solid var(--emm-accent);
+	outline-offset: 3px;
+}
+
+.emm-nav__list {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25rem;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	flex: 1;
+	min-width: 0;
+	flex-wrap: wrap;
+}
+
+.emm-nav-align--left .emm-nav__list {
+	justify-content: flex-start;
+}
+
+.emm-nav-align--right .emm-nav__list {
+	justify-content: flex-end;
+}
+
+.emm-nav__item {
+	position: static;
+}
+
+.emm-nav__item--mega {
+	/* Keep open path from trigger → panel for hover */
+	position: static;
+}
+
+.emm-nav__link,
+.emm-nav__link:link,
+.emm-nav__link:visited {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.9rem 0.3rem;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--emm-nav-link) !important;
+	text-decoration: none !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	outline-offset: 2px;
+	cursor: pointer;
+	font-family: inherit;
+	line-height: 1.3;
+	border-radius: 4px;
+	width: auto;
+	text-align: left;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+@media (min-width: 901px) {
+	.emm-header .emm-nav__link,
+	.emm-header .emm-nav__link:link,
+	.emm-header .emm-nav__link:visited {
+		gap: 6px;
+		padding: 8px 16px;
+		font-size: 17px;
+	}
+}
+
+.emm-nav__link:hover,
+.emm-nav__link:focus,
+.emm-nav__item.is-open > .emm-nav__link {
+	color: var(--emm-nav-hover) !important;
+	text-decoration: none !important;
+	background: transparent !important;
+}
+
+.emm-nav__link:focus-visible,
+.emm-nav__cta:focus-visible,
+.emm-mega__cat:focus-visible,
+.emm-mega__col-link:focus-visible,
+.emm-mega__grid-link:focus-visible {
+	outline: 3px solid var(--emm-accent);
+	outline-offset: 3px;
+}
+
+.emm-nav__item.is-current > .emm-nav__link,
+.emm-nav__item.is-current-ancestor > .emm-nav__link {
+	color: var(--emm-nav-hover) !important;
+	text-decoration: underline !important;
+	text-decoration-thickness: 0.14em !important;
+	text-underline-offset: 0.3em;
+}
+
+.emm-nav__link--toggle {
+	/* Same visual as other nav anchors */
+	cursor: pointer;
+}
+
+.emm-chevron {
+	opacity: 0.7;
+	transition: transform 0.2s ease;
+	flex-shrink: 0;
+	margin-left: 0.15rem;
+}
+
+.emm-nav__item.is-open .emm-chevron {
+	transform: rotate(180deg);
+}
+
+.emm-nav__cta {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.55rem 1.25rem;
+	background: var(--emm-accent);
+	color: var(--emm-cta-text) !important;
+	font-size: 15px;
+	font-weight: 600;
+	text-decoration: none;
+	border-radius: var(--emm-radius);
+	transition: filter 0.15s ease;
+	white-space: nowrap;
+}
+
+.emm-cta--square .emm-nav__cta {
+	border-radius: 0;
+}
+
+.emm-cta--rounded .emm-nav__cta {
+	border-radius: calc(var(--emm-radius) * 0.75);
+}
+
+.emm-cta--pill .emm-nav__cta {
+	border-radius: 999px;
+}
+
+.emm-nav__cta:hover {
+	filter: brightness(1.08);
+	color: var(--emm-cta-text) !important;
+}
+
+.emm-nav__cta--drawer {
+	display: inline-flex;
+}
+
+.emm-nav__toggle {
+	display: none;
+}
+
+.emm-nav__drawer-head {
+	display: none;
+}
+
+@media (min-width: 901px) {
+	.emm-presentation--unified .emm-nav__inner {
+		flex-wrap: nowrap;
+		gap: clamp(0.65rem, 1vw, 1rem);
+		min-height: 72px;
+		overflow: visible;
+	}
+
+	.emm-presentation--unified .emm-nav__identity {
+		flex: 0 0 auto;
+		white-space: nowrap;
+	}
+
+	.emm-presentation--unified .emm-nav__brand-logo {
+		height: var(--emm-brand-logo-height, 40px);
+		max-width: 180px;
+	}
+
+	.emm-presentation--unified .emm-nav__product-name {
+		display: inline-flex;
+		align-items: center;
+		min-height: 28px;
+		font-size: 18px;
+		font-weight: 600;
+		white-space: nowrap;
+		overflow-wrap: normal;
+	}
+
+	.emm-header.emm-presentation--unified .emm-nav__identity .emm-nav__product-wordmark {
+		width: auto;
+		max-width: 180px;
+		height: var(--emm-product-wordmark-height, 18px);
+		flex-shrink: 0;
+	}
+
+	.emm-presentation--unified .emm-nav__list {
+		flex: 0 0 auto;
+		flex-wrap: nowrap;
+		justify-content: flex-start;
+		min-width: 0;
+	}
+
+	/* The product-page composition exposes one compact platform switcher.
+	 * Other corporate destinations remain in the mobile drawer, but do not
+	 * compete with product-local links in the unified desktop row. */
+	.emm-presentation--unified .emm-nav__item--unified-secondary {
+		display: none;
+	}
+
+	.emm-presentation--unified .emm-nav__item--unified-switcher .emm-nav__link,
+	.emm-presentation--unified .emm-nav__item--unified-switcher .emm-nav__link:link,
+	.emm-presentation--unified .emm-nav__item--unified-switcher .emm-nav__link:visited {
+		gap: 4px;
+		min-height: 32px;
+		padding: 6px 10px;
+		border-radius: 5px;
+		background: #e8eef9 !important;
+		color: var(--emm-nav-hover) !important;
+		font-size: 17px;
+		font-weight: 600;
+	}
+
+	.emm-presentation--unified .emm-nav__item--unified-switcher .emm-nav__link:hover,
+	.emm-presentation--unified .emm-nav__item--unified-switcher.is-open > .emm-nav__link {
+		background: #e9eef7 !important;
+		color: var(--emm-nav-hover) !important;
+	}
+
+	.emm-presentation--unified .emm-nav__item--unified-switcher .emm-nav__link:focus-visible {
+		outline-width: 2px;
+		outline-offset: 2px;
+	}
+
+	.emm-presentation--unified .emm-nav__list > li,
+	.emm-presentation--unified .emm-product-nav--unified .emm-product-nav__list > li {
+		flex: 0 0 auto;
+	}
+
+	.emm-presentation--unified .emm-product-nav--rail {
+		display: none;
+	}
+
+	.emm-presentation--unified .emm-product-nav--unified {
+		display: block;
+		flex: 1 1 auto;
+		min-width: 0;
+		background: transparent;
+	}
+
+	.emm-presentation--unified .emm-product-nav--unified .emm-product-nav__inner {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		min-width: 0;
+		min-height: 0;
+		max-width: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.emm-presentation--unified .emm-product-nav--unified .emm-product-nav__list {
+		flex: 1 1 auto;
+		justify-content: flex-end;
+		gap: clamp(0.15rem, 0.5vw, 0.45rem);
+		overflow-x: auto;
+		overscroll-behavior-inline: contain;
+		scrollbar-width: thin;
+	}
+
+	.emm-presentation--unified .emm-product-nav--unified .emm-product-nav__link {
+		min-height: 40px;
+		padding: 0.5rem 0.45rem;
+		font-size: 15px;
+	}
+
+	.emm-presentation--unified .emm-nav__cta--bar {
+		flex-shrink: 0;
+	}
+}
+
+/* ---- Mega panel (desktop) ---- */
+.emm-mega {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	/* Overlap nav slightly so there is no dead hover gap */
+	top: calc(100% - 4px);
+	width: min(var(--emm-panel-width), calc(100vw - 2rem));
+	padding-top: 4px;
+	z-index: 1001;
+}
+
+/* Full-bleed mega panel (edge to edge of the header / nav) */
+.emm-full-width .emm-nav {
+	width: 100%;
+}
+
+.emm-full-width .emm-mega {
+	left: 0;
+	right: 0;
+	transform: none;
+	width: 100%;
+	max-width: none;
+}
+
+.emm-full-width .emm-mega__inner,
+.emm-full-width .emm-mega__inner--features {
+	border-radius: 0;
+	border-left: none;
+	border-right: none;
+}
+
+/* Invisible hover bridge: covers space above panel back into the nav bar */
+.emm-mega::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -10px;
+	height: 12px;
+	background: transparent;
+}
+
+.emm-mega[hidden] {
+	display: none !important;
+}
+
+.emm-mega__inner {
+	display: flex;
+	background: var(--emm-panel-bg);
+	border: 1px solid var(--emm-border);
+	border-bottom: 1px solid var(--emm-border);
+	border-radius: var(--emm-radius);
+	overflow: hidden;
+	min-height: 0;
+}
+
+.emm-shadow--none .emm-mega__inner {
+	box-shadow: none;
+}
+
+.emm-shadow--soft .emm-mega__inner {
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.emm-shadow--medium .emm-mega__inner {
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.emm-shadow--strong .emm-mega__inner {
+	box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+}
+
+.emm-layout--sidebar-right .emm-mega__inner {
+	flex-direction: row-reverse;
+}
+
+.emm-layout--stacked .emm-mega__inner {
+	flex-direction: column;
+}
+
+/* Platforms accordion structure (desktop = sidebar + panel) */
+.emm-mega__accordion {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	position: relative;
+	width: 100%;
+	min-height: var(--emm-active-panel-height, 0px);
+	/* Keep the content canvas white even when a short active panel does not
+	 * cover the full height of the category rail. */
+	background: var(--emm-panel-bg);
+	background: linear-gradient(
+		to right,
+		var(--emm-sidebar-bg) 0,
+		var(--emm-sidebar-bg) calc(var(--emm-sidebar-width) + 0.25rem),
+		var(--emm-panel-bg) calc(var(--emm-sidebar-width) + 0.25rem),
+		var(--emm-panel-bg) 100%
+	);
+	padding: 0.5rem 0.4rem;
+	gap: 0;
+	align-content: start;
+	box-sizing: border-box;
+}
+
+.emm-layout--sidebar-right .emm-mega__accordion {
+	align-items: flex-end;
+	background: var(--emm-panel-bg);
+	background: linear-gradient(
+		to left,
+		var(--emm-sidebar-bg) 0,
+		var(--emm-sidebar-bg) calc(var(--emm-sidebar-width) + 0.25rem),
+		var(--emm-panel-bg) calc(var(--emm-sidebar-width) + 0.25rem),
+		var(--emm-panel-bg) 100%
+	);
+}
+
+.emm-layout--stacked .emm-mega__accordion {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.emm-mega__section {
+	display: contents;
+}
+
+@media (min-width: 901px) {
+	.emm-nav__item--compact-mega {
+		position: relative;
+	}
+
+	.emm-nav__item--compact-mega .emm-mega {
+		left: 50%;
+		right: auto;
+		transform: translateX(-50%);
+	}
+
+	.emm-mega--features.emm-mega--compact {
+		width: min(380px, calc(100vw - 2rem));
+	}
+
+	.emm-mega--columns-only {
+		width: min(860px, calc(100vw - 2rem));
+	}
+
+	.emm-mega--columns-only .emm-mega__columns {
+		grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.35fr) minmax(0, 0.9fr);
+	}
+
+	.emm-mega--columns-only.emm-mega--columns-compact {
+		width: min(360px, calc(100vw - 2rem));
+	}
+
+	.emm-mega--columns-only.emm-mega--columns-compact .emm-mega__columns {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.emm-mega--columns-only .emm-mega__inner,
+	.emm-mega--columns-only .emm-mega__accordion {
+		display: block;
+		min-height: 0;
+		background: var(--emm-panel-bg);
+		padding: 0;
+	}
+
+	.emm-mega--columns-only .emm-mega__section {
+		display: block;
+	}
+
+	.emm-header .emm-mega--columns-only .emm-mega__cat {
+		display: none;
+	}
+
+	.emm-mega--columns-only .emm-mega__panel {
+		position: static;
+		max-height: min(70vh, 560px);
+	}
+}
+
+.emm-layout--stacked .emm-mega__section {
+	display: contents;
+}
+
+.emm-header .emm-mega__cat {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.7rem;
+	/* Keep desktop hover/focus paint inside the sidebar. The content panel is
+	 * absolutely positioned beside these controls, so a full-width category
+	 * button would cover the panel's first row when hovered. */
+	width: calc(var(--emm-sidebar-width) - 0.15rem);
+	margin: 0;
+	padding: 0.65rem 0.75rem;
+	text-align: left;
+	background: transparent;
+	border: 0;
+	border-bottom: 1px solid var(--emm-border);
+	border-radius: 0;
+	cursor: pointer;
+	font-family: inherit;
+	color: var(--emm-text) !important;
+	transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+	-webkit-tap-highlight-color: transparent;
+	grid-column: 1;
+	align-self: start;
+	box-sizing: border-box;
+	height: auto;
+	min-height: 48px;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	appearance: none;
+	-webkit-appearance: none;
+	font-size: inherit;
+	line-height: inherit;
+}
+
+.emm-layout--sidebar-right .emm-mega__cat {
+	grid-column: 2;
+}
+
+.emm-layout--stacked .emm-mega__cat {
+	grid-column: auto;
+	flex: 0 0 auto;
+	width: auto;
+	min-width: 140px;
+	margin: 0;
+}
+
+.emm-layout--stacked .emm-mega__accordion {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	grid-auto-rows: auto;
+	background: var(--emm-sidebar-bg);
+	padding: 0.65rem;
+	gap: 0.4rem;
+}
+
+.emm-layout--stacked .emm-mega__section {
+	display: contents;
+}
+
+.emm-layout--stacked .emm-mega__panel {
+	position: static;
+	top: auto;
+	left: auto;
+	right: auto;
+	grid-column: 1 / -1;
+	grid-row: 2;
+}
+
+/* Own the complete desktop category state. Elementor and host themes often
+ * load generic button:hover colors after this stylesheet; the header scope
+ * keeps those rules from creating gray/white bands over the menu. */
+.emm-header .emm-mega__cat:hover,
+.emm-header .emm-mega__cat:focus {
+	background: rgba(26, 115, 232, 0.06);
+	background: color-mix(in srgb, var(--emm-accent) 6%, var(--emm-sidebar-bg));
+	box-shadow: none;
+	color: var(--emm-text) !important;
+}
+
+.emm-header .emm-mega__cat.is-active,
+.emm-header .emm-mega__cat.is-active:hover,
+.emm-header .emm-mega__cat.is-active:focus {
+	background: rgba(26, 115, 232, 0.1);
+	background: color-mix(in srgb, var(--emm-accent) 10%, var(--emm-sidebar-bg));
+	box-shadow: inset 3px 0 0 var(--emm-accent);
+	color: var(--emm-text) !important;
+	z-index: 1;
+}
+
+.emm-layout--sidebar-right .emm-mega__cat.is-active,
+.emm-layout--stacked .emm-mega__cat.is-active {
+	border-color: transparent;
+}
+
+.emm-mega__cat-chevron {
+	display: none;
+	margin-left: auto;
+	flex-shrink: 0;
+	color: var(--emm-muted);
+	transition: transform 0.2s ease;
+	align-self: center;
+}
+
+.emm-mega__section.is-open .emm-mega__cat-chevron {
+	transform: rotate(180deg);
+	color: var(--emm-accent);
+}
+
+.emm-mega__section.is-current-ancestor > .emm-mega__cat {
+	box-shadow: inset 3px 0 0 var(--emm-accent);
+}
+
+.emm-mega__cat-icon {
+	flex-shrink: 0;
+	color: var(--emm-accent);
+	margin-top: 0.05rem;
+	line-height: 0;
+}
+
+.emm-mega__cat-icon .emm-icon--lg {
+	font-size: 22px;
+}
+
+.emm-mega__cat-text {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	min-width: 0;
+	flex: 1;
+}
+
+.emm-mega__cat-title {
+	display: block;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	line-height: 1.3;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	color: inherit;
+}
+
+.emm-cats-upper .emm-mega__cat-title {
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.emm-hide-cat-desc .emm-mega__cat-desc {
+	display: none !important;
+}
+
+.emm-mega__cat-desc {
+	display: block;
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--emm-muted);
+	line-height: 1.35;
+}
+
+.emm-mega__cat.is-active .emm-mega__cat-desc {
+	opacity: 0.92;
+}
+
+.emm-mega__panel {
+	position: absolute;
+	top: 0;
+	left: calc(var(--emm-sidebar-width) + 0.25rem);
+	right: 0;
+	padding: 1.25rem 1.25rem 1.5rem;
+	background: var(--emm-panel-bg);
+	min-width: 0;
+	min-height: 0;
+	max-height: min(70vh, 560px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+	margin: 0;
+	border-radius: 0;
+	box-sizing: border-box;
+}
+
+.emm-layout--sidebar-right .emm-mega__panel {
+	left: 0;
+	right: calc(var(--emm-sidebar-width) + 0.25rem);
+}
+
+.emm-mega__panel[hidden] {
+	display: none !important;
+}
+
+.emm-mega__panel-title {
+	margin: 0 0 1rem;
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--emm-text);
+	text-align: center;
+}
+
+.emm-mega__panel-title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.emm-mega__panel-title a:hover {
+	color: var(--emm-accent, #4264ff);
+}
+
+.emm-title--left .emm-mega__panel-title {
+	text-align: left;
+}
+
+.emm-title--center .emm-mega__panel-title {
+	text-align: center;
+}
+
+/* Category column groups (e.g. Finance / Spend Management / Operations) */
+.emm-mega__columns {
+	display: grid;
+	grid-template-columns: repeat(var(--emm-col-count, 3), minmax(0, 1fr));
+	gap: 1rem 1.5rem;
+	align-items: start;
+}
+
+.emm-mega__col {
+	min-width: 0;
+}
+
+.emm-mega__col-title {
+	margin: 0 0 0.65rem;
+	padding: 0;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--emm-muted);
+	line-height: 1.3;
+}
+
+.emm-mega__col-title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.emm-mega__col-title a:hover {
+	color: var(--emm-accent, #4264ff);
+}
+
+.emm-mega__col-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+}
+
+.emm-mega__col-link {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.55rem;
+	padding: 0.3rem 0;
+	color: var(--emm-text) !important;
+	text-decoration: none !important;
+	font-size: 14px;
+	line-height: 1.4;
+	border-radius: 4px;
+	transition: color 0.15s ease;
+}
+
+.emm-mega__col-link:not(.has-icon)::before {
+	content: "";
+	flex-shrink: 0;
+	width: 5px;
+	height: 5px;
+	margin-top: 0.45em;
+	border-radius: 50%;
+	background: var(--emm-muted);
+}
+
+.emm-mega__col-link:hover,
+.emm-mega__col-link:focus {
+	color: var(--emm-accent) !important;
+	text-decoration: none !important;
+}
+
+.emm-mega__col-link:hover:not(.has-icon)::before,
+.emm-mega__col-link:focus:not(.has-icon)::before {
+	background: var(--emm-accent);
+}
+
+.emm-mega__col-icon {
+	flex-shrink: 0;
+	color: var(--emm-muted);
+	margin-top: 0.1em;
+}
+
+.emm-mega__col-link:hover .emm-mega__col-icon {
+	color: var(--emm-accent);
+}
+
+.emm-mega__col-link.is-disabled {
+	cursor: not-allowed;
+	color: var(--emm-muted) !important;
+	opacity: 1;
+}
+
+.emm-mega__col-link.is-disabled:hover,
+.emm-mega__col-link.is-disabled:focus {
+	color: var(--emm-muted) !important;
+	text-decoration: none !important;
+}
+
+.emm-mega__col-link.is-disabled:hover .emm-mega__col-icon,
+.emm-mega__col-link.is-disabled:focus .emm-mega__col-icon {
+	color: var(--emm-muted);
+}
+
+.emm-mega__col-label {
+	min-width: 0;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+}
+
+.emm-mega__col-copy {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 0.12rem;
+}
+
+.emm-mega__col-description {
+	display: block;
+	max-width: 30ch;
+	color: var(--emm-muted);
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.35;
+}
+
+.emm-mega__grid {
+	display: grid;
+	grid-template-columns: repeat(var(--emm-grid-cols, 3), 1fr);
+	gap: 0.3rem 1rem;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.emm-mega__grid-link {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.55rem 0.4rem;
+	font-size: 14px;
+	color: var(--emm-text) !important;
+	text-decoration: none !important;
+	border-radius: 6px;
+	transition: background 0.15s ease, color 0.15s ease;
+	min-height: 40px;
+}
+
+.emm-mega__grid-label {
+	min-width: 0;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+}
+
+.emm-mega__grid-link:hover,
+.emm-mega__grid-link:focus {
+	background: var(--emm-active-bg);
+	color: var(--emm-accent) !important;
+	text-decoration: none !important;
+}
+
+.emm-mega__grid-icon {
+	flex-shrink: 0;
+	color: var(--emm-muted);
+}
+
+.emm-mega__grid-link:hover .emm-mega__grid-icon {
+	color: var(--emm-accent);
+}
+
+.emm-mega__grid-link.is-disabled {
+	cursor: not-allowed;
+	color: var(--emm-muted) !important;
+	opacity: 1;
+}
+
+.emm-mega__grid-link.is-disabled:hover,
+.emm-mega__grid-link.is-disabled:focus {
+	background: transparent;
+	color: var(--emm-muted) !important;
+	text-decoration: none !important;
+}
+
+.emm-mega__grid-link.is-disabled:hover .emm-mega__grid-icon,
+.emm-mega__grid-link.is-disabled:focus .emm-mega__grid-icon {
+	color: var(--emm-muted);
+}
+
+.emm-mega__col-link[aria-current="page"],
+.emm-mega__grid-link[aria-current="page"],
+.emm-mega__panel-title a[aria-current="page"],
+.emm-mega__col-title a[aria-current="page"] {
+	color: var(--emm-accent) !important;
+	font-weight: 700;
+	text-decoration: underline !important;
+	text-decoration-thickness: 0.14em !important;
+	text-underline-offset: 0.2em;
+}
+
+.emm-header.emm-has-overflow-risk .emm-nav__inner {
+	gap: 0.5rem 0.75rem;
+}
+
+.emm-header.emm-has-overflow-risk .emm-nav__link {
+	padding-inline: 0.55rem;
+	white-space: normal;
+}
+
+.emm-mega--features {
+	width: min(560px, calc(100vw - 2rem));
+}
+
+.emm-mega__inner--features {
+	display: block;
+	min-height: 0;
+	padding: 1.25rem 1.5rem;
+	background: var(--emm-panel-bg);
+}
+
+.emm-mega__grid--features {
+	gap: 0.25rem 2rem;
+}
+
+.emm-mega__grid--features .emm-mega__grid-link {
+	padding: 0.7rem 0.65rem;
+}
+
+/* Icons */
+.emm-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 0;
+	width: 1em;
+	height: 1em;
+	font-size: var(--emm-icon-size, var(--emm-icon-default-size, 22px));
+	color: var(--emm-icon-color, var(--emm-icon-default, currentColor));
+	background: var(--emm-icon-background, var(--emm-icon-default-background, transparent));
+	border-radius: var(--emm-icon-radius, var(--emm-icon-default-radius, 0));
+	box-shadow: inset 0 0 0 1px var(--emm-icon-border, var(--emm-icon-default-border, transparent));
+	transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.emm-header .emm-icon {
+	padding: 0 !important;
+}
+
+.emm-header .emm-icon > svg {
+	display: block;
+	width: 100% !important;
+	height: 100% !important;
+	max-width: 100% !important;
+	max-height: 100% !important;
+	flex: 0 0 100%;
+}
+
+/*
+ * Some legacy Elementor templates add `svg path { fill: currentColor !important; }`.
+ * Preserve the no-fill contract of line icons without changing product artwork
+ * whose paths explicitly opt into a fill colour.
+ */
+.emm-header .emm-icon--svg > svg[fill="none"] path:not([fill]),
+.emm-header .emm-icon--svg > svg[fill="none"] path[fill="none"] {
+	fill: none !important;
+}
+
+.emm-icon--colored {
+	color: var(--emm-icon-color);
+}
+
+.emm-icon--colored svg [fill]:not([fill="none"]) {
+	fill: currentColor !important;
+}
+
+.emm-icon--colored svg [stroke]:not([stroke="none"]) {
+	stroke: currentColor !important;
+}
+
+.emm-icon--lg {
+	font-size: var(--emm-icon-size, var(--emm-icon-default-size, 22px));
+}
+
+.emm-icon--sm {
+	font-size: var(--emm-icon-size, var(--emm-icon-default-size, 22px));
+}
+
+.emm-icon--media {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 0;
+}
+
+.emm-icon__image {
+	display: block;
+	width: 1em;
+	height: 1em;
+	object-fit: contain;
+}
+
+/* Raster assets preserve their original artwork and are intentionally non-tintable. */
+.emm-icon--raster {
+	color: inherit;
+}
+
+.emm-mega__cat:hover .emm-icon,
+.emm-mega__cat:focus .emm-icon,
+.emm-mega__col-link:hover .emm-icon,
+.emm-mega__col-link:focus .emm-icon,
+.emm-mega__grid-link:hover .emm-icon,
+.emm-mega__grid-link:focus .emm-icon {
+	color: var(--emm-icon-hover, var(--emm-icon-default-hover, var(--emm-accent)));
+}
+
+.emm-mega__cat.is-active .emm-icon,
+.emm-mega__section.is-open > .emm-mega__cat .emm-icon,
+.emm-mega__col-link[aria-current] .emm-icon,
+.emm-mega__grid-link[aria-current] .emm-icon,
+.current-menu-item .emm-icon,
+.is-current .emm-icon {
+	color: var(--emm-icon-active, var(--emm-icon-default-active, var(--emm-accent)));
+}
+
+.emm-mega__col-link.is-disabled .emm-icon,
+.emm-mega__grid-link.is-disabled .emm-icon,
+[aria-disabled="true"] .emm-icon {
+	opacity: 0.5;
+	filter: grayscale(0.25);
+}
+
+.screen-reader-text {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+
+html.emm-drawer-open {
+	overflow: hidden;
+}
+
+/* =========================================================
+   Mobile / tablet
+   ========================================================= */
+@media (max-width: 900px) {
+	.emm-mega::before {
+		display: none;
+	}
+
+	.emm-mega {
+		top: auto;
+		padding-top: 0;
+		transform: none;
+		left: auto;
+	}
+
+	.emm-header {
+		position: sticky;
+		top: var(--emm-admin-offset);
+	}
+
+	.emm-nav__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding:
+			max(0.55rem, env(safe-area-inset-top))
+			max(1rem, env(safe-area-inset-right))
+			0.55rem
+			max(1rem, env(safe-area-inset-left));
+		min-height: 52px;
+	}
+
+	.emm-nav__brand--bar {
+		display: inline-flex;
+		margin-right: auto;
+	}
+
+	.emm-nav__context--bar {
+		display: inline-flex;
+		max-width: min(10rem, 27vw);
+		font-size: 15px;
+		margin-right: auto;
+	}
+
+	.emm-nav__brand + .emm-nav__context--bar {
+		margin-left: 0.6rem;
+		padding-left: 0.6rem;
+	}
+
+	.emm-nav__context--drawer {
+		display: inline-flex;
+		max-width: none;
+		padding: 0.8rem 1rem 0;
+	}
+
+	.emm-nav__brand + .emm-nav__context--drawer {
+		border-left: 0;
+		margin-left: 0;
+	}
+
+	.emm-nav__brand--drawer {
+		display: none;
+	}
+
+	.emm-nav__brand-logo {
+		max-width: min(150px, 42vw);
+		height: min(var(--emm-brand-logo-height, 40px), 34px);
+	}
+
+	.emm-nav__brand-title {
+		max-width: 42vw;
+	}
+
+	.emm-nav__toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		margin: 0;
+		background: transparent;
+		border: none;
+		border-radius: 8px;
+		cursor: pointer;
+		color: var(--emm-text);
+		font-family: inherit;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.emm-nav__toggle:hover,
+	.emm-nav__toggle:focus-visible {
+		background: rgba(0, 0, 0, 0.05);
+	}
+
+	.emm-nav__toggle-box {
+		position: relative;
+		width: 22px;
+		height: 16px;
+		display: block;
+	}
+
+	.emm-nav__toggle-bar,
+	.emm-nav__toggle-bar::before,
+	.emm-nav__toggle-bar::after {
+		display: block;
+		width: 22px;
+		height: 2px;
+		background: currentColor;
+		border-radius: 2px;
+		position: absolute;
+		left: 0;
+		top: 7px;
+		transition: transform 0.2s ease, opacity 0.2s ease, top 0.2s ease;
+	}
+
+	.emm-nav__toggle-bar::before,
+	.emm-nav__toggle-bar::after {
+		content: "";
+	}
+
+	.emm-nav__toggle-bar::before {
+		top: -7px;
+	}
+
+	.emm-nav__toggle-bar::after {
+		top: 7px;
+	}
+
+	.emm-header.is-mobile-open .emm-nav__toggle-bar {
+		background: transparent;
+	}
+
+	.emm-header.is-mobile-open .emm-nav__toggle-bar::before {
+		top: 0;
+		transform: rotate(45deg);
+	}
+
+	.emm-header.is-mobile-open .emm-nav__toggle-bar::after {
+		top: 0;
+		transform: rotate(-45deg);
+	}
+
+	/* The drawer already provides a close control. Hiding the bar toggle while
+	 * open avoids duplicate close buttons in stacked Elementor headers. */
+	.emm-header.is-mobile-open .emm-nav__toggle {
+		display: none !important;
+		visibility: hidden !important;
+		pointer-events: none !important;
+	}
+
+	.emm-nav__cta--bar {
+		display: inline-flex;
+		padding: 0.5rem 1rem;
+		font-size: 14px;
+		min-height: 40px;
+	}
+
+	.emm-nav__cta--drawer {
+		display: flex;
+		width: calc(100% - 2rem);
+		margin: 1rem;
+		padding: 0.85rem 1rem;
+		font-size: 16px;
+	}
+
+	/* A product page keeps the closed bar intentionally simple at phone and
+	 * tablet widths. Its identity, local links, and optional CTA lead the
+	 * drawer instead of competing for the 320–390px header row. */
+	.emm-has-product-profile .emm-nav__context--bar,
+	.emm-has-product-profile .emm-nav__cta--bar,
+	.emm-nav__identity--bar ~ .emm-nav__cta--bar {
+		display: none;
+	}
+
+	.emm-has-product-profile .emm-nav__brand--bar {
+		margin-right: auto;
+	}
+
+	.emm-product-nav--rail {
+		display: none;
+	}
+
+	.emm-product-nav--unified {
+		display: none !important;
+	}
+
+	.emm-product-nav--drawer {
+		display: block;
+		padding: 0.25rem 0 0.75rem;
+		border-bottom: 1px solid var(--emm-border);
+	}
+
+	.emm-product-nav--drawer .emm-product-nav__inner {
+		display: block;
+		min-height: 0;
+		padding: 0;
+	}
+
+	.emm-product-nav--drawer .emm-product-nav__identity {
+		display: flex;
+		min-height: 48px;
+		padding: 0.8rem 1.15rem;
+		font-size: 17px;
+	}
+
+	.emm-product-nav--drawer .emm-product-nav__identity::after {
+		display: none;
+	}
+
+	.emm-product-nav--drawer .emm-product-nav__list {
+		display: block;
+		overflow: visible;
+	}
+
+	.emm-product-nav--drawer .emm-product-nav__link {
+		display: flex;
+		min-height: 48px;
+		padding: 0.8rem 1.15rem 0.8rem 1.8rem;
+		font-size: 16px;
+	}
+
+	.emm-product-nav--drawer .emm-product-nav__cta {
+		display: flex;
+		min-height: 48px;
+		margin: 0.65rem 1rem 0;
+		padding: 0.8rem 1rem;
+		font-size: 16px;
+	}
+
+	.emm-nav__backdrop {
+		display: block;
+		position: fixed;
+		inset: 0;
+		top: var(--emm-mobile-offset);
+		background: rgba(15, 15, 20, 0.4);
+		z-index: 998;
+		border: none;
+		padding: 0;
+		margin: 0;
+		cursor: pointer;
+	}
+
+	.emm-nav__backdrop[hidden] {
+		display: none !important;
+	}
+
+	.emm-nav__drawer {
+		display: none;
+		position: fixed;
+		left: 0;
+		right: 0;
+		top: var(--emm-mobile-offset);
+		bottom: env(safe-area-inset-bottom);
+		z-index: 999;
+		background: var(--emm-header-bg);
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior: contain;
+		padding: 0 0 1.5rem;
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+	}
+
+	.emm-header.is-mobile-open .emm-nav__drawer {
+		display: block;
+	}
+
+	.emm-nav__drawer-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.65rem 1rem;
+		border-bottom: 1px solid var(--emm-border);
+		position: sticky;
+		top: 0;
+		background: var(--emm-header-bg);
+		z-index: 3;
+	}
+
+	.emm-header.emm-is-drilling .emm-nav__drawer-head {
+		display: none;
+	}
+
+	.emm-nav__drawer-title {
+		font-size: 16px;
+		font-weight: 700;
+		color: var(--emm-text);
+	}
+
+	.emm-header .emm-nav__drawer-close {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: 0 0 44px;
+		width: 44px;
+		min-width: 44px;
+		height: 44px;
+		min-height: 44px;
+		padding: 0;
+		margin: 0;
+		border: none;
+		border-radius: 8px;
+		background: transparent !important;
+		color: var(--emm-text) !important;
+		font-size: 24px;
+		line-height: 1;
+		cursor: pointer;
+		box-sizing: border-box;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.emm-header .emm-nav__drawer-close:hover,
+	.emm-header .emm-nav__drawer-close:focus-visible {
+		background: rgba(0, 0, 0, 0.05) !important;
+	}
+
+	.emm-nav__inner {
+		display: block;
+		max-width: none;
+		margin: 0;
+		padding: 0;
+		min-height: 0;
+	}
+
+	.emm-nav__list {
+		flex-direction: column;
+		align-items: stretch;
+		justify-content: flex-start;
+		gap: 0;
+		margin: 0;
+		padding: 0;
+	}
+
+	.emm-nav__item {
+		border-bottom: 1px solid var(--emm-border);
+		width: 100%;
+	}
+
+	/* Level 1: full-width rows, chevron on the right */
+	.emm-header .emm-nav__link {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 16px 18px;
+		font-size: 17px;
+		min-height: 54px;
+		border-radius: 0;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	.emm-nav__link .emm-chevron {
+		margin-left: auto;
+		flex-shrink: 0;
+		opacity: 0.55;
+		transform: rotate(-90deg);
+	}
+
+	.emm-nav__item.is-open .emm-chevron {
+		transform: rotate(-90deg);
+	}
+
+	.emm-nav__item.is-open > .emm-nav__link {
+		color: var(--emm-nav-hover);
+		background: transparent;
+	}
+
+	/* ---- Mobile drill-down ---- */
+	.emm-mobile-bar {
+		display: none;
+		align-items: flex-start;
+		gap: 0.65rem;
+		padding: 0.65rem 1rem;
+		margin: 0;
+		border-bottom: 1px solid var(--emm-border);
+		position: sticky;
+		top: 0;
+		background: var(--emm-header-bg);
+		z-index: 2;
+	}
+
+	.emm-mobile-bar[hidden] {
+		display: none !important;
+	}
+
+	.emm-mobile-back {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.2rem;
+		width: 40px;
+		height: 40px;
+		padding: 0;
+		margin: 0;
+		border: none;
+		border-radius: 8px;
+		background: transparent;
+		color: var(--emm-text);
+		font-family: inherit;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.emm-mobile-back span {
+		display: none;
+	}
+
+	.emm-mobile-back:hover,
+	.emm-mobile-back:focus-visible {
+		background: rgba(0, 0, 0, 0.05);
+	}
+
+	.emm-mobile-back svg {
+		display: block;
+	}
+
+	.emm-mobile-title {
+		flex: 1;
+		font-size: 17px;
+		font-weight: 700;
+		color: var(--emm-text);
+		min-width: 0;
+		overflow-wrap: anywhere;
+		white-space: normal;
+		line-height: 1.35;
+		padding-block: 0.55rem;
+	}
+
+	.emm-mobile-close {
+		flex-shrink: 0;
+	}
+
+	.emm-header.emm-is-drilling .emm-nav__cta--drawer {
+		display: none;
+	}
+
+	.emm-header.emm-is-drilling .emm-nav__item:not(.is-open) {
+		display: none;
+	}
+
+	.emm-header.emm-is-drilling .emm-nav__item.is-open {
+		border-bottom: none;
+	}
+
+	.emm-header.emm-is-drilling .emm-nav__item.is-open > .emm-nav__link {
+		display: none;
+	}
+
+	.emm-nav__item--mega.is-open .emm-mobile-bar {
+		display: flex;
+	}
+
+	.emm-mega {
+		position: static;
+		transform: none;
+		width: 100%;
+		padding: 0;
+		left: auto;
+		animation: emm-slide-in 0.22s ease;
+	}
+
+	@keyframes emm-slide-in {
+		from {
+			opacity: 0.4;
+			transform: translateX(12px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+
+	.emm-mega--features,
+	.emm-mega--platforms {
+		width: 100%;
+	}
+
+	.emm-mega__inner,
+	.emm-mega__inner--features {
+		flex-direction: column;
+		border: none;
+		border-radius: 0;
+		box-shadow: none;
+		min-height: 0;
+		background: transparent;
+		overflow: visible;
+		padding: 0;
+		margin: 0;
+	}
+
+	.emm-mega__accordion {
+		display: flex;
+		flex-direction: column;
+		position: static;
+		align-items: stretch;
+		gap: 0;
+		min-height: 0;
+		background: transparent;
+		padding: 0;
+	}
+
+	.emm-layout--sidebar-right .emm-mega__accordion,
+	.emm-layout--stacked .emm-mega__accordion {
+		display: flex;
+		flex-direction: column;
+		grid-template-columns: none;
+		padding: 0;
+		gap: 0;
+	}
+
+	.emm-mega__section {
+		display: block;
+		background: transparent;
+		border: none;
+		overflow: visible;
+	}
+
+	/* Level 1: category list only */
+	.emm-nav__item--mega[data-drill="cats"] .emm-mega__panel {
+		display: none !important;
+	}
+
+	.emm-nav__item--mega[data-drill="cats"] .emm-mega__cat-chevron {
+		display: inline-flex;
+		transform: rotate(-90deg);
+		color: var(--emm-muted);
+	}
+
+	.emm-nav__item--mega[data-drill="cats"] .emm-mega__section.is-open .emm-mega__cat-chevron,
+	.emm-nav__item--mega[data-drill="cats"] .emm-mega__cat.is-active .emm-mega__cat-chevron {
+		transform: rotate(-90deg);
+	}
+
+	/* Level 2: links for selected category */
+	.emm-nav__item--mega[data-drill="links"] .emm-mega__section:not(.is-open) {
+		display: none;
+	}
+
+	.emm-nav__item--mega[data-drill="links"] .emm-mega__section.is-open > .emm-mega__cat {
+		display: none;
+	}
+
+	.emm-nav__item--mega[data-drill="links"] .emm-mega__panel {
+		display: block !important;
+		position: static;
+		top: auto;
+		left: auto;
+		right: auto;
+		width: auto;
+		margin: 0;
+		padding: 0;
+		background: transparent;
+		border: none;
+		border-radius: 0;
+	}
+
+	/* Level 2: simple full-width list rows (not cards/buttons) */
+	.emm-header .emm-mega__cat {
+		display: flex;
+		flex: none;
+		width: 100%;
+		margin: 0;
+		min-width: 0;
+		align-items: center;
+		padding: 0.95rem 1.15rem;
+		text-align: left;
+		border: none;
+		border-bottom: 1px solid var(--emm-border);
+		border-radius: 0;
+		background: transparent;
+		min-height: 56px;
+		grid-column: auto;
+		box-shadow: none;
+	}
+
+	.emm-mega__cat-title {
+		font-size: 16px;
+		line-height: 1.3;
+	}
+
+	.emm-mega__cat:hover,
+	.emm-mega__cat.is-active {
+		background: rgba(0, 0, 0, 0.02);
+		border-color: var(--emm-border);
+		box-shadow: none;
+		border-radius: 0;
+		color: var(--emm-text);
+	}
+
+	.emm-mega__section:last-child .emm-mega__cat {
+		border-bottom: none;
+	}
+
+	.emm-mega__cat-chevron {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-left: auto;
+	}
+
+	.emm-mega__cat-icon {
+		font-size: 22px;
+		margin-top: 0;
+		flex-shrink: 0;
+	}
+
+	.emm-mega__cat-icon .emm-icon--lg {
+		font-size: 22px;
+	}
+
+	.emm-mega__cat-desc {
+		display: block;
+		font-size: 13px;
+	}
+
+	/* Hide level-3 panel titles on mobile (e.g. "Spend Platform Overview") */
+	.emm-mega__panel-title {
+		display: none !important;
+	}
+
+	.emm-mega__columns {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.emm-mega__col {
+		border-bottom: 1px solid var(--emm-border);
+		padding: 0.75rem 0 0.35rem;
+	}
+
+	.emm-mega__col:last-child {
+		border-bottom: none;
+	}
+
+	.emm-mega__col-title {
+		padding: 0 1.15rem 0.45rem;
+		margin: 0;
+		font-size: 12px;
+	}
+
+	.emm-mega__col-list {
+		gap: 0;
+	}
+
+	.emm-mega__col-link {
+		padding: 0.85rem 1.15rem;
+		min-height: 48px;
+		align-items: center;
+		border-bottom: 1px solid var(--emm-border);
+		font-size: 16px;
+	}
+
+	.emm-mega__col-item:last-child .emm-mega__col-link {
+		border-bottom: none;
+	}
+
+	.emm-mega__col-link:not(.has-icon)::before {
+		margin-top: 0;
+	}
+
+	.emm-mega__col-link:active {
+		background: rgba(0, 0, 0, 0.03);
+	}
+
+	.emm-mega__grid,
+	.emm-mega__grid--features {
+		grid-template-columns: 1fr;
+		gap: 0;
+	}
+
+	.emm-mega__grid-link,
+	.emm-mega__grid--features .emm-mega__grid-link {
+		background: transparent;
+		border: none;
+		border-bottom: 1px solid var(--emm-border);
+		border-radius: 0;
+		padding: 0.95rem 1.15rem;
+		min-height: 52px;
+		font-size: 16px;
+		color: var(--emm-text) !important;
+		text-decoration: none !important;
+	}
+
+	.emm-mega__grid-link:last-child,
+	.emm-mega__grid--features .emm-mega__grid-link:last-child {
+		border-bottom: none;
+	}
+
+	.emm-mega__grid-link:active {
+		background: rgba(0, 0, 0, 0.03);
+	}
+
+	.emm-mega__inner--features {
+		padding: 0;
+	}
+}
+
+/* The approved unified review keeps its desktop row. Mobile screens use one
+ * clear navigation level at a time, with controls insulated from theme buttons. */
+@media (max-width: 900px) {
+	.emm-header[data-emm-presentation="unified"] .emm-nav__toggle,
+	.emm-header[data-emm-presentation="unified"] .emm-mobile-back {
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		width: 44px;
+		min-width: 44px;
+		height: 44px;
+		min-height: 44px;
+		flex: 0 0 44px;
+		padding: 0;
+		border: 1px solid #dce5ef !important;
+		border-radius: 10px;
+		background: #f3f7fc !important;
+		color: #174a7e !important;
+		box-shadow: none !important;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-nav__toggle-bar,
+	.emm-header[data-emm-presentation="unified"] .emm-nav__toggle-bar::before,
+	.emm-header[data-emm-presentation="unified"] .emm-nav__toggle-bar::after {
+		background: #174a7e !important;
+	}
+	.emm-header[data-emm-presentation="unified"].emm-is-drilling .emm-product-nav--drawer {
+		display: none !important;
+	}
+	.emm-header[data-emm-presentation="unified"].is-mobile-open .emm-nav__toggle {
+		display: none !important;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-nav__drawer-head,
+	.emm-header[data-emm-presentation="unified"] .emm-mobile-bar {
+		align-items: center;
+		padding: 8px 16px;
+		min-height: 60px;
+		box-sizing: border-box;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-mobile-title {
+		font-size: 16px;
+		font-weight: 600;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-product-nav--drawer {
+		padding: 8px 0 12px;
+		background: #f8fafc;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-product-nav--drawer .emm-product-nav__identity {
+		min-height: 40px;
+		padding: 8px 20px;
+		font-size: 15px;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-product-nav--drawer .emm-product-nav__link {
+		min-height: 44px;
+		padding: 10px 24px;
+		font-size: 16px;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-mega__cat-title {
+		text-transform: none;
+		letter-spacing: normal;
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-mega__cat {
+		padding: 16px 20px;
+		min-height: 64px;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-mega__columns,
+	.emm-header[data-emm-presentation="unified"] .emm-mega__col,
+	.emm-header[data-emm-presentation="unified"] .emm-mega__col-list,
+	.emm-header[data-emm-presentation="unified"] .emm-mega__col-item,
+	.emm-header[data-emm-presentation="unified"] .emm-mega__col-link {
+		width: 100%;
+		max-width: none;
+		min-width: 0;
+		box-sizing: border-box;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-mega__col-link {
+		border-radius: 0;
+		box-shadow: none;
+		min-height: 52px;
+		padding: 14px 20px;
+	}
+	.emm-header[data-emm-presentation="unified"] .emm-mega__col-title {
+		padding: 8px 20px;
+		color: #526277;
+		letter-spacing: 0.06em;
+	}
+	.emm-header[data-emm-presentation="unified"] :is(button, a):focus-visible {
+		outline: 2px solid #1769c2;
+		outline-offset: -3px;
+	}
+}
+
+@media (min-width: 481px) and (max-width: 900px) {
+	.emm-nav__item--mega[data-drill="links"] .emm-mega__columns {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.5rem 1rem;
+	}
+
+	.emm-nav__item--mega[data-drill="links"] .emm-mega__col {
+		border-bottom: none;
+	}
+
+	.emm-nav__item--mega[data-drill="links"] .emm-mega__grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (forced-colors: active) {
+	.emm-nav__item.is-current > .emm-nav__link,
+	.emm-nav__item.is-current-ancestor > .emm-nav__link,
+	.emm-mega__section.is-current-ancestor > .emm-mega__cat,
+	.emm-mega__col-link[aria-current="page"],
+	.emm-mega__grid-link[aria-current="page"] {
+		border: 2px solid Highlight;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.emm-header *,
+	.emm-header *::before,
+	.emm-header *::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
+}
+
+/*
+ * Content-aware mobile mode. JavaScript applies this above the nominal
+ * breakpoint when translated or user-authored labels cannot fit safely.
+ */
+@media (min-width: 901px) {
+	.emm-header.emm-force-mobile.emm-has-product-profile .emm-nav__context--bar,
+	.emm-header.emm-force-mobile.emm-has-product-profile .emm-nav__cta--bar,
+	.emm-header.emm-force-mobile .emm-product-nav--rail {
+		display: none;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		min-height: 56px;
+		padding: 0.5rem 1rem;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__brand--bar {
+		display: inline-flex;
+		margin-right: auto;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		margin: 0;
+		border: 0;
+		border-radius: 8px;
+		background: transparent;
+		color: var(--emm-text);
+		cursor: pointer;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__toggle-box {
+		position: relative;
+		display: block;
+		width: 22px;
+		height: 16px;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__toggle-bar,
+	.emm-header.emm-force-mobile .emm-nav__toggle-bar::before,
+	.emm-header.emm-force-mobile .emm-nav__toggle-bar::after {
+		position: absolute;
+		display: block;
+		left: 0;
+		top: 7px;
+		width: 22px;
+		height: 2px;
+		border-radius: 2px;
+		background: currentColor;
+		content: "";
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__toggle-bar::before { top: -7px; }
+	.emm-header.emm-force-mobile .emm-nav__toggle-bar::after { top: 7px; }
+
+	.emm-header.emm-force-mobile .emm-product-nav--drawer {
+		display: block;
+		padding: 0.25rem 0 0.75rem;
+		border-bottom: 1px solid var(--emm-border);
+	}
+
+	.emm-header.emm-force-mobile .emm-product-nav--drawer .emm-product-nav__inner {
+		display: block;
+		min-height: 0;
+		padding: 0;
+	}
+
+	.emm-header.emm-force-mobile .emm-product-nav--drawer .emm-product-nav__identity,
+	.emm-header.emm-force-mobile .emm-product-nav--drawer .emm-product-nav__link {
+		display: flex;
+		min-height: 48px;
+		padding: 0.8rem 1rem;
+	}
+
+	.emm-header.emm-force-mobile .emm-product-nav--drawer .emm-product-nav__identity::after {
+		display: none;
+	}
+
+	.emm-header.emm-force-mobile .emm-product-nav--drawer .emm-product-nav__list {
+		display: block;
+		overflow: visible;
+	}
+
+	.emm-header.emm-force-mobile .emm-product-nav--drawer .emm-product-nav__cta {
+		display: flex;
+		margin: 0.65rem 1rem 0;
+		padding: 0.8rem 1rem;
+	}
+
+	.emm-header.emm-force-mobile {
+		position: sticky;
+		top: var(--emm-admin-offset, 0);
+		z-index: 10000;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		min-height: 56px;
+		padding: 0.5rem 1rem;
+		background: var(--emm-header-bg);
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__toggle,
+	.emm-header.emm-force-mobile .emm-nav__drawer-head {
+		display: flex;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__drawer {
+		position: fixed;
+		inset: var(--emm-mobile-offset, 56px) 0 0 auto;
+		display: none;
+		width: min(420px, 100vw);
+		max-height: calc(100dvh - var(--emm-mobile-offset, 56px));
+		overflow: auto;
+		background: var(--emm-header-bg);
+		box-shadow: -8px 12px 32px rgba(0, 0, 0, 0.2);
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__context--bar {
+		display: inline-flex;
+		max-width: min(10rem, 27vw);
+		font-size: 15px;
+		margin-right: auto;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__context--drawer {
+		display: inline-flex;
+		max-width: none;
+		padding: 0.8rem 1rem 0;
+	}
+
+	.emm-header.emm-force-mobile.is-mobile-open .emm-nav__drawer {
+		display: block;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__inner,
+	.emm-header.emm-force-mobile .emm-nav__list {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__item,
+	.emm-header.emm-force-mobile .emm-nav__link {
+		width: 100%;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__link {
+		display: flex;
+		justify-content: space-between;
+		min-height: 48px;
+		padding: 0.8rem 1rem;
+	}
+
+	.emm-header.emm-force-mobile .emm-mega {
+		position: static;
+		inset: auto;
+		width: 100%;
+		max-width: none;
+		transform: none;
+		box-shadow: none;
+	}
+
+	.emm-header.emm-force-mobile .emm-mega__inner,
+	.emm-header.emm-force-mobile .emm-mega__accordion,
+	.emm-header.emm-force-mobile .emm-mega__columns {
+		display: block;
+		width: 100%;
+		padding: 0;
+		background: transparent;
+	}
+
+	.emm-header.emm-force-mobile .emm-mega__cat {
+		display: flex;
+		flex: none;
+		width: 100%;
+		min-width: 0;
+		margin: 0;
+		padding: 0.95rem 1.15rem;
+		align-items: center;
+		text-align: left;
+		border: none;
+		border-bottom: 1px solid var(--emm-border);
+		border-radius: 0;
+		background: transparent;
+		min-height: 56px;
+		box-shadow: none;
+	}
+
+	.emm-header.emm-force-mobile .emm-mega__cat-title {
+		font-size: 16px;
+		line-height: 1.3;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__item--mega[data-drill="cats"] .emm-mega__panel,
+	.emm-header.emm-force-mobile .emm-nav__item--mega[data-drill="links"] .emm-mega__section:not(.is-open),
+	.emm-header.emm-force-mobile .emm-nav__item--mega[data-drill="links"] .emm-mega__section.is-open > .emm-mega__cat {
+		display: none;
+	}
+
+	.emm-header.emm-force-mobile .emm-nav__item--mega[data-drill="links"] .emm-mega__panel {
+		display: block;
+	}
+
+	.emm-header.emm-force-mobile .emm-mega__grid,
+	.emm-header.emm-force-mobile .emm-mega__grid--features {
+		grid-template-columns: 1fr;
+	}
+}
+
+
+/* Prevent theme widget separators from appearing beneath the mega menu. */
+.emm-widget,
+.widget_emm_widget {
+	border-bottom: 0 !important;
+}
+
+/* Frontend panel resilience (#70): keep large menus usable in short viewports
+ * while preserving the panel header and keyboard-scrollable content. */
+.emm-mega__panel {
+	max-height: min(78vh, 760px);
+	overflow: auto;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+}
+.emm-mega__panel:focus-within {
+	scroll-margin-block: 1rem;
+}
+.emm-mega__panel-title {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	padding-block: 0.25rem 0.75rem;
+	background: var(--emm-panel-bg, #fff);
+}
+.emm-mega__col-title {
+	font-size: 12px;
+}
+
+/* ElementsKit marks the current submenu trigger hidden on some landing pages.
+ * When that submenu is explicitly opened, its direct links must be readable. */
+.elementskit-dropdown.elementskit-dropdown-open .dropdown-item {
+	visibility: visible !important;
+}
+
+html.emm-external-mega-open #chatbot-widget-container,
+html.emm-external-mega-open .elementor-widget-elementskit-back-to-top,
+html.emm-external-mega-open #tooltip {
+	opacity: 0 !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
+@media (min-width: 901px) {
+	/* Product Resources panels can carry a 1500px inline width. Cap them to the
+	 * viewport and let the companion script shift an open panel back inside the
+	 * left/right gutters without changing its configured column structure. */
+	.elementskit-megamenu-panel {
+		box-sizing: border-box !important;
+		max-width: calc(100vw - 32px) !important;
+		translate: var(--emm-external-panel-shift, 0px) 0 !important;
+	}
+}
+
+@media (max-width: 900px) {
+	/* ElementsKit stores custom mega-menu widths as inline desktop values.
+	 * A panel configured at 1500px would otherwise leave a narrow mobile
+	 * product drawer blank or clipped. Constrain any open
+	 * ElementsKit mega panel to its drawer item; Elementor's responsive inner
+	 * containers can then stack the Resources, Learn, and Compare groups. */
+	.elementskit-menu-container.active {
+		width: 100vw !important;
+		max-width: 100vw !important;
+	}
+
+	.elementskit-menu-container.active .elementskit-megamenu-panel {
+		top: auto !important;
+		left: 0 !important;
+		right: auto !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		transform: none !important;
+	}
+
+	/* Some product menus store desktop column spacing as negative margins on
+	 * nested Elementor containers. Remove those horizontal offsets only inside
+	 * an open mobile product mega panel so every group remains inside the
+	 * drawer instead of clipping the first words of Learn links. */
+	.elementskit-menu-container.active .elementskit-megamenu-panel .e-con {
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+		max-width: 100% !important;
+	}
+
+	html.emm-drawer-open #chatbot-widget-container,
+	html.emm-drawer-open #tooltip,
+	html.emm-drawer-open .elementor-widget-elementskit-back-to-top,
+	html.emm-external-drawer-open #chatbot-widget-container,
+	html.emm-external-drawer-open .elementor-widget-elementskit-back-to-top,
+	html.emm-external-drawer-open #tooltip {
+		opacity: 0 !important;
+		visibility: hidden !important;
+		pointer-events: none !important;
+	}
+
+	.emm-mobile-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-width: 0;
+	}
+	.emm-mobile-bar .emm-brand,
+	.emm-mobile-bar .emm-mobile-cta {
+		min-width: 0;
+		flex: 1 1 auto;
+	}
+	.emm-mobile-bar .emm-brand a,
+	.emm-mobile-bar .emm-mobile-cta {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.emm-mobile-bar .emm-menu-toggle {
+		flex: 0 0 auto;
+	}
+	.emm-mega__panel {
+		max-height: calc(100dvh - 5rem);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.emm-mega__panel {
+		scroll-behavior: auto;
+	}
+}
+
+/* Product-navigation presentation is intentionally distinct from the shared
+ * header. The default mirrors a restrained SaaS sub-navigation; pills are an
+ * optional alternative for a small set of product sections. */
+.emm-product-nav--rail {
+	box-shadow: inset 0 1px 0 rgba(17, 37, 76, 0.025);
+}
+.emm-product-nav--rail.emm-product-nav--pills .emm-product-nav__link {
+	margin-block: 0.3rem;
+	padding-inline: 0.72rem;
+	border-radius: 999px;
+}
+.emm-product-nav--rail.emm-product-nav--pills .emm-product-nav__link:hover,
+.emm-product-nav--rail.emm-product-nav--pills .emm-product-nav__link:focus,
+.emm-product-nav--rail.emm-product-nav--pills .emm-product-nav__link.is-current {
+	background: color-mix(in srgb, var(--emm-accent) 10%, transparent);
+	text-decoration: none !important;
+}
+
+
+/* 1.6.76: Keep the header CTA from pushing the page wider than the screen on phones.
+ * When the menu also has a drawer CTA (shown in the open mobile menu), hide the
+ * bar CTA at phone widths so secondary/product bars fit next to a logo. */
+@media (max-width: 600px) {
+	.emm-header:has(.emm-nav__cta--drawer) .emm-nav__cta--bar {
+		display: none;
+	}
+
+	.emm-nav__bar {
+		min-width: 0;
+		max-width: 100%;
+	}
+}

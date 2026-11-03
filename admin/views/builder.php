@@ -209,7 +209,22 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<?php
 				$abmm_settings = wp_parse_args( $menu['settings'] ?? array(), ABMM_Data::default_settings() );
 				$abmm_presets  = ABMM_Data::design_presets();
+				$abmm_classic  = ABMM_Classic::is_classic( $menu );
 				?>
+
+				<?php if ( $abmm_classic ) : ?>
+					<label class="abmm-field">
+						<span><?php esc_html_e( 'Site look', 'ashbi-mega-menu' ); ?></span>
+						<select id="abmm-render-mode" aria-describedby="abmm-render-mode-help">
+							<option value="emm-classic" <?php selected( true ); ?>><?php esc_html_e( 'Classic (Easy Mega Menu)', 'ashbi-mega-menu' ); ?></option>
+							<option value=""><?php esc_html_e( 'Ashbi', 'ashbi-mega-menu' ); ?></option>
+						</select>
+						<span class="description" id="abmm-render-mode-help"><?php esc_html_e( 'Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Switching to Ashbi changes how the menu looks on your site.', 'ashbi-mega-menu' ); ?></span>
+					</label>
+					<div class="notice notice-info inline abmm-classic-notice">
+						<p><?php esc_html_e( 'This menu was imported from Easy Mega Menu and keeps its Classic look on your site. The preview here shows its content in Ashbi\'s style, and colour and size changes below still apply. Check the final look on your site.', 'ashbi-mega-menu' ); ?></p>
+					</div>
+				<?php endif; ?>
 
 				<div class="abmm-field">
 					<span><?php esc_html_e( 'Style preset', 'ashbi-mega-menu' ); ?></span>
