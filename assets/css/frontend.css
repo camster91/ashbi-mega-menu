@@ -1180,6 +1180,22 @@ a.abmm-product-nav__identity:focus {
 	line-height: inherit;
 }
 
+.abmm-mega__grid-copy {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 0.12rem;
+}
+
+.abmm-mega__grid-description {
+	display: block;
+	max-width: 36ch;
+	color: var(--abmm-muted);
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.35;
+}
+
 .abmm-mega__grid-link:hover,
 .abmm-mega__grid-link:focus {
 	background: var(--abmm-active-bg);

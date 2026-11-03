@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,16 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
+
+= 1.2.1 =
+* Simple-column links can have a short description, shown under the link.
+* Choose the logo from the Media Library.
+* The checklist flags featured-card link text that has no link (the text is hidden on the site).
+* Undo and redo no longer switch the chosen style preset to Custom.
+* While a dropdown's content is edited, the preview stays in view above it.
+* Screen readers announce a row's new name as soon as it is renamed.
+* Placement help explains that a narrow column shows the phone menu.
+* Smaller wording and layout fixes in the editor.
 
 = 1.2.0 =
 * Fonts: use your site's font or a custom one, with sizes and weights for the menu bar, categories, links and descriptions.

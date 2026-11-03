@@ -174,4 +174,20 @@ $single = $mega( 'platforms' );
 $single['categories'] = array( $single['categories'][0] );
 verify_featured( false === strpos( $render( $single ), 'data-abmm-section-toggle' ), 'A single category has no accordion button.' );
 
+// Link text with no link is hidden on the site, so the checklist flags it.
+$readiness = function ( $featured ) use ( $data, $mega ) {
+	return implode( "\n", array_column( $data->readiness( $data->sanitize_menu( array( 'title' => 'Card', 'items' => array( $mega( 'platforms', array( 'featured' => $featured ) ) ) ) ) )['issues'], 'message' ) );
+};
+verify_featured( false !== strpos( $readiness( array_merge( $card, array( 'url' => '' ) ) ), 'The featured card in Products has link text but no link' ), 'Link text without a link is flagged.' );
+verify_featured( false === strpos( $readiness( $card ), 'featured card' ), 'A card with a link is not flagged.' );
+verify_featured( false === strpos( $readiness( array_merge( $card, array( 'url' => '', 'label' => '' ) ) ), 'featured card' ), 'A card with no link text and no link is not flagged.' );
+verify_featured( false === strpos( $readiness( array_merge( $card, array( 'url' => '', 'show' => false ) ) ), 'featured card' ), 'A hidden card is not flagged.' );
+
+// Simple-column links show a description only when one is set; others keep their markup.
+$columns = $mega( 'features' );
+$columns['links'] = array( array( 'label' => 'Blog', 'url' => '/blog/', 'description' => 'News & <b>updates</b>' ), array( 'label' => 'Guides', 'url' => '/guides/' ) );
+$html = $render( $columns );
+verify_featured( 1 === preg_match( '#<span class="abmm-mega__grid-copy">\s*<span class="abmm-mega__grid-label">Blog</span>\s*<span class="abmm-mega__grid-description">News &amp; updates</span>#', $html ), 'A simple-column link shows its escaped description.' );
+verify_featured( 1 === substr_count( $html, 'abmm-mega__grid-copy' ), 'A link without a description keeps the plain label.' );
+
 echo "Featured card sanitising and rendering checks passed.\n";

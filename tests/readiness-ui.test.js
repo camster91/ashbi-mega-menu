@@ -1,4 +1,5 @@
-// The editor checklist flags links typed as plain text and labels too long for the menu bar.
+// The editor checklist flags links typed as plain text, labels too long for the
+// menu bar and featured-card link text with no link, and counts what is left.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
@@ -10,6 +11,7 @@ const menu = {
   { id: 'b', label: 'Contact', type: 'link', url: 'www.example.com/contact' },
   { id: 'c', label: 'x'.repeat(45), type: 'link', url: '/long/' },
   { id: 'd', label: 'Mail', type: 'link', url: 'mailto:hello@example.com' },
+  { id: 'e', label: 'Products', type: 'mega', mega_style: 'features', links: [{ id: 'l', label: 'Blog', url: '/blog/' }], featured: { show: true, title: 'Launch', label: 'Read more', url: '' } },
  ],
  cta: {},
  settings: { presentation: 'unified' },
@@ -36,6 +38,8 @@ setTimeout(() => {
  assert.ok(!issues.some((text) => text.includes('Contact')), 'a domain without a scheme is accepted');
  assert.ok(!issues.some((text) => text.includes('Mail')), 'mailto links are accepted');
  assert.ok(issues.includes('Shorten "' + 'x'.repeat(24) + '…".'), 'a label over 40 characters is flagged, shortened: ' + JSON.stringify(issues));
- console.log('Editor checklist flags plain-text links and long menu bar labels.');
+ assert.ok(issues.includes('The featured card in Products has link text but no link. Add a link or clear the text.'), 'featured link text without a link is flagged');
+ assert.equal($('.abmm-readiness-summary').text(), issues.length + ' things to fix before you place this menu.', 'the summary counts with a real plural');
+ console.log('Editor checklist flags plain-text links, long menu bar labels and featured link text without a link.');
  window.close();
 }, 20);

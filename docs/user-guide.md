@@ -13,7 +13,7 @@ Start on a staging copy of your site. Creating a menu does not change the theme 
 Already have a menu under Appearance → Menus? [Import it](import-wordpress-menus.md) as a starting point.
 
 1. Open **Ashbi Mega Menu** and choose **Start from scratch** or **Use a template**. Give the menu a meaningful name.
-2. Add top-level links, or select **Mega Menu** for a panel with categories and columns. Replace sample labels and placeholder destinations. A panel toggle opens content; a link needs a real destination.
+2. Add top-level links, or select **Mega Menu** for a panel and choose **Edit content**: **Categories + links** for a list of categories, each with its own columns of links, or **Simple columns** for links in 2 to 4 columns. Links in both can have an icon and a short description, and a panel can end with a featured card. Replace sample labels and placeholder destinations. A panel toggle opens content; a link needs a real destination. The logo fields under **Settings** can pick an image from the Media Library.
 3. Switch the preview between Desktop, Tablet and Mobile. The preview is a canvas that shows the menu at a real screen width:
    - **Move around:** drag empty space, hold Space and drag, drag with the middle mouse button, or scroll with two fingers.
    - **Zoom:** Ctrl/⌘ + scroll or pinch zooms at the pointer, from 25% to 200%. Ctrl/⌘ + **+** / **−** steps, Ctrl/⌘ + **0** fits and Ctrl/⌘ + **1** shows 100%. The zoom percentage opens a list of presets, next to **Fit** and **100%**.
@@ -35,7 +35,7 @@ In the WordPress page editor, add the **Ashbi Mega Menu** block and select the s
 [ashbi_mega_menu id="your_actual_menu_id"]
 ```
 
-Use an explicit ID; do not copy an example ID into production. Preview the page before publishing. The menu stores its own links and does not automatically synchronize an Appearance → Menus menu or assign a theme menu location.
+Use an explicit ID; do not copy an example ID into production. Give the block full width (the **Full width** alignment, or a full-width group or section): in a narrow content column or sidebar the menu switches to its phone layout, even on a wide screen, and the desktop font and dropdown-height settings do not apply there. Preview the page before publishing. The menu stores its own links and does not automatically synchronize an Appearance → Menus menu or assign a theme menu location.
 
 ## Put it in a header
 

@@ -1212,7 +1212,14 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 				<span class="abmm-mega__grid-icon">
 					<?php echo $icons->render( $link['icon'] ?? '', $link['icon_url'] ?? '', 'abmm-icon abmm-icon--sm', $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</span>
-				<span class="abmm-mega__grid-label"><?php echo esc_html( $link['label'] ); ?></span>
+				<?php if ( ! empty( $link['description'] ) ) : ?>
+					<span class="abmm-mega__grid-copy">
+						<span class="abmm-mega__grid-label"><?php echo esc_html( $link['label'] ); ?></span>
+						<span class="abmm-mega__grid-description"><?php echo esc_html( $link['description'] ); ?></span>
+					</span>
+				<?php else : ?>
+					<span class="abmm-mega__grid-label"><?php echo esc_html( $link['label'] ); ?></span>
+				<?php endif; ?>
 			<?php echo $has_url ? '</a>' : '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		</li>
 		<?php

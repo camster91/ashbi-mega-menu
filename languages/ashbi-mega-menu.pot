@@ -643,10 +643,6 @@ msgstr ""
 msgid "Page builder"
 msgstr ""
 
-#: admin/views/builder.php:439
-msgid "Paste the shortcode into a shortcode element."
-msgstr ""
-
 #: admin/views/builder.php:441
 msgid "Keep your theme's menu while you test. When the new menu works, remove the old one from the header so there is only one. To roll back, remove the Ashbi block, widget or shortcode: this plugin never changes your theme's menu."
 msgstr ""
@@ -1581,10 +1577,6 @@ msgstr ""
 msgid "New Mega Menu"
 msgstr ""
 
-#: includes/class-abmm-admin.php:157
-msgid "Create Menu"
-msgstr ""
-
 #: includes/class-abmm-admin.php:158
 msgid "The menu could not be duplicated."
 msgstr ""
@@ -1846,12 +1838,6 @@ msgstr ""
 
 #: includes/class-abmm-admin.php:233
 msgid "Ready to place."
-msgstr ""
-
-#. translators: %s: item number, label, count, or formatted file size.
-#: includes/class-abmm-admin.php:235
-#, php-format
-msgid "%s thing(s) to fix before you place this menu."
 msgstr ""
 
 #: includes/class-abmm-admin.php:236
@@ -3625,10 +3611,6 @@ msgstr ""
 msgid "Feature link restored."
 msgstr ""
 
-#: assets/js/admin.js:2582
-msgid "NEW"
-msgstr ""
-
 #: assets/js/admin.js:2588
 msgid "Overview"
 msgstr ""
@@ -4500,4 +4482,41 @@ msgstr ""
 
 #: assets/js/admin.js:2485
 msgid "Reset to default."
+msgstr ""
+
+#: admin/views/builder.php:148
+msgid "Choose from the Media Library"
+msgstr ""
+
+#. translators: %s: field name, e.g. Logo image URL.
+#: admin/views/builder.php:148
+#, php-format
+msgid "Choose an image for %s"
+msgstr ""
+
+#: admin/views/builder.php:562
+msgid "Paste the shortcode into a shortcode element in a full-width section."
+msgstr ""
+
+#: admin/views/builder.php:564
+msgid "Give the menu the full width of the page. In a narrow column or sidebar it shows the phone menu, even on a wide screen."
+msgstr ""
+
+#. translators: %s: mega menu label.
+#: includes/class-abmm-data.php:468
+#: assets/js/admin.js:665
+#, php-format
+msgid "The featured card in %s has link text but no link. Add a link or clear the text."
+msgstr ""
+
+#. translators: %d: number of checklist items still to fix.
+#: assets/js/admin.js:737
+#, javascript-format
+msgid "%d thing to fix before you place this menu."
+msgid_plural "%d things to fix before you place this menu."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/js/admin.js:2832
+msgid "New category"
 msgstr ""

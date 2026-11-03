@@ -20,7 +20,7 @@ class ABMM_Style {
 	const GROUPS = array(
 		'top'  => array( 'nav__list > .{p}-nav__item > .{p}-nav__link' ),
 		'cat'  => array( 'mega__cat-title', 'mega__section-title' ),
-		'desc' => array( 'mega__cat-desc', 'mega__col-description' ),
+		'desc' => array( 'mega__cat-desc', 'mega__col-description', 'mega__grid-description' ),
 		'link' => array( 'mega__col-label', 'mega__grid-label' ),
 	);
 

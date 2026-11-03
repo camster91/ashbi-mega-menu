@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.1
+
+Found by building a full menu in the editor from scratch, as a site owner would.
+
+- **Simple-column links** can have a short description, like category links. It is shown under the link on the site and in the preview, and can be styled with the Description font settings and the Elementor widget's Descriptions controls. Links without one keep their exact markup.
+- **Logo**: a Media Library button next to the logo and dark-preset logo fields; the image's alternative text fills the logo alternative text when that is empty.
+- **Checklist**: a featured card with link text but no link is flagged, because the site hides link text that goes nowhere. The checklist count now uses a proper plural ("1 thing", "2 things").
+- **Undo and redo** no longer turn the chosen style preset into Custom: restoring colours is not treated as a colour edit.
+- **Editing a dropdown's content** keeps the preview on screen: the canvas gets shorter while the content editor is open, so the open dropdown and the editor fit together.
+- **Accessibility**: move, duplicate, remove and icon buttons of menu items, categories, columns and links are renamed as soon as their label changes, instead of announcing the old name until the list is redrawn.
+- **Placement help** says to give the menu the full page width: in a narrow column or sidebar it shows the phone menu, even on a wide screen.
+- New categories are named "New category" instead of "NEW"; the create-menu button reads "Create menu"; an expanded menu item no longer has a large empty area under its URL.
+- The editor's font and height fields use a `data-abmm-style-key` attribute, so they can no longer be confused with the dropdown panels' own `data-abmm-style` attribute.
+
 ## 1.2.0
 
 - **Fonts** (Design tab): use the site's own font (theme or Elementor global font) or a custom font list, and set sizes and weights for the menu bar, category titles, links and descriptions, plus menu bar letter spacing and letter case. Sizes apply to the desktop menu; the phone drawer keeps its touch-friendly text.

@@ -658,6 +658,14 @@
 			issues.push({ field: 'abmm-cta-url', message: S.checkCta });
 		}
 		(menu.items || []).forEach(function (item) {
+			var card = item.featured || {};
+			// The card hides its link text when there is no link, so the text would silently vanish.
+			if (item.type === 'mega' && card.show && String(card.title || '').trim() && String(card.label || '').trim() && !usableLink({ label: card.label, url: card.url })) {
+				/* translators: %s: mega menu label. */
+				issues.push({ field: 'abmm-nav-items', message: sprintf(__('The featured card in %s has link text but no link. Add a link or clear the text.', 'ashbi-mega-menu'), String(item.label || '').trim() || S.thisMega) });
+			}
+		});
+		(menu.items || []).forEach(function (item) {
 			var label = String(item.label || '').trim();
 			if (Array.from(label).length > MAX_BAR_LABEL_LENGTH) {
 				var shortLabel = Array.from(label).slice(0, 24).join('') + '…';
@@ -725,7 +733,7 @@
 		var result = menuReadiness(getMenu());
 		var $list = $('.abmm-readiness-issues').empty();
 		$('.abmm-readiness-summary')
-			.text(result.ready ? S.checkPassed : S.checkPending.replace('%s', String(result.issues.length)))
+			.text(result.ready ? S.checkPassed : /* translators: %d: number of checklist items still to fix. */ sprintf(_n('%d thing to fix before you place this menu.', '%d things to fix before you place this menu.', result.issues.length, 'ashbi-mega-menu'), result.issues.length))
 			.toggleClass('is-ready', result.ready);
 		result.issues.forEach(function (issue) {
 			$('<li><button type="button" class="button-link"></button></li>')
@@ -843,7 +851,13 @@
 			'#abmm-icon-active-color': s.icon_active_color, '#abmm-icon-background': s.icon_background,
 			'#abmm-icon-border-color': s.icon_border_color,
 		};
+		// Restoring saved colours (undo, redo, a draft) is not a user edit:
+		// keep the preset the menu had instead of switching it to Custom.
+		state.applyingPreset = true;
+		setTimeout(function () { state.applyingPreset = false; }, 0);
 		Object.keys(colors).forEach(function (selector) { setColorInput(selector, colors[selector] || ''); });
+		$('.abmm-preset-card').removeClass('is-active');
+		$('.abmm-preset-card[data-preset="' + (s.preset || 'custom') + '"]').addClass('is-active');
 		syncFullWidthField();
 		syncIconInheritField();
 		syncOptionalFeatureFields();
@@ -927,7 +941,7 @@
 			show_cat_desc: $('#abmm-show-cat-desc').is(':checked'),
 			panel_title_align: $('#abmm-panel-title-align').val() || 'center',
 		};
-		var style = $('[data-abmm-style]').length ? readStyleForm() : normalizeStyle(previous.style);
+		var style = $('[data-abmm-style-key]').length ? readStyleForm() : normalizeStyle(previous.style);
 		if (Object.keys(style).length) m.settings.style = style;
 		if (renderMode === 'emm-classic') {
 			m.settings.render_mode = renderMode;
@@ -1096,7 +1110,7 @@
 	var STYLE_GROUPS = {
 		top: ['nav__list > .abmm-nav__item > .abmm-nav__link'],
 		cat: ['mega__cat-title', 'mega__section-title'],
-		desc: ['mega__cat-desc', 'mega__col-description'],
+		desc: ['mega__cat-desc', 'mega__col-description', 'mega__grid-description'],
 		link: ['mega__col-label', 'mega__grid-label'],
 	};
 	var STYLE_WEIGHTS = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
@@ -1168,14 +1182,14 @@
 
 	function readStyleForm() {
 		var raw = {};
-		$('[data-abmm-style]').each(function () { raw[$(this).attr('data-abmm-style')] = $(this).val(); });
+		$('[data-abmm-style-key]').each(function () { raw[$(this).attr('data-abmm-style-key')] = $(this).val(); });
 		return normalizeStyle(raw);
 	}
 
 	function populateStyleForm(style) {
 		style = style || {};
-		$('[data-abmm-style]').each(function () {
-			var key = $(this).attr('data-abmm-style');
+		$('[data-abmm-style-key]').each(function () {
+			var key = $(this).attr('data-abmm-style-key');
 			$(this).val(style[key] != null ? style[key] : (key === 'panel_height' ? 520 : ''));
 		});
 		syncStyleFields();
@@ -1185,7 +1199,7 @@
 	function syncStyleFields() {
 		$('[data-abmm-style-when]').each(function () {
 			var rule = String($(this).attr('data-abmm-style-when')).split('=');
-			var current = String($('[data-abmm-style="' + rule[0] + '"]').val() || '');
+			var current = String($('[data-abmm-style-key="' + rule[0] + '"]').val() || '');
 			$(this).prop('hidden', rule[1].split(',').indexOf(current) === -1);
 		});
 	}
@@ -2483,15 +2497,15 @@
 		].join(', ');
 
 		// Fonts and dropdown height.
-		$('#abmm-builder').on('change input', '[data-abmm-style]', function () {
+		$('#abmm-builder').on('change input', '[data-abmm-style-key]', function () {
 			syncStyleFields();
 			syncSettingsFromForm();
 			renderPreview();
 		});
 		$('#abmm-builder').on('click', '[data-abmm-style-reset]', function () {
 			var $group = $('[data-abmm-style-group="' + $(this).attr('data-abmm-style-reset') + '"]');
-			$group.find('[data-abmm-style]').each(function () {
-				$(this).val($(this).attr('data-abmm-style') === 'panel_height' ? 520 : '');
+			$group.find('[data-abmm-style-key]').each(function () {
+				$(this).val($(this).attr('data-abmm-style-key') === 'panel_height' ? 520 : '');
 			});
 			syncStyleFields();
 			syncSettingsFromForm();
@@ -2676,6 +2690,13 @@
 			$row.find('.abmm-nav-item-row__title').text(item.label || __('Untitled item', 'ashbi-mega-menu'));
 			$row.find('.abmm-nav-item-row__url').text(navSummaryText(item));
 			$row.find('.abmm-nav-item-row__toggle').attr('aria-label', navToggleLabel(item, $row.index()));
+			var navName = navItemName(item, $row.index());
+			relabelRowControls($row, '.abmm-nav-item-row', sprintf(__('navigation item %s', 'ashbi-mega-menu'), navName), {
+				/* translators: %s: menu item name. */
+				'.abmm-duplicate-nav': sprintf(__('Duplicate navigation item %s', 'ashbi-mega-menu'), navName),
+				/* translators: %s: menu item name. */
+				'.abmm-remove-nav': sprintf(__('Remove navigation item %s', 'ashbi-mega-menu'), navName),
+			});
 			var newType = $row.find('.abmm-nav-type').val();
 			if (newType !== item.type) {
 				item.type = newType;
@@ -2780,7 +2801,7 @@
 			setUndoStatus(__('Feature link removed.', 'ashbi-mega-menu'), function () { item.links.splice(index, 0, removed); renderFeaturesLinkList(); renderPreview(); setStatus(__('Feature link restored.', 'ashbi-mega-menu'), false); });
 		});
 
-		$('#abmm-features-link-list').on('input change', '.abmm-link-label, .abmm-link-url, .abmm-link-target, .abmm-link-rel, .abmm-link-class', function () {
+		$('#abmm-features-link-list').on('input change', '.abmm-link-label, .abmm-link-description, .abmm-link-url, .abmm-link-target, .abmm-link-rel, .abmm-link-class', function () {
 			var item = getMenu().items[state.editingItemIndex];
 			var $row = $(this).closest('.abmm-link-row');
 			var id = $row.data('id');
@@ -2789,8 +2810,10 @@
 			});
 			if (!link) return;
 			link.label = $row.find('.abmm-link-label').val();
+			link.description = $row.find('.abmm-link-description').val() || '';
 			link.url = $row.find('.abmm-link-url').val();
 			readLinkOptions($row, link);
+			relabelLinkRow($row, link);
 			renderPreview();
 		});
 
@@ -2805,7 +2828,7 @@
 			if (!item.categories) item.categories = [];
 			item.categories.push({
 				id: uid(),
-				title: __('NEW', 'ashbi-mega-menu'),
+				title: __('New category', 'ashbi-mega-menu'),
 				description: '',
 				icon: 'grid',
 				icon_url: '',
@@ -2854,6 +2877,15 @@
 			if (!cat) return;
 			cat.title = $(this).closest('.abmm-cat-row').find('.abmm-cat-title').val();
 			cat.description = $(this).closest('.abmm-cat-row').find('.abmm-cat-desc').val();
+			var catName = cat.title || String(idx + 1);
+			relabelRowControls($(this).closest('.abmm-cat-row'), '.abmm-cat-row', sprintf(__('category %s', 'ashbi-mega-menu'), catName), {
+				/* translators: %s: category or link name. */
+				'.abmm-pick-icon': sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), catName),
+				/* translators: %s: category name. */
+				'.abmm-remove-cat': sprintf(__('Remove category %s', 'ashbi-mega-menu'), catName),
+				/* translators: %s: category name. */
+				'.abmm-select-category': sprintf(__('Edit category %s', 'ashbi-mega-menu'), catName),
+			});
 			if (idx === state.editingCatIndex) {
 				$('#abmm-cat-detail .abmm-cat-detail__title').text(cat.title || __('Untitled category', 'ashbi-mega-menu'));
 			}
@@ -2965,6 +2997,21 @@
 			(index === 0 ? ' disabled' : '') + '>' + iconButtonContent('arrow-up-alt2', S.moveUp || 'Move up') + '</button>' +
 			'<button type="button" class="button-link abmm-move-item abmm-move-down" aria-label="' + esc((S.moveDownLabel || 'Move %s down').replace('%s', label)) + '" title="' + esc(S.moveDown || 'Move down') + '"' +
 			(index === length - 1 ? ' disabled' : '') + '>' + iconButtonContent('arrow-down-alt2', S.moveDown || 'Move down') + '</button></span>';
+	}
+
+	// Keep a row's button names in step with its label while the user types,
+	// so screen readers never announce the old name. Only this row's own
+	// controls change, not those of rows nested inside it.
+	function relabelRowControls($row, rowSelector, subject, labels) {
+		var own = function (selector) {
+			return $row.find(selector).filter(function () { return $(this).closest(rowSelector)[0] === $row[0]; }).first();
+		};
+		own('.abmm-reorder-controls').attr('aria-label', (S.positionControls || '%s position controls').replace('%s', subject));
+		own('.abmm-move-up').attr('aria-label', (S.moveUpLabel || 'Move %s up').replace('%s', subject));
+		own('.abmm-move-down').attr('aria-label', (S.moveDownLabel || 'Move %s down').replace('%s', subject));
+		Object.keys(labels || {}).forEach(function (selector) {
+			own(selector).attr('aria-label', labels[selector]);
+		});
 	}
 
 	// Compact icon button body; the text stays available to screen readers and tests.
@@ -3165,11 +3212,20 @@
 			var $header = $('.abmm-builder-header');
 			var stuck = $header.length && $header.css('position') === 'sticky';
 			var clearance = 16 + (stuck ? (parseFloat($header.css('top')) || 0) + ($header.outerHeight() || 0) : 32);
-			$('html, body').animate({ scrollTop: $('#abmm-mega-editor').offset().top - clearance }, 200);
-			// The editor replaces the preview, which comes before the inspector in
-			// tab order: move focus to its title so keyboard and screen-reader users
-			// land in it. Closing returns focus to the button that opened it.
-			setTimeout(function () { $('#abmm-mega-editor-title').trigger('focus'); }, 0);
+			// A shorter preview keeps the open dropdown on screen above the
+			// editor, so edits can be seen as they are made.
+			$('.abmm-builder-wrap').addClass('is-editing-mega');
+			if (previewCanvas) previewCanvas.refresh();
+			var $scrollTo = $('.abmm-editor-chrome').length ? $('.abmm-editor-chrome') : $('#abmm-mega-editor');
+			var scrollOffset = $scrollTo.offset();
+			if (scrollOffset) $('html, body').animate({ scrollTop: scrollOffset.top - clearance }, 200);
+			// The editor comes before the inspector in tab order: move focus to its
+			// title so keyboard and screen-reader users land in it, without
+			// scrolling the preview away. Closing returns focus to the opener.
+			setTimeout(function () {
+				var title = document.getElementById('abmm-mega-editor-title');
+				if (title) title.focus({ preventScroll: true });
+			}, 0);
 		}
 	}
 
@@ -3307,6 +3363,28 @@
 			frame.on('close', function () { setTimeout(function () { $(opener).trigger('focus'); }, 0); });
 			frame.open();
 		});
+		$('.abmm-choose-logo').on('click', function () {
+			var opener = this;
+			var $target = $($(this).attr('data-abmm-target'));
+			if (!window.wp || typeof window.wp.media !== 'function') {
+				setStatus(__('The media library is not available. Paste an image URL instead.', 'ashbi-mega-menu'), true);
+				$target.trigger('focus');
+				return;
+			}
+			var frame = window.wp.media({
+				title: __('Choose a logo', 'ashbi-mega-menu'),
+				button: { text: __('Use image', 'ashbi-mega-menu') },
+				library: { type: 'image' },
+				multiple: false,
+			});
+			frame.on('select', function () {
+				var att = frame.state().get('selection').first().toJSON();
+				$target.val(att.url || '').trigger('change');
+				if (att.alt && !$('#abmm-brand-alt').val()) $('#abmm-brand-alt').val(att.alt).trigger('change');
+			});
+			frame.on('close', function () { setTimeout(function () { $(opener).trigger('focus'); }, 0); });
+			frame.open();
+		});
 		$('#abmm-featured-editor').on('click', '.abmm-featured-remove-image', function () {
 			$('#abmm-featured-image').val('').trigger('change');
 			$('#abmm-featured-editor .abmm-featured-choose-image').trigger('focus');
@@ -3343,7 +3421,7 @@
 		if (!item) return;
 
 		(item.links || []).forEach(function (link, index) {
-			$list.append(linkRowHtml(link, index, item.links.length));
+			$list.append(linkRowHtml(link, index, item.links.length, true));
 		});
 
 		$list.sortable({
@@ -3370,6 +3448,10 @@
 		var $editor = $('#abmm-mega-editor');
 		var wasSheet = $editor.attr('role') === 'dialog';
 		$editor.prop('hidden', true).removeAttr('role aria-modal aria-labelledby');
+		if ($('.abmm-builder-wrap').hasClass('is-editing-mega')) {
+			$('.abmm-builder-wrap').removeClass('is-editing-mega');
+			if (previewCanvas) previewCanvas.refresh();
+		}
 		if (wasSheet) {
 			setMegaEditorBackgroundInert(false);
 			if (!$('#abmm-builder-sidebar').hasClass('is-open')) {
@@ -3556,6 +3638,12 @@
 			});
 			if (!group) return;
 			group.title = $(this).val();
+			var $block = $(this).closest('.abmm-group-block');
+			var groupName = group.title || String($block.index() + 1);
+			relabelRowControls($block, '.abmm-group-block', sprintf(__('column %s', 'ashbi-mega-menu'), groupName), {
+				/* translators: %s: column name. */
+				'.abmm-remove-group': sprintf(__('Remove column %s', 'ashbi-mega-menu'), groupName),
+			});
 			renderPreview();
 		});
 
@@ -3632,6 +3720,7 @@
 			link.description = $row.find('.abmm-link-description').val() || '';
 			link.url = $row.find('.abmm-link-url').val();
 			readLinkOptions($row, link);
+			relabelLinkRow($row, link);
 			renderPreview();
 		});
 
@@ -3788,6 +3877,16 @@
 			'</span>' +
 			'</li>'
 		);
+	}
+
+	function relabelLinkRow($row, link) {
+		var linkName = link.label || $row.index() + 1;
+		relabelRowControls($row, '.abmm-link-row', sprintf(__('link %s', 'ashbi-mega-menu'), linkName), {
+			/* translators: %s: category or link name. */
+			'.abmm-pick-link-icon': sprintf(__('Choose an icon for %s', 'ashbi-mega-menu'), linkName),
+			/* translators: %s: link name. */
+			'.abmm-remove-link': sprintf(__('Remove link %s', 'ashbi-mega-menu'), linkName),
+		});
 	}
 
 	/* ---------- Preview ---------- */
@@ -4546,9 +4645,9 @@
 					'<span class="abmm-mega__grid-icon">' +
 					iconMarkup(link.icon, link.icon_url, 'abmm-icon abmm-icon--sm', link.icon_color, link.icon_size, link) +
 					'</span>' +
-					'<span class="abmm-mega__grid-label">' +
-					esc(link.label) +
-					'</span>';
+					(link.description
+						? '<span class="abmm-mega__grid-copy"><span class="abmm-mega__grid-label">' + esc(link.label) + '</span><span class="abmm-mega__grid-description">' + esc(link.description) + '</span></span>'
+						: '<span class="abmm-mega__grid-label">' + esc(link.label) + '</span>');
 				featLinks +=
 					'<li class="abmm-mega__grid-item"' + (link.id ? ' data-abmm-link-id="' + esc(link.id) + '"' : '') + '>' +
 					previewLinkMarkup(link, 'abmm-mega__grid-link', featureContent, false) +

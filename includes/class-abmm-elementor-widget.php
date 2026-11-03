@@ -91,7 +91,7 @@ class ABMM_Elementor_Widget extends Widget_Base {
 		$this->text_style_section( 'top', __( 'Menu bar', 'ashbi-mega-menu' ), array( 'nav__list > .{p}-nav__item > .{p}-nav__link' ), true );
 		$this->text_style_section( 'cat', __( 'Category titles', 'ashbi-mega-menu' ), array( 'mega__cat-title', 'mega__section-title' ), false );
 		$this->text_style_section( 'link', __( 'Links', 'ashbi-mega-menu' ), array( 'mega__col-label', 'mega__grid-label' ), true );
-		$this->text_style_section( 'desc', __( 'Descriptions', 'ashbi-mega-menu' ), array( 'mega__cat-desc', 'mega__col-description' ), false );
+		$this->text_style_section( 'desc', __( 'Descriptions', 'ashbi-mega-menu' ), array( 'mega__cat-desc', 'mega__col-description', 'mega__grid-description' ), false );
 
 		$this->start_controls_section( 'abmm_dropdown', array( 'label' => __( 'Dropdown', 'ashbi-mega-menu' ), 'tab' => Controls_Manager::TAB_STYLE ) );
 		$this->add_control(

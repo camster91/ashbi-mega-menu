@@ -134,8 +134,23 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<div class="abmm-optional-fields abmm-brand-fields">
 					<label class="abmm-field"><span><?php esc_html_e( 'Site title', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-title" value="<?php echo esc_attr( $menu['brand']['title'] ); ?>" /></label>
 					<label class="abmm-field"><span><?php esc_html_e( 'Brand URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-url" value="<?php echo esc_attr( $menu['brand']['url'] ); ?>" /></label>
-					<label class="abmm-field"><span><?php esc_html_e( 'Logo image URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-logo-url" value="<?php echo esc_attr( $menu['brand']['logo_url'] ); ?>" placeholder="https://…" /></label>
-					<label class="abmm-field"><span><?php esc_html_e( 'Dark-preset logo URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-logo-dark-url" value="<?php echo esc_attr( $menu['brand']['logo_dark_url'] ); ?>" placeholder="<?php esc_attr_e( 'Optional alternate logo', 'ashbi-mega-menu' ); ?>" /></label>
+					<?php
+					$abmm_logo_fields = array(
+						'abmm-brand-logo-url'      => array( __( 'Logo image URL', 'ashbi-mega-menu' ), $menu['brand']['logo_url'], 'https://…' ),
+						'abmm-brand-logo-dark-url' => array( __( 'Dark-preset logo URL', 'ashbi-mega-menu' ), $menu['brand']['logo_dark_url'], __( 'Optional alternate logo', 'ashbi-mega-menu' ) ),
+					);
+					foreach ( $abmm_logo_fields as $abmm_field_id => $abmm_field ) :
+						?>
+					<div class="abmm-field">
+						<label for="<?php echo esc_attr( $abmm_field_id ); ?>"><?php echo esc_html( $abmm_field[0] ); ?></label>
+						<div class="abmm-wp-link">
+							<input type="url" id="<?php echo esc_attr( $abmm_field_id ); ?>" class="abmm-url-field" value="<?php echo esc_attr( $abmm_field[1] ); ?>" placeholder="<?php echo esc_attr( $abmm_field[2] ); ?>" />
+							<button type="button" class="button abmm-choose-logo" data-abmm-target="#<?php echo esc_attr( $abmm_field_id ); ?>" title="<?php esc_attr_e( 'Choose from the Media Library', 'ashbi-mega-menu' ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: field name, e.g. Logo image URL. */ __( 'Choose an image for %s', 'ashbi-mega-menu' ), $abmm_field[0] ) ); ?>">
+								<span class="dashicons dashicons-format-image" aria-hidden="true"></span>
+							</button>
+						</div>
+					</div>
+					<?php endforeach; ?>
 					<label class="abmm-field"><span><?php esc_html_e( 'Logo alternative text', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-alt" value="<?php echo esc_attr( $menu['brand']['alt'] ); ?>" /></label>
 					<label class="abmm-field"><span><?php esc_html_e( 'Logo height (px)', 'ashbi-mega-menu' ); ?></span><input type="number" id="abmm-brand-logo-height" min="16" max="80" value="<?php echo esc_attr( $menu['brand']['logo_height'] ); ?>" /></label>
 				</div>
@@ -458,21 +473,21 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					foreach ( ABMM_Style::WEIGHTS as $abmm_w ) {
 						$options[ $abmm_w ] = $abmm_w;
 					}
-					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><select data-abmm-style="' . esc_attr( $key ) . '">';
+					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><select data-abmm-style-key="' . esc_attr( $key ) . '">';
 					foreach ( $options as $abmm_value => $abmm_text ) {
 						echo '<option value="' . esc_attr( $abmm_value ) . '"' . selected( (string) ( $abmm_style[ $key ] ?? '' ), (string) $abmm_value, false ) . '>' . esc_html( $abmm_text ) . '</option>';
 					}
 					echo '</select></label>';
 				};
 				$abmm_size = function ( $key, $label ) use ( $abmm_style ) {
-					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><input type="number" min="10" max="40" step="1" placeholder="' . esc_attr__( 'Default', 'ashbi-mega-menu' ) . '" data-abmm-style="' . esc_attr( $key ) . '" value="' . esc_attr( (string) ( $abmm_style[ $key ] ?? '' ) ) . '" /></label>';
+					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><input type="number" min="10" max="40" step="1" placeholder="' . esc_attr__( 'Default', 'ashbi-mega-menu' ) . '" data-abmm-style-key="' . esc_attr( $key ) . '" value="' . esc_attr( (string) ( $abmm_style[ $key ] ?? '' ) ) . '" /></label>';
 				};
 				?>
 				<details class="abmm-design-more" data-abmm-style-group="fonts">
 					<summary><?php esc_html_e( 'Fonts', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Font', 'ashbi-mega-menu' ); ?></span>
-						<select data-abmm-style="font_family_mode" aria-describedby="abmm-font-help">
+						<select data-abmm-style-key="font_family_mode" aria-describedby="abmm-font-help">
 							<option value="" <?php selected( $abmm_style['font_family_mode'] ?? '', '' ); ?>><?php esc_html_e( 'Menu default', 'ashbi-mega-menu' ); ?></option>
 							<option value="inherit" <?php selected( $abmm_style['font_family_mode'] ?? '', 'inherit' ); ?>><?php esc_html_e( 'Same as my site (theme or Elementor font)', 'ashbi-mega-menu' ); ?></option>
 							<option value="custom" <?php selected( $abmm_style['font_family_mode'] ?? '', 'custom' ); ?>><?php esc_html_e( 'Custom font', 'ashbi-mega-menu' ); ?></option>
@@ -481,7 +496,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					</label>
 					<label class="abmm-field" data-abmm-style-when="font_family_mode=custom">
 						<span><?php esc_html_e( 'Custom font names', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" data-abmm-style="font_family" value="<?php echo esc_attr( $abmm_style['font_family'] ?? '' ); ?>" placeholder="<?php esc_attr_e( 'Supreme, Arial, sans-serif', 'ashbi-mega-menu' ); ?>" />
+						<input type="text" data-abmm-style-key="font_family" value="<?php echo esc_attr( $abmm_style['font_family'] ?? '' ); ?>" placeholder="<?php esc_attr_e( 'Supreme, Arial, sans-serif', 'ashbi-mega-menu' ); ?>" />
 						<span class="description"><?php esc_html_e( 'The font must already be loaded on your site, for example by your theme or Elementor.', 'ashbi-mega-menu' ); ?></span>
 					</label>
 					<p class="description"><?php esc_html_e( 'Sizes and weights apply to the desktop menu. Leave a field empty to keep the menu default.', 'ashbi-mega-menu' ); ?></p>
@@ -491,11 +506,11 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					?>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Menu bar letter spacing (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" min="-2" max="10" step="0.1" placeholder="<?php esc_attr_e( 'Default', 'ashbi-mega-menu' ); ?>" data-abmm-style="top_letter_spacing" value="<?php echo esc_attr( $abmm_style['top_letter_spacing'] ?? '' ); ?>" />
+						<input type="number" min="-2" max="10" step="0.1" placeholder="<?php esc_attr_e( 'Default', 'ashbi-mega-menu' ); ?>" data-abmm-style-key="top_letter_spacing" value="<?php echo esc_attr( $abmm_style['top_letter_spacing'] ?? '' ); ?>" />
 					</label>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Menu bar letter case', 'ashbi-mega-menu' ); ?></span>
-						<select data-abmm-style="top_text_transform">
+						<select data-abmm-style-key="top_text_transform">
 							<option value=""><?php esc_html_e( 'Default', 'ashbi-mega-menu' ); ?></option>
 							<option value="none" <?php selected( $abmm_style['top_text_transform'] ?? '', 'none' ); ?>><?php esc_html_e( 'As typed', 'ashbi-mega-menu' ); ?></option>
 							<option value="uppercase" <?php selected( $abmm_style['top_text_transform'] ?? '', 'uppercase' ); ?>><?php esc_html_e( 'UPPERCASE', 'ashbi-mega-menu' ); ?></option>
@@ -518,7 +533,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					<summary><?php esc_html_e( 'Dropdown height', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Height of the open dropdown (desktop)', 'ashbi-mega-menu' ); ?></span>
-						<select data-abmm-style="panel_height_mode" aria-describedby="abmm-panel-height-help">
+						<select data-abmm-style-key="panel_height_mode" aria-describedby="abmm-panel-height-help">
 							<option value="" <?php selected( $abmm_style['panel_height_mode'] ?? '', '' ); ?>><?php esc_html_e( 'Default (scrolls when taller than the screen allows)', 'ashbi-mega-menu' ); ?></option>
 							<option value="auto" <?php selected( $abmm_style['panel_height_mode'] ?? '', 'auto' ); ?>><?php esc_html_e( 'Grow to fit all links', 'ashbi-mega-menu' ); ?></option>
 							<option value="max" <?php selected( $abmm_style['panel_height_mode'] ?? '', 'max' ); ?>><?php esc_html_e( 'Up to a height, then scroll', 'ashbi-mega-menu' ); ?></option>
@@ -528,7 +543,7 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 					</label>
 					<label class="abmm-field" data-abmm-style-when="panel_height_mode=max,fixed">
 						<span><?php esc_html_e( 'Height (px)', 'ashbi-mega-menu' ); ?></span>
-						<input type="number" min="200" max="1200" step="10" data-abmm-style="panel_height" value="<?php echo esc_attr( (string) ( $abmm_style['panel_height'] ?? 520 ) ); ?>" />
+						<input type="number" min="200" max="1200" step="10" data-abmm-style-key="panel_height" value="<?php echo esc_attr( (string) ( $abmm_style['panel_height'] ?? 520 ) ); ?>" />
 					</label>
 					<button type="button" class="button-link abmm-style-reset" data-abmm-style-reset="height"><?php esc_html_e( 'Reset height to default', 'ashbi-mega-menu' ); ?></button>
 				</details>
@@ -544,8 +559,9 @@ $abmm_menu_readiness = ABMM_Data::instance()->readiness( $menu );
 				<ul class="abmm-place-options">
 					<li<?php echo 'block' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Block theme', 'ashbi-mega-menu' ); ?></strong><?php if ( 'block' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'In Appearance → Editor, add the Ashbi Mega Menu block to your Header and pick this menu.', 'ashbi-mega-menu' ); ?></li>
 					<li<?php echo 'widget' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Classic theme', 'ashbi-mega-menu' ); ?></strong><?php if ( 'widget' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'Add the Ashbi Mega Menu widget to a header area, or paste the shortcode.', 'ashbi-mega-menu' ); ?></li>
-					<li<?php echo 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Page builder', 'ashbi-mega-menu' ); ?></strong><?php if ( 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'Paste the shortcode into a shortcode element.', 'ashbi-mega-menu' ); ?></li>
+					<li<?php echo 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Page builder', 'ashbi-mega-menu' ); ?></strong><?php if ( 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'Paste the shortcode into a shortcode element in a full-width section.', 'ashbi-mega-menu' ); ?></li>
 				</ul>
+				<p class="description abmm-place-width"><?php esc_html_e( 'Give the menu the full width of the page. In a narrow column or sidebar it shows the phone menu, even on a wide screen.', 'ashbi-mega-menu' ); ?></p>
 				<p class="description abmm-place-rollback"><?php esc_html_e( 'Keep your theme\'s menu while you test. When the new menu works, remove the old one from the header so there is only one. To roll back, remove the Ashbi block, widget or shortcode: this plugin never changes your theme\'s menu.', 'ashbi-mega-menu' ); ?></p>
 				<details class="abmm-design-more abmm-disclosure"><summary><?php esc_html_e( 'For developers: PHP', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Add this to your child theme header.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
 			</section>
