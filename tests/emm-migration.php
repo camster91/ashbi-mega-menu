@@ -117,7 +117,8 @@ function current_user_can() { return $GLOBALS['abmm_can']; }
 function check_admin_referer( $action ) { if ( 'valid' !== ( $_POST['_wpnonce'] ?? '' ) ) { throw new ABMM_Test_Redirect( 'nonce' ); } return true; }
 function wp_die( $message ) { throw new ABMM_Test_Redirect( 'die' ); }
 function wp_create_nonce() { return 'n'; }
-function set_transient() { return true; }
+function set_transient( $key, $value ) { $GLOBALS['abmm_transients'][ $key ] = $value; return true; }
+function wp_delete_file( $file ) { @unlink( $file ); }
 function get_current_user_id() { return 1; }
 function wp_safe_redirect( $url ) { throw new ABMM_Test_Redirect( $url ); }
 function abmm_contextual_navigation_enabled() { return (bool) get_option( ABMM_CONTEXTUAL_NAV_OPTION, false ); }
@@ -126,6 +127,7 @@ $GLOBALS['abmm_tmp'] = $abmm_tmp;
 require_once dirname( __DIR__ ) . '/includes/class-abmm-icons.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-data.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-import-export.php';
+require_once dirname( __DIR__ ) . '/includes/class-abmm-option-store.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-product-profiles.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-product-branding.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-page-context.php';
@@ -154,10 +156,16 @@ $export = json_decode( (string) file_get_contents( __DIR__ . '/fixtures/emm/emm-
 $GLOBALS['abmm_options']['emm_menus']            = $export['menus'];
 $GLOBALS['abmm_options']['emm_product_profiles'] = array(
 	'product_a' => array( 'title' => 'Product A', 'label' => 'Product A', 'url' => 'https://example.test/a/', 'root_page_id' => 12, 'rail_style' => 'underline', 'links' => array( array( 'label' => 'Features', 'url' => 'https://example.test/a/features/' ) ), 'cta' => array( 'show' => true, 'label' => 'Try it', 'url' => 'https://example.test/a/try/' ) ),
+	'product_b' => array( 'title' => 'Product B', 'label' => 'Product B', 'url' => 'https://example.test/b/', 'root_page_id' => 13, 'rail_style' => 'pills', 'links' => array(), 'cta' => array() ),
+	'product_c' => array( 'title' => 'Product C', 'label' => 'Product C from Easy Mega Menu', 'url' => 'https://example.test/c/', 'root_page_id' => 14, 'rail_style' => 'underline', 'links' => array(), 'cta' => array() ),
 );
 $GLOBALS['abmm_options']['emm_product_branding'] = array(
 	'product_a' => array( 'enabled' => true, 'mode' => 'product_text', 'shared_menu_id' => 'main_nav', 'logo_url' => 'https://example.test/logo.svg', 'alt' => 'Example', 'logo_height' => 42, 'wordmark_url' => 'https://example.test/a.svg', 'wordmark_height' => 21, 'desktop_interaction' => 'hover', 'show_utility_links' => true, 'about_url' => 'https://example.test/about/', 'contact_url' => 'https://example.test/contact/' ),
+	// Decorates a menu whose ID an Ashbi menu already uses: not copied while that menu is kept.
+	'product_b' => array( 'enabled' => true, 'mode' => 'product_text', 'shared_menu_id' => 'product_secondary', 'logo_url' => 'https://example.test/logo.svg', 'alt' => 'Example' ),
 );
+// The administrator's own Ashbi profile, with an ID Easy Mega Menu also uses.
+$GLOBALS['abmm_options']['abmm_product_profiles'] = array( 'product_c' => array( 'title' => 'Mine', 'label' => 'My product C', 'url' => 'https://example.test/mine/' ) );
 $GLOBALS['abmm_meta'][42] = array( '_emm_product_profile' => 'product_a' );
 $GLOBALS['abmm_meta'][43] = array( '_emm_product_profile' => 'product_a', '_abmm_product_profile' => 'kept' );
 // An Ashbi menu that shares an ID with an Easy Mega Menu menu.
@@ -173,10 +181,12 @@ $preview        = $migration->preview();
 verify_migration( $options_before === $GLOBALS['abmm_options'], 'Preview stores nothing.' );
 $rows = array_column( $preview['menus'], null, 'id' );
 verify_migration( 2 === count( $rows ) && $rows['product_secondary']['conflict'] && ! $rows['main_nav']['conflict'], 'Preview lists both menus and flags the ID conflict.' );
-verify_migration( $preview['assets_ready'] && 1 === $preview['profiles'] && 1 === $preview['branding'] && 2 === $preview['assignments'], 'Preview counts styles, profiles, branding and page assignments.' );
+verify_migration( $preview['assets_ready'] && 3 === $preview['profiles'] && 2 === $preview['branding'] && 2 === $preview['assignments'], 'Preview counts styles, profiles, branding and page assignments.' );
 verify_migration( in_array( 'Icon "not-a-real-icon" is not in the copied icon set; the link icon is shown instead.', $rows['main_nav']['issues'], true ), 'Preview lists icons that are not available.' );
 
 // Import: IDs kept, existing Ashbi menu kept, everything else copied.
+@mkdir( ABMM_Classic::upload_dir(), 0777, true );
+file_put_contents( ABMM_Classic::upload_dir() . '/emm-frontend-stale0000.css', 'old' );
 $result = $migration->import( false );
 verify_migration( ! is_wp_error( $result ), 'Import succeeds.' );
 $menus = $GLOBALS['abmm_options'][ ABMM_OPTION_KEY ];
@@ -193,6 +203,9 @@ $profiles = get_option( ABMM_Product_Profiles::OPTION_KEY );
 verify_migration( 'Product A' === $profiles['product_a']['label'] && 12 === $profiles['product_a']['root_page_id'] && 'Try it' === $profiles['product_a']['cta']['label'], 'Product profiles are copied with their hub page and CTA.' );
 $branding = get_option( ABMM_Product_Branding::OPTION_KEY );
 verify_migration( 'product_text' === $branding['product_a']['mode'] && 21 === $branding['product_a']['wordmark_height'] && 'main_nav' === $branding['product_a']['shared_menu_id'], 'Product branding is copied.' );
+verify_migration( ! isset( $branding['product_b'] ) && array( 'product_b' ) === $result['kept_branding'], 'Branding for a menu that was not imported is not copied onto the unrelated Ashbi menu.' );
+verify_migration( 'My product C' === $profiles['product_c']['label'] && array( 'product_c' ) === $result['kept_profiles'] && 'Product B' === $profiles['product_b']['label'], 'The administrator\'s own profile is kept; the others are copied.' );
+verify_migration( 2 === $result['profiles'] && 1 === $result['branding'], 'Only records actually written are counted.' );
 verify_migration( 'product_a' === $GLOBALS['abmm_meta'][42]['_abmm_product_profile'] && 'kept' === $GLOBALS['abmm_meta'][43]['_abmm_product_profile'], 'Page assignments are copied without replacing Ashbi ones.' );
 
 // Styles and icons copied into uploads, exactly.
@@ -200,11 +213,35 @@ $assets = get_option( ABMM_Classic::ASSETS_OPTION );
 $dir    = ABMM_Classic::upload_dir();
 verify_migration( $result['assets']['copied'] && '1.6.76' === $assets['version'], 'Styles and icons are copied and versioned.' );
 verify_migration( file_get_contents( $dir . '/' . $assets['css'] ) === ".emm-header{color:red}\n", 'The stylesheet copy is byte for byte.' );
-verify_migration( isset( ABMM_Classic_Icons::sprite_keys( $dir . '/' . $assets['sprite'] )['wallet'] ), 'The sprite copy keeps its icons.' );
+verify_migration( 1 === preg_match( '/^emm-sprite-[0-9a-f]{10}\.svg$/', $assets['sprite'] ) && 1 === preg_match( '/^emm-frontend-[0-9a-f]{10}\.css$/', $assets['css'] ), 'Copied files are named by their content, so a changed file gets a new URL.' );
+verify_migration( isset( ABMM_Classic_Icons::sprite_keys( $dir . '/' . $assets['sprite'] )['wallet'] ) && in_array( 'wallet', $assets['keys'], true ), 'The sprite copy keeps its icons and the icon list is stored.' );
+verify_migration( ! file_exists( $dir . '/emm-frontend-stale0000.css' ), 'Copies from earlier imports are removed.' );
+
+// A changed stylesheet gets a new file; the previous copy is removed.
+$first_css = $assets['css'];
+file_put_contents( $plugin_dir . '/assets/css/frontend.css', ".emm-header{color:blue}\n" );
+$migration->copy_assets();
+$assets = get_option( ABMM_Classic::ASSETS_OPTION );
+verify_migration( $first_css !== $assets['css'] && ! file_exists( $dir . '/' . $first_css ) && file_exists( $dir . '/' . $assets['css'] ) && file_exists( $dir . '/' . $assets['sprite'] ), 'A changed stylesheet replaces the old copy.' );
+file_put_contents( $plugin_dir . '/assets/css/frontend.css', ".emm-header{color:red}\n" );
+
+// Re-importing refreshes what earlier imports created, and only that.
+$GLOBALS['abmm_options']['emm_product_profiles']['product_a']['cta']['label'] = 'Start a trial';
+$GLOBALS['abmm_options']['emm_product_profiles']['product_c']['label']        = 'Changed in Easy Mega Menu';
+$GLOBALS['abmm_meta'][42]['_emm_product_profile']                             = 'product_b';
+$source_before = array_intersect_key( $GLOBALS['abmm_options'], $source_before );
+$migration->import( false );
+$profiles = get_option( ABMM_Product_Profiles::OPTION_KEY );
+verify_migration( 'Start a trial' === $profiles['product_a']['cta']['label'] && 'My product C' === $profiles['product_c']['label'], 'Re-importing updates imported profiles and keeps your own.' );
+verify_migration( 'product_b' === $GLOBALS['abmm_meta'][42]['_abmm_product_profile'] && 'kept' === $GLOBALS['abmm_meta'][43]['_abmm_product_profile'], 'Re-importing updates imported page assignments and keeps your own.' );
 
 // Overwrite replaces the conflicting Ashbi menu when asked; a second import updates classic menus in place.
 $result = $migration->import( true );
 verify_migration( ABMM_Classic::is_classic( $GLOBALS['abmm_options'][ ABMM_OPTION_KEY ]['product_secondary'] ) && array() === $result['skipped'], 'Overwrite replaces an Ashbi menu with the same ID.' );
+$branding = get_option( ABMM_Product_Branding::OPTION_KEY );
+$profiles = get_option( ABMM_Product_Profiles::OPTION_KEY );
+verify_migration( 'product_secondary' === $branding['product_b']['shared_menu_id'] && 'Changed in Easy Mega Menu' === $profiles['product_c']['label'], 'With Replace, branding follows its now-imported menu and conflicting profiles are replaced.' );
+verify_migration( $source_before === array_intersect_key( $GLOBALS['abmm_options'], $source_before ), 'Easy Mega Menu\'s options are still unchanged.' );
 $again = $migration->import( false );
 verify_migration( array() === $again['skipped'] && 'updated' === $again['menus']['main_nav']['action'], 'Re-importing updates earlier classic imports.' );
 
@@ -232,6 +269,14 @@ verify_migration( $same( $html ) === $same( emm_get_menu( 'main_nav', array( 'co
 verify_migration( '' === $migration->shortcode( array( 'id' => 'does_not_exist' ) ), 'A missing menu renders nothing, as before.' );
 verify_migration( '' === $migration->shortcode( array( 'id' => array( 'x' ) ) ), 'A non-scalar ID renders nothing.' );
 
+// A failed import shows its real reason.
+$saved_menus = $GLOBALS['abmm_options']['emm_menus'];
+$GLOBALS['abmm_options']['emm_menus'] = array();
+$_POST = array( '_wpnonce' => 'valid' );
+try { $migration->handle_import(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( false !== strpos( $stop->getMessage(), 'abmm_notice=error' ), 'A failed import redirects with an error notice.' ); }
+verify_migration( 'Easy Mega Menu has no menus to import.' === ( $GLOBALS['abmm_transients']['abmm_emm_import_result_1']['error'] ?? '' ), 'The failure reason is kept for the notice.' );
+$GLOBALS['abmm_options']['emm_menus'] = $saved_menus;
+
 // Admin actions need the capability and a valid nonce.
 $GLOBALS['abmm_can'] = false;
 try { $migration->handle_import(); verify_migration( false, 'unreachable' ); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( 'die' === $stop->getMessage(), 'Import requires manage_options.' ); }
@@ -240,5 +285,9 @@ $_POST = array( '_wpnonce' => 'stale', 'takeover' => '' );
 try { $migration->handle_takeover(); verify_migration( false, 'unreachable' ); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( 'nonce' === $stop->getMessage() && ABMM_EMM_Migration::takeover_enabled(), 'The takeover setting requires a valid nonce.' ); }
 $_POST = array( '_wpnonce' => 'valid' );
 try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( ! ABMM_EMM_Migration::takeover_enabled(), 'The takeover can be turned off again.' ); }
+
+// While Easy Mega Menu still runs a site with imported menus, Ashbi adds no body classes.
+define( 'EMM_VERSION', '1.6.76' );
+verify_migration( array( 'page' ) === ABMM_Product_Branding::instance()->body_class( array( 'page' ) ) && array( 'page' ) === ABMM_Classic::instance()->body_class( array( 'page' ) ), 'No Ashbi body classes while Easy Mega Menu is active.' );
 
 echo "Easy Mega Menu migration: read-only import, ID conflicts, product navigation, asset copy, round trip and takeover passed.\n";

@@ -153,7 +153,7 @@ class ABMM_Classic {
 	/**
 	 * Site assets (stylesheet and sprite file names) copied by the importer.
 	 *
-	 * @return array{css:string,sprite:string,version:string}
+	 * @return array{css:string,sprite:string,version:string,keys:string[]}
 	 */
 	public function site_assets() {
 		$stored = get_option( self::ASSETS_OPTION, array() );
@@ -162,6 +162,7 @@ class ABMM_Classic {
 			'css'     => is_string( $stored['css'] ?? null ) ? sanitize_file_name( $stored['css'] ) : '',
 			'sprite'  => is_string( $stored['sprite'] ?? null ) ? sanitize_file_name( $stored['sprite'] ) : '',
 			'version' => is_string( $stored['version'] ?? null ) ? preg_replace( '/[^A-Za-z0-9._-]/', '', $stored['version'] ) : '',
+			'keys'    => array_values( array_filter( array_map( 'sanitize_key', array_filter( (array) ( $stored['keys'] ?? array() ), 'is_scalar' ) ) ) ),
 		);
 	}
 
@@ -220,50 +221,42 @@ class ABMM_Classic {
 			ABMM_VERSION,
 			true
 		);
-		$bleed = $this->edge_bleed_config();
-		if ( $bleed ) {
-			wp_add_inline_script( 'abmm-classic', 'window.abmmClassic=' . wp_json_encode( array( 'edgeBleed' => $bleed ) ) . ';', 'before' );
+		$summary = $this->classic_summary();
+		if ( $summary['bleed'] ) {
+			wp_add_inline_script( 'abmm-classic', 'window.abmmClassic=' . wp_json_encode( array( 'edgeBleed' => $summary['bleed'] ) ) . ';', 'before' );
 		}
-		if ( $this->any_classic_menu_has( 'classic_phone_scroll_fix' ) ) {
+		if ( $summary['phone_fix'] ) {
 			wp_add_inline_style( 'abmm-classic', self::phone_scroll_fix_css() );
 		}
 		// While Easy Mega Menu is active its own stylesheet (the same rules) is
 		// already queued, so live pages stay byte for byte as they were; classic
 		// menus rendered by Ashbi then queue this one themselves.
-		if ( self::site_uses_classic() && ! self::source_active() ) {
+		if ( $summary['classic'] && ! self::source_active() ) {
 			wp_enqueue_style( 'abmm-classic' );
 		}
 	}
 
 	/**
-	 * Per-menu panel edge bleed, only for classic menus that set one.
+	 * What the stored menus need from the classic assets, in one pass:
+	 * whether any menu is classic, per-menu panel edge bleed, and whether any
+	 * classic menu turns on the phone scroll fix.
 	 *
-	 * @return array<string,int>
+	 * @return array{classic:bool,bleed:array<string,int>,phone_fix:bool}
 	 */
-	private function edge_bleed_config() {
-		$config = array();
+	private function classic_summary() {
+		$summary = array( 'classic' => false, 'bleed' => array(), 'phone_fix' => false );
 		foreach ( ABMM_Data::instance()->get_all() as $id => $menu ) {
-			$bleed = absint( $menu['settings']['classic_edge_bleed'] ?? 0 );
-			if ( $bleed && self::is_classic( $menu ) ) {
-				$config[ (string) $id ] = min( 64, $bleed );
+			if ( ! self::is_classic( $menu ) ) {
+				continue;
 			}
-		}
-		return $config;
-	}
-
-	/**
-	 * Whether any classic menu turns on a boolean classic setting.
-	 *
-	 * @param string $key Setting key.
-	 * @return bool
-	 */
-	private function any_classic_menu_has( $key ) {
-		foreach ( ABMM_Data::instance()->get_all() as $menu ) {
-			if ( ! empty( $menu['settings'][ $key ] ) && self::is_classic( $menu ) ) {
-				return true;
+			$summary['classic'] = true;
+			$bleed              = absint( $menu['settings']['classic_edge_bleed'] ?? 0 );
+			if ( $bleed ) {
+				$summary['bleed'][ (string) $id ] = min( 64, $bleed );
 			}
+			$summary['phone_fix'] = $summary['phone_fix'] || ! empty( $menu['settings']['classic_phone_scroll_fix'] );
 		}
-		return false;
+		return $summary;
 	}
 
 	/**

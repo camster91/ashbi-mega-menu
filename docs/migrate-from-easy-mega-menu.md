@@ -23,7 +23,7 @@ Colour, size and width changes made later in Ashbi's Design tab still apply to c
 ## Before you start
 
 1. Take a full backup (database and `wp-content/plugins`).
-2. Install and activate Ashbi Mega Menu 1.1 **with Easy Mega Menu still active**. Nothing on the site changes: Easy Mega Menu keeps answering its shortcodes, and Ashbi loads no front-end files until it renders a menu.
+2. Install and activate Ashbi Mega Menu 1.1 **with Easy Mega Menu still active**. Nothing on the site changes: Easy Mega Menu keeps answering its shortcodes, and while it is active Ashbi adds no files or page classes to live pages, even after the import.
 3. If a cache or optimizer delays scripts, exclude Ashbi's classic files the same way as Easy Mega Menu's: `ashbi-mega-menu/assets/classic/emm-frontend.js` and the stylesheet in `uploads/ashbi-mega-menu/classic/`. Both carry NitroPack's `nitro-exclude` marker already.
 
 ## Import and test
@@ -33,7 +33,7 @@ Colour, size and width changes made later in Ashbi's Design tab still apply to c
 3. Choose **Import menus**. A snapshot of your Ashbi menus is saved first (restore it from **Tools → Import backups**).
 4. Create a **private draft** page that renders a menu with Ashbi's shortcode, for example `[ashbi_mega_menu id="menu_demo"]`, in the same header or template context. Compare it with the live header on desktop and phone: open each dropdown and category, the phone drawer, Back and Close, and use Tab, Enter and Escape.
 
-Re-running the import updates earlier imports, so you can change something in Easy Mega Menu and import again.
+Re-running the import refreshes everything earlier imports created (menus, product profiles, branding and page assignments), so you can change something in Easy Mega Menu and import again. Menus, profiles, branding and page assignments that you created in Ashbi yourself are kept unless you tick **Replace**. Branding is only copied when the menu it belongs to was imported, so it never attaches to an unrelated Ashbi menu. If anything is kept or fails, the import screen says which and why.
 
 ## Switch
 

@@ -613,6 +613,11 @@ class ABMM_Product_Branding {
 	 * @return array
 	 */
 	public function body_class( $classes ) {
+		// While Easy Mega Menu still runs a site whose menus were imported from
+		// it, it owns the page: an import must not change live pages.
+		if ( class_exists( 'ABMM_Classic' ) && ABMM_Classic::source_active() && ABMM_Classic::site_uses_classic() ) {
+			return $classes;
+		}
 		$resolved = $this->resolve_for_request();
 		if ( ! empty( $resolved['config']['enabled'] ) ) {
 			$classes[] = 'abmm-product-branding-active';

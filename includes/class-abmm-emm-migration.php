@@ -23,6 +23,7 @@ class ABMM_EMM_Migration {
 	const SOURCE_BRANDING  = 'emm_product_branding';
 	const SOURCE_META      = '_emm_product_profile';
 	const TAKEOVER_OPTION  = 'abmm_emm_takeover';
+	const STATE_OPTION     = 'abmm_emm_import_state';
 	const PAGE_SLUG        = 'ashbi-mega-menu-easy-import';
 
 	/**
@@ -352,59 +353,121 @@ class ABMM_EMM_Migration {
 			}
 		}
 
-		$contextual = $this->import_context( $source );
+		$contextual = $this->import_context( $source, $overwrite );
+		if ( is_wp_error( $contextual ) ) {
+			return $contextual;
+		}
 		return array(
-			'menus'    => $result,
-			'skipped'  => $skipped,
-			'assets'   => $assets,
-			'profiles' => $contextual['profiles'],
-			'branding' => $contextual['branding'],
-			'pages'    => $contextual['pages'],
+			'menus'         => $result,
+			'skipped'       => $skipped,
+			'assets'        => $assets,
+			'profiles'      => $contextual['profiles'],
+			'branding'      => $contextual['branding'],
+			'pages'         => $contextual['pages'],
+			'kept_profiles' => $contextual['kept_profiles'],
+			'kept_branding' => $contextual['kept_branding'],
 		);
 	}
 
 	/**
 	 * Copy product profiles, branding and page assignments into Ashbi's storage.
 	 *
-	 * @param array $source Source data.
-	 * @return array{profiles:int,branding:int,pages:int}
+	 * Records this import made earlier are refreshed on every run, so later
+	 * changes in Easy Mega Menu come across. Records an administrator created
+	 * in Ashbi are kept unless $overwrite is true. Branding is only copied when
+	 * the menu it decorates was imported, so it never attaches to an unrelated
+	 * Ashbi menu that happens to share an ID.
+	 *
+	 * @param array $source    Source data.
+	 * @param bool  $overwrite Replace Ashbi records that share an ID.
+	 * @return array|WP_Error Counts and kept IDs.
 	 */
-	private function import_context( $source ) {
-		$counts      = array( 'profiles' => 0, 'branding' => 0, 'pages' => 0 );
+	private function import_context( $source, $overwrite = false ) {
+		$counts      = array( 'profiles' => 0, 'branding' => 0, 'pages' => 0, 'kept_profiles' => array(), 'kept_branding' => array() );
 		$assignments = $this->page_assignments();
 		if ( empty( $source['profiles'] ) && empty( $source['branding'] ) && empty( $assignments ) ) {
 			return $counts;
 		}
 		update_option( ABMM_CONTEXTUAL_NAV_OPTION, true );
-		$profiles_store = ABMM_Product_Profiles::instance();
-		$profiles       = $profiles_store->get_all();
-		foreach ( $source['profiles'] as $id => $profile ) {
-			$id = sanitize_key( (string) $id );
-			if ( '' !== $id && is_array( $profile ) && ! isset( $profiles[ $id ] ) ) {
-				$profiles[ $id ] = $profiles_store->sanitize_profile( $profile );
-				++$counts['profiles'];
-			}
-		}
-		update_option( ABMM_Product_Profiles::OPTION_KEY, $profiles );
+		$state = $this->import_state();
+		$menus = ABMM_Data::instance()->get_all();
 
-		$branding_store = ABMM_Product_Branding::instance();
-		$branding       = $branding_store->get_all();
-		foreach ( $source['branding'] as $id => $config ) {
-			$id = sanitize_key( (string) $id );
-			if ( '' !== $id && is_array( $config ) && ! isset( $branding[ $id ] ) ) {
-				$branding[ $id ] = $branding_store->sanitize_config( $config );
-				++$counts['branding'];
+		$stored = ABMM_Option_Store::locked(
+			function () use ( $source, $overwrite, &$state, &$counts, $menus ) {
+				$profiles_store = ABMM_Product_Profiles::instance();
+				$profiles       = $profiles_store->get_all();
+				foreach ( $source['profiles'] as $id => $profile ) {
+					$id = sanitize_key( (string) $id );
+					if ( '' === $id || ! is_array( $profile ) ) {
+						continue;
+					}
+					if ( isset( $profiles[ $id ] ) && ! $overwrite && ! in_array( $id, $state['profiles'], true ) ) {
+						$counts['kept_profiles'][] = $id;
+						continue;
+					}
+					$profiles[ $id ]     = $profiles_store->sanitize_profile( $profile );
+					$state['profiles'][] = $id;
+					++$counts['profiles'];
+				}
+
+				$branding_store = ABMM_Product_Branding::instance();
+				$branding       = $branding_store->get_all();
+				foreach ( $source['branding'] as $id => $config ) {
+					$id = sanitize_key( (string) $id );
+					if ( '' === $id || ! is_array( $config ) ) {
+						continue;
+					}
+					$config = $branding_store->sanitize_config( $config );
+					$shared = $config['shared_menu_id'];
+					$own    = isset( $branding[ $id ] ) && ! $overwrite && ! in_array( $id, $state['branding'], true );
+					if ( $own || ! isset( $profiles[ $id ] ) || ( '' !== $shared && ! ABMM_Classic::is_classic( $menus[ $shared ] ?? null ) ) ) {
+						$counts['kept_branding'][] = $id;
+						continue;
+					}
+					$branding[ $id ]     = $config;
+					$state['branding'][] = $id;
+					++$counts['branding'];
+				}
+
+				$saved = ABMM_Option_Store::persist( ABMM_Product_Profiles::OPTION_KEY, $profiles );
+				return is_wp_error( $saved ) ? $saved : ABMM_Option_Store::persist( ABMM_Product_Branding::OPTION_KEY, $branding );
 			}
+		);
+		if ( is_wp_error( $stored ) ) {
+			return new WP_Error( $stored->get_error_code(), __( 'The menus were imported, but product navigation could not be saved. Run the import again.', 'ashbi-mega-menu' ) );
 		}
-		update_option( ABMM_Product_Branding::OPTION_KEY, $branding, false );
 
 		foreach ( $assignments as $post_id => $profile ) {
-			if ( '' === (string) get_post_meta( $post_id, ABMM_Page_Context::META_KEY, true ) ) {
-				update_post_meta( $post_id, ABMM_Page_Context::META_KEY, $profile );
+			$current = (string) get_post_meta( $post_id, ABMM_Page_Context::META_KEY, true );
+			$ours    = isset( $state['pages'][ $post_id ] ) && $state['pages'][ $post_id ] === $current;
+			if ( $current === $profile || ( '' !== $current && ! $ours && ! $overwrite ) ) {
+				continue;
+			}
+			if ( update_post_meta( $post_id, ABMM_Page_Context::META_KEY, $profile ) ) {
+				$state['pages'][ $post_id ] = $profile;
 				++$counts['pages'];
 			}
 		}
+
+		$state['profiles'] = array_values( array_unique( $state['profiles'] ) );
+		$state['branding'] = array_values( array_unique( $state['branding'] ) );
+		update_option( self::STATE_OPTION, $state, false );
 		return $counts;
+	}
+
+	/**
+	 * Which profiles, branding and page assignments earlier imports created.
+	 *
+	 * @return array{profiles:string[],branding:string[],pages:array<int,string>}
+	 */
+	private function import_state() {
+		$state = get_option( self::STATE_OPTION, array() );
+		$state = is_array( $state ) ? $state : array();
+		return array(
+			'profiles' => array_map( 'sanitize_key', (array) ( $state['profiles'] ?? array() ) ),
+			'branding' => array_map( 'sanitize_key', (array) ( $state['branding'] ?? array() ) ),
+			'pages'    => array_map( 'sanitize_key', (array) ( $state['pages'] ?? array() ) ),
+		);
 	}
 
 	/**
@@ -436,10 +499,11 @@ class ABMM_EMM_Migration {
 			return array( 'copied' => false, 'message' => __( 'Easy Mega Menu styles or icons were not usable.', 'ashbi-mega-menu' ) );
 		}
 		$version = preg_replace( '/[^A-Za-z0-9._-]/', '', $plugin['version'] );
-		$hash    = substr( md5( $css_text . $sprite_text ), 0, 10 );
-		$files   = array(
-			'css'    => 'emm-frontend-' . $hash . '.css',
-			'sprite' => 'emm-sprite.svg',
+		// Content-hashed names: a changed file always gets a new URL, so page
+		// caches and CDNs never keep serving an older copy.
+		$files = array(
+			'css'    => 'emm-frontend-' . substr( md5( $css_text ), 0, 10 ) . '.css',
+			'sprite' => 'emm-sprite-' . substr( md5( $sprite_text ), 0, 10 ) . '.svg',
 		);
 		if ( ! $this->write_file( $dir . '/' . $files['css'], $css_text ) || ! $this->write_file( $dir . '/' . $files['sprite'], $sprite_text ) ) {
 			return array( 'copied' => false, 'message' => __( 'The copied styles could not be saved.', 'ashbi-mega-menu' ) );
@@ -449,10 +513,18 @@ class ABMM_EMM_Migration {
 			array(
 				'css'     => $files['css'],
 				'sprite'  => $files['sprite'],
-				'version' => '' !== $version ? $version : $hash,
+				'version' => '' !== $version ? $version : substr( md5( $css_text ), 0, 10 ),
 				'source'  => $plugin['version'],
+				// Read once here so pages never parse the sprite to know its icons.
+				'keys'    => array_keys( ABMM_Classic_Icons::sprite_keys( $dir . '/' . $files['sprite'] ) ),
 			)
 		);
+		// Remove copies from earlier imports; only the files just recorded are used.
+		foreach ( (array) glob( $dir . '/emm-*' ) as $old ) {
+			if ( is_string( $old ) && ! in_array( basename( $old ), $files, true ) ) {
+				wp_delete_file( $old );
+			}
+		}
 		return array( 'copied' => true, 'message' => __( 'Easy Mega Menu styles and icons were copied.', 'ashbi-mega-menu' ) );
 	}
 
@@ -574,9 +646,8 @@ class ABMM_EMM_Migration {
 		check_admin_referer( 'abmm_emm_import' );
 		$result = $this->import( ! empty( $_POST['overwrite'] ) );
 		$notice = is_wp_error( $result ) ? 'error' : 'imported';
-		if ( ! is_wp_error( $result ) ) {
-			set_transient( 'abmm_emm_import_result_' . get_current_user_id(), $result, HOUR_IN_SECONDS );
-		}
+		// The result or the real reason it failed, for this administrator only.
+		set_transient( 'abmm_emm_import_result_' . get_current_user_id(), is_wp_error( $result ) ? array( 'error' => $result->get_error_message() ) : $result, HOUR_IN_SECONDS );
 		wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE_SLUG, 'abmm_notice' => $notice, '_abmm_nonce' => wp_create_nonce( 'abmm_emm_notice' ) ), admin_url( 'admin.php' ) ) );
 		exit;
 	}
@@ -600,7 +671,9 @@ class ABMM_EMM_Migration {
 		if ( isset( $_GET['abmm_notice'], $_GET['_abmm_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_abmm_nonce'] ) ), 'abmm_emm_notice' ) ) {
 			$notice = sanitize_key( wp_unslash( $_GET['abmm_notice'] ) );
 		}
-		$result = 'imported' === $notice ? get_transient( 'abmm_emm_import_result_' . get_current_user_id() ) : null;
+		$stored = in_array( $notice, array( 'imported', 'error' ), true ) ? get_transient( 'abmm_emm_import_result_' . get_current_user_id() ) : null;
+		$result = 'imported' === $notice && is_array( $stored ) && ! isset( $stored['error'] ) ? $stored : null;
+		$error  = 'error' === $notice && is_array( $stored ) && is_string( $stored['error'] ?? null ) ? $stored['error'] : '';
 		include ABMM_PLUGIN_DIR . 'admin/views/emm-import.php';
 	}
 }
