@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Ashbi Mega Menu 1.1.0\n"
+"Project-Id-Version: Ashbi Mega Menu 1.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ashbi-mega-menu\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4295,4 +4295,209 @@ msgstr ""
 #. translators: %s: product profile IDs.
 #: admin/views/emm-import.php:44
 msgid "Branding not copied, because its profile or menu was not imported or you already have your own: %s"
+msgstr ""
+
+#: admin/views/builder.php:63
+msgid "Undo (Ctrl+Z)"
+msgstr ""
+
+#: admin/views/builder.php:66
+msgid "Redo (Ctrl+Shift+Z)"
+msgstr ""
+
+#: admin/views/builder.php:67
+msgid "Redo"
+msgstr ""
+
+#: admin/views/builder.php:457
+msgid "Default"
+msgstr ""
+
+#: admin/views/builder.php:472
+msgid "Fonts"
+msgstr ""
+
+#: admin/views/builder.php:474
+msgid "Font"
+msgstr ""
+
+#: admin/views/builder.php:476
+msgid "Menu default"
+msgstr ""
+
+#: admin/views/builder.php:477
+msgid "Same as my site (theme or Elementor font)"
+msgstr ""
+
+#: admin/views/builder.php:478
+msgid "Custom font"
+msgstr ""
+
+#: admin/views/builder.php:480
+msgid "Choose \"Same as my site\" to use the font your theme or Elementor already loads on every page."
+msgstr ""
+
+#: admin/views/builder.php:483
+msgid "Custom font names"
+msgstr ""
+
+#: admin/views/builder.php:484
+msgid "Supreme, Arial, sans-serif"
+msgstr ""
+
+#: admin/views/builder.php:485
+msgid "The font must already be loaded on your site, for example by your theme or Elementor."
+msgstr ""
+
+#: admin/views/builder.php:487
+msgid "Sizes and weights apply to the desktop menu. Leave a field empty to keep the menu default."
+msgstr ""
+
+#: admin/views/builder.php:489
+msgid "Menu bar size (px)"
+msgstr ""
+
+#: admin/views/builder.php:490
+msgid "Menu bar weight"
+msgstr ""
+
+#: admin/views/builder.php:493
+msgid "Menu bar letter spacing (px)"
+msgstr ""
+
+#: admin/views/builder.php:497
+msgid "Menu bar letter case"
+msgstr ""
+
+#: admin/views/builder.php:500
+msgid "As typed"
+msgstr ""
+
+#: admin/views/builder.php:501
+msgid "UPPERCASE"
+msgstr ""
+
+#: admin/views/builder.php:502
+msgid "Capitalize Each Word"
+msgstr ""
+
+#: admin/views/builder.php:503
+msgid "lowercase"
+msgstr ""
+
+#: admin/views/builder.php:507
+msgid "Category title size (px)"
+msgstr ""
+
+#: admin/views/builder.php:508
+msgid "Category title weight"
+msgstr ""
+
+#: admin/views/builder.php:509
+msgid "Link size (px)"
+msgstr ""
+
+#: admin/views/builder.php:510
+msgid "Link weight"
+msgstr ""
+
+#: admin/views/builder.php:511
+msgid "Description size (px)"
+msgstr ""
+
+#: admin/views/builder.php:512
+msgid "Description weight"
+msgstr ""
+
+#: admin/views/builder.php:514
+msgid "Reset fonts to default"
+msgstr ""
+
+#: admin/views/builder.php:518
+msgid "Dropdown height"
+msgstr ""
+
+#: admin/views/builder.php:520
+msgid "Height of the open dropdown (desktop)"
+msgstr ""
+
+#: admin/views/builder.php:522
+msgid "Default (scrolls when taller than the screen allows)"
+msgstr ""
+
+#: admin/views/builder.php:523
+msgid "Grow to fit all links"
+msgstr ""
+
+#: admin/views/builder.php:524
+msgid "Up to a height, then scroll"
+msgstr ""
+
+#: admin/views/builder.php:525
+msgid "Always the same height"
+msgstr ""
+
+#: admin/views/builder.php:527
+msgid "\"Grow to fit\" can run below the bottom of short screens."
+msgstr ""
+
+#: admin/views/builder.php:530
+msgid "Height (px)"
+msgstr ""
+
+#: admin/views/builder.php:533
+msgid "Reset height to default"
+msgstr ""
+
+#: includes/class-abmm-elementor-widget.php:70
+msgid "Product navigation on product pages"
+msgstr ""
+
+#. translators: %s: link to the menu editor.
+#: includes/class-abmm-elementor-widget.php:83
+msgid "Links, categories and icons are edited in %s. The Style tab here sets fonts, colours and the dropdown height for this placement."
+msgstr ""
+
+#: includes/class-abmm-elementor-widget.php:92
+msgid "Category titles"
+msgstr ""
+
+#: includes/class-abmm-elementor-widget.php:94
+msgid "Descriptions"
+msgstr ""
+
+#: includes/class-abmm-elementor-widget.php:96
+msgid "Dropdown"
+msgstr ""
+
+#: includes/class-abmm-elementor-widget.php:110
+msgid "Height (desktop)"
+msgstr ""
+
+#: includes/class-abmm-elementor-widget.php:113
+msgid "Menu setting"
+msgstr ""
+
+#: includes/class-abmm-elementor-widget.php:165
+msgid "Hover colour"
+msgstr ""
+
+#: includes/class-abmm-elementor-widget.php:179
+msgid "Choose a menu in the widget settings."
+msgstr ""
+
+#: includes/class-abmm-frontend.php:80
+msgid "Edit mega menu"
+msgstr ""
+
+#: assets/js/admin.js:430
+msgid "Undone."
+msgstr ""
+
+#: assets/js/admin.js:430
+msgid "Redone."
+msgstr ""
+
+#: assets/js/admin.js:2485
+msgid "Reset to default."
 msgstr ""

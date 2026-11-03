@@ -406,11 +406,18 @@ class ABMM_Admin {
 			wp_send_json_success(
 				array(
 					'html'   => $classic->render_menu( $menu, '' !== $id ? $id : 'preview', array( 'presentation' => 'stacked' ) ),
-					'assets' => $classic->preview_assets( $menu ),
+					'assets' => $classic->preview_assets( $menu, '' !== $id ? $id : 'preview' ),
 				)
 			);
 		}
-		wp_send_json_success( array( 'html' => ABMM_Frontend::instance()->render_preview( $menu, '' !== $id ? $id : 'preview' ) ) );
+		$preview_id = '' !== $id ? $id : 'preview';
+		$response   = array( 'html' => ABMM_Frontend::instance()->render_preview( $menu, $preview_id ) );
+		$style_css  = class_exists( 'ABMM_Style' ) ? ABMM_Style::css( $menu['settings']['style'] ?? array(), ABMM_Style::scope( $preview_id, 'abmm' ), 'abmm' ) : '';
+		if ( '' !== $style_css ) {
+			// Fonts and dropdown height in the phone and tablet frames.
+			$response['assets'] = array( 'inlineCss' => $style_css );
+		}
+		wp_send_json_success( $response );
 	}
 
 	/**

@@ -82,6 +82,7 @@ require_once dirname( __DIR__ ) . '/includes/class-abmm-icons.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-data.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-frontend.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-admin.php';
+require_once dirname( __DIR__ ) . '/includes/class-abmm-style.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-classic.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-classic-icons.php';
 function add_query_arg( $key, $value, $url ) { return $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . $key . '=' . $value; }

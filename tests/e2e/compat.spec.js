@@ -89,6 +89,18 @@ test.describe(`compatibility: ${setup || 'none'}`, () => {
 			expect(html, 'served by Cache Enabler').toMatch(/Cache Enabler/i);
 			expect(html, 'scripts aggregated by Autoptimize').toMatch(/autoptimize/i);
 			await desktopWorks(page, page.locator('.abmm-header').first());
+		} else if (setup === 'elementor') {
+			// The native widget: Elementor's typography control and the dropdown height apply.
+			await page.goto('/e2e-elementor-widget/');
+			const header = page.locator('.elementor-widget-ashbi-mega-menu .abmm-header');
+			await expect(header).toHaveCount(1);
+			const link = header.locator('.abmm-nav__list > .abmm-nav__item > .abmm-nav__link').first();
+			await expect(link).toHaveCSS('font-size', '21px');
+			await desktopWorks(page, header);
+			const trigger = header.locator('[data-abmm-mega-trigger]').first();
+			await trigger.hover();
+			const panel = header.locator('.abmm-mega__panel').first();
+			await expect(panel).toHaveCSS('max-height', '300px');
 		} else {
 			await page.goto(path);
 			await expect(page.locator('.abmm-header')).toHaveCount(1);

@@ -87,6 +87,7 @@ function abmm_contextual_navigation_enabled() { return false; }
 require_once dirname( __DIR__ ) . '/includes/class-abmm-icons.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-data.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-frontend.php';
+require_once dirname( __DIR__ ) . '/includes/class-abmm-style.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-classic.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-classic-icons.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-emm-migration.php';

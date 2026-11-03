@@ -1097,6 +1097,13 @@ class ABMM_Data {
 		$menu['cta']   = array_merge( $menu['cta'], $this->sanitize_link_meta( $cta ) );
 		$menu['brand'] = array_merge( $menu['brand'], $this->sanitize_link_meta( $brand ) );
 
+		// Fonts and dropdown height are stored only when something is set, so
+		// other menus keep exactly the data (and output) they had.
+		$style = class_exists( 'ABMM_Style' ) ? ABMM_Style::sanitize( $raw['style'] ?? null ) : array();
+		if ( $style ) {
+			$menu['settings']['style'] = $style;
+		}
+
 		// Classic (Easy Mega Menu) rendering is stored only on menus that use it,
 		// so every other menu keeps exactly the data it had.
 		if ( 'emm-classic' === ( $raw['render_mode'] ?? '' ) ) {

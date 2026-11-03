@@ -31,7 +31,7 @@ Environment: WordPress 7.1.4, PHP 8.2, MariaDB (wp-env), Playwright 1.64.
 | WebKit (Safari's engine) | 27.2 | as above | as above | Pass |
 | Microsoft Edge | current stable channel | as above | as above | Pass |
 | Classic theme | Twenty Twenty-One 2.9 | Widget in `sidebar-1`, and shortcode in page content | Two menus on one page with unique IDs; each opens in the layout its width allows (both narrow placements use the phone layout, as designed); logged-out visitor; no console errors | Pass |
-| Page builder | Elementor (latest stable) on Twenty Twenty-Five | Elementor's Shortcode widget on an "Elementor Full Width" page; no Elementor-specific integration | Desktop bar and phone drawer as a logged-out visitor; plus the generic desktop and editor journeys on the same site | Pass |
+| Page builder | Elementor (latest stable) on Twenty Twenty-Five | Elementor's Shortcode widget on an "Elementor Full Width" page, and the native "Ashbi Mega Menu" widget with an Elementor typography size and a dropdown height | Desktop bar and phone drawer as a logged-out visitor; plus the generic desktop and editor journeys on the same site | Pass |
 | Page cache + optimization + object cache | Cache Enabler 1.8.17, Autoptimize 3.1.17 (JS and CSS aggregation), SQLite Object Cache 1.6.6 (drop-in active) | Shortcode page | Second visit served from the page cache with aggregated scripts; the menu binds exactly once (one click opens, one closes); desktop and phone; the editor save journey with the object cache | Pass |
 
 What this does **not** cover:

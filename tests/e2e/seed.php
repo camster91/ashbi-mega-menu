@@ -122,6 +122,47 @@ if ( 'classic' === $setup ) {
 	update_post_meta( $page, '_elementor_version', defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : '3.0.0' );
 	update_post_meta( $page, '_elementor_data', wp_slash( wp_json_encode( $elementor ) ) );
 	WP_CLI::log( "elementor: page /?pagename=e2e-elementor with menu {$menu_id}" );
+
+	// The native "Ashbi Mega Menu" widget, with an Elementor typography size and a dropdown height.
+	$existing = get_page_by_path( 'e2e-elementor-widget' );
+	if ( $existing ) {
+		wp_delete_post( $existing->ID, true );
+	}
+	$widget_page = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'E2E Elementor widget', 'post_name' => 'e2e-elementor-widget', 'post_content' => '' ), true );
+	$widget_data = array(
+		array(
+			'id'       => 'abmmwsec',
+			'elType'   => 'section',
+			'settings' => array( 'layout' => 'full_width' ),
+			'elements' => array(
+				array(
+					'id'       => 'abmmwcol',
+					'elType'   => 'column',
+					'settings' => array( '_column_size' => 100 ),
+					'elements' => array(
+						array(
+							'id'         => 'abmmwgt',
+							'elType'     => 'widget',
+							'widgetType' => 'ashbi-mega-menu',
+							'settings'   => array(
+								'menu_id'                   => $menu_id,
+								'panel_height_mode'         => 'max',
+								'panel_height'              => 300,
+								'top_typography_typography' => 'custom',
+								'top_typography_font_size'  => array( 'unit' => 'px', 'size' => 21, 'sizes' => array() ),
+							),
+						),
+					),
+				),
+			),
+		),
+	);
+	update_post_meta( $widget_page, '_elementor_edit_mode', 'builder' );
+	update_post_meta( $widget_page, '_wp_page_template', 'elementor_header_footer' );
+	update_post_meta( $widget_page, '_elementor_template_type', 'wp-page' );
+	update_post_meta( $widget_page, '_elementor_version', defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : '3.0.0' );
+	update_post_meta( $widget_page, '_elementor_data', wp_slash( wp_json_encode( $widget_data ) ) );
+	WP_CLI::log( "elementor: widget page /?pagename=e2e-elementor-widget with menu {$menu_id}" );
 } elseif ( 'cache' === $setup ) {
 	// Page cache (Cache Enabler), script optimization (Autoptimize: aggregate,
 	// minify and defer) and a persistent object cache (SQLite Object Cache).

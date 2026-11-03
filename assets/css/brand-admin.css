@@ -898,6 +898,9 @@
 .abmm-wrap .abmm-icon-button[aria-expanded="true"] {background:var(--abmm-ui-hover);color:var(--abmm-brand-ink)}
 .abmm-wrap .abmm-icon-button:focus-visible {outline:2px solid var(--abmm-brand-blue);outline-offset:1px;box-shadow:none}
 .abmm-wrap .abmm-icon-button .dashicons {width:18px;height:18px;font-size:18px;line-height:1}
+.abmm-wrap .abmm-icon-button:disabled {opacity:.4;cursor:default;background:transparent}
+.abmm-wrap [data-abmm-style-when][hidden] {display:none !important}
+.abmm-wrap .abmm-style-reset {margin-top:4px}
 
 /* Step bar: the current step is the white pill; hover never is. */
 .abmm-builder-wrap .abmm-workflow-nav {align-items:center;gap:0}

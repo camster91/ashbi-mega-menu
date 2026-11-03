@@ -228,6 +228,10 @@ class ABMM_Classic {
 		if ( $summary['phone_fix'] ) {
 			wp_add_inline_style( 'abmm-classic', self::phone_scroll_fix_css() );
 		}
+		$style_css = ABMM_Style::site_css( true );
+		if ( '' !== $style_css ) {
+			wp_add_inline_style( 'abmm-classic', $style_css );
+		}
 		// While Easy Mega Menu is active its own stylesheet (the same rules) is
 		// already queued, so live pages stay byte for byte as they were; classic
 		// menus rendered by Ashbi then queue this one themselves.
@@ -276,16 +280,18 @@ class ABMM_Classic {
 	/**
 	 * Stylesheet, script and extra CSS for the editor's phone and tablet frames.
 	 *
-	 * @param array $menu Menu being previewed (may be unsaved).
+	 * @param array  $menu    Menu being previewed (may be unsaved).
+	 * @param string $menu_id ID the preview renders with.
 	 * @return array{css:string,js:string,inlineCss:string}
 	 */
-	public function preview_assets( $menu ) {
+	public function preview_assets( $menu, $menu_id = 'preview' ) {
 		$site    = $this->site_assets();
 		$css_url = $this->upload_url( $site['css'] );
 		return array(
 			'css'       => $css_url ? add_query_arg( 'ver', $site['version'] ? $site['version'] : ABMM_VERSION, $css_url ) : add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/classic/emm-frontend.css' ),
 			'js'        => add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/classic/emm-frontend.js' ),
-			'inlineCss' => ! empty( $menu['settings']['classic_phone_scroll_fix'] ) ? self::phone_scroll_fix_css() : '',
+			'inlineCss' => ( ! empty( $menu['settings']['classic_phone_scroll_fix'] ) ? self::phone_scroll_fix_css() : '' )
+				. ABMM_Style::css( $menu['settings']['style'] ?? array(), ABMM_Style::scope( $menu_id, 'emm' ), 'emm' ),
 		);
 	}
 

@@ -132,6 +132,7 @@ require_once dirname( __DIR__ ) . '/includes/class-abmm-product-profiles.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-product-branding.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-page-context.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-frontend.php';
+require_once dirname( __DIR__ ) . '/includes/class-abmm-style.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-classic.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-classic-icons.php';
 require_once dirname( __DIR__ ) . '/includes/class-abmm-emm-migration.php';

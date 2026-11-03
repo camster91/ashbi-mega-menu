@@ -29,6 +29,13 @@ class ABMM_Frontend {
 	private $render_sequence = 0;
 
 	/**
+	 * Menus rendered on this page, for the toolbar's "Edit mega menu" link.
+	 *
+	 * @var array<string,string> Menu ID => title.
+	 */
+	private $rendered = array();
+
+	/**
 	 * Whether the current render is the editor's device preview.
 	 *
 	 * @var bool
@@ -48,6 +55,45 @@ class ABMM_Frontend {
 	private function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
 		add_filter( 'script_loader_tag', array( $this, 'add_nitropack_exclusion_attribute' ), 10, 3 );
+		add_action( 'admin_bar_menu', array( $this, 'admin_bar_edit_link' ), 85 );
+	}
+
+	/**
+	 * Add "Edit mega menu" to the toolbar on pages that show a menu, so the
+	 * person looking at the site can jump straight to that menu's editor.
+	 * The toolbar is built after the page content, so every menu on the page
+	 * has rendered by then.
+	 *
+	 * @param WP_Admin_Bar $admin_bar Toolbar.
+	 */
+	public function admin_bar_edit_link( $admin_bar ) {
+		if ( is_admin() || ! $this->rendered || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$link = function ( $menu_id ) {
+			return add_query_arg( array( 'page' => 'ashbi-mega-menu', 'edit' => rawurlencode( $menu_id ) ), admin_url( 'admin.php' ) );
+		};
+		$single = 1 === count( $this->rendered );
+		$admin_bar->add_node(
+			array(
+				'id'    => 'abmm-edit-menu',
+				'title' => '<span class="ab-icon dashicons dashicons-menu-alt" aria-hidden="true"></span>' . esc_html__( 'Edit mega menu', 'ashbi-mega-menu' ),
+				'href'  => $single ? $link( (string) array_key_first( $this->rendered ) ) : admin_url( 'admin.php?page=ashbi-mega-menu' ),
+			)
+		);
+		if ( $single ) {
+			return;
+		}
+		foreach ( $this->rendered as $menu_id => $title ) {
+			$admin_bar->add_node(
+				array(
+					'parent' => 'abmm-edit-menu',
+					'id'     => 'abmm-edit-menu-' . sanitize_html_class( $menu_id ),
+					'title'  => esc_html( '' !== $title ? $title : $menu_id ),
+					'href'   => $link( $menu_id ),
+				)
+			);
+		}
 	}
 
 	/**
@@ -103,6 +149,11 @@ class ABMM_Frontend {
 				wp_enqueue_style( 'abmm-frontend' );
 				break;
 			}
+		}
+		// Fonts and dropdown heights chosen per menu (nothing when none are set).
+		$style_css = class_exists( 'ABMM_Style' ) && class_exists( 'ABMM_Classic' ) ? ABMM_Style::site_css( false ) : '';
+		if ( '' !== $style_css ) {
+			wp_add_inline_style( 'abmm-frontend', $style_css );
 		}
 	}
 
@@ -169,6 +220,7 @@ class ABMM_Frontend {
 		 * @param array  $menu    Menu that was rendered.
 		 * @param array  $args    Render arguments.
 		 */
+		$this->rendered[ (string) $menu_id ] = (string) ( $menu['title'] ?? '' );
 		return (string) apply_filters( 'abmm_menu_html', $html, (string) $menu_id, $menu, $args );
 	}
 

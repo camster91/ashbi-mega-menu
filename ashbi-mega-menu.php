@@ -3,7 +3,7 @@
  * Plugin Name: Ashbi Mega Menu
  * Plugin URI:  https://github.com/camster91/ashbi-mega-menu
  * Description: Build responsive navigation with a visual editor, local previews and portable exports.
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      Cameron Ashley
  * Author URI:  https://github.com/camster91
  * License:     GPL-2.0-or-later
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ABMM_VERSION', '1.1.0' );
+define( 'ABMM_VERSION', '1.2.0' );
 define( 'ABMM_PLUGIN_FILE', __FILE__ );
 define( 'ABMM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ABMM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -47,6 +47,8 @@ require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-product-profiles.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-product-branding.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-page-context.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-frontend.php';
+require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-style.php';
+require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-elementor.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-classic.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-classic-icons.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-emm-migration.php';
@@ -100,6 +102,7 @@ function abmm_init() {
 	ABMM_Frontend::instance();
 	ABMM_Classic::instance();
 	ABMM_EMM_Migration::instance();
+	ABMM_Elementor::init();
 	ABMM_Shortcode::instance();
 	ABMM_Block::instance();
 }
