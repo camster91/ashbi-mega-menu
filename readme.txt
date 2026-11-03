@@ -68,6 +68,10 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 == Changelog ==
 
 = 1.2.1 =
+* Warning when Easy Mega Menu is inactive and its [easy_mega_menu] shortcodes would show as text.
+* Product navigation: the block has a "Use page product navigation" setting, and the product page URL can come from the main product page.
+* The classic widget is named "Ashbi Mega Menu (classic widget)", so it is not confused with the block or the Elementor widget.
+* Copies made by importing are numbered like duplicates; clearer counts in import, archive and snapshot messages.
 * The block's Wide and Full width alignment (and extra CSS classes) now apply on the site.
 * Simple-column links can have a short description, shown under the link.
 * Choose the logo from the Media Library.

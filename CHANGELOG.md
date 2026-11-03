@@ -4,6 +4,11 @@
 
 Found by building a full menu in the editor from scratch, as a site owner would.
 
+- **Easy Mega Menu switch-over safety**: when Easy Mega Menu is inactive, its menus are still stored and nothing handles `[easy_mega_menu]`, WordPress prints the shortcode as text on the site. Administrators now see a warning on the Dashboard, Plugins and Ashbi screens with a link to the import screen.
+- **Product navigation**: the block has a **Use page product navigation** setting (the widget and shortcode already did). The product page URL is optional and defaults to the main product page. The Product Navigation screen explains where product links appear.
+- **Classic widget** is named "Ashbi Mega Menu (classic widget)", so Elementor's widget search and the block widget editor no longer list two items with the same name. The block widget editor offers the block instead of the classic widget; placed widgets keep working.
+- **Import as copy** numbers repeated copies like Duplicate does; the WordPress-menu import tells identically named Site Editor navigations apart by ID.
+- Clearer counts: import previews ("1 item"), Replace-mode warnings, archive placements and snapshot summaries no longer use "(s)". Saving Advanced options confirms it; the import button reads "Import menus".
 - **Block alignment**: the Ashbi Mega Menu block offered Wide and Full width, but the site ignored them (and "Additional CSS class(es)"), so a block in a page's content column showed the phone menu. The choice now applies through the block wrapper; blocks without alignment or classes keep their exact markup.
 - **Simple-column links** can have a short description, like category links. It is shown under the link on the site and in the preview, and can be styled with the Description font settings and the Elementor widget's Descriptions controls. Links without one keep their exact markup.
 - **Logo**: a Media Library button next to the logo and dark-preset logo fields; the image's alternative text fills the logo alternative text when that is empty.

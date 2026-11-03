@@ -52,6 +52,7 @@ class ABMM_EMM_Migration {
 		add_action( 'admin_menu', array( $this, 'register_page' ), 30 );
 		add_action( 'admin_post_abmm_emm_import', array( $this, 'handle_import' ) );
 		add_action( 'admin_post_abmm_emm_takeover', array( $this, 'handle_takeover' ) );
+		add_action( 'admin_notices', array( $this, 'unanswered_shortcode_notice' ) );
 	}
 
 	/* ------------------------------------------------------------------
@@ -569,6 +570,33 @@ class ABMM_EMM_Migration {
 	 */
 	public static function takeover_enabled() {
 		return (bool) get_option( self::TAKEOVER_OPTION, false );
+	}
+
+	/**
+	 * Warn when Easy Mega Menu is inactive but its menus are still stored and
+	 * nothing answers [easy_mega_menu]: WordPress then prints the shortcode as
+	 * plain text on the site. Shown on the Dashboard, Plugins and this plugin's
+	 * screens, to administrators only.
+	 */
+	public function unanswered_shortcode_notice() {
+		if ( ! current_user_can( 'manage_options' ) || self::source_active() || self::takeover_enabled() || shortcode_exists( 'easy_mega_menu' ) ) {
+			return;
+		}
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$id     = $screen ? (string) $screen->id : '';
+		// The import screen explains this itself.
+		if ( false !== strpos( $id, self::PAGE_SLUG ) || ( ! in_array( $id, array( 'dashboard', 'plugins' ), true ) && false === strpos( $id, 'ashbi-mega-menu' ) ) ) {
+			return;
+		}
+		if ( empty( $this->read_source()['menus'] ) ) {
+			return;
+		}
+		printf(
+			'<div class="notice notice-warning"><p>%s <a href="%s">%s</a></p></div>',
+			esc_html__( 'Easy Mega Menu is inactive, so pages that use its [easy_mega_menu] shortcode show the shortcode as text. Import its menus and turn on "Handle [easy_mega_menu] shortcodes" to show them again, or reactivate Easy Mega Menu.', 'ashbi-mega-menu' ),
+			esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) ),
+			esc_html__( 'Open Easy Mega Menu import', 'ashbi-mega-menu' )
+		);
 	}
 
 	/**

@@ -255,7 +255,7 @@ class ABMM_Product_Profiles {
 		$products_url     = admin_url( 'admin.php?page=ashbi-mega-menu-products' );
 		$abmm_page_header = array(
 			'title'   => __( 'Product Navigation', 'ashbi-mega-menu' ),
-			'intro'   => __( 'Show extra links under your main menu on a product\'s pages. Pages below the product\'s main page get the same links.', 'ashbi-mega-menu' ),
+			'intro'   => __( 'Show extra links under your main menu on a product\'s pages. Pages below the product\'s main page get the same links. They appear where the menu is placed with "Use page product navigation" turned on (block or widget), or with context="page" in the shortcode.', 'ashbi-mega-menu' ),
 			'current' => 'products',
 			'actions' => empty( $profiles ) ? array() : array(
 				array(
@@ -390,7 +390,7 @@ class ABMM_Product_Profiles {
 						<div class="abmm-profile-admin__field-grid">
 							<label><?php esc_html_e( 'Name (only you see this)', 'ashbi-mega-menu' ); ?><input class="regular-text" type="text" required name="profile[title]" value="<?php echo esc_attr( $profile['title'] ); ?>" placeholder="<?php esc_attr_e( 'e.g. Analytics', 'ashbi-mega-menu' ); ?>" /></label>
 							<label><?php esc_html_e( 'Display name', 'ashbi-mega-menu' ); ?><input class="regular-text" type="text" required name="profile[label]" value="<?php echo esc_attr( $profile['label'] ); ?>" placeholder="<?php esc_attr_e( 'e.g. Acme Analytics', 'ashbi-mega-menu' ); ?>" /></label>
-							<label><?php esc_html_e( 'Product page URL', 'ashbi-mega-menu' ); ?><input class="regular-text" required type="url" name="profile[url]" value="<?php echo esc_attr( $profile['url'] ); ?>" placeholder="https://example.com/product/" /></label>
+							<label><?php esc_html_e( 'Product page URL', 'ashbi-mega-menu' ); ?><input class="regular-text" type="url" name="profile[url]" value="<?php echo esc_attr( $profile['url'] ); ?>" placeholder="https://example.com/product/" aria-describedby="abmm-profile-url-help" /><span class="abmm-profile-admin__help" id="abmm-profile-url-help"><?php esc_html_e( 'Where the product name links to. Leave empty to use the main product page.', 'ashbi-mega-menu' ); ?></span></label>
 							<label><?php esc_html_e( 'Main product page', 'ashbi-mega-menu' ); ?><select name="profile[root_page_id]" aria-describedby="abmm-profile-root-help"><option value="0"><?php esc_html_e( 'Choose a page', 'ashbi-mega-menu' ); ?></option><?php foreach ( $pages as $page ) : ?><option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $profile['root_page_id'], $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option><?php endforeach; ?></select><span class="abmm-profile-admin__help" id="abmm-profile-root-help"><?php esc_html_e( 'Pages below the main product page show the same links.', 'ashbi-mega-menu' ); ?></span></label>
 						</div>
 					</fieldset>
@@ -761,8 +761,12 @@ JS;
 			$profile = $this->sanitize_profile( $profile );
 			// Use the same key normalization as reads, requests and deletes before collision checks.
 			if ( $is_new ) { $id = sanitize_key( sanitize_title( $profile['title'] ?: $profile['label'] ) ); }
+			// The product page URL defaults to the main product page, which is usually the same page.
+			if ( '' === $profile['url'] && $profile['root_page_id'] && function_exists( 'get_permalink' ) ) {
+				$profile['url'] = $this->sanitize_url( (string) get_permalink( $profile['root_page_id'] ) );
+			}
 			if ( ! $id || '' === $profile['label'] || '' === $profile['url'] ) {
-				return new WP_Error( 'abmm_product_invalid', __( 'Add a product name and product home URL before saving.', 'ashbi-mega-menu' ) );
+				return new WP_Error( 'abmm_product_invalid', __( 'Add a product name, and a product page URL or main product page, before saving.', 'ashbi-mega-menu' ) );
 			}
 			if ( $is_new && isset( $profiles[ $id ] ) ) {
 				return new WP_Error( 'abmm_product_duplicate', __( 'A product with this name already exists. Open that profile to edit it.', 'ashbi-mega-menu' ) );

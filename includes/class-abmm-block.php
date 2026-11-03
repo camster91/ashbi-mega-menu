@@ -99,6 +99,7 @@ class ABMM_Block {
 				'status'    => 'ready',
 				'canManage' => current_user_can( 'manage_options' ),
 				'manageUrl' => admin_url( 'admin.php?page=ashbi-mega-menu' ),
+				'contextualNavigation' => function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled(),
 			)
 		);
 	}

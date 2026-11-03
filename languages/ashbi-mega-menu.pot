@@ -635,10 +635,6 @@ msgstr ""
 msgid "Classic theme"
 msgstr ""
 
-#: admin/views/builder.php:438
-msgid "Add the Ashbi Mega Menu widget to a header area, or paste the shortcode."
-msgstr ""
-
 #: admin/views/builder.php:439
 msgid "Page builder"
 msgstr ""
@@ -1325,10 +1321,6 @@ msgstr ""
 msgid "JSON file"
 msgstr ""
 
-#: admin/views/list.php:447
-msgid "Import Menus"
-msgstr ""
-
 #: admin/views/list.php:454
 msgid "For developers & AI agents"
 msgstr ""
@@ -1640,12 +1632,6 @@ msgstr ""
 msgid "Archive “%1$s”?"
 msgstr ""
 
-#. translators: 1: number of block placements, 2: number of widget placements, 3: number of shortcodes in pages.
-#: includes/class-abmm-admin.php:177
-#, php-format
-msgid "Used in: %1$d block(s), %2$d widget(s), %3$d shortcode(s)."
-msgstr ""
-
 #: includes/class-abmm-admin.php:178
 msgid "Archive and keep recoverable"
 msgstr ""
@@ -1875,12 +1861,6 @@ msgstr ""
 msgid "Snapshots could not be loaded."
 msgstr ""
 
-#. translators: 1: snapshot date, 2: number of menus.
-#: includes/class-abmm-admin.php:246
-#, php-format
-msgid "%1$s — %2$s menu(s)"
-msgstr ""
-
 #: includes/class-abmm-admin.php:247
 msgid "Export snapshot"
 msgstr ""
@@ -1986,10 +1966,6 @@ msgstr ""
 
 #: includes/class-abmm-admin.php:578
 msgid "Widget"
-msgstr ""
-
-#: includes/class-abmm-admin.php:579
-msgid "Your theme has widget areas. In Appearance → Widgets, add the Ashbi Mega Menu widget to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme."
 msgstr ""
 
 #: includes/class-abmm-admin.php:584
@@ -3010,10 +2986,6 @@ msgstr ""
 msgid "Navigation Coverage"
 msgstr ""
 
-#: includes/class-abmm-product-profiles.php:258
-msgid "Show extra links under your main menu on a product's pages. Pages below the product's main page get the same links."
-msgstr ""
-
 #: includes/class-abmm-product-profiles.php:262
 #: includes/class-abmm-product-profiles.php:457
 msgid "Add product"
@@ -3319,10 +3291,6 @@ msgstr ""
 msgid "This profile was changed or deleted by another administrator. Review the latest values before saving again."
 msgstr ""
 
-#: includes/class-abmm-product-profiles.php:765
-msgid "Add a product name and product home URL before saving."
-msgstr ""
-
 #: includes/class-abmm-product-profiles.php:768
 msgid "A product with this name already exists. Open that profile to edit it."
 msgstr ""
@@ -3428,18 +3396,6 @@ msgstr ""
 
 #: assets/js/admin.js:1079
 msgid "Create independent copy"
-msgstr ""
-
-#. translators: 1: import action, 2: menu title, 3: number of menu items.
-#: assets/js/admin.js:1081
-#, js-format
-msgid "%1$s: %2$s (%3$s items)"
-msgstr ""
-
-#. translators: %s: number of menus.
-#: assets/js/admin.js:1085
-#, js-format
-msgid "%s existing menu(s) will be removed by Replace mode."
 msgstr ""
 
 #. translators: %s: the new menu's title.
@@ -4519,4 +4475,78 @@ msgstr[1] ""
 
 #: assets/js/admin.js:2832
 msgid "New category"
+msgstr ""
+
+#: admin/views/builder.php:561
+msgid "Add the \"Ashbi Mega Menu (classic widget)\" widget to a header area, or paste the shortcode."
+msgstr ""
+
+#: admin/views/list.php:35
+msgid "Advanced options saved."
+msgstr ""
+
+#. translators: 1: Site Editor navigation name, 2: its ID.
+#: admin/views/list.php:518
+#, php-format
+msgid "%1$s (ID %2$d)"
+msgstr ""
+
+#. translators: 1: import action, 2: menu title, 3: number of menu items.
+#: assets/js/admin.js:1297
+#, javascript-format
+msgid "%1$s: %2$s (%3$d item)"
+msgid_plural "%1$s: %2$s (%3$d items)"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of menus.
+#: assets/js/admin.js:1300
+#, javascript-format
+msgid "Replace mode will remove %d existing menu."
+msgid_plural "Replace mode will remove %d existing menus."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: number of block placements, 2: number of widget placements, 3: number of shortcodes in pages.
+#: includes/class-abmm-admin.php:177
+#, php-format
+msgid "Placements: blocks %1$d, widgets %2$d, shortcodes %3$d."
+msgstr ""
+
+#. translators: 1: snapshot date, 2: number of menus.
+#: includes/class-abmm-admin.php:244
+#, php-format
+msgid "%1$s — menus: %2$s"
+msgstr ""
+
+#: includes/class-abmm-admin.php:594
+msgid "Your theme has widget areas. In Appearance → Widgets, add the \"Ashbi Mega Menu (classic widget)\" widget to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:590
+msgid "Easy Mega Menu is inactive, so pages that use its [easy_mega_menu] shortcode show the shortcode as text. Import its menus and turn on \"Handle [easy_mega_menu] shortcodes\" to show them again, or reactivate Easy Mega Menu."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:592
+msgid "Open Easy Mega Menu import"
+msgstr ""
+
+#: includes/class-abmm-product-profiles.php:258
+msgid "Show extra links under your main menu on a product's pages. Pages below the product's main page get the same links. They appear where the menu is placed with \"Use page product navigation\" turned on (block or widget), or with context=\"page\" in the shortcode."
+msgstr ""
+
+#: includes/class-abmm-product-profiles.php:393
+msgid "Where the product name links to. Leave empty to use the main product page."
+msgstr ""
+
+#: includes/class-abmm-product-profiles.php:769
+msgid "Add a product name, and a product page URL or main product page, before saving."
+msgstr ""
+
+#: includes/class-abmm-widget.php:27
+msgid "Ashbi Mega Menu (classic widget)"
+msgstr ""
+
+#: src/blocks/mega-menu/edit.js:64
+msgid "On a product's pages, show that product's links under the menu."
 msgstr ""

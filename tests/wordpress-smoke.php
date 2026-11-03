@@ -96,6 +96,8 @@ abmm_test_assert( true === $data->restore( $copy_id ) && null !== $data->get( $c
 $collection_before_import = $data->get_all();
 $result = $exporter->import_json( $export, 'copy' );
 abmm_test_assert( ! is_wp_error( $result ) && count( $data->get_all() ) === count( $collection_before_import ) + 1, 'Copy import preserves collection.' );
+$copy_titles = array_column( $data->get_all(), 'title' );
+abmm_test_assert( count( $copy_titles ) === count( array_unique( $copy_titles ) ), 'A copy import is numbered instead of repeating a duplicate\'s name.' );
 $backup = $exporter->get_backups()[0];
 abmm_test_assert( $backup['menus'] === $collection_before_import, 'Import backup captures state inside lock.' );
 abmm_test_assert( is_wp_error( $exporter->restore_backup( $backup['id'], 'stale' ) ), 'Recovery rejects a stale collection revision.' );
