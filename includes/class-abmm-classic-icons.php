@@ -51,9 +51,12 @@ class ABMM_Classic_Icons {
 			$plugin_path = wp_parse_url( ABMM_PLUGIN_URL, PHP_URL_PATH );
 			$url         = ( is_string( $plugin_path ) ? rtrim( $plugin_path, '/' ) . '/' : '/wp-content/plugins/ashbi-mega-menu/' ) . 'assets/classic/emm-sprite.svg';
 		}
+		// The importer records the copied sprite's icons; only the small bundled
+		// sprite (or a copy from before keys were recorded) is read here.
+		$keys = $file !== ABMM_PLUGIN_DIR . 'assets/classic/emm-sprite.svg' && $site['keys'] ? array_fill_keys( $site['keys'], true ) : self::sprite_keys( $file );
 		$this->sprite = array(
 			'url'  => $url . '?ver=' . rawurlencode( $version ),
-			'keys' => self::sprite_keys( $file ),
+			'keys' => $keys,
 		);
 		return $this->sprite;
 	}

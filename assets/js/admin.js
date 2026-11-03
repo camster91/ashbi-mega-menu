@@ -3798,17 +3798,24 @@
 
 	function frameHeader(frame) {
 		var doc = frame && frame.contentDocument;
-		return doc ? doc.querySelector('.abmm-header') : null;
+		// Classic (Easy Mega Menu) menus render the same parts with emm- names.
+		return doc ? doc.querySelector('.abmm-header, .emm-header') : null;
+	}
+
+	function framePrefix(header) {
+		return header && header.classList.contains('emm-header') ? 'emm' : 'abmm';
 	}
 
 	/** Where the user is in the device menu, so a re-render can return there. */
 	function captureFrameState(frame) {
 		var header = frameHeader(frame);
 		if (!header) return deviceFrame.state;
-		var items = Array.prototype.slice.call(header.querySelectorAll('.abmm-nav__list > .abmm-nav__item'));
-		var open = header.querySelector('.abmm-nav__list > .abmm-nav__item.is-open');
-		var drawer = header.querySelector('.abmm-nav__drawer');
-		var sections = open ? Array.prototype.slice.call(open.querySelectorAll('.abmm-mega__section')) : [];
+		var p = framePrefix(header);
+		var items = Array.prototype.slice.call(header.querySelectorAll('.' + p + '-nav__list > .' + p + '-nav__item'));
+		var open = header.querySelector('.' + p + '-nav__list > .' + p + '-nav__item.is-open');
+		var drawer = header.querySelector('.' + p + '-nav__drawer');
+		// Classic sections have no collapse toggles to replay.
+		var sections = open && p === 'abmm' ? Array.prototype.slice.call(open.querySelectorAll('.abmm-mega__section')) : [];
 		return {
 			open: header.classList.contains('is-mobile-open'),
 			item: open ? items.indexOf(open) : -1,
@@ -3823,10 +3830,11 @@
 		if (!header || !win || !saved) return;
 		win.__abmmQuiet = true;
 		try {
-			var toggle = header.querySelector('.abmm-nav__toggle');
+			var p = framePrefix(header);
+			var toggle = header.querySelector('.' + p + '-nav__toggle');
 			if (saved.open && toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
-			var item = saved.item >= 0 ? header.querySelectorAll('.abmm-nav__list > .abmm-nav__item')[saved.item] : null;
-			var trigger = item && item.querySelector('[data-abmm-mega-trigger]');
+			var item = saved.item >= 0 ? header.querySelectorAll('.' + p + '-nav__list > .' + p + '-nav__item')[saved.item] : null;
+			var trigger = item && item.querySelector('[data-' + p + '-mega-trigger]');
 			if (saved.open && trigger) {
 				trigger.click();
 				Array.prototype.forEach.call(item.querySelectorAll('.abmm-mega__section'), function (section, index) {
@@ -3835,7 +3843,7 @@
 					if (typeof want === 'boolean' && button && want === section.classList.contains('is-collapsed')) button.click();
 				});
 			}
-			var drawer = header.querySelector('.abmm-nav__drawer');
+			var drawer = header.querySelector('.' + p + '-nav__drawer');
 			if (drawer) drawer.scrollTop = saved.scroll || 0;
 		} finally {
 			// The live script focuses in an animation frame; stay quiet past it.
@@ -3860,7 +3868,7 @@
 			if (selection) selectFromPreview(selection);
 			setTimeout(function () { deviceFrame.state = captureFrameState(frame); }, 0);
 		}, true);
-		var drawer = doc.querySelector('.abmm-nav__drawer');
+		var drawer = doc.querySelector('.abmm-nav__drawer, .emm-nav__drawer');
 		if (drawer) {
 			drawer.addEventListener('scroll', function () { if (deviceFrame.state) deviceFrame.state.scroll = drawer.scrollTop; }, { passive: true });
 		}
@@ -4034,12 +4042,12 @@
 			if (!selection) return;
 			var el = null;
 			if (selection.kind === 'link') el = root.querySelector('[data-abmm-link-id="' + cssEscape(selection.id) + '"] > :is(a, span)');
-			else if (selection.kind === 'cat') el = root.querySelector('[data-abmm-cat="' + cssEscape(selection.id) + '"]');
-			else if (selection.kind === 'cta') el = Array.prototype.filter.call(root.querySelectorAll('.abmm-nav__cta'), function (cta) { return cta.getClientRects().length; })[0] || null;
+			else if (selection.kind === 'cat') el = root.querySelector('[data-abmm-cat="' + cssEscape(selection.id) + '"], [data-emm-cat="' + cssEscape(selection.id) + '"]');
+			else if (selection.kind === 'cta') el = Array.prototype.filter.call(root.querySelectorAll('.abmm-nav__cta, .emm-nav__cta'), function (cta) { return cta.getClientRects().length; })[0] || null;
 			else if (selection.kind === 'item') {
 				var index = (getMenu().items || []).map(function (item) { return String(item.id); }).indexOf(selection.id);
-				var li = root.querySelector('[data-abmm-preview-item="' + index + '"]') || root.querySelector('.abmm-nav__list > [data-abmm-item-id="' + cssEscape(selection.id) + '"]');
-				el = li && li.querySelector(':scope > .abmm-nav__link');
+				var li = root.querySelector('[data-abmm-preview-item="' + index + '"]') || root.querySelector('.abmm-nav__list > [data-abmm-item-id="' + cssEscape(selection.id) + '"], .emm-nav__list > [data-emm-item-id="' + cssEscape(selection.id) + '"]');
+				el = li && li.querySelector(':scope > .abmm-nav__link, :scope > .emm-nav__link');
 			}
 			if (el) el.classList.add('abmm-canvas-selected');
 		});

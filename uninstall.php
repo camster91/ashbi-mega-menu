@@ -35,6 +35,7 @@ $abmm_option_keys = array(
 	'widget_abmm_widget',
 	'abmm_collection_lock',
 	'abmm_emm_takeover',
+	'abmm_emm_import_state',
 	'abmm_classic_assets',
 );
 

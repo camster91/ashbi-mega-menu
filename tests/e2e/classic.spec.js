@@ -104,9 +104,16 @@ test.describe('classic menu in the editor', () => {
 		// Selecting a category in the frame opens it in the editor.
 		await expect(page.locator('#abmm-mega-editor')).toBeVisible();
 
-		// Turning on the phone scroll fix and saving keeps the menu classic.
+		// An edit re-renders the frame; the open drawer comes back as it was.
 		await page.locator('[data-abmm-builder-section="design"]').click();
 		const fix = page.locator('#abmm-classic-phone-scroll-fix');
+		const wasChecked = await fix.isChecked();
+		await fix.setChecked(!wasChecked);
+		await fix.setChecked(wasChecked);
+		await expect(frame.locator('header.emm-header')).toHaveClass(/\bis-mobile-open\b/);
+		await expect(frame.locator('.emm-nav__list > .emm-nav__item.is-open')).toHaveCount(1);
+
+		// Turning on the phone scroll fix and saving keeps the menu classic.
 		if (!(await fix.isChecked())) {
 			await fix.check();
 			const saved = page.waitForResponse((response) =>

@@ -6,7 +6,8 @@
  *
  * @var array        $preview Import preview from ABMM_EMM_Migration::preview().
  * @var string       $notice  Status notice key.
- * @var array|false|null $result Last import summary.
+ * @var array|null       $result  Last import summary.
+ * @var string           $error   Why the last import failed, if it did.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,7 +25,7 @@ $abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'c
 	<?php if ( 'imported' === $notice ) : ?>
 		<div class="notice notice-success"><p><?php esc_html_e( 'Import finished. Easy Mega Menu was not changed.', 'ashbi-mega-menu' ); ?></p></div>
 	<?php elseif ( 'error' === $notice ) : ?>
-		<div class="notice notice-error"><p><?php esc_html_e( 'The import did not finish and no menus were changed. Try again, or restore a snapshot from Tools.', 'ashbi-mega-menu' ); ?></p></div>
+		<div class="notice notice-error"><p><?php echo esc_html( '' !== $error ? $error : __( 'The import did not finish. Try again, or restore a snapshot from Tools.', 'ashbi-mega-menu' ) ); ?></p></div>
 	<?php elseif ( 'saved' === $notice ) : ?>
 		<div class="notice notice-success"><p><?php esc_html_e( 'Setting saved.', 'ashbi-mega-menu' ); ?></p></div>
 	<?php endif; ?>
@@ -35,6 +36,12 @@ $abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'c
 			<li><?php echo esc_html( sprintf( /* translators: %d: number of menus. */ _n( '%d menu copied.', '%d menus copied.', count( (array) $result['menus'] ), 'ashbi-mega-menu' ), count( (array) $result['menus'] ) ) ); ?></li>
 			<?php if ( ! empty( $result['skipped'] ) ) : ?>
 				<li><?php echo esc_html( sprintf( /* translators: %s: menu IDs. */ __( 'Kept your existing Ashbi menus: %s', 'ashbi-mega-menu' ), implode( ', ', $result['skipped'] ) ) ); ?></li>
+			<?php endif; ?>
+			<?php if ( ! empty( $result['kept_profiles'] ) ) : ?>
+				<li><?php echo esc_html( sprintf( /* translators: %s: product profile IDs. */ __( 'Kept your existing Ashbi product profiles: %s', 'ashbi-mega-menu' ), implode( ', ', $result['kept_profiles'] ) ) ); ?></li>
+			<?php endif; ?>
+			<?php if ( ! empty( $result['kept_branding'] ) ) : ?>
+				<li><?php echo esc_html( sprintf( /* translators: %s: product profile IDs. */ __( 'Branding not copied, because its profile or menu was not imported or you already have your own: %s', 'ashbi-mega-menu' ), implode( ', ', $result['kept_branding'] ) ) ); ?></li>
 			<?php endif; ?>
 			<li><?php echo esc_html( $result['assets']['message'] ?? '' ); ?></li>
 			<li><?php echo esc_html( sprintf( /* translators: 1: product profiles, 2: branding settings, 3: pages. */ __( 'Product navigation: %1$d profiles, %2$d branding settings and %3$d page assignments copied.', 'ashbi-mega-menu' ), (int) $result['profiles'], (int) $result['branding'], (int) $result['pages'] ) ); ?></li>

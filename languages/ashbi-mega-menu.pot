@@ -4132,10 +4132,6 @@ msgstr ""
 msgid "Import finished. Easy Mega Menu was not changed."
 msgstr ""
 
-#: admin/views/emm-import.php:27
-msgid "The import did not finish and no menus were changed. Try again, or restore a snapshot from Tools."
-msgstr ""
-
 #: admin/views/emm-import.php:29
 msgid "Setting saved."
 msgstr ""
@@ -4281,4 +4277,22 @@ msgstr ""
 
 #: admin/views/builder.php:228
 msgid "Fixes an Easy Mega Menu problem where the last links of a long category could not be reached on phones. The phone menu then scrolls as one list. Off keeps the original behaviour."
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php:437
+msgid "The menus were imported, but product navigation could not be saved. Run the import again."
+msgstr ""
+
+#: admin/views/emm-import.php:28
+msgid "The import did not finish. Try again, or restore a snapshot from Tools."
+msgstr ""
+
+#. translators: %s: product profile IDs.
+#: admin/views/emm-import.php:41
+msgid "Kept your existing Ashbi product profiles: %s"
+msgstr ""
+
+#. translators: %s: product profile IDs.
+#: admin/views/emm-import.php:44
+msgid "Branding not copied, because its profile or menu was not imported or you already have your own: %s"
 msgstr ""

@@ -109,8 +109,8 @@ function classic_first_difference( $expected, $actual ) {
 // The importer copies Easy Mega Menu's sprite into uploads.
 $GLOBALS['abmm_test_uploads'] = $abmm_uploads;
 @mkdir( $abmm_uploads . '/' . ABMM_Classic::UPLOAD_DIR, 0777, true );
-copy( $abmm_fixtures . '/emm-sprite.svg', $abmm_uploads . '/' . ABMM_Classic::UPLOAD_DIR . '/emm-sprite.svg' );
-update_option( ABMM_Classic::ASSETS_OPTION, array( 'css' => '', 'sprite' => 'emm-sprite.svg', 'version' => $abmm_cases['version'] ) );
+copy( $abmm_fixtures . '/emm-sprite.svg', $abmm_uploads . '/' . ABMM_Classic::UPLOAD_DIR . '/emm-sprite-0123456789.svg' );
+update_option( ABMM_Classic::ASSETS_OPTION, array( 'css' => '', 'sprite' => 'emm-sprite-0123456789.svg', 'version' => $abmm_cases['version'] ) );
 
 $export    = json_decode( (string) file_get_contents( $abmm_fixtures . '/emm-export.json' ), true );
 $migration = ABMM_EMM_Migration::instance();
@@ -130,7 +130,7 @@ $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ] = $menus;
 $sequence = new ReflectionProperty( 'ABMM_Classic', 'render_sequence' );
 $sequence->setAccessible( true );
 $normalize = function ( $html ) {
-	return trim( preg_replace( '#href="[^"]*/emm-sprite\.svg\?ver=([^"\#]*)\##', 'href="SPRITE?ver=$1#', $html ) );
+	return trim( preg_replace( '#href="[^"]*/emm-sprite[^"/?]*\.svg\?ver=([^"\#]*)\##', 'href="SPRITE?ver=$1#', $html ) );
 };
 
 $checked = 0;
@@ -173,6 +173,15 @@ $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ]['plain'] = ABMM_Data::instance(
 $plain = ABMM_Frontend::instance()->render( 'plain' );
 verify_classic( false !== strpos( $plain, 'class="abmm-header' ) && false === strpos( $plain, 'emm-header' ), 'Ashbi menus keep Ashbi markup.' );
 verify_classic( ! isset( $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ]['plain']['settings']['render_mode'] ), 'Ashbi menus store no render mode.' );
+
+// The icon list stored at import time is used instead of reading the sprite.
+$reset_icons = new ReflectionProperty( 'ABMM_Classic', 'icons' );
+$reset_icons->setAccessible( true );
+$reset_icons->setValue( ABMM_Classic::instance(), null );
+update_option( ABMM_Classic::ASSETS_OPTION, array( 'css' => '', 'sprite' => 'emm-sprite-0123456789.svg', 'version' => $abmm_cases['version'], 'keys' => array( 'link' ) ) );
+$listed = ABMM_Frontend::instance()->render( array_key_first( $menus ) );
+preg_match_all( '#<use href="[^"]*\#emm-icon-([a-z0-9_-]+)"#', $listed, $listed_icons );
+verify_classic( $listed_icons[1] && array( 'link' ) === array_values( array_unique( $listed_icons[1] ) ), 'Icons come from the stored list, without parsing the sprite.' );
 
 // Without a copied sprite the bundled generic sprite is used.
 update_option( ABMM_Classic::ASSETS_OPTION, array() );
