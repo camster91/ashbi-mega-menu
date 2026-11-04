@@ -33,7 +33,7 @@ The plugin can be activated per site or across the network. **Everything is per 
 | Data | Where it is stored |
 | --- | --- |
 | Menus, archived menus, import recovery backups | Each site's own options |
-| Product navigation, product branding, the contextual navigation module | Each site's own options |
+| Product Navigation, product branding | Each site's own options |
 | Widget placements and block placements | Each site's widgets and content |
 | Setup guide progress (hidden, "checked it") | Per administrator **and** per site (a user option) |
 | First-run choice (blank, template, pages) | Per administrator across the network (user meta) |

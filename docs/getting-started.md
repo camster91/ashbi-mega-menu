@@ -1,86 +1,102 @@
-# Getting started with Ashbi Mega Menu
+# Get started
 
-This is the short version. It takes about 10 minutes. For the full details, see the [user guide](user-guide.md).
+This guide takes you from nothing to a working menu on your site. It takes about 10 minutes.
 
-## 1. Install
+You only need the steps on this page. Everything else in the plugin is there for when you want more. See the [user guide](user-guide.md) when you are ready.
 
-1. In WordPress, go to **Plugins → Add New → Upload Plugin**.
-2. Upload the plugin ZIP, then click **Activate**.
-3. A new **Mega Menu** item appears in the admin sidebar.
+## What you need
 
-You need WordPress 6.6+, PHP 8.2+ and a MySQL or MariaDB database.
+- WordPress 6.6 or newer.
+- PHP 8.2 or newer. PHP is the language WordPress runs on. Your web host can tell you which version you have.
+- A MySQL or MariaDB database. Most WordPress sites have one. SQLite has not been tested.
 
-Installing the plugin does **not** change your site's header. Nothing shows on your site until you place a menu yourself.
+## Step 1: Install the plugin
 
-## 2. Create a menu
+1. In WordPress, go to **Plugins**, then **Add Plugin**, then **Upload Plugin**.
+2. Upload the plugin ZIP file.
+3. Click **Activate**.
 
-1. Open **Mega Menu**.
-2. Pick one:
-   - **Start from scratch** — an empty menu.
-   - **Use a template** — a small example menu to edit. Replace every sample label and link.
-   - **Start from your pages** — tick pages you already have. Top-level pages become links in the menu bar; child pages go in their parent's dropdown.
-3. Give the menu a clear name, like "Main navigation".
+A new **Mega Menu** item now shows in the WordPress sidebar.
 
-Once you have a menu, the dashboard shows a **Setup guide**: add your links and save, place the menu (it recommends the safest method for your theme), then check it on your site. Steps tick themselves off as the plugin detects them; "Check it on your site" is yours to confirm. **Hide guide** hides it for you only, and **Show setup guide** at the bottom of the dashboard brings it back. Nothing is placed on your site automatically, and your theme's own menu is never changed.
+Your site looks the same as before. Nothing changes for visitors until you place a menu.
 
-## 3. Add your links
+## Step 2: Create a menu
 
-The editor has a live preview on the left and settings on the right.
+1. Click **Mega Menu** in the sidebar.
+2. Pick how you want to start.
 
-- **Simple Link** — one link in the top bar (for example, "About").
-- **Mega Menu** — a top-bar item that opens a big panel with columns of links. Click **Edit content** to fill it in.
+<!-- screenshot: 01-welcome.png -->
 
-Tips:
+- **Start from your pages** is the fastest choice if your site has pages. Tick the pages you want. Pages with a parent page go in that parent's dropdown.
+- **Use a template** gives you a sample menu to change. Replace every sample word and link.
+- **Start from scratch** gives you an empty menu.
 
-- Use the link button next to a URL field to search your own pages.
-- Use **Move up** / **Move down** (or drag the ⋮⋮ handle) to reorder.
-- Switch the preview between **Desktop**, **Tablet** and **Mobile**.
-- The **Design** tab changes colors, fonts and layout.
+Then type a name at the top of the editor, such as "Main menu". Only you see this name.
 
-## 4. Save
+## Step 3: Add your links
 
-Click **Save Menu**. The status next to the button says when everything is saved.
+The editor has four steps along the top: **Content**, **Design**, **Place** and **Check**. You start on **Content**.
 
-If the editor lists checks that need attention (for example, a link with no destination), fix those first.
+<!-- screenshot: 06-editor-overview.png -->
 
-## 5. Put the menu on your site
+1. Click **Add item**.
+2. Type the words people will see in **Label**.
+3. Choose a **Type**. A **Link** goes straight to one page. A **Dropdown** opens a panel with more links.
+4. For a **Link**, click the link button and search for your page.
+5. For a **Dropdown**, click **Edit content**, then **Add link**. Add each link, then click **Back to menu**.
 
-Try it on a test page first. Pick the method that fits your theme.
+To change the order, drag a row or use its arrows.
 
-| Your theme | How to place the menu |
-| --- | --- |
-| Block theme (like Twenty Twenty-Five) | Add the **Ashbi Mega Menu** block and pick your menu. To use it in the header, edit the Header in **Appearance → Editor**. |
-| Classic theme with a header widget area | **Appearance → Widgets** → add **Ashbi Mega Menu** to the header area. |
-| Any theme or page builder | Paste the shortcode, for example `[ashbi_mega_menu id="your_menu_id"]`. Copy the exact code from the **Place** step in the editor. |
+The preview shows your menu as you work. Click the phone button above it to see the phone menu.
 
-Once the new menu works, remove your theme's old menu so you don't have two headers.
+## Step 4: Pick a look
 
-## 6. Check it
+1. Click **Design**.
+2. Click a style: **Clean**, **Dark**, **Soft**, **Bold** or **Minimal**.
 
-On the real page:
+That is all most people need. You can skip the rest of this screen.
 
-- Hover or click each mega menu item. The panel should open and stay open while you use it.
-- Click every link.
-- Press **Tab** to move through the menu and **Escape** to close a panel.
-- On a phone, open the menu, open a panel, go back, and close the menu.
+## Step 5: Save
 
-## Common questions
+Click **Save changes** at the top.
 
-**The menu doesn't show up.**
-Check that the menu is saved, that you picked the right menu in the block or widget, and that the shortcode ID matches exactly. Clear any page cache.
+Saving is the only step. There is no separate "publish" button. Once your menu is on your site, every save shows up there right away. That is why it helps to check your work before you save.
 
-**I see two menus.**
-Your theme's own menu is still there. Remove it once the new one works.
+## Step 6: Put the menu on your site
 
-**The panel is cut off.**
-Your theme's header may be hiding overflow. Try placing the block in a full-width header section.
+1. Click **Place**.
+2. Look for the method marked **Recommended for your theme**.
+3. Follow the steps shown there.
 
-**How do I back up my menus?**
-Use **Export** in the editor, or **Tools → Import and export** on the main screen. Keep the file somewhere private.
+The plugin picks the method that suits your theme. If you want more detail, read [how to place your menu](place-your-menu.md).
 
-**What happens if I delete the plugin?**
-Deactivating keeps your menus. Deleting the plugin removes all its menus and settings, so export first.
+<!-- screenshot: 19-place-step.png -->
 
-## Need help?
+Keep your old menu for now. That way visitors can always find their way while you test.
 
-Report a problem on [GitHub issues](https://github.com/camster91/ashbi-mega-menu/issues). Include your WordPress version, theme and the steps to reproduce. Never post passwords or private data.
+## Step 7: Check it
+
+Click **Check**, then click **View site**. On a real page, try these:
+
+- Click every link. Each one should go to the right page.
+- Open each dropdown with your mouse.
+- Open each dropdown with your keyboard. Press **Tab** to move, **Enter** to open and **Esc** to close.
+- Open the menu on a phone. Go into a section, go back, then close it.
+
+## Step 8: Remove your old menu
+
+When the new menu works, remove your theme's old menu. Now you have one menu, not two.
+
+To go back, remove the new menu from your header and put the old one back. This plugin never changes your theme's menu.
+
+You are done.
+
+## What to read next
+
+- [Place your menu](place-your-menu.md): every way to add a menu to your site.
+- [Style your menu](style-your-menu.md): colors, fonts and layout.
+- [Phone menus](phone-menus.md): how your menu works on small screens.
+- [Undo mistakes](undo-and-history.md): undo, History and backups.
+- [Switch from Easy Mega Menu](migrate-from-easy-mega-menu.md): move your menus over.
+- [Fix a problem](troubleshooting.md): common problems and how to solve them.
+- [User guide](user-guide.md): every feature and option.

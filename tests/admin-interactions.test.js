@@ -5,16 +5,14 @@ const fs = require('node:fs');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 const menu = { title: 'Demo', items: [{ id: 'home', label: 'Home', type: 'link', url: '/' }], cta: {}, settings: { presentation:'unified' } };
-const sections = ['content', 'design', 'settings', 'help'];
-const tabs = ['content', 'design', 'settings'];
+const sections = ['content', 'design', 'help', 'verify'];
 async function fixture(narrow = false, malformed = false, draft = null, menuId = 'demo', menuData = menu, extraMain = '', url = 'http://localhost/') {
  const dom = new JSDOM(`<body><div class="abmm-builder-topbar"><button class="abmm-save-menu">Save</button><button class="abmm-export-current-menu" data-menu-id="${menuId}">Export</button><span class="abmm-save-status"></span></div>
  <div id="abmm-draft-recovery" hidden><p class="abmm-draft-recovery__message"></p><button class="abmm-restore-draft">Restore</button><button class="abmm-download-draft">Download</button><button class="abmm-reload-server">Reload</button><button class="abmm-discard-draft">Discard</button></div>
- <button data-abmm-workflow="content">Edit</button><button data-abmm-workflow="help">Place</button><button data-abmm-workflow="verify">Verify</button>
+ <button data-abmm-workflow="content">Content</button><button data-abmm-workflow="design">Design</button><button data-abmm-workflow="help">Place</button><button data-abmm-workflow="verify">Check</button>
  <section class="abmm-placement-panel"><p class="abmm-placement-save-hint"></p><button class="abmm-copy-placement" data-shortcode='[ashbi_mega_menu id="demo"]'>Copy</button></section><div id="abmm-verification-panel" tabindex="-1"></div>
  <button class="abmm-builder-panel-toggle">Settings</button><div id="abmm-builder-panel-backdrop" hidden></div>
  <div id="abmm-builder" data-menu-id="${menuId}" data-menu-revision="revision-1"><aside id="abmm-builder-sidebar"><button class="abmm-builder-panel-close">Close</button>
- <div class="abmm-builder-sections">${tabs.map(s=>`<button data-abmm-builder-section="${s}">${s}</button>`).join('')}</div>
  ${sections.map(s=>`<div class="abmm-builder-section-group" data-abmm-builder-section-panel="${s}"></div>`).join('')}
  <input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></aside>
  <main class="abmm-builder__main"><div class="abmm-preview-viewports">${['desktop','tablet','mobile'].map(s=>`<button data-abmm-preview-viewport="${s}">${s}</button>`).join('')}</div><div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div id="abmm-preview"></div></div>${extraMain}</main></div>
@@ -121,17 +119,24 @@ async function backupFixture(strings = {}) {
  assert.equal($('#abmm-preview .abmm-nav__toggle').attr('aria-expanded'),'true');
  $('[data-abmm-preview-viewport="desktop"]').trigger('click');
  assert.equal($('#abmm-preview .abmm-nav__toggle').attr('aria-expanded'),'false','switching viewport closes drawer');
- $('[data-abmm-builder-section="content"]').trigger($.Event('keydown',{key:'End'}));
- // Place is a step in the stepper, not a fourth tab: End moves to the last Edit tab.
- assert.equal($('[data-abmm-builder-section="settings"]').attr('aria-selected'),'true');
- assert.equal($('[data-abmm-builder-section-panel="settings"]').prop('hidden'),false);
+ // The stepper is the only navigation: arrow keys move along it and each step opens its panel.
+ $('[data-abmm-workflow="content"]').trigger($.Event('keydown',{key:'End'}));
+ assert.equal($('[data-abmm-workflow="verify"]').attr('aria-current'),'step');
+ assert.equal($('[data-abmm-builder-section-panel="verify"]').prop('hidden'),false);
  assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
+ assert.equal($('[data-abmm-workflow="verify"]')[0].ownerDocument.activeElement,$('[data-abmm-workflow="verify"]')[0],'focus follows the arrow keys');
+ $('[data-abmm-workflow="verify"]').trigger($.Event('keydown',{key:'ArrowRight'}));
+ assert.equal($('[data-abmm-workflow="content"]').attr('aria-current'),'step','the arrow keys wrap around');
+ $('[data-abmm-workflow="content"]').trigger($.Event('keydown',{key:'ArrowRight'}));
+ assert.equal($('[data-abmm-builder-section-panel="design"]').prop('hidden'),false);
  $('[data-abmm-workflow="help"]').trigger('click');
  assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'the Place step drives the inspector');
- assert.equal($('.abmm-builder-sections').prop('hidden'),true,'Edit tabs step aside while placing');
+ assert.equal($('[data-abmm-builder-section-panel="design"]').prop('hidden'),true,'one panel at a time');
+ assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step');
+ $('[data-abmm-workflow="design"]').trigger('click');
+ assert.equal($('[data-abmm-builder-section-panel="design"]').prop('hidden'),false,'Design is a step of its own');
  $('[data-abmm-workflow="content"]').trigger('click');
- assert.equal($('[data-abmm-builder-section-panel="settings"]').prop('hidden'),false,'Edit returns to the last Edit tab');
- assert.equal($('.abmm-builder-sections').prop('hidden'),false);
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),false,'Content is a step of its own');
  assert.equal($('.abmm-save-menu').hasClass('is-saved'),true,'with nothing to save the button rests in its quiet Saved state');
  $('#abmm-menu-title').val('Changed').trigger('input');
  assert.equal($('.abmm-save-menu').hasClass('is-saved'),false,'a change turns Save back into the primary action');
@@ -207,7 +212,10 @@ async function backupFixture(strings = {}) {
  $('[data-abmm-workflow="help"]').trigger('click');
  assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'Place step opens contextual placement');
  $('[data-abmm-workflow="verify"]').trigger('click');
- assert.equal(f.window.document.activeElement.id,'abmm-verification-panel','Verify step moves keyboard focus to real-page checklist');
+ assert.equal(f.window.document.activeElement.id,'abmm-verification-panel','Check step moves keyboard focus to real-page checklist');
+ $('#abmm-verification-panel').before('<section id="abmm-readiness-panel" tabindex="-1"></section>');
+ $('[data-abmm-workflow="verify"]').trigger('click');
+ assert.equal(f.window.document.activeElement.id,'abmm-readiness-panel','the checklist comes first when the menu has one');
  $('.abmm-copy-placement').trigger('click');
  assert.equal($('.abmm-copy-fallback').val(),'[ashbi_mega_menu id="demo"]','copy fallback selects exact saved-menu shortcode');
  assert.equal(f.window.document.activeElement.className,'abmm-copy-fallback');
@@ -331,32 +339,40 @@ async function backupFixture(strings = {}) {
  assert.equal(f.requests.length,1,'a second shortcut while saving does not send a duplicate save');
  assert.match($('.abmm-save-menu').attr('aria-keyshortcuts'),/Control\+S/);
  f.close();
- // Dashboard deep links: "Place & verify" opens the Place step, and the card's
- // "N issues" pill opens the checklist on the Content tab.
+ // Dashboard deep links: "Place" opens the Place step, and the card's
+ // "N issues" pill opens the checklist on the Check step.
  f=await fixture(false,false,null,'demo',menu,'',"http://localhost/#placement"); $=f.$;
  assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'#placement shows the Place panel');
  assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
  assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step','#placement marks the Place step');
  f.close();
  f=await fixture(false,false,null,'demo',menu,'<section id="abmm-readiness-panel"><h2>Checklist</h2></section>',"http://localhost/#abmm-readiness-panel"); $=f.$;
- assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),false,'the checklist link opens the Content tab');
- assert.equal($('[data-abmm-workflow="content"]').attr('aria-current'),'step');
+ assert.equal($('[data-abmm-builder-section-panel="verify"]').prop('hidden'),false,'the checklist link opens the Check step');
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
+ assert.equal($('[data-abmm-workflow="verify"]').attr('aria-current'),'step');
  assert.equal(f.window.document.activeElement,$('#abmm-readiness-panel')[0],'focus lands on the checklist');
  f.close();
- console.log('Admin viewport, drawer, keyboard tabs, sheet, save/retry, malformed load and explicit backup restore tests passed.');
- // Dashboard deep links: "Place & verify" opens the Place step, and the card's
- // "N issues" pill opens the checklist on the Content tab.
+ console.log('Admin viewport, drawer, keyboard steps, sheet, save/retry, malformed load and explicit backup restore tests passed.');
+ // Dashboard deep links: "Place" opens the Place step, and the card's
+ // "N issues" pill opens the checklist on the Check step.
  f=await fixture(false,false,null,'demo',menu,'',"http://localhost/#placement"); $=f.$;
  assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'#placement shows the Place panel');
  assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
  assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step','#placement marks the Place step');
  f.close();
  f=await fixture(false,false,null,'demo',menu,'<section id="abmm-readiness-panel"><h2>Checklist</h2></section>',"http://localhost/#abmm-readiness-panel"); $=f.$;
- assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),false,'the checklist link opens the Content tab');
- assert.equal($('[data-abmm-workflow="content"]').attr('aria-current'),'step');
+ assert.equal($('[data-abmm-builder-section-panel="verify"]').prop('hidden'),false,'the checklist link opens the Check step');
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
+ assert.equal($('[data-abmm-workflow="verify"]').attr('aria-current'),'step');
  assert.equal(f.window.document.activeElement,$('#abmm-readiness-panel')[0],'focus lands on the checklist');
+ f.close();
+ // On a narrow screen a deep link opens the panel it points into.
+ f=await fixture(true,false,null,'demo',menu,'',"http://localhost/#placement"); $=f.$;
+ assert.equal($('#abmm-builder-sidebar').hasClass('is-open'),true,'#placement opens the panel on a narrow screen');
+ assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false);
  f.close();
  await auditRegressions();
+ await simplicityRegressions();
 })().catch(error=>{console.error(error);process.exitCode=1;});
 
 // Findings from the admin UX audit.
@@ -367,7 +383,7 @@ async function auditRegressions(){
 
  // Every settings control marks the menu dirty: static, so a new control cannot be forgotten.
  const builderView=fs.readFileSync('admin/views/builder.php','utf8');
- const panels=builderView.slice(builderView.indexOf('id="abmm-section-panel-settings"'),builderView.indexOf('id="abmm-section-panel-help"'));
+ const panels=builderView.slice(builderView.indexOf('id="abmm-section-panel-content"'),builderView.indexOf('id="abmm-section-panel-help"'));
  const wired=source.slice(source.indexOf('var designSelectors = ['),source.indexOf("].join(', ');",source.indexOf('var designSelectors = [')));
  for(const [tag] of panels.matchAll(/<(?:input|select)\b[^>]*\bid="abmm-[^"]+"[^>]*>/g)){
   const id=/\bid="([^"]+)"/.exec(tag)[1];
@@ -402,18 +418,31 @@ async function auditRegressions(){
  assert.ok(issues.some(text=>text.includes('"Empty feature"')),'an empty link in the active layout is flagged');
  assert.ok(!issues.some(text=>/Hidden (dead|broken)/.test(text)),'links in the hidden layout are not flagged');
  assert.ok(issues.includes('checkMega'),'links hidden by the layout do not satisfy a mega item');
- assert.equal($('[data-abmm-builder-section="content"] .abmm-issue-count').text(),String(issues.length),'the Content tab shows the issue count');
- assert.equal($('[data-abmm-workflow="content"] .abmm-issue-count').text(),String(issues.length),'the Edit step shows the issue count');
+ assert.equal($('[data-abmm-workflow="verify"] .abmm-issue-count').text(),String(issues.length),'the Check step shows the issue count');
+ assert.equal($('[data-abmm-workflow="content"] .abmm-issue-count').length,0,'the count sits on one step only');
  // A link issue opens that row.
  $('.abmm-readiness-issues button').filter((_,b)=>$(b).text().includes('"Dead"')).trigger('click');
  assert.equal(f.window.document.activeElement,$('#abmm-nav-items .abmm-nav-item-row').eq(1).find('.abmm-nav-url')[0],'a top link issue focuses that row\'s URL');
  assert.ok($('#abmm-nav-items .abmm-nav-item-row').eq(1).hasClass('is-expanded'),'the row opens');
- // An issue whose field is on another tab switches to it first.
- $('[data-abmm-builder-section-panel="settings"]').append('<input id="abmm-brand-title">');
+ // The checklist is on Check, so an issue switches to the step holding its field.
+ $('[data-abmm-builder-section-panel="content"]').append('<input id="abmm-brand-title">');
+ $('[data-abmm-workflow="verify"]').trigger('click');
  $('.abmm-readiness-issues').append('<li><button type="button" data-field="abmm-brand-title">Logo</button></li>');
  $('.abmm-readiness-issues button[data-field="abmm-brand-title"]').trigger('click');
- assert.equal($('[data-abmm-builder-section-panel="settings"]').prop('hidden'),false,'a logo issue opens the Settings tab');
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),false,'a logo issue opens the Content step');
+ assert.equal($('[data-abmm-builder-section-panel="verify"]').prop('hidden'),true);
  assert.equal(f.window.document.activeElement,$('#abmm-brand-title')[0],'and focuses the field');
+ // A field in a closed disclosure opens first, or it could not take focus.
+ $('[data-abmm-builder-section-panel="design"]').append('<details id="abmm-test-more"><summary>More</summary><input id="abmm-test-hidden"></details>');
+ $('.abmm-readiness-issues').append('<li><button type="button" data-field="abmm-test-hidden">Hidden</button></li>');
+ $('.abmm-readiness-issues button[data-field="abmm-test-hidden"]').trigger('click');
+ assert.equal($('[data-abmm-builder-section-panel="design"]').prop('hidden'),false,'the issue opens the step holding its field');
+ assert.equal($('#abmm-test-more').prop('open'),true,'and the disclosure around it');
+ // An issue with no field of its own goes to Content, where menu items are edited.
+ $('[data-abmm-workflow="verify"]').trigger('click');
+ $('.abmm-readiness-issues').append('<li><button type="button" data-field="abmm-test-missing">Missing</button></li>');
+ $('.abmm-readiness-issues button[data-field="abmm-test-missing"]').trigger('click');
+ assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),false,'it never strands the user on Check');
  f.close();
 
  // Removing a row keeps keyboard focus nearby, and Undo does not expire on a timer.
@@ -459,7 +488,7 @@ async function auditRegressions(){
 
  // The draft panel says how old the draft is.
  f=await fixture(false,false,{revision:'revision-1',menu:{...menu,title:'Draft'},updated:Date.now()},'demo',menu,'<p class="abmm-draft-recovery__age"></p>');
- assert.match(f.$('.abmm-draft-recovery__age').text(),/Unsaved draft from/); f.close();
+ assert.match(f.$('.abmm-draft-recovery__age').text(),/Unsaved changes from/); f.close();
 
  // A preset can no longer lose custom colors for good.
  const presetGrid='<input type="hidden" id="abmm-preset" value="custom"><input id="abmm-accent" class="abmm-color" value="#111111"><div id="abmm-preset-grid"><button type="button" class="abmm-preset-card" data-preset="bold" data-values=\'{"accent":"#222222"}\'>Bold</button><button type="button" class="abmm-preset-card abmm-preset-card--custom" data-preset="custom" disabled>Custom</button></div>';
@@ -515,9 +544,96 @@ async function auditRegressions(){
  assert.equal(f.window.document.activeElement,$('[data-abmm-preview-item="2"] > .abmm-nav__link')[0],'a re-rendered preview gives focus back to the same item');
  f.close();
 
+ // A new dropdown starts on Simple columns; stored types and existing layouts stay as they are.
+ f=await fixture(false,false,null,'demo',{...menu,items:[
+  {id:'plain',label:'Plain',type:'link',url:'/plain'},
+  {id:'kept',label:'Kept',type:'link',url:'/kept',categories:[{id:'c9',title:'Kept',groups:[]}]},
+  {id:'was',label:'Was',type:'link',url:'/was',mega_style:'platforms',columns:4,categories:[],links:[]},
+ ]}); $=f.$;
+ assert.deepEqual(Array.from($('#abmm-nav-items .abmm-nav-type')[0].options,o=>[o.value,o.textContent]),[['link','Link'],['mega','Dropdown']],'the labels change, the stored values do not');
+ [0,1,2].forEach(i=>$('#abmm-nav-items .abmm-nav-type').eq(i).val('mega').trigger('change'));
+ assert.equal($('#abmm-nav-items .abmm-nav-type-chip').first().text(),'Dropdown');
+ $('.abmm-save-menu').trigger('click');
+ saved=JSON.parse(f.requests[0].data.menu_data);
+ assert.equal(saved.items[0].type,'mega');
+ assert.equal(saved.items[0].mega_style,'features','a new dropdown starts on Simple columns');
+ assert.equal(saved.items[0].columns,2);
+ assert.equal(saved.items[1].mega_style,'platforms','an item with categories keeps them');
+ assert.equal(saved.items[2].mega_style,'platforms','a layout the item already has is kept');
+ assert.equal(saved.items[2].columns,4);
+ f.close();
+
+ // "More options" starts closed, and open when something in it is in use. Nothing hidden is lost.
+ const moreEditor='<div id="abmm-mega-editor" hidden><h2 id="abmm-mega-editor-title"></h2><button class="abmm-close-mega-editor">Back</button><details id="abmm-mega-more-options" hidden><summary>More</summary><div id="abmm-category-bar-field" hidden><input type="checkbox" id="abmm-hide-category-bar"></div></details><ul id="abmm-features-link-list"></ul><ul id="abmm-cat-list"></ul><div id="abmm-cat-detail"></div></div>'
+  +'<div id="abmm-icon-modal" hidden><input id="abmm-icon-search"><div id="abmm-icon-grid"></div><details id="abmm-icon-appearance" hidden><summary>More</summary><div id="abmm-icon-appearance-fields"></div></details></div>';
+ const oneCat=id=>({id,title:id,groups:[{id:id+'g',title:'',links:[]}]});
+ const moreMenu={...menu,items:[
+  {id:'p',label:'P',type:'link',url:'/p'},
+  {id:'r',label:'R',type:'link',url:'/r',rel:'nofollow',class:'hi',target:'_blank'},
+  {id:'one',label:'One',type:'mega',mega_style:'platforms',columns:3,categories:[oneCat('a')]},
+  {id:'hid',label:'Hid',type:'mega',mega_style:'platforms',columns:3,hide_category_bar:true,categories:[oneCat('b')]},
+  {id:'two',label:'Two',type:'mega',mega_style:'platforms',columns:3,categories:[oneCat('c'),oneCat('d')]},
+  {id:'col',label:'Col',type:'mega',mega_style:'features',columns:2,links:[{id:'f1',label:'A',url:'/a'},{id:'f2',label:'B',url:'/b',icon_color:'#111111'},{id:'f3',label:'C',url:'/c',rel:'ugc'},{id:'f4',label:'D',url:'/d',icon_radius:0}]},
+  {id:'old',label:'Old',type:'mega',categories:[oneCat('e')]},
+ ]};
+ f=await fixture(false,false,null,'demo',moreMenu,moreEditor); $=f.$;
+ const navRow=i=>$('#abmm-nav-items .abmm-nav-item-row').eq(i);
+ assert.equal(navRow(0).find('.abmm-link-options .abmm-more-options').prop('open'),false,'closed when rel and classes are empty');
+ assert.equal(navRow(1).find('.abmm-link-options .abmm-more-options').prop('open'),true,'open when they have a value');
+ assert.equal(navRow(0).find('.abmm-link-target').closest('.abmm-more-options').length,0,'new tab stays one click away');
+ navRow(0).find('.abmm-link-rel').val('sponsored').trigger('input');
+ assert.equal(navRow(0).find('.abmm-link-options').hasClass('has-options'),true,'the options button shows a value is set');
+ const megaMore=$('#abmm-mega-more-options');
+ navRow(2).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('hidden'),false,'the option shows with one category');
+ assert.equal(megaMore.prop('open'),false);
+ navRow(3).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('open'),true,'a hidden category bar opens More options');
+ assert.equal($('#abmm-hide-category-bar').prop('checked'),true);
+ navRow(4).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('hidden'),true,'with no option to show, More options is left out');
+ navRow(2).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('open'),false,'the next dropdown starts closed again');
+ navRow(5).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('hidden'),true,'Simple columns has no category bar');
+ const featureRow=i=>$('#abmm-features-link-list .abmm-link-row').eq(i);
+ assert.equal(featureRow(0).find('.abmm-link-edit .abmm-more-options').prop('open'),false);
+ assert.equal(featureRow(2).find('.abmm-link-edit .abmm-more-options').prop('open'),true);
+ const iconMore=$('#abmm-icon-appearance');
+ const pickIcon=i=>featureRow(i).find('.abmm-pick-link-icon').trigger('click');
+ pickIcon(0);
+ assert.equal(iconMore.prop('hidden'),false);
+ assert.equal(iconMore.prop('open'),false,'the icon style starts closed');
+ pickIcon(1);
+ assert.equal(iconMore.prop('open'),true,'a custom icon colour opens it');
+ pickIcon(0);
+ assert.equal(iconMore.prop('open'),false,'and the next item starts closed again');
+ pickIcon(3);
+ assert.equal(iconMore.prop('open'),true,'a radius of 0 counts as in use');
+ navRow(6).find('.abmm-edit-mega').trigger('click');
+ $('.abmm-save-menu').trigger('click');
+ saved=JSON.parse(f.requests[0].data.menu_data);
+ assert.equal(saved.items[0].rel,'sponsored','a closed field still saves');
+ assert.equal(saved.items[1].rel,'nofollow');
+ assert.equal(saved.items[1].class,'hi');
+ assert.equal(saved.items[1].target,'_blank');
+ assert.equal(saved.items[3].hide_category_bar,true);
+ assert.equal(saved.items[5].links[1].icon_color,'#111111');
+ assert.equal(saved.items[5].links[2].rel,'ugc');
+ assert.equal(saved.items[6].mega_style,'platforms','an existing dropdown with no stored layout stays on categories');
+ f.close();
+
+ // History brings versions and backups together, reachable from each card and the editor.
+ const listView=fs.readFileSync('admin/views/list.php','utf8');
+ assert.match(builderView,/abmm-open-history" href="[^"]*'abmm_history'/,'the editor links to History');
+ assert.match(listView,/abmm-menu-versions"[^\n]*'History'/,'the card menu says History');
+ assert.match(listView,/id="abmm-backup-panel"[\s\S]*'History'[\s\S]*id="abmm-history-menu"[\s\S]*abmm-load-backups/,'one panel holds both');
+ assert.doesNotMatch(listView,/'Recovery snapshots'|'Saved versions'/);
+ assert.match(listView,/<details class="abmm-import-api abmm-more-options">/,'the developer panel starts closed');
+
  // List page.
- const list=async body=>{
-  const dom=new JSDOM('<body>'+body+'</body>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true});
+ const list=async(body,url='http://localhost/')=>{
+  const dom=new JSDOM('<body>'+body+'</body>',{url,runScripts:'outside-only',pretendToBeVisual:true});
   const {window}=dom; const $=require('jquery')(window); window.jQuery=$;
   window.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({archivePlacements:'%1$d %2$d %3$d %4$d',archiveConfirmTitle:'%1$s'},{get:(t,k)=>t[k]||String(k)})};
   const requests=[]; $.post=(_,data)=>{const d=$.Deferred();requests.push({data,d});return d.promise();};
@@ -537,15 +653,41 @@ async function auditRegressions(){
   assert.match($('.abmm-archive-confirm').text(),new RegExp('0 0 0 '+known),'page builder placements count');
   f.close();
  }
- // Saved versions list and restore.
- f=await list(card); $=f.$;
+ // A card's History opens the shared panel on that menu, with its versions and restore.
+ const historyPanel='<details id="abmm-backup-panel"><h3 id="abmm-history-title" tabindex="-1">One menu</h3><select id="abmm-history-menu"><option value="w">W</option><option value="x">X</option><option value="y">Y</option></select><div id="abmm-history-versions"></div></details>';
+ f=await list(card+historyPanel); $=f.$;
+ assert.equal(f.requests.length,0,'nothing loads until History opens');
  $('.abmm-menu-versions').trigger('click');
+ assert.equal($('#abmm-backup-panel').prop('open'),true);
+ assert.equal($('#abmm-history-menu').val(),'x','it opens on the card it came from');
  assert.equal(f.requests[0].data.action,'abmm_menu_versions');
+ assert.equal(f.requests[0].data.menu_id,'x');
+ await wait(5);
+ assert.equal(f.window.document.activeElement.id,'abmm-history-title','focus moves to History');
  f.requests[0].d.resolve({success:true,data:{revision:'rev-now',versions:[{id:'v1',saved_at:1,saved_label:'Today',items:3}]}});
  assert.match($('.abmm-version-list').text(),/Today, 3 menu items/);
  $('.abmm-restore-version').trigger('click');
  assert.equal(f.requests[1].data.action,'abmm_restore_menu_version');
  assert.equal(f.requests[1].data.version_id,'v1'); assert.equal(f.requests[1].data.base_revision,'rev-now');
+ // Switching menus shows the new menu, and a slow answer for the old one is ignored.
+ $('#abmm-history-menu').val('w').trigger('change');
+ $('#abmm-history-menu').val('y').trigger('change');
+ assert.equal(f.requests[3].data.menu_id,'y');
+ f.requests[3].d.resolve({success:true,data:{revision:'r',versions:[{id:'v9',saved_at:1,saved_label:'Newer',items:1}]}});
+ f.requests[2].d.resolve({success:true,data:{revision:'r',versions:[{id:'v8',saved_at:1,saved_label:'Stale',items:1}]}});
+ assert.match($('.abmm-version-list').text(),/Newer/);
+ assert.doesNotMatch($('.abmm-version-list').text(),/Stale/);
+ f.close();
+ // The editor's History link lands on the same panel, on the menu it came from.
+ f=await list(card+historyPanel,'http://localhost/?abmm_history=y'); $=f.$;
+ assert.equal($('#abmm-backup-panel').prop('open'),true);
+ assert.equal($('#abmm-history-menu').val(),'y');
+ assert.equal(f.requests[0].data.menu_id,'y');
+ f.close();
+ // An ID that isn't a menu here only opens the panel on the first menu.
+ f=await list(card+historyPanel,'http://localhost/?abmm_history=gone'); $=f.$;
+ assert.equal($('#abmm-history-menu').val(),'w');
+ assert.equal(f.requests[0].data.menu_id,'w');
  f.close();
  // A double-click cannot permanently delete, and the armed state expires.
  f=await list('<div id="abmm-list-status"></div><div class="abmm-archive-row"><button class="abmm-permanent-delete" data-menu-id="x">Permanently delete</button></div>'); $=f.$;
@@ -615,4 +757,77 @@ async function auditRegressions(){
 
  // Import errors stay until the next attempt.
  assert.ok(/if \(msg && !isError\) \{\s+state\.importStatusTimer/.test(source),'import errors do not time out');
+}
+
+// One clear path through create, place and check, with nothing lost.
+async function simplicityRegressions(){
+ const builderView=fs.readFileSync('admin/views/builder.php','utf8');
+ const listView=fs.readFileSync('admin/views/list.php','utf8');
+ const panelOf=id=>{
+  const at=builderView.indexOf('id="'+id+'"');
+  assert.ok(at>=0,id+' is still in the editor');
+  const found=[...builderView.slice(0,at).matchAll(/data-abmm-builder-section-panel="(\w+)"/g)].pop();
+  return found && found[1];
+ };
+
+ // The stepper is the only navigation.
+ assert.ok(!/role="tablist"|role="tab"|role="tabpanel"/.test(builderView),'no tabs beside the stepper');
+ assert.deepEqual([...builderView.matchAll(/data-abmm-workflow="(\w+)"/g)].map(m=>m[1]),sections,'Content, Design, Place, Check, in that order');
+ assert.deepEqual([...builderView.matchAll(/data-abmm-builder-section-panel="(\w+)"/g)].map(m=>m[1]),sections,'each step has one panel');
+
+ // Everything from the old Settings tab still has a home, with its ID unchanged.
+ for(const id of ['abmm-brand-show','abmm-brand-title','abmm-brand-url','abmm-brand-alt','abmm-brand-logo-height']) assert.equal(panelOf(id),'content',id+' moved to Content');
+ assert.match(builderView,/abmm_logo_field\( 'abmm-brand-logo-url'/,'the logo image field stays');
+ assert.match(builderView,/abmm_logo_field\( 'abmm-brand-logo-dark-url'/,'the dark logo field stays');
+ assert.equal(panelOf('abmm-mobile-enhancements'),'design','Enhanced mobile moved to Design');
+ assert.ok(builderView.indexOf('abmm-product-navigation-panel')>builderView.indexOf('id="abmm-section-panel-design"') && builderView.indexOf('abmm-product-navigation-panel')<builderView.indexOf('id="abmm-section-panel-help"'),'Product Navigation moved to Design');
+
+ // Deep links keep their targets, on the steps they name.
+ assert.equal(panelOf('placement'),'help');
+ assert.equal(panelOf('abmm-readiness-panel'),'verify','the checklist is on Check');
+ assert.equal(panelOf('abmm-verification-panel'),'verify');
+ assert.match(listView,/#placement/);
+ assert.match(listView,/#abmm-readiness-panel/);
+
+ // Place leads with the recommended method; the others stay one click away.
+ assert.ok(builderView.indexOf('abmm-place-recommended')<builderView.indexOf('abmm-place-others'),'the recommendation comes first');
+ const others=builderView.slice(builderView.indexOf('abmm-place-others'),builderView.indexOf('id="abmm-section-panel-verify"'));
+ assert.match(others,/abmm_place_others as/,'the other methods are listed under the disclosure');
+ assert.match(others,/For developers: PHP/,'the PHP helper is still there');
+ assert.match(builderView,/unset\( \$abmm_place_others\[ \$abmm_place_method \] \)/,'the recommended method is not listed twice');
+ assert.equal((builderView.match(/\$abmm_shortcode_field\(\);/g)||[]).length,2,'the shortcode shows with the recommendation or under the others');
+ assert.ok(!/abmm-builder-header__subtitle[^\n]*ashbi_mega_menu/.test(builderView),'the header no longer repeats the shortcode');
+
+ // The saved state says where the menu is live, and admits what cannot be detected.
+ let f=await fixture(); let $=f.$;
+ assert.equal($('.abmm-save-status__placement').text(),'No placement found');
+ assert.match($('.abmm-save-status__placement').attr('title'),/theme templates or PHP cannot be detected/);
+ assert.equal($('.abmm-placement-save-hint').prop('hidden'),true,'with nothing to say the Place hint stays out of the way');
+ $('#abmm-menu-title').val('Changed').trigger('input');
+ assert.equal($('.abmm-save-status__placement').length,0,'nothing claims to be live while changes are unsaved');
+ assert.equal($('.abmm-placement-save-hint').prop('hidden'),false,'unsaved changes bring the hint back');
+ $('.abmm-save-menu').trigger('click');
+ f.requests[0].d.resolve({success:true,data:{revision:'revision-2'}});
+ assert.equal($('.abmm-save-status__placement').text(),'No placement found','an unplaced menu stays honest after saving');
+ $('#abmm-builder').attr('data-menu-placed','1');
+ $('#abmm-menu-title').val('Changed again').trigger('input');
+ $('.abmm-save-menu').trigger('click');
+ f.requests[1].d.resolve({success:true,data:{revision:'revision-3'}});
+ assert.equal($('.abmm-save-status__placement').text(),'Live where placed','a placed menu says the save is live');
+ assert.equal($('.abmm-save-status__placement').hasClass('is-live'),true);
+ assert.match($('.abmm-save-status').text(),/savedState/,'next to the usual saved message');
+ // The button already says Saved, so the CSS hides those words and never the placement.
+ const brandCss=fs.readFileSync('assets/css/brand-admin.css','utf8');
+ assert.match(brandCss,/\.abmm-save-status\.is-saved \.abmm-save-status__message \{position:absolute/);
+ assert.ok(!/\.abmm-save-status\.is-saved \{position:absolute/.test(brandCss),'the saved state stays in view');
+ f.close();
+
+ // The dashboard card keeps Place in view and tucks the shortcode behind a reveal.
+ const card=listView.slice(listView.indexOf('abmm-menu-card__body'),listView.indexOf('abmm-card-menu__toggle'));
+ const reveal=card.slice(card.indexOf('<details class="abmm-menu-card__reveal">'),card.indexOf('</details>'));
+ assert.match(reveal,/abmm-copy-shortcode/,'the shortcode and its copy button are inside the reveal');
+ assert.ok(card.indexOf('#placement')>card.indexOf('</details>'),'Place stays outside the reveal, on every card');
+ assert.ok(!/abmm-how/.test(listView),'one progress list on the dashboard: the setup guide');
+ assert.match(listView,/abmm-setup-guide__tips/,'the setup notes are folded, not lost');
+ console.log('Stepper-only navigation, moved settings, placement path, publish wording and dashboard reveal passed.');
 }

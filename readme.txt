@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.5
+Stable tag: 1.2.6
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,18 +12,40 @@ Build responsive navigation with a visual editor, local previews and portable me
 
 == Description ==
 
-Ashbi Mega Menu provides a visual builder for responsive multi-column navigation. Place a saved menu using a shortcode, the included block, or the included widget.
+Ashbi Mega Menu helps you build a clear menu for your site, with no code. Start from your pages, pick a style and save. Then add the menu to your site with a block, a widget or a shortcode.
 
-* Build categories, links and calls to action.
-* Preview desktop and mobile layouts before placing a menu.
-* Use design presets and color controls.
-* Opt into mobile menu search, wider menu rows and a visible Back label.
-* Export menus before changes; preview imports, recover retained import backups and archive menus from the management screen.
-* Optionally enable contextual navigation for multi-section sites with inherited local links.
+**Simple to start**
 
-Activation starts with an empty menu list. The generic sample is optional and does not place content on your site. Replace all sample labels and destinations before use. Existing menus retain their mobile appearance unless enhanced mobile navigation is enabled.
+* Build your menu from pages you already have, from a template or from nothing.
+* Pick one of five styles. They are made to work together.
+* See your menu on a computer, tablet and phone as you work.
+* Follow a short guide that recommends the best way to add the menu to your theme.
 
-The plugin contains no external updater. It contains no client starter data or client icon collection and does not require an external service account. Menu search runs locally in the browser. URLs and images entered by administrators may point to external services; use assets you have permission to display.
+**Safe to change**
+
+* Nothing changes on your site until you place a menu.
+* Undo your changes, or go back to an earlier saved version of a menu.
+* A checklist points out links that go nowhere.
+* You get a warning before you leave with unsaved changes.
+* Your theme's menu is never changed.
+
+**Powerful when you need it**
+
+* Dropdowns with columns, categories, icons and a featured card.
+* Colors, fonts, layout and height controls, kept out of the way until you need them.
+* A phone menu with an optional search box.
+* An Elementor widget that uses your global fonts and colors.
+* Different links on different parts of your site, for products, services or departments.
+* Move from Easy Mega Menu and keep the same look. You can switch back at any time.
+* Export and import menus, plus tools for developers.
+
+**How saving works**
+
+There is no separate publish step. Once your menu is on your site, each save updates your site right away.
+
+**Your privacy**
+
+The plugin needs no outside account and has no outside updater. It holds no client data. Menu search runs in the visitor's browser. Any links and images you add load from wherever you point them.
 
 The complete block source is included in the src directory of this package. To rebuild, clone the source repository and run npm ci and npm run build. The maintained source and build tools are available at https://github.com/camster91/ashbi-mega-menu.
 
@@ -41,23 +63,38 @@ Verified coverage and pending interactive tests: https://github.com/camster91/as
 
 == Frequently Asked Questions ==
 
-= Does activation replace my theme navigation? =
-No. Place your menu explicitly. Remove duplicate theme navigation only after checking the placement.
+= Will this replace my theme's menu? =
+No. You choose where your menu goes. Remove your theme's old menu only after the new one works.
 
-= Can I restore an import? =
-Use Import backups on the management screen to export or restore a retained snapshot. Restore replaces the complete active menu collection and first preserves the current collection. Only the latest five snapshots are retained. Take a separate full-site backup for theme templates, product-profile assignments and other settings.
+= Do I have to save and then publish? =
+No. There is only one step, which is saving. Once a menu is on your site, each save shows up there right away. A menu that isn't placed yet can't be seen by visitors.
 
-= Do copied menus replace existing placements? =
-Copy imports create independent IDs. Existing blocks, widgets and shortcodes continue selecting their original menus until you change the placement.
+= How do I put the menu on my site? =
+Open your menu and click Place. The plugin recommends the best method for your theme. You can use a block, a widget, a shortcode or the Elementor widget.
 
-= What support is available? =
-Report reproducible issues in the public GitHub repository. There is no guaranteed response time or SLA. Do not include credentials, private exports or client data. Theme-specific and interactive verification limits are documented in the compatibility guide; a build passing does not establish every theme works.
+= Does it work on phones? =
+Yes. On screens up to 900 pixels wide, the menu becomes a button that opens a drawer. You don't have to set anything up. Always test on a real phone.
 
-= Which database engines are supported? =
-Standard MySQL and MariaDB WordPress installations are supported. SQLite installations have not been tested.
+= Can I undo a mistake? =
+Yes. Undo works while you edit. Each menu also keeps its last 10 saved versions. For bigger mistakes, you can restore a backup of all your menus. Restoring a backup replaces all current menus, and the plugin first saves them as a new backup.
+
+= Do copied menus replace the ones on my site? =
+No. A copy is a separate menu with a new ID. Blocks, widgets and shortcodes keep showing the menus they already use until you change them.
+
+= Can I move from Easy Mega Menu? =
+Yes. The import only reads Easy Mega Menu's data and doesn't change it. Your headers keep working with no edits, and you can switch back in about a minute. Test on a staging copy or a private page first. Visitors may see small improvements when panels open and in the phone menu.
+
+= Is it accessible? =
+It passes automated checks and browser tests for keyboard use, focus and contrast. It has not yet been fully tested with real screen readers or on real touch devices, so the plugin does not claim to meet WCAG. Test results are in docs/accessibility.md.
+
+= Which databases work? =
+Standard MySQL and MariaDB WordPress sites work. SQLite has not been tested.
+
+= What support can I get? =
+Report problems you can repeat on the public GitHub page. There is no promised reply time. Do not share passwords, private exports or client data. Tested themes and known limits are listed in the docs.
 
 = What happens when I delete the plugin? =
-Uninstallation removes the plugin's stored menus, archived menus, product profiles, branding and settings. Export your menus before deleting it. Deactivation keeps stored data.
+Deleting removes all its menus, archived menus, saved versions, products, branding and settings. Export your menus first. Turning the plugin off keeps everything.
 
 == Screenshots ==
 
@@ -66,6 +103,12 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
+
+= 1.2.6 =
+* A simpler editor. Four steps replace the tabs: Content, Design, Place and Check. Presets come first, and everything else sits in one closed Advanced settings section that names what you changed.
+* New dropdowns start on Simple columns, History brings saved versions and backups together, and a short optional guide helps new users.
+* The Classic desktop preview now shows the real Classic look.
+* Admin changes only. Visitors see no change.
 
 = 1.2.5 =
 * Visitors: easier hover and tap behaviour in both menu styles, phone drawers that close on link taps and reach every link, and keyboard, high-contrast and screen-reader fixes.

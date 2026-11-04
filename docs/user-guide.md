@@ -1,124 +1,374 @@
-# Using Ashbi Mega Menu
+# User guide
 
-New to the plugin? Start with the short [getting started guide](getting-started.md).
+This guide covers every feature and option. New here? Start with [Get started](getting-started.md).
 
-Portable imports/exports are limited to 500 menus and 10 MiB total, with a 1 MiB limit for each menu. A successful export is checked against the importer before downloading. If a complete export exceeds a limit, export smaller selections through the API/CLI or individual menus from the ⋯ menu on their card; reduce an oversized individual menu before exporting. These limits protect processing resources. Retained on-site import recovery points are separate and can restore their original stored collection in place.
+Each topic starts with what most people need. Advanced options come after that. You can skip them unless you need them.
 
-Product profiles and branding reject edits from stale tabs. After a failed or conflicting save, entered fields are retained in a private recovery form for 30 minutes. Review the latest saved values before retrying. Editors opened before an upgrade should be reloaded; an unchanged save is allowed, while a failed database write never produces a saved confirmation.
+## How the plugin works
 
-Start on a staging copy of your site. Creating a menu does not change the theme header; placement is a separate step. Use a standard MySQL/MariaDB WordPress installation. SQLite has not been tested.
+You do three things:
 
-## Build and verify a menu
+1. **Build** a menu in the editor.
+2. **Save** it.
+3. **Place** it on your site.
 
-Already have a menu under Appearance → Menus? [Import it](import-wordpress-menus.md) as a starting point.
+**Saving is how changes go live.** There is no draft state and no publish button. Once a menu is on your site, each save updates your site right away. A menu that isn't placed yet can't be seen by visitors.
 
-1. Open **Ashbi Mega Menu** and choose **Start from scratch** or **Use a template**. Give the menu a meaningful name.
-2. Add top-level links, or select **Mega Menu** for a panel and choose **Edit content**: **Categories + links** for a list of categories, each with its own columns of links, or **Simple columns** for links in 2 to 4 columns. Links in both can have an icon and a short description, and a panel can end with a featured card. Replace sample labels and placeholder destinations. A panel toggle opens content; a link needs a real destination. The logo fields under **Settings** can pick an image from the Media Library.
-3. Switch the preview between Desktop, Tablet and Mobile. The preview is a canvas that shows the menu at a real screen width:
-   - **Move around:** drag empty space, hold Space and drag, drag with the middle mouse button, or scroll with two fingers.
-   - **Zoom:** Ctrl/⌘ + scroll or pinch zooms at the pointer, from 25% to 200%. Ctrl/⌘ + **+** / **−** steps, Ctrl/⌘ + **0** fits and Ctrl/⌘ + **1** shows 100%. The zoom percentage opens a list of presets, next to **Fit** and **100%**.
-   - **Stays live:** menus open on hover and click as on the site. Clicking an item, category or link selects it in the editor.
-   - **Remembers:** each device keeps its own zoom and position for your user in this browser.
-   - **Phone and tablet** frames run the live menu at the device width, including the two-tap accordion, search and the button that stays at the bottom of the drawer.
+Creating a menu never changes your theme's header. You choose when and where the menu shows.
 
-   Check labels, contrast, spacing, CTA links and any product-navigation settings.
-4. Save, then reload the editor to confirm the saved state. If another editor saved first, keep your current work and reload before reconciling changes; a conflict must not silently overwrite newer work.
-5. Follow every link on the actual staged page. The builder preview does not establish theme compatibility or replace keyboard and mobile checks.
+## Words used in this guide
 
-Readiness highlights content needing attention. It is not proof of accessibility, working remote destinations or successful theme placement.
+- **Menu bar:** the row of links across the top of your site.
+- **Item:** one entry in the menu bar.
+- **Dropdown:** an item that opens a panel of links.
+- **Panel:** the box that opens from a dropdown.
+- **Drawer:** the panel that slides open on a phone.
+- **Shortcode:** a short piece of text that WordPress swaps for your menu.
+- **URL:** a web address.
 
-## Place it in a page first
+## The main screen
 
-In the WordPress page editor, add the **Ashbi Mega Menu** block and select the saved menu. Alternatively add a **Shortcode** block and paste the exact shortcode copied from its dashboard card:
+Click **Mega Menu** in the WordPress sidebar. This screen lists your menus.
 
-```text
-[ashbi_mega_menu id="your_actual_menu_id"]
-```
+<!-- screenshot: 04-menu-cards.png -->
 
-Use an explicit ID; do not copy an example ID into production. Give the block full width (the **Full width** alignment, or a full-width group or section): in a narrow content column or sidebar the menu switches to its phone layout, even on a wide screen, and the desktop font and dropdown-height settings do not apply there. Preview the page before publishing. The menu stores its own links and does not automatically synchronize an Appearance → Menus menu or assign a theme menu location.
+### Setup guide
 
-## Put it in a header
+The Setup guide walks you through your first menu. Its steps are: create a menu, add your links, place it and check it. Steps tick themselves off when the plugin can see that they're done. You tick the last one yourself by clicking **I've checked it**.
 
-These placement recipes describe supported plugin mechanisms. Theme-specific interactive verification is recorded separately in [compatibility](compatibility.md); an unverified recipe is not a tested-theme claim.
+<!-- screenshot: 03-setup-guide.png -->
 
-### Block themes with a Header template part
+Click **Hide guide** to close it. Click **Show setup guide** at the bottom of the screen to bring it back.
 
-WordPress documents shared headers as [Template Parts](https://wordpress.org/documentation/article/template-part-block/), editable through the [Site Editor](https://wordpress.org/documentation/article/site-editor/). Changes can affect every template that uses that header; review their full scope before saving.
+### Menu cards
 
-1. In **Appearance → Editor**, open the template or template part that contains your header. Save a copy of the original header markup or use the site's existing revision/backup workflow.
-2. Add the **Ashbi Mega Menu** block to a suitable full-width header area and select your menu. Keep the original Navigation block while testing in staging.
-3. Check the real page at desktop and phone widths. Make sure the header container does not clip open panels; test sticky-header overlap and the theme's own mobile toggle.
-4. Once the new navigation works, remove the old Navigation block from this staging header. Check every template that uses it before publishing that header change.
+Each menu has a card. A card can show these labels:
 
-To reverse placement, remove the Ashbi block and restore the original Navigation block/header revision. Deactivating the plugin alone does not restore navigation you removed from a template.
+- **Placed:** the plugin found this menu on your site. Each save updates it there.
+- **No placement found:** the plugin did not find it. A menu in a theme file can still be live, because the plugin can't look inside theme files.
+- **Needs attention:** the checklist found something to fix. The menu may still be live.
+- **Sample:** this menu started from the template. Replace its words and links.
+- **Empty menu:** this menu has no items yet.
 
-### Classic themes with a header widget area
+Click **Shortcode** on a card to see its shortcode and a **Copy** button.
 
-Open **Appearance → Widgets** and add **Ashbi Mega Menu (classic widget)** to the theme's actual header widget area, then select the menu. A footer or sidebar widget area will place navigation there, not in the header. Not every theme supplies a header widget area. Test placement before disabling the theme's navigation through its own settings.
+Card buttons:
 
-To reverse placement, remove the widget and restore the theme's original navigation setting.
+- **Edit menu** opens the editor. On an unfinished menu, it says **Finish setup**.
+- **Place** opens the **Place** step.
+- **⋯** opens more actions, shown below.
 
-### Classic themes without a header widget area
+<!-- screenshot: 05-card-more-menu.png -->
 
-Use a theme-supported header builder with a shortcode element, if it provides one. Otherwise a developer can use the helper in a child theme header at the intended location:
+- **Export:** save this menu as a file.
+- **Duplicate:** make a copy to work on.
+- **History:** go back to an earlier version.
+- **Archive:** take the menu out of use, and keep it.
 
-```php
-<?php
-if ( function_exists( 'abmm_render_menu' ) ) {
-    abmm_render_menu( 'your_actual_menu_id' );
-}
-?>
-```
+With more than six menus, you also get a search box, a sort list and a choice of grid or list view.
 
-Keep a copy of the original child-theme file and avoid editing the parent theme. The helper does not remove an existing `wp_nav_menu()` call; a developer must deliberately manage that existing placement. Test with the active theme rather than assuming a recipe fits all headers.
+### Tools
 
-## Fonts and dropdown height
+**Tools** sits at the bottom of the main screen.
 
-Open **Design**:
+- **Import and export:** move menus between sites, or keep a backup file. See [Undo mistakes](undo-and-history.md#import-a-file).
+- **Import from WordPress menu:** start from a menu you already built. See [Start from a WordPress menu](#start-from-a-wordpress-menu).
+- **History:** go back to an earlier version of one menu, or restore a backup of all menus. See [Undo mistakes](undo-and-history.md).
+- **Product Navigation:** turn on extra links for separate parts of your site. See [Product Navigation](#product-navigation).
 
-- **Fonts → Font**: *Menu default* keeps the menu's own font. *Same as my site* uses the font your theme or Elementor already loads (for example an Elementor global font). *Custom font* takes a list such as `Supreme, Arial, sans-serif`; the font must already be loaded on the site.
-- **Sizes and weights** for the menu bar, category titles, links and descriptions, plus menu bar letter spacing and letter case. They apply to the desktop menu; the phone drawer keeps its larger, touch-friendly text. Leave a field empty to keep the default.
-- **Dropdown height**: *Default* scrolls when the dropdown is taller than the screen allows; *Grow to fit all links* never scrolls (it can run below short screens); *Up to a height, then scroll*; *Always the same height*.
+## Create a menu
 
-Each group has **Reset to default**. The settings only add a small stylesheet for that menu; the menu's links and markup are unchanged. Site CSS marked `!important` still wins over these settings.
+When you have no menus, you can start three ways:
 
-## Undo and redo
+- **Start from your pages.** Tick the pages you want. Top-level pages are ticked for you. Each child page goes in its parent's dropdown. Only published pages are listed.
+- **Use a template.** You get a sample menu. Replace all its words and links.
+- **Start from scratch.** You get an empty menu.
 
-In the menu editor, **Undo** and **Redo** (top bar), or Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z (Ctrl+Y on Windows), step through this session's changes to content and design. Inside a text field the shortcuts undo your typing as usual. History starts when the editor opens and is not kept after you leave.
+<!-- screenshot: 02-page-picker.png -->
+
+Later, use **Create menu** at the top of the main screen.
+
+### Start from a WordPress menu
+
+If you built a menu in WordPress, you can start from it.
+
+1. Go to **Tools**, then **Import from WordPress menu**.
+2. Pick the menu and click **Preview**. Nothing is saved yet.
+3. Read the preview, then import it.
+
+<!-- screenshot: 39-wp-menu-import.png -->
+
+This creates a new menu. It doesn't change your WordPress menu or theme, and it isn't on your site until you place it. See [Import a WordPress menu](import-wordpress-menus.md) for the details.
+
+## The editor
+
+The editor has four steps along the top. Work through them in order, or jump to any of them.
+
+<!-- screenshot: 06-editor-overview.png -->
+
+- **Content:** your links, button and logo.
+- **Design:** how the menu looks.
+- **Place:** how to add it to your site.
+- **Check:** what to test.
+
+At the top you will also find:
+
+- **The menu name.** Click it to rename the menu. Only you see this name.
+- **Undo and Redo.** See [Undo mistakes](undo-and-history.md).
+- **⋯.** Opens more actions, such as **History** and **Export as JSON**.
+- **The save button.** It says **Save changes**. On a placed menu it says **Save and update site**.
+
+Next to it, a status tells you whether your changes are saved. Once they are, it also says **Live where placed** or **No placement found**. Press **Ctrl+S** or **Cmd+S** to save with your keyboard.
+
+<!-- screenshot: 26-save-status.png -->
+
+### Find the editor from your site
+
+When you're logged in, pages with a menu show **Edit mega menu** in the top toolbar. Click it to open that menu. If a page has more than one menu, pick one from the list.
+
+<!-- screenshot: 42-toolbar-link.png -->
+
+## Content
+
+### Menu items
+
+Click **Add item** to add an item. Each row has these options:
+
+<!-- screenshot: 07-add-item.png -->
+
+- **Label.** The words people see. Keep it short. Long labels will be flagged by the checklist.
+- **Type.** Choose **Link** or **Dropdown**. Default: **Link**.
+- **URL.** Shown for a **Link**. Click the link button to search your pages, or type an address.
+- **Edit content.** Shown for a **Dropdown**. Opens the dropdown's links.
+
+Row buttons let you reorder, duplicate or remove an item. You can also drag the handle on the left.
+
+<!-- screenshot: 08-link-search.png -->
+
+### Dropdown content
+
+Click **Edit content** on a dropdown. Then choose a layout.
+
+**Simple columns** is what most menus need. It's also the default. Your links sit in 1 to 4 columns.
+
+<!-- screenshot: 09-dropdown-simple-columns.png -->
+
+- **Columns.** How many columns to use. Default: 2 for a new dropdown.
+- **Add link.** Adds a link to the panel.
+
+**Categories + links** is for large menus. A list of categories sits on one side. Pointing at one shows its links.
+
+<!-- screenshot: 10-dropdown-categories.png -->
+
+Use it when you have many links that fall into clear groups. Each category has:
+
+- **Icon.** Optional. Click it to choose one.
+- **Title.** The category's name.
+- **Description.** One short line under the title. Optional.
+- **Panel title.** An optional heading above the category's links. You can also make it a link, such as "See all".
+- **Columns.** Click **Add column** to group links. Each column can have a heading, and that heading can be a link. Drag a link to move it to another column.
+
+Under **More options**, **Hide the category bar** removes the list of categories and uses the full width for columns. It only shows when it can apply.
+
+### Links in a dropdown
+
+Each link can have:
+
+- **Icon.** Optional. See [Icons](#icons).
+- **Label.** The words people see.
+- **Description.** A short line under the label. Optional.
+- **Link.** Click the link chip to set the address.
+
+### Link options
+
+Click the gear next to a link to see its options.
+
+<!-- screenshot: 12-more-options.png -->
+
+- **Open in new tab.** Opens the link in a new tab. Use it for links to other sites. Screen readers will say that it opens a new tab. Default: off.
+
+Most people never need the next two, so they sit under **More options**. If one has a value, **More options** opens by itself. The button shows them without that step.
+
+- **Relationship.** Tells search engines about a link. For example, type `nofollow sponsored` for a paid link. Default: empty.
+- **CSS classes.** Extra names for styling with your own code. Leave this empty unless a developer asks you to fill it in. Default: empty.
+
+### Icons
+
+Click a row's icon spot to open the icon window.
+
+- **Search icons.** Type a word to find an icon.
+- **Upload custom icon.** Use your own picture.
+- **Clear icon.** Removes the icon.
+- **More options, then Icon style for this item.** Changes this one icon only. Use **Reset to menu style** to undo it.
+
+### Featured card
+
+A featured card is an optional highlight at the end of a panel. Use it for a launch, a guide or an offer.
+
+<!-- screenshot: 11-featured-card.png -->
+
+- **Show a featured card.** Turns the card on. Default: off.
+- **Title.** The heading on the card.
+- **Short text.** One or two lines about it.
+- **Link label.** The words on the link, such as "Learn more".
+- **Link.** Where it goes.
+- **Image.** Choose an image or paste its address. Wide images work best, at a shape of about 16 by 9.
+
+### Button
+
+The button stands out at the end of the menu bar. Use it for your main action, such as "Book a demo".
+
+<!-- screenshot: 13-button-panel.png -->
+
+- **Show button.** Turns it on or off.
+- **Button text.** The words on the button.
+- **Button URL.** Where it goes.
+
+You can change its colors and shape in [Style your menu](style-your-menu.md).
+
+### Logo
+
+Show your logo or site name at the start of the menu bar.
+
+<!-- screenshot: 14-logo-panel.png -->
+
+- **Show logo.** Turns it on. Default: off.
+- **Logo image URL.** Click the picture button to choose from your Media Library.
+- **Logo alternative text.** Words that screen readers read out. You will see a warning if you leave this and the site title empty.
+
+Click **More logo options** for the rest. See [Style your menu](style-your-menu.md#logo-details).
+
+## The preview
+
+The preview shows your menu as you work. Menus open as they do on your site. Click an item in the preview to select it in the editor.
+
+Click **Desktop**, **Tablet** or **Mobile** above it to change the size.
+
+<!-- screenshot: 27-preview-devices.png -->
+
+**The preview doesn't load your theme's styles.** Always check the final look on your site.
+
+### Move and zoom
+
+These help on a large menu. Each device remembers its own zoom in your browser.
+
+- **Fit** fits the menu to the space. Press **Ctrl+1** or **Cmd+1** to see it at full size.
+- To move around, drag an empty spot or scroll with two fingers.
+- To zoom, hold **Ctrl** or **Cmd** and scroll, or pinch.
+
+## Design
+
+Most people only need a style. The full list is in [Style your menu](style-your-menu.md).
+
+<!-- screenshot: 15-design-presets.png -->
+
+**Site look** shows only on menus imported from Easy Mega Menu. See [Switch from Easy Mega Menu](migrate-from-easy-mega-menu.md#keep-or-change-the-look).
+
+## Place and Check
+
+See [Place your menu](place-your-menu.md).
+
+<!-- screenshot: 24-check-step.png -->
+
+### Checklist
+
+The checklist is on the **Check** step. A small number on that step shows how many things it found. It looks for things to fix, such as links that go nowhere. Click an item to jump to the problem.
+
+<!-- screenshot: 25-checklist-issue.png -->
+
+It doesn't test your links, your theme or how easy the menu is to use. The full list is in [Fix a problem](troubleshooting.md#my-menu-card-says-needs-attention).
+
+## Phone menus
+
+See [Phone menus](phone-menus.md).
 
 ## Elementor
 
-With Elementor active, search for the **Ashbi Mega Menu** widget. Choose the menu in the widget's Content tab; links, categories and icons are still edited in Ashbi Mega Menu (the widget links there). The Style tab sets typography and colours for the menu bar, category titles, links and descriptions with Elementor's own controls, so global fonts and colours work, and the dropdown background and height for that placement. The `[ashbi_mega_menu]` shortcode in Elementor's Shortcode widget keeps working.
+The menu comes with its own Elementor widget. See [Place your menu](place-your-menu.md#elementor).
 
-## Find the editor from your site
+These Elementor settings are extra to the settings in **Design**:
 
-When you are logged in as an administrator, pages that show a menu have **Edit mega menu** in the top toolbar. It opens that menu's editor; if the page shows several menus, choose one from its list.
+- **Menu.** Which menu to show.
+- **Show Product Navigation on product pages.** Shows product links. See below.
+- **Style tab.** Sets fonts and colors for the menu bar, category titles, links and descriptions. It also sets the dropdown background and height.
 
-## Product navigation
+## Product Navigation
 
-**Product Navigation** shows extra links under your main menu on a product's pages. Each product has a main page; pages below it get the same links. **Navigation Coverage** lists which pages show which product, and **Product Branding** can show a product's own logo on its pages. In the block or widget enable **Use page product navigation** only when that contextual behavior is intended. The equivalent shortcode is:
+Most sites don't need this. It's off by default.
 
-```text
-[ashbi_mega_menu id="your_actual_menu_id" context="page"]
-```
+**What it does:** it shows extra links under your main menu on a product's pages. For example, an "Analytics" page and all the pages under it can show Overview, Features and Pricing links. It works for services, departments or locations too.
 
-Test the hub, a child page and a page outside the profile to confirm the displayed links and active state. Exported menus do not constitute a full backup of product-profile assignments, branding or theme templates.
+**To turn it on:**
 
-## Export, import and recover
+1. Go to **Tools**, then **Product Navigation**.
+2. Tick **Turn on Product Navigation**.
+3. Click **Save this setting**.
 
-Export menus before bulk edits and keep the JSON file somewhere separate from the site. Exports can contain private labels, URLs and image references; do not attach them to public issues without removing private content.
+**To add a product:**
 
-Import accepts a JSON file and shows a preview before applying it:
+1. Open **Product Navigation**.
+2. Fill in the form. Add up to six links.
+3. Click **Add product**.
+4. Turn it on where the menu is placed. See [Place your menu](place-your-menu.md#show-extra-links-on-product-pages).
 
-- **Copy** creates new IDs. Existing shortcodes continue pointing to the old menus; choose the copied menu or update the placement deliberately.
-- **Merge** adds menus and updates matching IDs. Existing placements for matching IDs can change.
-- **Replace** replaces the complete menu collection. Menus omitted from the file disappear from the active collection and existing placements may become empty.
+<!-- screenshot: 43-product-navigation.png -->
 
-The **Import backups** panel lists the latest retained collection backups. Refresh the list, export the backup for safekeeping, then choose **Restore** only after checking its timestamp and menu count. Restore replaces all active menus with that snapshot and preserves the current collection in another backup first. If the collection changed after loading the list, refresh and review again instead of retrying a stale restore. Only the latest five backups are retained; these are menu-collection snapshots, not full-site backups or per-edit version history.
+Product options:
 
-**Archive** hides a menu while retaining its ID and content. Its placements may become empty. **Restore** in Archived menus restores the original ID so those placements can work again. **Permanently delete** removes the archived copy; retain an export first.
+- **Name (only you see this).** Helps you find the product.
+- **Display name.** The name visitors see.
+- **Product page URL.** Where the product name links to. Leave it empty to use the main product page.
+- **Main product page.** The product's main page. Pages under it show the same links.
+- **Style.** **Underlined links** or **Pill links**.
+- **Links.** Each has a label and a destination.
+- **Show a button.** A button for this product only, with its own text and link.
 
-For developers using WP-CLI:
+A card's label tells you where the product stands:
+
+- **Set up:** it's ready to show.
+- **No links yet:** add at least one link.
+- **No main page:** choose a main page.
+
+**Delete** on a product also deletes its branding. You can't undo it.
+
+### Product branding
+
+This shows a product's own logo in the menu, on that product's pages.
+
+<!-- screenshot: 44-product-branding.png -->
+
+- **Use a product logo.** Turns it on for this product.
+- **Logo style.** **One combined logo image** or **Shared logo + product name**. The second keeps your main logo and adds the product's name after it.
+- **Menu.** The menu that shows this logo.
+- **Logo.** An image for light menus. You can also add one for dark menus.
+
+### Navigation coverage
+
+This page lists which product links each page shows. Use it to check your setup. You can search it and filter it.
+
+<!-- screenshot: 45-coverage.png -->
+
+The **Why** column tells you the reason:
+
+- **Inside a product:** the page sits under a product's main page.
+- **Set by hand:** someone chose a product for this one page.
+- **Main menu only:** the page isn't part of a product.
+
+### One page that needs a different product
+
+Pages normally follow their main product page. If one page is an exception, open that page in the WordPress editor. In the **Ashbi Mega Menu context** box, choose a product.
+
+### Test it
+
+Check three pages: the product's main page, a page under it and a page outside it. Exports don't include products or branding.
+
+## Move menus between sites
+
+See [Undo mistakes](undo-and-history.md#export-a-copy).
+
+### Command line tools
+
+This part is for developers. WP-CLI is a tool for running WordPress from a command line.
 
 ```sh
 wp abmm export > /safe/private/path/menu-backup.json
@@ -126,41 +376,22 @@ wp abmm import --file=/safe/private/path/menu-backup.json --mode=copy --dry-run
 wp abmm import --file=/safe/private/path/menu-backup.json --mode=copy
 ```
 
-CLI exports print only portable JSON. The former export `--file` option is rejected;
-use shell redirection and choose a private destination outside the public web directory.
-For shared servers, set restrictive permissions first (for example, `umask 077`).
-Existing JSON exports and the import `--file` option remain supported.
+Keep export files outside your public web folder. On a shared server, set strict file permissions first, such as `umask 077`. The export command's old `--file` option no longer works, so send the output to a file as shown above.
 
-Use authenticated administration only. See source/tests for automation contracts; do not expose credentials in command history or public reports.
+Your site also lists its REST API addresses in **Tools**, under **Import and export**. For more on hooks and other developer tools, see [Extending the plugin](extending.md).
 
 ## Switch from Easy Mega Menu
 
-**Ashbi Mega Menu → Easy Mega Menu import** appears when Easy Mega Menu's data is on the site. It copies menus (with the same IDs), product navigation and branding into Ashbi without changing Easy Mega Menu, and imported menus keep their exact Classic look. Test on a private draft page, then turn on **Handle [easy_mega_menu] shortcodes** and deactivate Easy Mega Menu. Reactivate Easy Mega Menu to switch back. Full steps: [migrating from Easy Mega Menu](migrate-from-easy-mega-menu.md).
+See [Switch from Easy Mega Menu](migrate-from-easy-mega-menu.md).
 
-## Troubleshooting
+## Turning off or deleting the plugin
 
-| Symptom | What to check |
-| --- | --- |
-| Two headers or two mobile toggles | Both the theme navigation and Ashbi placement are present. Remove the duplicate in staging only after verifying the replacement. |
-| Menu is empty | Confirm the exact saved ID, active rather than archived status, selected block/widget menu and the page's profile context. |
-| Save reports a conflict | Another change occurred. Preserve local work, reload and reconcile; do not force an old revision over a newer one. |
-| Save reports another save in progress | Wait a few seconds and save again. A save that crashed releases its lock on its own within a minute. If it keeps happening, ask the host to check the database. |
-| Panel is clipped or hidden | Check the theme header's overflow, stacking context, sticky positioning and page-builder containers on staging. |
-| Preview differs from the page | Save and reload first, verify the placement's product context, then clear the site's relevant caches and reload the public page. Report a reproducible mismatch if it remains. |
-| Import or restore failed | Read the error, refresh backups/current menus and export the current collection. Do not assume a failed operation applied; reload to verify. |
-| Block does not list a newly created menu | Save the menu and reload the page editor; confirm your account has the required management capability. |
+- **Deactivating** turns the plugin off and keeps all your menus. Spots that show a menu go empty.
+- **Deleting** removes your menus, archived menus, History, products, branding and settings. Export your menus first if you might want them.
 
-Before launch, test keyboard opening/closing, visible focus, phone menu back/close, link destinations and search if enabled. Keep an accessible alternative navigation until these checks pass. See [support](support-policy.md) for a useful bug report.
+## More help
 
-
-## Follow the setup path
-
-The editor has three steps above the save bar: **Edit → Place → Check**. A **Ready** badge on the dashboard means the saved menu passes its checklist; it does not mean a header was installed or its links were tested. **Place & verify** on a ready menu opens the editor's **Place** tab. Save before copying a shortcode: published placements read the saved version, not the preview or an unsaved draft.
-
-The **Place** tab always shows the exact menu shortcode with a Copy button, plus short instructions for block themes, classic themes and page builders, and a child-theme PHP call for developers. If the menu still has checklist items, the tab reminds you to fix them first. **Check it on your site** is a manual checklist for real pages: follow each link, open dropdowns with the mouse and keyboard, and confirm the phone menu opens, goes back and closes. Use a staging page first and keep the original header until the replacement passes.
-
-Per-menu export, duplicate and archive live in the **⋯** menu on each menu card. Under **Tools** on the main screen, **Import and export** holds collection import and developer examples, and **Recovery snapshots** restores automatic backups. Existing product profiles and branding pages remain available for reusable product navigation.
-
-### Recover a stale browser draft
-
-If the saved menu changed after a browser draft was created, download the local draft first. Restoring a stale draft allows review but disables saving to protect the newer saved menu. **Reload saved version** fetches current content and retains the draft for recovery. Reapply selected changes to the current saved version, or use **Discard local draft** only after retaining the download. If you discard a restored stale draft, the editor returns to the saved content and revision; it never silently assigns the newer revision to old draft content.
+- [Fix a problem](troubleshooting.md)
+- [What has been tested for accessibility](accessibility.md)
+- [Which themes have been tested](compatibility.md)
+- [How to get support](support-policy.md)

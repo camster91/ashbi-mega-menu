@@ -104,9 +104,11 @@ test.describe('menu editor', () => {
 		const firstLabel = page.locator('#abmm-nav-items .abmm-nav-label').first();
 		await expect(firstLabel).toBeVisible();
 
-		await page.locator('[data-abmm-builder-section="design"]').click();
-		await expect(page.locator('[data-abmm-builder-section="design"]')).toHaveAttribute('aria-selected', 'true');
-		await page.locator('[data-abmm-builder-section="content"]').click();
+		await page.locator('[data-abmm-workflow="design"]').click();
+		await expect(page.locator('[data-abmm-workflow="design"]')).toHaveAttribute('aria-current', 'step');
+		await expect(page.locator('#abmm-section-panel-design')).toBeVisible();
+		await page.locator('[data-abmm-workflow="content"]').click();
+		await expect(page.locator('#abmm-section-panel-design')).toBeHidden();
 
 		const label = `Home ${browserName}`;
 		await firstLabel.fill(label);
@@ -123,6 +125,32 @@ test.describe('menu editor', () => {
 		await expect(page.locator('.abmm-header .abmm-nav__list').first()).toContainText(label);
 		expect(errors).toEqual([]);
 	});
+
+	test('keeps advanced settings closed and names the ones in use', async ({ page, browserName }) => {
+		await page.goto(pagePath(browserName));
+		const menuId = await page.locator('.abmm-header').first().getAttribute('data-abmm-id');
+		const errors = watchErrors(page);
+		await page.goto(`/wp-admin/admin.php?page=ashbi-mega-menu&edit=${encodeURIComponent(menuId)}`);
+		await page.locator('[data-abmm-workflow="design"]').click();
+
+		const title = page.locator('#abmm-advanced-settings > summary');
+		const shadow = page.locator('#abmm-shadow');
+		await expect(title).toBeVisible();
+		await expect(shadow).toBeHidden();
+
+		await title.click();
+		await page.locator('[data-abmm-advanced-group="layout"] > summary').click();
+		await shadow.selectOption((await shadow.inputValue()) === 'none' ? 'strong' : 'none');
+		const name = page.locator('#abmm-advanced-summary [data-abmm-advanced-key="shadow"]');
+		await expect(name).toHaveText('Shadow');
+		await expect(page.locator('[data-abmm-advanced-group="layout"] .abmm-advanced__count')).toBeVisible();
+
+		await title.click();
+		await expect(shadow).toBeHidden();
+		await name.click();
+		await expect(shadow).toBeFocused();
+		expect(errors).toEqual([]);
+	});
 });
 
 test.describe('editor canvas', () => {
@@ -135,12 +163,12 @@ test.describe('editor canvas', () => {
 		await page.goto(`/wp-admin/admin.php?page=ashbi-mega-menu&edit=${encodeURIComponent(menuId)}`);
 		await expect(page.locator('#abmm-preview .abmm-nav')).toBeVisible();
 
-		const readout = page.locator('.abmm-preview-zoom__value');
+		const fit = page.locator('[data-abmm-zoom="fit"]');
 		await page.locator('.abmm-editor-chrome__label').click();
 		await page.keyboard.press('Control+1');
-		await expect(readout).toHaveText('100%');
+		await expect(fit).toHaveAttribute('aria-pressed', 'false');
 		await page.keyboard.press('Control+0');
-		await expect(page.locator('[data-abmm-zoom="fit"]')).toHaveAttribute('aria-pressed', 'true');
+		await expect(fit).toHaveAttribute('aria-pressed', 'true');
 
 		await page.locator('[data-abmm-preview-viewport="mobile"]').click();
 		const frame = page.frameLocator('#abmm-preview iframe.abmm-preview-device');

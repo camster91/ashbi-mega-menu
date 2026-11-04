@@ -111,7 +111,7 @@ class ABMM_Widget extends WP_Widget {
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'context' ) ); ?>">
 				<input id="<?php echo esc_attr( $this->get_field_id( 'context' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'context' ) ); ?>" type="checkbox" value="page" <?php checked( $context ); ?> />
-				<?php esc_html_e( 'Use page product navigation', 'ashbi-mega-menu' ); ?>
+				<?php esc_html_e( 'Show Product Navigation on product pages', 'ashbi-mega-menu' ); ?>
 			</label>
 		</p>
 		<?php

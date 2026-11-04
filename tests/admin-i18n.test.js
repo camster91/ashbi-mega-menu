@@ -39,6 +39,10 @@ setTimeout(() => {
  assert.equal(linkRow.find('.abmm-link-options__toggle .screen-reader-text').text(), '[xx] Link options');
  assert.equal(linkRow.find('.abmm-link-options__toggle').attr('title'), '[xx] Link options');
  assert.equal(linkRow.find('.abmm-link-options__panel').attr('aria-label'), '[xx] Link options');
+ assert.equal(linkRow.find('.abmm-more-options > summary').text(), '[xx] More options');
+ assert.equal(megaRow.find('.abmm-nav-type-chip').text(), '[xx] Dropdown');
+ assert.equal(megaRow.find('.abmm-nav-type option[value="mega"]').text(), '[xx] Dropdown');
+ assert.equal(linkRow.find('.abmm-nav-type option[value="link"]').text(), '[xx] Link');
  assert.equal(linkRow.find('.abmm-duplicate-nav').text(), '[xx] Duplicate');
  assert.equal(linkRow.find('.abmm-duplicate-nav').attr('aria-label'), '[xx] Duplicate navigation item Home');
  assert.equal(linkRow.find('.abmm-remove-nav').attr('title'), '[xx] Remove navigation item');
