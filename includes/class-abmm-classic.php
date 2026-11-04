@@ -272,6 +272,7 @@ class ABMM_Classic {
 			'backToMenu' => __( 'Back to menu', 'ashbi-mega-menu' ),
 			'openMenu'   => __( 'Open menu', 'ashbi-mega-menu' ),
 			'closeMenu'  => __( 'Close menu', 'ashbi-mega-menu' ),
+			'newTab'     => __( '(opens in a new tab)', 'ashbi-mega-menu' ),
 		);
 	}
 
@@ -472,12 +473,12 @@ class ABMM_Classic {
 		/**
 		 * Render this menu without banner and heading elements: a div instead of
 		 * header, and div titles instead of h3 and h4. Off by default so imported
-		 * menus keep Easy Mega Menu's exact markup.
+		 * menus keep Easy Mega Menu's exact markup. Defaults to the menu's setting.
 		 *
 		 * @param bool   $plain   Whether to use plain elements.
 		 * @param string $menu_id Menu ID.
 		 */
-		$this->plain_markup = (bool) apply_filters( 'abmm_classic_plain_markup', false, $menu_id );
+		$this->plain_markup = (bool) apply_filters( 'abmm_classic_plain_markup', ! empty( $menu['settings']['classic_plain_markup'] ), $menu_id );
 		$wrapper_tag        = $this->plain_markup ? 'div' : 'header';
 
 		/**
@@ -492,12 +493,12 @@ class ABMM_Classic {
 		/**
 		 * Padding of this menu's phone bar, such as "0" or "8px 16px". Beats a site
 		 * override whatever order an optimizer loads the stylesheets in. Empty keeps
-		 * the stylesheet's padding.
+		 * the stylesheet's padding. Defaults to the menu's setting.
 		 *
 		 * @param string $padding CSS padding.
 		 * @param string $menu_id Menu ID.
 		 */
-		$bar_padding = trim( (string) apply_filters( 'abmm_classic_bar_padding', '', $menu_id ) );
+		$bar_padding = trim( (string) apply_filters( 'abmm_classic_bar_padding', $menu['settings']['classic_bar_padding'] ?? '', $menu_id ) );
 		$bar_padding = preg_match( '/^[0-9.a-z%\s-]+$/i', $bar_padding ) ? $bar_padding : '';
 		$header_vars = $this->css_vars( $settings ) . ( '' !== $bar_padding ? ';--emm-bar-padding:' . $bar_padding : '' );
 
@@ -538,7 +539,7 @@ class ABMM_Classic {
 				<div class="emm-nav__bar">
 					<?php echo $this->render_brand( $brand, 'bar' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					<?php echo $this->render_product_context( $has_product_identity ? array() : $context, 'bar' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<button type="button" class="emm-nav__toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $instance_id ); ?>-drawer" aria-label="<?php esc_attr_e( 'Open menu', 'ashbi-mega-menu' ); ?>">
+					<button type="button" class="emm-nav__toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $instance_id ); ?>-drawer" aria-label="<?php echo esc_attr( ( '' !== $toggle_label ? $toggle_label . ': ' : '' ) . __( 'Open menu', 'ashbi-mega-menu' ) ); ?>">
 						<span class="emm-nav__toggle-box" aria-hidden="true">
 							<span class="emm-nav__toggle-bar"></span>
 						</span><?php echo ( '' !== $toggle_label ? '<span class="emm-nav__toggle-label">' . esc_html( $toggle_label ) . '</span>' : '' ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -638,6 +639,10 @@ class ABMM_Classic {
 			: ( $brand['logo_url'] ?? '' );
 		if ( ! empty( $logo_url ) ) {
 			$alt = '' !== ( $brand['alt'] ?? '' ) ? $brand['alt'] : ( $brand['title'] ?? '' );
+			// A linked logo is the link's only content, so it always needs a name.
+			if ( '' === $alt && ! empty( $brand['url'] ) ) {
+				$alt = (string) get_bloginfo( 'name' );
+			}
 			$content .= sprintf(
 				'<img class="emm-nav__brand-logo" src="%1$s" alt="%2$s" style="--emm-brand-logo-height:%3$dpx" />',
 				esc_url( $logo_url ),

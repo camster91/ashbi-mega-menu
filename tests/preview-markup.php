@@ -48,6 +48,7 @@ function home_url( $path = '' ) { return 'https://example.test' . $path; }
 function wp_generate_password( $length = 12 ) { return substr( md5( uniqid( '', true ) ), 0, $length ); }
 function wp_strip_all_tags( $text ) { return strip_tags( (string) $text ); }
 function is_preview() { return false; }
+function get_bloginfo() { return 'Example Site'; }
 function get_post_status() { return 'publish'; }
 function add_action() {}
 function add_filter() {}

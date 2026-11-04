@@ -313,7 +313,9 @@
 			var url;
 			try { url = new URL(href, document.baseURI); } catch (err) { return; }
 			if (!/^https?:$/.test(url.protocol)) return;
-			var title = link.textContent.replace(/\s+/g, ' ').trim();
+			var titleCopy = link.cloneNode(true);
+			titleCopy.querySelectorAll('.abmm-new-tab-note').forEach(function (note) { note.remove(); });
+			var title = titleCopy.textContent.replace(/\s+/g, ' ').trim();
 			if (!title) return;
 			var section = closest(link, '.abmm-mega__section');
 			var cat = section && section.querySelector('.abmm-mega__cat-title');

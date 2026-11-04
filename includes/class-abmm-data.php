@@ -1279,6 +1279,13 @@ class ABMM_Data {
 			if ( ! empty( $raw['classic_phone_scroll_fix'] ) ) {
 				$menu['settings']['classic_phone_scroll_fix'] = true;
 			}
+			if ( ! empty( $raw['classic_plain_markup'] ) ) {
+				$menu['settings']['classic_plain_markup'] = true;
+			}
+			$bar_padding = trim( $this->sanitize_text( $raw['classic_bar_padding'] ?? '' ) );
+			if ( strlen( $bar_padding ) <= self::MAX_BAR_LABEL_LENGTH && preg_match( '/^[0-9.a-z%\s-]+$/i', $bar_padding ) ) {
+				$menu['settings']['classic_bar_padding'] = $bar_padding;
+			}
 			$toggle_label = $this->sanitize_text( $raw['classic_toggle_label'] ?? '' );
 			if ( '' !== $toggle_label ) {
 				$menu['settings']['classic_toggle_label'] = function_exists( 'mb_substr' ) ? mb_substr( $toggle_label, 0, self::MAX_BAR_LABEL_LENGTH, 'UTF-8' ) : substr( $toggle_label, 0, self::MAX_BAR_LABEL_LENGTH );

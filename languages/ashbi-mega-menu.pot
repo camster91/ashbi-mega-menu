@@ -135,6 +135,8 @@ msgstr ""
 #: admin/views/list.php:564
 #: admin/views/list.php:565
 #: admin/views/list.php:569
+#: includes/class-abmm-classic.php
+#: includes/class-abmm-frontend.php
 #: includes/class-abmm-product-profiles.php:384
 msgid "(opens in a new tab)"
 msgstr ""
@@ -4432,6 +4434,22 @@ msgstr ""
 
 #: admin/views/builder.php
 msgid "Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Saving a switch changes how the menu looks on your site right away. You can switch back here at any time."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Phone menu bar padding"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Optional. A CSS value such as 0 or 8px 16px. Use it when the site's own styles change the phone bar. Empty keeps the stylesheet's padding."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Use plain elements instead of header and headings"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Stops each menu counting as a page banner and adding headings before the page's title. The markup then differs from Easy Mega Menu's, so site CSS that targets those elements stops applying."
 msgstr ""
 
 #: admin/views/builder.php

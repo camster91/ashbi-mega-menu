@@ -261,6 +261,33 @@ function load({ copies = 1, config, mobile = false, timers = false, wrap = (html
 	}
 }
 
+// A visible button label stays in the button's accessible name as it opens and closes.
+{
+	const window = load({ mobile: true, wrap: (html) => html.replace(/(class="emm-nav__toggle"[^>]*>)/, '$1<span class="emm-nav__toggle-label">Products</span>') });
+	const toggle = window.document.querySelector('header.emm-header .emm-nav__toggle');
+	toggle.click();
+	assert.equal(toggle.getAttribute('aria-label'), 'Products: Close menu', 'The open button keeps its label in its name.');
+	toggle.click();
+	assert.equal(toggle.getAttribute('aria-label'), 'Products: Open menu', 'The closed button keeps its label in its name.');
+}
+{
+	const window = load({ mobile: true });
+	const toggle = window.document.querySelector('header.emm-header .emm-nav__toggle');
+	toggle.click();
+	toggle.click();
+	assert.equal(toggle.getAttribute('aria-label'), 'Open menu', 'With no label the name stays as printed.');
+}
+
+// Links that open a new tab say so, once, in the site's language.
+{
+	const window = load({ copies: 2, config: { i18n: { newTab: '(nouvel onglet)' } }, wrap: (html) => html.replace(/<a (?![^>]*target=)/, '<a target="_blank" ') });
+	const link = window.document.querySelector('header.emm-header a[target="_blank"]');
+	const notes = link.querySelectorAll('.emm-new-tab-note');
+	assert.equal(notes.length, 1, 'A new-tab link gets one note.');
+	assert.equal(notes[0].textContent.trim(), '(nouvel onglet)', 'The note uses the translated string.');
+	assert.equal(window.document.querySelectorAll('.emm-new-tab-note').length, window.document.querySelectorAll('header.emm-header a[target="_blank"]').length, 'Only new-tab links get a note.');
+}
+
 // The edge bleed is configuration, not a hard-coded menu ID.
 assert.ok(!/menu_demo/.test(script), 'No site-specific menu ID in the script.');
 assert.ok(/window\.abmmClassic/.test(script), 'The bleed comes from window.abmmClassic.');

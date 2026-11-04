@@ -29,6 +29,14 @@
 		return strings && strings[key] ? strings[key] : fallback;
 	}
 
+	// A visible button label has to be part of the button's accessible name, or
+	// two labelled menu buttons still sound identical.
+	function namedToggleLabel(toggle, label) {
+		var visible = toggle && toggle.querySelector('.emm-nav__toggle-label');
+		var name = visible ? visible.textContent.trim() : '';
+		return !name || label.indexOf(name) === 0 ? label : name + ': ' + label;
+	}
+
 	function matchesSafely(element, selector) {
 		try {
 			return !!(element && element.matches && element.matches(selector));
@@ -834,6 +842,19 @@
 		});
 	}
 
+	// The markup must stay byte for byte Easy Mega Menu's, so the warning for links
+	// that open a new tab is added here.
+	function addNewTabNotes(header) {
+		header.querySelectorAll('a[target="_blank"]').forEach(function (link) {
+			if (link.querySelector('.emm-new-tab-note')) return;
+			var note = document.createElement('span');
+			note.className = 'emm-new-tab-note';
+			note.style.cssText = 'position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0';
+			note.textContent = ' ' + classicString('newTab', '(opens in a new tab)');
+			link.appendChild(note);
+		});
+	}
+
 	function syncBrandLogos(header) {
 		header.querySelectorAll('.emm-nav__brand-logo').forEach(function (logo) {
 			var brand = closest(logo, '.emm-nav__brand');
@@ -867,6 +888,7 @@
 		if (header.__easyMegaMenuInitialized === true) return;
 		remapCollidingIds(header);
 		syncBrandLogos(header);
+		addNewTabNotes(header);
 		header.__easyMegaMenuInitialized = true;
 		header.setAttribute('data-emm-initialized', 'true');
 
@@ -880,8 +902,8 @@
 		var toggleButton = header.querySelector('.emm-nav__toggle');
 		var drawerCloseButton = header.querySelector('.emm-nav__drawer-head [data-emm-drawer-close]');
 		// Keep the translated labels the server printed.
-		header.__easyMegaMenuOpenLabel = (toggleButton && toggleButton.getAttribute('aria-label')) || classicString('openMenu', 'Open menu');
-		header.__easyMegaMenuCloseLabel = (drawerCloseButton && drawerCloseButton.getAttribute('aria-label')) || classicString('closeMenu', 'Close menu');
+		header.__easyMegaMenuOpenLabel = namedToggleLabel(toggleButton, (toggleButton && toggleButton.getAttribute('aria-label')) || classicString('openMenu', 'Open menu'));
+		header.__easyMegaMenuCloseLabel = namedToggleLabel(toggleButton, (drawerCloseButton && drawerCloseButton.getAttribute('aria-label')) || classicString('closeMenu', 'Close menu'));
 
 		function clearOpenTimer() {
 			if (openTimer) {

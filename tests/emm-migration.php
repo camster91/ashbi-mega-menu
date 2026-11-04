@@ -98,6 +98,7 @@ function trailingslashit( $path ) { return rtrim( $path, '/\\' ) . '/'; }
 function wp_generate_password( $length = 12 ) { return substr( md5( uniqid( '', true ) ), 0, $length ); }
 function wp_generate_uuid4() { static $i = 0; return 'backup-' . ++$i; }
 function is_preview() { return false; }
+function get_bloginfo() { return 'Example Site'; }
 function get_post_status() { return 'publish'; }
 function get_queried_object_id() { return 0; }
 function get_the_ID() { return 0; }

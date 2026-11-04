@@ -488,14 +488,14 @@ async function auditRegressions(){
  f.close();
 
  // Switching a Classic menu to Ashbi keeps what switching back needs.
- const classic='<select id="abmm-render-mode"><option value="emm-classic">Classic</option><option value="">Ashbi</option></select><input type="checkbox" id="abmm-classic-phone-scroll-fix" checked><input id="abmm-classic-toggle-label" value="Products">';
+ const classic='<select id="abmm-render-mode"><option value="emm-classic">Classic</option><option value="">Ashbi</option></select><input type="checkbox" id="abmm-classic-phone-scroll-fix" checked><input id="abmm-classic-toggle-label" value="Products"><input id="abmm-classic-bar-padding" value="8px 16px"><input type="checkbox" id="abmm-classic-plain-markup" checked>';
  f=await fixture(false,false,null,'demo',{...menu,settings:{render_mode:'emm-classic',classic_edge_bleed:8,classic_phone_scroll_fix:true,classic_toggle_label:'Products'}},classic); $=f.$;
  assert.equal($('#abmm-classic-toggle-label').val(),'Products');
  $('#abmm-render-mode').val('').trigger('change'); $('.abmm-save-menu').trigger('click');
  let saved=payload(f.requests[f.requests.length-1]).settings;
  assert.equal(saved.render_mode,undefined,'the menu uses the Ashbi look');
  assert.equal(saved.classic_origin,true,'its origin is recorded');
- assert.equal(saved.classic_edge_bleed,8); assert.equal(saved.classic_phone_scroll_fix,true); assert.equal(saved.classic_toggle_label,'Products');
+ assert.equal(saved.classic_edge_bleed,8); assert.equal(saved.classic_phone_scroll_fix,true); assert.equal(saved.classic_toggle_label,'Products'); assert.equal(saved.classic_bar_padding,'8px 16px'); assert.equal(saved.classic_plain_markup,true);
  f.close();
  f=await fixture(false,false,null,'demo',{...menu,settings:{classic_origin:true,classic_edge_bleed:8}},classic.replace('<option value="">','<option value="" selected>')); $=f.$;
  assert.equal($('#abmm-render-mode').val(),'','a switched menu loads as Ashbi');

@@ -263,6 +263,16 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 						<input type="text" id="abmm-classic-toggle-label" maxlength="40" aria-describedby="abmm-classic-toggle-label-help" value="<?php echo esc_attr( $abmm_settings['classic_toggle_label'] ?? '' ); ?>" />
 						<span class="description" id="abmm-classic-toggle-label-help"><?php esc_html_e( 'Optional. Tells two phone menus on one page apart, for example "Products". Empty keeps the icon on its own.', 'ashbi-mega-menu' ); ?></span>
 					</label>
+					<label class="abmm-field abmm-classic-notice">
+						<span><?php esc_html_e( 'Phone menu bar padding', 'ashbi-mega-menu' ); ?></span>
+						<input type="text" id="abmm-classic-bar-padding" maxlength="40" aria-describedby="abmm-classic-bar-padding-help" value="<?php echo esc_attr( $abmm_settings['classic_bar_padding'] ?? '' ); ?>" />
+						<span class="description" id="abmm-classic-bar-padding-help"><?php esc_html_e( 'Optional. A CSS value such as 0 or 8px 16px. Use it when the site\'s own styles change the phone bar. Empty keeps the stylesheet\'s padding.', 'ashbi-mega-menu' ); ?></span>
+					</label>
+					<label class="abmm-field abmm-field--toggle abmm-classic-notice">
+						<span><?php esc_html_e( 'Use plain elements instead of header and headings', 'ashbi-mega-menu' ); ?></span>
+						<input type="checkbox" id="abmm-classic-plain-markup" aria-describedby="abmm-classic-plain-markup-help" <?php checked( ! empty( $abmm_settings['classic_plain_markup'] ) ); ?> />
+					</label>
+					<p class="description abmm-classic-notice" id="abmm-classic-plain-markup-help"><?php esc_html_e( 'Stops each menu counting as a page banner and adding headings before the page\'s title. The markup then differs from Easy Mega Menu\'s, so site CSS that targets those elements stops applying.', 'ashbi-mega-menu' ); ?></p>
 					<p class="description abmm-classic-notice" id="abmm-classic-phone-scroll-fix-help"><?php esc_html_e( 'Fixes an Easy Mega Menu problem where the last links of a long category could not be reached on phones. The phone menu then scrolls as one list. Off keeps the original behaviour.', 'ashbi-mega-menu' ); ?></p>
 					<div class="notice notice-info inline abmm-classic-notice">
 						<p><?php esc_html_e( 'This menu was imported from Easy Mega Menu and keeps its Classic look on your site. The desktop preview shows its content in Ashbi\'s style; the tablet and phone previews show the Classic look. Color and size changes below still apply. Check the final look on your site.', 'ashbi-mega-menu' ); ?></p>

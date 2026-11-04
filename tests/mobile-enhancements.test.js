@@ -2,7 +2,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {JSDOM} = require('jsdom');
-const dom = new JSDOM('<header class="abmm-header"><div class="abmm-nav__drawer"><div class="abmm-nav__drawer-head"></div><a href="/products" target="_blank" rel="noopener">Products</a><a href="javascript:alert(1)">Unsafe</a><a class="is-disabled" href="/disabled">Disabled</a></div></header>',{url:'https://example.test/',runScripts:'outside-only'});
+const dom = new JSDOM('<header class="abmm-header"><div class="abmm-nav__drawer"><div class="abmm-nav__drawer-head"></div><a href="/products" target="_blank" rel="noopener">Products<span class="abmm-new-tab-note"> (opens in a new tab)</span></a><a href="javascript:alert(1)">Unsafe</a><a class="is-disabled" href="/disabled">Disabled</a></div></header>',{url:'https://example.test/',runScripts:'outside-only'});
 const w = dom.window;
 w.abmmRuntime = {adminPreview:true,searchStrings:{label:'Find a destination',oneResult:'%d match',manyResults:'%d matches'}};
 w.eval(fs.readFileSync('assets/js/frontend.js','utf8'));
@@ -19,6 +19,7 @@ const result = header.querySelector('.abmm-menu-search__results a');
 assert.equal(result.getAttribute('href'),'/products');
 assert.equal(result.getAttribute('target'),'_blank');
 assert.equal(result.getAttribute('rel'),'noopener');
+assert.doesNotMatch(result.textContent,/new tab/,'The new-tab note is not part of a search title.');
 assert.equal(header.querySelector('[role="status"]').textContent,'1 match');
 input.value='unsafe'; input.dispatchEvent(new w.Event('input'));
 assert.equal(header.querySelectorAll('.abmm-menu-search__results a').length,0);

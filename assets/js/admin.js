@@ -933,6 +933,8 @@
 		}
 		$('#abmm-classic-phone-scroll-fix').prop('checked', !!s.classic_phone_scroll_fix);
 		$('#abmm-classic-toggle-label').val(s.classic_toggle_label || '');
+		$('#abmm-classic-bar-padding').val(s.classic_bar_padding || '');
+		$('#abmm-classic-plain-markup').prop('checked', !!s.classic_plain_markup);
 	}
 
 	function syncSettingsFromForm() {
@@ -1021,6 +1023,11 @@
 			var $toggleLabel = $('#abmm-classic-toggle-label');
 			var toggleLabel = String($toggleLabel.length ? $toggleLabel.val() : (previous.classic_toggle_label || '')).trim();
 			if (toggleLabel) m.settings.classic_toggle_label = toggleLabel;
+			var $barPadding = $('#abmm-classic-bar-padding');
+			var barPadding = String($barPadding.length ? $barPadding.val() : (previous.classic_bar_padding || '')).trim();
+			if (barPadding) m.settings.classic_bar_padding = barPadding;
+			var $plainMarkup = $('#abmm-classic-plain-markup');
+			if ($plainMarkup.length ? $plainMarkup.is(':checked') : previous.classic_plain_markup) m.settings.classic_plain_markup = true;
 		}
 	}
 
@@ -2711,6 +2718,8 @@
 			'#abmm-render-mode',
 			'#abmm-classic-phone-scroll-fix',
 			'#abmm-classic-toggle-label',
+			'#abmm-classic-bar-padding',
+			'#abmm-classic-plain-markup',
 			'#abmm-mobile-enhancements',
 			'#abmm-header-transparent',
 			'#abmm-header-z-index',

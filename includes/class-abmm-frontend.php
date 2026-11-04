@@ -466,7 +466,28 @@ class ABMM_Frontend {
 			<?php endif; ?>
 		</div>
 		<?php
-		return ob_get_clean();
+		return $this->add_new_tab_notes( ob_get_clean() );
+	}
+
+	/**
+	 * Tell screen reader users which links open a new tab.
+	 *
+	 * @param string $html Rendered menu.
+	 * @return string
+	 */
+	private function add_new_tab_notes( $html ) {
+		if ( false === strpos( $html, 'target="_blank"' ) ) {
+			return $html;
+		}
+		$note   = '<span class="screen-reader-text abmm-new-tab-note"> ' . esc_html__( '(opens in a new tab)', 'ashbi-mega-menu' ) . '</span>';
+		$marked = preg_replace_callback(
+			'~<a\b[^>]*\btarget="_blank"[^>]*>.*?</a>~s',
+			static function ( $link ) use ( $note ) {
+				return substr( $link[0], 0, -4 ) . $note . '</a>';
+			},
+			$html
+		);
+		return null === $marked ? $html : $marked;
 	}
 
 	/**
@@ -516,6 +537,10 @@ class ABMM_Frontend {
 			: ( $brand['logo_url'] ?? '' );
 		if ( ! empty( $logo_url ) ) {
 			$alt = '' !== ( $brand['alt'] ?? '' ) ? $brand['alt'] : ( $brand['title'] ?? '' );
+			// A linked logo is the link's only content, so it always needs a name.
+			if ( '' === $alt && ! empty( $brand['url'] ) ) {
+				$alt = (string) get_bloginfo( 'name' );
+			}
 			$content .= sprintf(
 				'<img class="abmm-nav__brand-logo" src="%1$s" alt="%2$s" style="--abmm-brand-logo-height:%3$dpx" />',
 				esc_url( $logo_url ),
