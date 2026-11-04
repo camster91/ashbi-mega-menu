@@ -314,4 +314,59 @@ for (const file of ['emm-frontend.js', 'emm-frontend.css', 'emm-fixes.css', 'emm
 	assert.ok(/'fixesCss'\s*=> add_query_arg\( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL \. 'assets\/classic\/emm-fixes\.css' \)/.test(php), 'The preview frame gets the fixes stylesheet.');
 }
 
+
+// An open drawer can end from outside: a script removing its class, a visibility
+// rule hiding it, or a builder replacing it. The page must not stay inert.
+(async () => {
+	const settle = () => new Promise((resolve) => setImmediate(resolve));
+	const open = () => {
+		const window = load({ mobile: true, wrap: (html) => '<main id="page"></main><div id="host">' + html + '</div>' });
+		window.HTMLElement.prototype.getClientRects = function () { return this.dataset.noBox !== undefined ? [] : [{}]; };
+		const header = window.document.querySelector('header.emm-header');
+		const toggle = header.querySelector('.emm-nav__toggle');
+		toggle.click();
+		assert.ok(window.document.getElementById('page').hasAttribute('inert'), 'The page is inert while the drawer is open.');
+		return { window, header, toggle, page: window.document.getElementById('page') };
+	};
+	const released = (ctx, why) => {
+		assert.ok(!ctx.page.hasAttribute('inert'), why + ': the page is reachable again.');
+		assert.ok(!ctx.window.document.documentElement.classList.contains('emm-drawer-open'), why + ': scrolling is unlocked.');
+		assert.equal(ctx.toggle.getAttribute('aria-expanded'), 'false', why + ': the button reads as closed.');
+	};
+
+	let ctx = open();
+	ctx.header.classList.remove('is-mobile-open');
+	await settle();
+	released(ctx, 'Class removed from outside');
+
+	ctx = open();
+	ctx.header.dataset.noBox = '';
+	ctx.window.document.body.classList.add('rotated');
+	await settle();
+	released(ctx, 'Header hidden by a rule');
+
+	ctx = open();
+	ctx.header.dataset.noBox = '';
+	ctx.window.dispatchEvent(new ctx.window.Event('resize'));
+	await settle();
+	released(ctx, 'Header hidden on rotation');
+
+	ctx = open();
+	ctx.header.remove();
+	await settle();
+	released(ctx, 'Header removed from the page');
+
+	ctx = open();
+	ctx.window.document.body.classList.add('unrelated');
+	ctx.header.classList.add('something-else');
+	await settle();
+	assert.ok(ctx.header.classList.contains('is-mobile-open'), 'Unrelated changes leave the drawer open.');
+	assert.ok(ctx.page.hasAttribute('inert'), 'Unrelated changes keep the page inert.');
+	ctx.toggle.click();
+	released(ctx, 'Closed by the button');
+	ctx.window.document.body.classList.add('after-close');
+	await settle();
+	assert.ok(!ctx.header.classList.contains('is-mobile-open'), 'The watcher stops once the drawer is closed.');
+})().catch((error) => { console.error(error); process.exit(1); });
+
 console.log('Classic script: single binding, open/close, measurable phone header, hover and rail timing, drawer links, inert page, labels, ids, bleed config and clean bundled assets passed.');

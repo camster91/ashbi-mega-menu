@@ -680,6 +680,33 @@
 	}
 
 
+	/* Anything can end an open drawer from outside: a site script removing its
+	 * class, a visibility rule hiding it on rotation, a builder replacing it. The
+	 * page must never stay inert behind a drawer nobody can see. Runs only while
+	 * a drawer is open. */
+	function watchOpenDrawer(header, on) {
+		if (header.__ashbiMegaMenuDrawerWatch) {
+			header.__ashbiMegaMenuDrawerWatch();
+			header.__ashbiMegaMenuDrawerWatch = null;
+		}
+		if (!on || !window.MutationObserver) return;
+		var root = document.documentElement;
+		var check = function () {
+			var present = root.contains(header) && header.classList.contains('is-mobile-open');
+			// A page with no layout has nothing to measure, so only a missing box
+			// on a page that does have one counts as hidden.
+			var hidden = !header.getClientRects().length && root.getClientRects().length > 0;
+			if (!present || hidden) setDrawerOpen(header, false, false);
+		};
+		var observer = new MutationObserver(check);
+		observer.observe(root, { attributes: true, attributeFilter: ['class', 'style', 'hidden'], childList: true, subtree: true });
+		window.addEventListener('resize', check);
+		header.__ashbiMegaMenuDrawerWatch = function () {
+			observer.disconnect();
+			window.removeEventListener('resize', check);
+		};
+	}
+
 	function setDrawerOpen(header, open, restoreFocus) {
 		var toggle = header.querySelector('.abmm-nav__toggle');
 		var backdrop = header.querySelector('[data-abmm-backdrop]');
@@ -692,6 +719,7 @@
 		var wasOpen = header.classList.contains('is-mobile-open');
 		header.classList.toggle('is-mobile-open', open);
 		setOutsideInert(header, open && isMobile(header));
+		watchOpenDrawer(header, open && isMobile(header));
 		if (wasOpen !== !!open) emit(header, 'abmm:drawer', { open: !!open });
 		syncActiveStackHost();
 		if (toggle) {

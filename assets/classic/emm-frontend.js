@@ -609,6 +609,33 @@
 		header.__easyMegaMenuInert = made;
 	}
 
+	/* Anything can end an open drawer from outside: a site script removing its
+	 * class, a visibility rule hiding it on rotation, a builder replacing it. The
+	 * page must never stay inert behind a drawer nobody can see. Runs only while
+	 * a drawer is open. */
+	function watchOpenDrawer(header, on) {
+		if (header.__easyMegaMenuDrawerWatch) {
+			header.__easyMegaMenuDrawerWatch();
+			header.__easyMegaMenuDrawerWatch = null;
+		}
+		if (!on || !window.MutationObserver) return;
+		var root = document.documentElement;
+		var check = function () {
+			var present = root.contains(header) && header.classList.contains('is-mobile-open');
+			// A page with no layout has nothing to measure, so only a missing box
+			// on a page that does have one counts as hidden.
+			var hidden = !header.getClientRects().length && root.getClientRects().length > 0;
+			if (!present || hidden) setDrawerOpen(header, false, false);
+		};
+		var observer = new MutationObserver(check);
+		observer.observe(root, { attributes: true, attributeFilter: ['class', 'style', 'hidden'], childList: true, subtree: true });
+		window.addEventListener('resize', check);
+		header.__easyMegaMenuDrawerWatch = function () {
+			observer.disconnect();
+			window.removeEventListener('resize', check);
+		};
+	}
+
 	function setDrawerOpen(header, open, restoreFocus) {
 		var toggle = header.querySelector('.emm-nav__toggle');
 		var backdrop = header.querySelector('[data-emm-backdrop]');
@@ -638,6 +665,7 @@
 		}
 		if (backdrop) backdrop.hidden = !open;
 		setPageInert(header, open && isMobile(header));
+		watchOpenDrawer(header, open && isMobile(header));
 		if (drawer) {
 			if (open && isMobile(header)) {
 				var nav = header.querySelector('.emm-nav');
