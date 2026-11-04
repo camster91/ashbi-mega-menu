@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.4
+Stable tag: 1.2.5
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,10 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
+
+= 1.2.5 =
+* Visitors: easier hover and tap behaviour in both menu styles, phone drawers that close on link taps and reach every link, and keyboard, high-contrast and screen-reader fixes.
+* Editor: clearer placed and needs-attention status, saved versions per menu, safer archive, delete and Easy Mega Menu import, and warnings before leaving with unsaved changes.
 
 = 1.2.4 =
 * Classic menus: phone menu sections open on sites whose scripts reset menus that measure zero wide.

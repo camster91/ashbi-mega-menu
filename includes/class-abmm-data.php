@@ -381,7 +381,130 @@ class ABMM_Data {
 			return false;
 		}
 		unset( $archives[ $id ] );
-		return update_option( ABMM_ARCHIVE_OPTION, $archives );
+		$deleted = update_option( ABMM_ARCHIVE_OPTION, $archives );
+		if ( $deleted ) {
+			$this->forget_versions( $id );
+		}
+		return $deleted;
+	}
+
+	/* ------------------------------------------------------------------
+	 * Saved versions: a short per-menu history, so a saved mistake can be
+	 * rolled back after the editor closes. Newest first, not autoloaded.
+	 * ---------------------------------------------------------------- */
+
+	/** Option holding array( menu ID => list of versions ). Removed by uninstall.php. */
+	const VERSIONS_OPTION = 'abmm_menu_versions';
+
+	/** Versions kept for each menu. */
+	const MAX_VERSIONS = 10;
+
+	/** Stored bytes allowed for each menu's versions; older ones drop first. */
+	const MAX_VERSION_BYTES = 1048576;
+
+	/** A burst of saves shares one version, so it cannot flush the history. */
+	const VERSION_INTERVAL_SECONDS = 300;
+
+	/**
+	 * Keep the version a save or an import is about to replace.
+	 *
+	 * @param string $id    Menu ID.
+	 * @param array  $menu  The menu as it was before the change.
+	 * @param bool   $force Keep it even straight after another version.
+	 * @return bool Whether a version was stored.
+	 */
+	public function remember_version( $id, $menu, $force = false ) {
+		$size = strlen( (string) wp_json_encode( $menu ) );
+		if ( ! is_array( $menu ) || 0 === $size || $size > self::MAX_VERSION_BYTES ) {
+			return false;
+		}
+		$all      = get_option( self::VERSIONS_OPTION, array() );
+		$all      = is_array( $all ) ? $all : array();
+		$versions = is_array( $all[ $id ] ?? null ) ? $all[ $id ] : array();
+		$revision = $this->revision( $menu );
+		if ( $versions && $revision === ( $versions[0]['id'] ?? '' ) ) {
+			return false;
+		}
+		if ( $versions && ! $force && time() - (int) ( $versions[0]['saved_at'] ?? 0 ) < self::VERSION_INTERVAL_SECONDS ) {
+			return false;
+		}
+		array_unshift( $versions, array( 'id' => $revision, 'saved_at' => time(), 'bytes' => $size, 'menu' => $menu ) );
+		$kept  = array();
+		$total = 0;
+		foreach ( array_slice( $versions, 0, self::MAX_VERSIONS ) as $version ) {
+			$total += (int) ( $version['bytes'] ?? 0 );
+			if ( $total > self::MAX_VERSION_BYTES ) {
+				break;
+			}
+			$kept[] = $version;
+		}
+		$all[ $id ] = $kept;
+		return (bool) update_option( self::VERSIONS_OPTION, $all, false );
+	}
+
+	/**
+	 * What can be restored for a menu, without the menu data.
+	 *
+	 * @param string $id Menu ID.
+	 * @return array
+	 */
+	public function menu_versions( $id ) {
+		$rows = array();
+		foreach ( $this->stored_versions( $id ) as $version ) {
+			$menu   = is_array( $version['menu'] ?? null ) ? $version['menu'] : array();
+			$rows[] = array(
+				'id'       => (string) ( $version['id'] ?? '' ),
+				'saved_at' => (int) ( $version['saved_at'] ?? 0 ),
+				'title'    => (string) ( $menu['title'] ?? '' ),
+				'items'    => count( is_array( $menu['items'] ?? null ) ? $menu['items'] : array() ),
+			);
+		}
+		return $rows;
+	}
+
+	/**
+	 * Put a saved version back. The version it replaces is kept first, so this
+	 * can be undone the same way.
+	 *
+	 * @param string $id                Menu ID.
+	 * @param string $version_id        Version ID.
+	 * @param string $expected_revision Revision the administrator was looking at.
+	 * @return bool|WP_Error
+	 */
+	public function restore_version( $id, $version_id, $expected_revision ) {
+		foreach ( $this->stored_versions( $id ) as $version ) {
+			if ( ! hash_equals( (string) ( $version['id'] ?? '' ), (string) $version_id ) || ! is_array( $version['menu'] ?? null ) ) {
+				continue;
+			}
+			$menus   = $this->get_all();
+			$current = $menus[ $id ] ?? null;
+			$saved   = $this->save_if_revision( $id, $version['menu'], $expected_revision );
+			if ( ! is_wp_error( $saved ) && $saved && is_array( $current ) ) {
+				$this->remember_version( $id, $current, true );
+			}
+			return $saved;
+		}
+		return new WP_Error( 'abmm_version_not_found', __( 'This saved version is no longer available. Reload the list and try again.', 'ashbi-mega-menu' ) );
+	}
+
+	/**
+	 * @param string $id Menu ID.
+	 * @return array
+	 */
+	private function stored_versions( $id ) {
+		$all = get_option( self::VERSIONS_OPTION, array() );
+		return is_array( $all ) && is_array( $all[ $id ] ?? null ) ? $all[ $id ] : array();
+	}
+
+	/**
+	 * @param string $id Menu ID.
+	 */
+	private function forget_versions( $id ) {
+		$all = get_option( self::VERSIONS_OPTION, array() );
+		if ( is_array( $all ) && isset( $all[ $id ] ) ) {
+			unset( $all[ $id ] );
+			update_option( self::VERSIONS_OPTION, $all, false );
+		}
 	}
 
 	/**
@@ -439,12 +562,7 @@ class ABMM_Data {
 				continue;
 			}
 			$before = $usable;
-			foreach ( $item['links'] ?? array() as $link ) { if ( $usable_link( $link ) ) { ++$usable; } }
-			foreach ( $item['categories'] ?? array() as $category ) {
-				foreach ( $category['groups'] ?? array() as $group ) {
-					foreach ( $group['links'] ?? array() as $link ) { if ( $usable_link( $link ) ) { ++$usable; } }
-				}
-			}
+			foreach ( $this->active_item_links( $item ) as $link ) { if ( $usable_link( $link ) ) { ++$usable; } }
 			if ( $usable === $before ) {
 				/* translators: %s: mega menu label. */
 				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Add at least one labelled link with a real destination to %s.', 'ashbi-mega-menu' ), $label ?: __( 'this mega menu', 'ashbi-mega-menu' ) ) );
@@ -458,7 +576,16 @@ class ABMM_Data {
 		}
 		if ( 0 === $usable ) { $issues[] = array( 'field' => 'abmm-nav-items', 'message' => __( 'Add at least one labelled item with a real destination.', 'ashbi-mega-menu' ) ); }
 		if ( ! empty( $menu['cta']['show'] ) && ! $usable_link( $menu['cta'] ) ) {
-			$issues[] = array( 'field' => 'abmm-cta-url', 'message' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ) );
+			$issues[] = array( 'field' => 'abmm-cta-url', 'message' => __( 'Add a label and a link to the button, or turn the button off.', 'ashbi-mega-menu' ) );
+		}
+		foreach ( $menu['items'] ?? array() as $item ) {
+			$rows = 'mega' === ( $item['type'] ?? 'link' ) ? $this->active_item_links( $item ) : array( $item );
+			foreach ( $rows as $row ) {
+				if ( ! $this->is_usable_destination( $row['url'] ?? '' ) ) {
+					/* translators: %s: link label. */
+					$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Add a link for "%s", or remove it. It goes nowhere yet.', 'ashbi-mega-menu' ), trim( (string) ( $row['label'] ?? '' ) ) ?: __( 'Untitled', 'ashbi-mega-menu' ) ) );
+				}
+			}
 		}
 		foreach ( $menu['items'] ?? array() as $index => $item ) {
 			$card = is_array( $item['featured'] ?? null ) ? $item['featured'] : array();
@@ -544,15 +671,30 @@ class ABMM_Data {
 				$links[] = $item;
 				continue;
 			}
-			foreach ( $item['links'] ?? array() as $link ) { $links[] = $link; }
-			foreach ( $item['categories'] ?? array() as $category ) {
-				foreach ( $category['groups'] ?? array() as $group ) {
-					foreach ( $group['links'] ?? array() as $link ) { $links[] = $link; }
-				}
-			}
+			foreach ( $this->active_item_links( $item ) as $link ) { $links[] = $link; }
 		}
 		if ( ! empty( $menu['cta']['show'] ) ) {
 			$links[] = $menu['cta'];
+		}
+		return $links;
+	}
+
+	/**
+	 * The links a mega item's chosen layout shows. A layout switch keeps the
+	 * other layout's links stored, but visitors never see them.
+	 *
+	 * @param array $item Mega item.
+	 * @return array
+	 */
+	private function active_item_links( $item ) {
+		if ( 'features' === ( $item['mega_style'] ?? 'platforms' ) ) {
+			return is_array( $item['links'] ?? null ) ? $item['links'] : array();
+		}
+		$links = array();
+		foreach ( $item['categories'] ?? array() as $category ) {
+			foreach ( $category['groups'] ?? array() as $group ) {
+				foreach ( $group['links'] ?? array() as $link ) { $links[] = $link; }
+			}
 		}
 		return $links;
 	}
@@ -650,7 +792,7 @@ class ABMM_Data {
 	public static function design_presets() {
 		return array(
 			'classic' => array(
-				'label'  => __( 'Classic', 'ashbi-mega-menu' ),
+				'label'  => __( 'Clean', 'ashbi-mega-menu' ),
 				'values' => array(
 					'sidebar_bg'      => '#f0f0f5',
 					'active_bg'       => '#ffffff',
@@ -1124,15 +1266,29 @@ class ABMM_Data {
 		}
 
 		// Classic (Easy Mega Menu) rendering is stored only on menus that use it,
-		// so every other menu keeps exactly the data it had.
-		if ( 'emm-classic' === ( $raw['render_mode'] ?? '' ) ) {
-			$menu['settings']['render_mode'] = 'emm-classic';
-			$edge_bleed                      = min( 64, absint( $this->scalar_string( $raw['classic_edge_bleed'] ?? 0 ) ) );
+		// so every other menu keeps exactly the data it had. A menu switched to
+		// the Ashbi look keeps classic_origin and its Classic options, so the
+		// switch can be undone from the Site look control.
+		$is_classic = 'emm-classic' === ( $raw['render_mode'] ?? '' );
+		if ( $is_classic || ! empty( $raw['classic_origin'] ) ) {
+			$menu['settings'][ $is_classic ? 'render_mode' : 'classic_origin' ] = $is_classic ? 'emm-classic' : true;
+			$edge_bleed = min( 64, absint( $this->scalar_string( $raw['classic_edge_bleed'] ?? 0 ) ) );
 			if ( $edge_bleed ) {
 				$menu['settings']['classic_edge_bleed'] = $edge_bleed;
 			}
 			if ( ! empty( $raw['classic_phone_scroll_fix'] ) ) {
 				$menu['settings']['classic_phone_scroll_fix'] = true;
+			}
+			if ( ! empty( $raw['classic_plain_markup'] ) ) {
+				$menu['settings']['classic_plain_markup'] = true;
+			}
+			$bar_padding = trim( $this->sanitize_text( $raw['classic_bar_padding'] ?? '' ) );
+			if ( strlen( $bar_padding ) <= self::MAX_BAR_LABEL_LENGTH && preg_match( '/^[0-9.a-z%\s-]+$/i', $bar_padding ) ) {
+				$menu['settings']['classic_bar_padding'] = $bar_padding;
+			}
+			$toggle_label = $this->sanitize_text( $raw['classic_toggle_label'] ?? '' );
+			if ( '' !== $toggle_label ) {
+				$menu['settings']['classic_toggle_label'] = function_exists( 'mb_substr' ) ? mb_substr( $toggle_label, 0, self::MAX_BAR_LABEL_LENGTH, 'UTF-8' ) : substr( $toggle_label, 0, self::MAX_BAR_LABEL_LENGTH );
 			}
 		}
 

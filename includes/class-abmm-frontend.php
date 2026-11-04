@@ -466,7 +466,28 @@ class ABMM_Frontend {
 			<?php endif; ?>
 		</div>
 		<?php
-		return ob_get_clean();
+		return $this->add_new_tab_notes( ob_get_clean() );
+	}
+
+	/**
+	 * Tell screen reader users which links open a new tab.
+	 *
+	 * @param string $html Rendered menu.
+	 * @return string
+	 */
+	private function add_new_tab_notes( $html ) {
+		if ( false === strpos( $html, 'target="_blank"' ) ) {
+			return $html;
+		}
+		$note   = '<span class="screen-reader-text abmm-new-tab-note"> ' . esc_html__( '(opens in a new tab)', 'ashbi-mega-menu' ) . '</span>';
+		$marked = preg_replace_callback(
+			'~<a\b[^>]*\btarget="_blank"[^>]*>.*?</a>~s',
+			static function ( $link ) use ( $note ) {
+				return substr( $link[0], 0, -4 ) . $note . '</a>';
+			},
+			$html
+		);
+		return null === $marked ? $html : $marked;
 	}
 
 	/**
@@ -516,6 +537,10 @@ class ABMM_Frontend {
 			: ( $brand['logo_url'] ?? '' );
 		if ( ! empty( $logo_url ) ) {
 			$alt = '' !== ( $brand['alt'] ?? '' ) ? $brand['alt'] : ( $brand['title'] ?? '' );
+			// A linked logo is the link's only content, so it always needs a name.
+			if ( '' === $alt && ! empty( $brand['url'] ) ) {
+				$alt = (string) get_bloginfo( 'name' );
+			}
 			$content .= sprintf(
 				'<img class="abmm-nav__brand-logo" src="%1$s" alt="%2$s" style="--abmm-brand-logo-height:%3$dpx" />',
 				esc_url( $logo_url ),
@@ -896,6 +921,10 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 					<?php echo esc_html( $display_label ); ?>
 					<svg class="abmm-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
 				</button>
+				<?php if ( '' !== ( $item['url'] ?? '' ) && '#' !== ( $item['url'] ?? '' ) ) : ?>
+					<?php // The button does nothing without scripts; an item with its own page stays a real link. ?>
+					<noscript><a <?php echo $this->link_attrs( $item, 'abmm-nav__link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $display_label ); ?></a></noscript>
+				<?php endif; ?>
 				<?php echo $this->render_mega_panel( $item, $settings, $uid ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php else : ?>
 				<a <?php echo $this->link_attrs( $item, 'abmm-nav__link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $item['url'] ?: '#' ); ?>">
@@ -1013,7 +1042,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 								<div
 									class="abmm-mega__panel<?php echo $active ? ' is-active' : ''; ?>"
 									id="<?php echo esc_attr( $cat_uid ); ?>-panel"
-									role="region"
+									role="group"
 									aria-labelledby="<?php echo esc_attr( $cat_uid ); ?>-trigger"
 									data-abmm-panel="<?php echo esc_attr( $cat_id ); ?>"
 									<?php echo $active ? '' : 'hidden'; ?>
@@ -1186,7 +1215,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 			<?php if ( $has_url ) : ?>
 				<a <?php echo $this->link_attrs( $link, 'abmm-mega__col-link' . ( $has_icon ? ' has-icon' : '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $link['url'] ); ?>">
 			<?php else : ?>
-				<span class="abmm-mega__col-link is-disabled<?php echo $has_icon ? ' has-icon' : ''; ?>" aria-disabled="true">
+				<span class="abmm-mega__col-link is-disabled<?php echo $has_icon ? ' has-icon' : ''; ?>" role="link" aria-disabled="true">
 			<?php endif; ?>
 				<?php if ( $has_icon ) : ?>
 					<span class="abmm-mega__col-icon">
@@ -1266,7 +1295,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 			<?php if ( $has_url ) : ?>
 				<a <?php echo $this->link_attrs( $link, 'abmm-mega__grid-link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $link['url'] ); ?>">
 			<?php else : ?>
-				<span class="abmm-mega__grid-link is-disabled" aria-disabled="true">
+				<span class="abmm-mega__grid-link is-disabled" role="link" aria-disabled="true">
 			<?php endif; ?>
 				<span class="abmm-mega__grid-icon">
 					<?php echo $icons->render( $link['icon'] ?? '', $link['icon_url'] ?? '', 'abmm-icon abmm-icon--sm', $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

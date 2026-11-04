@@ -61,6 +61,7 @@ function trailingslashit( $path ) { return rtrim( $path, '/\\' ) . '/'; }
 function wp_generate_password( $length = 12 ) { return substr( md5( uniqid( '', true ) ), 0, $length ); }
 function wp_strip_all_tags( $text ) { return strip_tags( (string) $text ); }
 function is_preview() { return false; }
+function get_bloginfo() { return 'Example Site'; }
 function get_post_status() { return 'publish'; }
 function add_action() {}
 function add_filter() {}
@@ -168,6 +169,31 @@ verify_classic( false !== strpos( $GLOBALS['abmm_test_inline_css'] ?? '', '.emm-
 $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ][ $first_id ] = $menus[ $first_id ];
 $ashbi_fix = ABMM_Data::instance()->sanitize_menu( array( 'title' => 'Ashbi', 'items' => array(), 'settings' => array( 'classic_phone_scroll_fix' => true ) ) );
 verify_classic( ! isset( $ashbi_fix['settings']['classic_phone_scroll_fix'] ), 'Ashbi menus never store classic settings.' );
+
+// Optional Classic settings feed the render, and leave the default markup alone.
+$default_html = ABMM_Frontend::instance()->render( $first_id );
+verify_classic( false !== strpos( $default_html, 'aria-label="Open menu"' ) && false === strpos( $default_html, 'emm-nav__toggle-label' ), 'With no label the menu button keeps its plain name.' );
+$labelled = $menus[ $first_id ];
+$labelled['settings']['classic_toggle_label'] = 'Products';
+$labelled['settings']['classic_bar_padding']  = '8px 16px';
+$labelled['settings']['classic_plain_markup'] = true;
+$labelled = ABMM_Data::instance()->sanitize_menu( $labelled );
+verify_classic( '8px 16px' === $labelled['settings']['classic_bar_padding'] && true === $labelled['settings']['classic_plain_markup'], 'The Classic settings are kept.' );
+$GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ][ $first_id ] = $labelled;
+$labelled_html = ABMM_Frontend::instance()->render( $first_id );
+verify_classic( false !== strpos( $labelled_html, 'aria-label="Products: Open menu"' ) && false !== strpos( $labelled_html, 'emm-nav__toggle-label">Products<' ), 'A visible button label is part of its accessible name.' );
+verify_classic( false !== strpos( $labelled_html, '--emm-bar-padding:8px 16px' ), 'The bar padding setting reaches the render.' );
+verify_classic( 1 === preg_match( '/<div class="emm-header /', $labelled_html ) && false === strpos( $labelled_html, '<header class="emm-header' ), 'The plain markup setting reaches the render.' );
+$bad_padding = $menus[ $first_id ];
+$bad_padding['settings']['classic_bar_padding'] = '0;background:url(x)';
+$bad_padding = ABMM_Data::instance()->sanitize_menu( $bad_padding );
+verify_classic( ! isset( $bad_padding['settings']['classic_bar_padding'] ), 'A bar padding that is not a plain value is dropped.' );
+$no_alt = $menus[ $first_id ];
+$no_alt['brand'] = array( 'show' => true, 'title' => '', 'alt' => '', 'url' => 'https://example.test/', 'logo_url' => 'https://example.test/logo.svg' );
+$no_alt = ABMM_Data::instance()->sanitize_menu( $no_alt );
+$GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ][ $first_id ] = $no_alt;
+verify_classic( false !== strpos( ABMM_Frontend::instance()->render( $first_id ), 'alt="Example Site"' ), 'A linked logo with no alt text is named after the site.' );
+$GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ][ $first_id ] = $menus[ $first_id ];
 
 // Menus created in Ashbi keep Ashbi's markup.
 $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ]['plain'] = ABMM_Data::instance()->sanitize_menu( array( 'title' => 'Plain', 'items' => array( array( 'id' => 'a', 'label' => 'A', 'type' => 'link', 'url' => '/a/' ) ) ) );

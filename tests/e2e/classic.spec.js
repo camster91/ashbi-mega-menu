@@ -71,6 +71,36 @@ test.describe('classic menu on desktop', () => {
 		await expect(trigger).toBeFocused();
 	});
 
+	test('a click after hover pins the panel, and tabbing out closes it', async ({ page }) => {
+		await page.goto(classicPage);
+		const trigger = page.locator('header.emm-header [data-emm-mega-trigger]').first();
+		await trigger.hover();
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await trigger.click();
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await page.mouse.move(5, 790);
+		await page.waitForTimeout(500);
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await trigger.click();
+		await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+		await trigger.focus();
+		await page.keyboard.press('Enter');
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await page.evaluate(() => {
+			const outside = document.createElement('button');
+			outside.id = 'e2e-outside';
+			document.body.appendChild(outside);
+			outside.focus();
+		});
+		await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+	});
+
+	test('the fixes stylesheet loads with the classic stylesheet', async ({ page }) => {
+		await page.goto(classicPage);
+		await expect(page.locator('link#abmm-classic-fixes-css')).toHaveCount(1);
+	});
+
 	test('both shortcodes print the same classic header', async ({ page }) => {
 		const markup = async (path) => {
 			await page.goto(path);
@@ -111,23 +141,18 @@ test.describe('classic menu in the editor', () => {
 
 		// An edit re-renders the frame; the open drawer comes back as it was.
 		await page.locator('[data-abmm-builder-section="design"]').click();
-		const fix = page.locator('#abmm-classic-phone-scroll-fix');
-		const wasChecked = await fix.isChecked();
-		await fix.setChecked(!wasChecked);
-		await fix.setChecked(wasChecked);
+		const label = page.locator('#abmm-classic-toggle-label');
+		await label.fill('Products');
 		await expect(frame.locator('header.emm-header')).toHaveClass(/\bis-mobile-open\b/);
 		await expect(frame.locator('.emm-nav__list > .emm-nav__item.is-open')).toHaveCount(1);
 
-		// Turning on the phone scroll fix and saving keeps the menu classic.
-		if (!(await fix.isChecked())) {
-			await fix.check();
-			const saved = page.waitForResponse((response) =>
-				response.url().includes('admin-ajax.php') && (response.request().postData() || '').includes('action=abmm_save_menu'));
-			await page.locator('.abmm-save-menu').first().click();
-			expect((await (await saved).json()).success).toBe(true);
-		}
+		// Setting a phone button label and saving keeps the menu classic.
+		const saved = page.waitForResponse((response) =>
+			response.url().includes('admin-ajax.php') && (response.request().postData() || '').includes('action=abmm_save_menu'));
+		await page.locator('.abmm-save-menu').first().click();
+		expect((await (await saved).json()).success).toBe(true);
 		await page.goto('/?pagename=e2e-classic');
-		await expect(page.locator('header.emm-header[data-emm-id="main_nav"]')).toHaveClass(/\bemm-phone-scroll-fix\b/);
+		await expect(page.locator('header.emm-header[data-emm-id="main_nav"] .emm-nav__toggle')).toHaveAttribute('aria-label', /^Products: /);
 		expect(errors).toEqual([]);
 	});
 });
@@ -158,5 +183,22 @@ test.describe('classic menu on a phone', () => {
 		await header.locator('[data-emm-drawer-close]:visible, .emm-nav__toggle:visible').first().click();
 		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 		expect(errors).toEqual([]);
+	});
+
+	test('the page is inert while the drawer is open, and a tap on a link closes it', async ({ page }) => {
+		await page.goto(classicPage);
+		const header = page.locator('header.emm-header').first();
+		const toggle = header.locator('.emm-nav__toggle');
+		await toggle.click();
+		await expect(header.locator('.emm-nav__drawer')).toHaveAttribute('role', 'dialog');
+		await header.locator('[data-emm-mega-trigger]').first().click();
+		await expect(header.locator('[data-emm-back]').first()).toHaveAttribute('aria-label', /./);
+		await header.locator('.emm-mega__cat[data-emm-cat="finance"]').click();
+		const link = header.locator('a.emm-mega__col-link', { hasText: 'Invoicing' });
+		await expect(link).toBeVisible();
+		await link.evaluate((element) => element.setAttribute('href', '#e2e-target'));
+		await link.click();
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+		await expect(page.locator('html')).not.toHaveClass(/\bemm-drawer-open\b/);
 	});
 });

@@ -254,6 +254,8 @@ class ABMM_EMM_Migration {
 				'links'    => $this->count_links( $mapped['menu'] ),
 				'conflict' => isset( $existing[ $id ] ) && ! ABMM_Classic::is_classic( $existing[ $id ] ),
 				'exists'   => isset( $existing[ $id ] ),
+				// An earlier import that no longer matches Easy Mega Menu: usually Ashbi edits.
+				'edited'   => isset( $existing[ $id ] ) && ABMM_Classic::is_classic( $existing[ $id ] ) && ABMM_Data::instance()->revision( ABMM_Data::instance()->sanitize_menu( $mapped['menu'] ) ) !== ABMM_Data::instance()->revision( $existing[ $id ] ),
 				'issues'   => $mapped['issues'],
 			);
 		}
@@ -314,10 +316,11 @@ class ABMM_EMM_Migration {
 	 * Copy Easy Mega Menu's data into Ashbi. Existing Ashbi menus with the same
 	 * ID are kept unless $overwrite is true; earlier classic imports are updated.
 	 *
-	 * @param bool $overwrite Replace Ashbi menus that share an ID.
+	 * @param bool          $overwrite Replace Ashbi menus that share an ID.
+	 * @param string[]|null $only      Copy only these menu IDs; null copies every menu.
 	 * @return array|WP_Error Summary.
 	 */
-	public function import( $overwrite = false ) {
+	public function import( $overwrite = false, $only = null ) {
 		$source = $this->read_source();
 		if ( empty( $source['menus'] ) ) {
 			return new WP_Error( 'abmm_emm_empty', __( 'Easy Mega Menu has no menus to import.', 'ashbi-mega-menu' ) );
@@ -332,11 +335,21 @@ class ABMM_EMM_Migration {
 			if ( '' === $id || ! is_array( $menu ) ) {
 				continue;
 			}
+			if ( is_array( $only ) && ! in_array( $id, $only, true ) ) {
+				if ( isset( $existing[ $id ] ) ) {
+					$skipped[] = $id;
+				}
+				continue;
+			}
 			if ( isset( $existing[ $id ] ) && ! $overwrite && ! ABMM_Classic::is_classic( $existing[ $id ] ) ) {
 				$skipped[] = $id;
 				continue;
 			}
 			$menus[ $id ] = $this->map_menu( $id, $menu )['menu'];
+			if ( isset( $existing[ $id ] ) ) {
+				// Lets this one menu be rolled back, without restoring a whole snapshot.
+				ABMM_Data::instance()->remember_version( $id, $existing[ $id ], true );
+			}
 		}
 
 		$result = array();
@@ -354,7 +367,8 @@ class ABMM_EMM_Migration {
 			}
 		}
 
-		$contextual = $this->import_context( $source, $overwrite );
+		// Ticking a menu row replaces that menu only, never product records made in Ashbi.
+		$contextual = $this->import_context( $source, null === $only && $overwrite );
 		if ( is_wp_error( $contextual ) ) {
 			return $contextual;
 		}
@@ -602,33 +616,144 @@ class ABMM_EMM_Migration {
 	 * Which of these menus site content places with [easy_mega_menu]. Cached for
 	 * an hour, like shortcode_in_content().
 	 *
-	 * @param string[] $ids Menu IDs.
+	 * @param string[] $ids   Menu IDs.
+	 * @param bool     $fresh Search again instead of using the cache.
 	 * @return string[] The IDs in use, in the given order.
 	 */
-	public function menus_in_use( $ids ) {
-		$used = get_transient( 'abmm_emm_menus_in_use' );
-		if ( ! is_array( $used ) ) {
-			global $wpdb;
-			$used      = array();
-			$shortcode = '%' . $wpdb->esc_like( 'easy_mega_menu' ) . '%';
-			// One-off searches of site content, as in shortcode_in_content().
-			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			foreach ( $ids as $id ) {
-				$id = (string) $id;
-				// Elementor stores the shortcode's quotes with backslashes. The closing quote keeps menu_demo from matching menu_demo-copy.
-				$plain   = '%' . $wpdb->esc_like( 'id="' . $id . '"' ) . '%';
-				$slashed = '%' . $wpdb->esc_like( 'id=\\"' . $id . '\\"' ) . '%';
-				$single  = '%' . $wpdb->esc_like( "id='" . $id . "'" ) . '%';
-				if ( $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ( %s, %s, %s ) AND post_content LIKE %s AND ( post_content LIKE %s OR post_content LIKE %s ) LIMIT 1", 'trash', 'auto-draft', 'inherit', $shortcode, $plain, $single ) )
-					|| $wpdb->get_var( $wpdb->prepare( "SELECT pm.meta_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND p.post_status NOT IN ( %s, %s, %s ) AND pm.meta_value LIKE %s AND ( pm.meta_value LIKE %s OR pm.meta_value LIKE %s OR pm.meta_value LIKE %s ) LIMIT 1", '_elementor_data', 'trash', 'auto-draft', 'inherit', $shortcode, $plain, $slashed, $single ) )
-					|| $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value LIKE %s AND ( option_value LIKE %s OR option_value LIKE %s OR option_value LIKE %s ) LIMIT 1", $wpdb->esc_like( 'widget_' ) . '%', $shortcode, $plain, $slashed, $single ) ) ) {
-					$used[] = $id;
+	public function menus_in_use( $ids, $fresh = false ) {
+		$found = array();
+		foreach ( array_map( 'strval', $ids ) as $id ) {
+			if ( $this->content_uses_shortcode( 'easy_mega_menu', $id, $fresh ) ) {
+				$found[] = $id;
+			}
+		}
+		return $found;
+	}
+
+	/**
+	 * Whether posts, page builder data or widgets place one menu with a shortcode.
+	 * Answers are cached per menu for an hour, so callers can ask about any IDs.
+	 *
+	 * @param string $tag   Shortcode tag.
+	 * @param string $id    Menu ID.
+	 * @param bool   $fresh Search again instead of using the cache.
+	 * @return bool
+	 */
+	public function content_uses_shortcode( $tag, $id, $fresh = false ) {
+		global $wpdb;
+		if ( ! isset( $wpdb ) ) {
+			return false;
+		}
+		$cache = get_transient( 'abmm_emm_menus_in_use' );
+		$cache = is_array( $cache ) ? $cache : array();
+		$key   = $tag . ':' . $id;
+		if ( ! $fresh && isset( $cache[ $key ] ) ) {
+			return (bool) $cache[ $key ];
+		}
+		$shortcode = '%' . $wpdb->esc_like( $tag ) . '%';
+		// Elementor stores the shortcode's quotes with backslashes. The closing quote keeps menu_demo from matching menu_demo-copy.
+		$plain   = '%' . $wpdb->esc_like( 'id="' . $id . '"' ) . '%';
+		$slashed = '%' . $wpdb->esc_like( 'id=\\"' . $id . '\\"' ) . '%';
+		$single  = '%' . $wpdb->esc_like( "id='" . $id . "'" ) . '%';
+		// One-off searches of site content, as in shortcode_in_content().
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$found = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ( %s, %s, %s ) AND post_content LIKE %s AND ( post_content LIKE %s OR post_content LIKE %s ) LIMIT 1", 'trash', 'auto-draft', 'inherit', $shortcode, $plain, $single ) )
+			|| $wpdb->get_var( $wpdb->prepare( "SELECT pm.meta_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND p.post_status NOT IN ( %s, %s, %s ) AND pm.meta_value LIKE %s AND ( pm.meta_value LIKE %s OR pm.meta_value LIKE %s OR pm.meta_value LIKE %s ) LIMIT 1", '_elementor_data', 'trash', 'auto-draft', 'inherit', $shortcode, $plain, $slashed, $single ) )
+			|| $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value LIKE %s AND ( option_value LIKE %s OR option_value LIKE %s OR option_value LIKE %s ) LIMIT 1", $wpdb->esc_like( 'widget_' ) . '%', $shortcode, $plain, $slashed, $single ) );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$cache[ $key ] = $found ? 1 : 0;
+		set_transient( 'abmm_emm_menus_in_use', $cache, HOUR_IN_SECONDS );
+		return (bool) $found;
+	}
+
+	/**
+	 * Whether the plugin's Elementor widget places one menu. Cached for an hour
+	 * with the other searches, so a page of cards runs the search once.
+	 *
+	 * @param string $id    Menu ID.
+	 * @param bool   $fresh Search again instead of using the cache.
+	 * @return bool
+	 */
+	public function elementor_widget_uses_menu( $id, $fresh = false ) {
+		global $wpdb;
+		if ( ! isset( $wpdb ) ) {
+			return false;
+		}
+		$cache = get_transient( 'abmm_emm_menus_in_use' );
+		$cache = is_array( $cache ) ? $cache : array();
+		if ( $fresh || ! isset( $cache['elementor_widget_ids'] ) || ! is_array( $cache['elementor_widget_ids'] ) ) {
+			$like = '%' . $wpdb->esc_like( '"widgetType":"ashbi-mega-menu"' ) . '%';
+			// One-off search of page builder data, as in shortcode_in_content().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$rows = $wpdb->get_col( $wpdb->prepare( "SELECT pm.meta_value FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND p.post_status NOT IN ( %s, %s, %s ) AND pm.meta_value LIKE %s", '_elementor_data', 'trash', 'auto-draft', 'inherit', $like ) );
+			$ids  = array();
+			foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+				$elements = json_decode( (string) $row, true );
+				if ( is_array( $elements ) ) {
+					$this->collect_elementor_widget_menus( $elements, $ids );
 				}
 			}
-			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			set_transient( 'abmm_emm_menus_in_use', $used, HOUR_IN_SECONDS );
+			$cache['elementor_widget_ids'] = array_map( 'strval', array_keys( $ids ) );
+			set_transient( 'abmm_emm_menus_in_use', $cache, HOUR_IN_SECONDS );
 		}
-		return array_values( array_intersect( array_map( 'strval', $ids ), $used ) );
+		return in_array( (string) $id, $cache['elementor_widget_ids'], true );
+	}
+
+	/**
+	 * Add the menus that Elementor widgets in this element tree show. Elementor
+	 * leaves out a setting at its default, which for this widget is the first menu.
+	 *
+	 * @param array $elements Elementor elements.
+	 * @param array $ids      Found menu IDs, as keys.
+	 */
+	private function collect_elementor_widget_menus( $elements, &$ids ) {
+		foreach ( $elements as $element ) {
+			if ( ! is_array( $element ) ) {
+				continue;
+			}
+			if ( 'ashbi-mega-menu' === ( $element['widgetType'] ?? '' ) ) {
+				$id = $element['settings']['menu_id'] ?? '';
+				if ( ! is_scalar( $id ) || '' === (string) $id ) {
+					$id = (string) array_key_first( ABMM_Data::instance()->get_all() );
+				}
+				if ( '' !== (string) $id ) {
+					$ids[ (string) $id ] = true;
+				}
+			}
+			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
+				$this->collect_elementor_widget_menus( $element['elements'], $ids );
+			}
+		}
+	}
+
+	/**
+	 * Easy Mega Menu menus that site content places but Ashbi has not imported.
+	 * With the takeover on, those headers would render empty.
+	 *
+	 * @param bool $fresh Search again instead of using the cache.
+	 * @return string[]
+	 */
+	public function placed_but_not_imported( $fresh = false ) {
+		$ids = array();
+		foreach ( array_keys( $this->read_source()['menus'] ) as $id ) {
+			$ids[] = sanitize_key( (string) $id );
+		}
+		return array_values( array_diff( $this->menus_in_use( array_filter( $ids ), $fresh ), array_map( 'strval', array_keys( ABMM_Data::instance()->get_all() ) ) ) );
+	}
+
+	/**
+	 * Whether Easy Mega Menu has a menu with this ID.
+	 *
+	 * @param string $id Menu ID.
+	 * @return bool
+	 */
+	public function is_source_menu( $id ) {
+		foreach ( array_keys( $this->read_source()['menus'] ) as $source_id ) {
+			if ( sanitize_key( (string) $source_id ) === (string) $id ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -638,13 +763,30 @@ class ABMM_EMM_Migration {
 	 * screens, to administrators only.
 	 */
 	public function unanswered_shortcode_notice() {
-		if ( ! current_user_can( 'manage_options' ) || self::source_active() || self::takeover_enabled() || shortcode_exists( 'easy_mega_menu' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || self::source_active() ) {
+			return;
+		}
+		$takeover = self::takeover_enabled();
+		if ( ! $takeover && shortcode_exists( 'easy_mega_menu' ) ) {
 			return;
 		}
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		$id     = $screen ? (string) $screen->id : '';
 		// The import screen explains this itself.
 		if ( false !== strpos( $id, self::PAGE_SLUG ) || ( ! in_array( $id, array( 'dashboard', 'plugins' ), true ) && false === strpos( $id, 'ashbi-mega-menu' ) ) ) {
+			return;
+		}
+		if ( $takeover ) {
+			$missing = $this->placed_but_not_imported();
+			if ( $missing ) {
+				printf(
+					'<div class="notice notice-warning"><p>%s <a href="%s">%s</a></p></div>',
+					/* translators: %s: comma-separated menu IDs. */
+					esc_html( sprintf( __( 'Ashbi is answering [easy_mega_menu] shortcodes, but these placed menus were not imported, so their headers are empty: %s.', 'ashbi-mega-menu' ), implode( ', ', $missing ) ) ),
+					esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) ),
+					esc_html__( 'Open Easy Mega Menu import', 'ashbi-mega-menu' )
+				);
+			}
 			return;
 		}
 		if ( empty( $this->read_source()['menus'] ) || ! $this->shortcode_in_content() ) {
@@ -731,7 +873,12 @@ class ABMM_EMM_Migration {
 			wp_die( esc_html__( 'You do not have permission to import menus.', 'ashbi-mega-menu' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( 'abmm_emm_import' );
-		$result = $this->import( ! empty( $_POST['overwrite'] ) );
+		// The form lists each menu. Ticking one that exists is the choice to replace it.
+		$only = null;
+		if ( ! empty( $_POST['abmm_select_menus'] ) ) {
+			$only = isset( $_POST['menus'] ) && is_array( $_POST['menus'] ) ? array_map( 'sanitize_key', wp_unslash( $_POST['menus'] ) ) : array();
+		}
+		$result = $this->import( null !== $only || ! empty( $_POST['overwrite'] ), $only );
 		$notice = is_wp_error( $result ) ? 'error' : 'imported';
 		// The result or the real reason it failed, for this administrator only.
 		set_transient( 'abmm_emm_import_result_' . get_current_user_id(), is_wp_error( $result ) ? array( 'error' => $result->get_error_message() ) : $result, HOUR_IN_SECONDS );
@@ -744,6 +891,11 @@ class ABMM_EMM_Migration {
 			wp_die( esc_html__( 'You do not have permission to change this setting.', 'ashbi-mega-menu' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( 'abmm_emm_takeover' );
+		// Switching on with placed menus missing would blank those headers: ask first.
+		if ( ! empty( $_POST['takeover'] ) && empty( $_POST['confirm_missing'] ) && $this->placed_but_not_imported( true ) ) {
+			wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE_SLUG, 'abmm_notice' => 'takeover_blocked', '_abmm_nonce' => wp_create_nonce( 'abmm_emm_notice' ) ), admin_url( 'admin.php' ) ) );
+			exit;
+		}
 		update_option( self::TAKEOVER_OPTION, ! empty( $_POST['takeover'] ) );
 		wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE_SLUG, 'abmm_notice' => 'saved', '_abmm_nonce' => wp_create_nonce( 'abmm_emm_notice' ) ), admin_url( 'admin.php' ) ) );
 		exit;

@@ -13,7 +13,7 @@ foreach ( range( 1, $site_count ) as $site_id ) {
  $site_options[$site_id] = array(
   'abmm_menus' => array( 'private' ), 'abmm_archived_menus' => array(),
   'abmm_product_profiles' => array(), 'abmm_product_branding' => array(),
-  'abmm_plugin_version' => '1.0.4', 'abmm_import_backups' => array(),
+  'abmm_plugin_version' => '1.0.4', 'abmm_import_backups' => array(), 'abmm_menu_versions' => array( 'private' => array() ),
   'abmm_contextual_navigation_enabled' => '1', 'widget_abmm_widget' => array( 2 => array( 'menu_id' => 'private' ) ),
   '_transient_abmm_product_draft_random' => 'private draft',
   '_transient_timeout_abmm_product_draft_random' => 123,

@@ -42,4 +42,58 @@ $menu['items'][] = array( 'type' => 'link', 'label' => 'Sample', 'url' => '#abmm
 $messages = implode( "\n", array_column( $checker->readiness( $menu )['issues'], 'message' ) );
 check( false !== strpos( $messages, 'Replace 1 sample link' ), 'Readiness counts template links still to replace' );
 
+// Links that go nowhere are named, in the layout visitors see only.
+$menu = array(
+	'title' => 'Layouts',
+	'items' => array(
+		array( 'type' => 'link', 'label' => 'Home', 'url' => '/' ),
+		array( 'type' => 'link', 'label' => 'Dead', 'url' => '#' ),
+		array(
+			'type'       => 'mega',
+			'label'      => 'Features',
+			'mega_style' => 'features',
+			'links'      => array( array( 'label' => 'Shown', 'url' => '/shown' ), array( 'label' => 'Empty', 'url' => '' ) ),
+			'categories' => array( array( 'groups' => array( array( 'links' => array( array( 'label' => 'Hidden dead', 'url' => '#' ) ) ) ) ) ),
+		),
+		array(
+			'type'       => 'mega',
+			'label'      => 'Only hidden',
+			'mega_style' => 'features',
+			'links'      => array(),
+			'categories' => array( array( 'groups' => array( array( 'links' => array( array( 'label' => 'Real but hidden', 'url' => '/hidden' ) ) ) ) ) ),
+		),
+	),
+);
+$messages = implode( "\n", array_column( $checker->readiness( $menu )['issues'], 'message' ) );
+check( false !== strpos( $messages, 'Add a link for "Dead"' ), 'Readiness flags a top link pointing at #' );
+check( false !== strpos( $messages, 'Add a link for "Empty"' ), 'Readiness flags an empty link in the active layout' );
+check( false === strpos( $messages, 'Hidden dead' ), 'Readiness ignores links in the hidden layout' );
+check( false !== strpos( $messages, 'real destination to Only hidden' ), 'Links hidden by the layout do not satisfy a mega item' );
+
+// Saved versions: bounded, deduplicated, restorable and undoable.
+$first = array( 'title' => 'First', 'items' => array() );
+$database_options[ ABMM_OPTION_KEY ]['versioned'] = $first;
+$cached_options[ ABMM_OPTION_KEY ]['versioned']   = $first;
+$second = array( 'title' => 'Second', 'items' => array() );
+$revision = $checker->revision( $checker->get_all()['versioned'] );
+check( true === $checker->save_if_revision( 'versioned', $second, $revision ), 'The test menu saves' );
+check( $checker->remember_version( 'versioned', $first ), 'A version is kept' );
+check( ! $checker->remember_version( 'versioned', $first ), 'The same version is not kept twice' );
+$other = array( 'title' => 'Other', 'items' => array() );
+check( ! $checker->remember_version( 'versioned', $other ), 'A burst of saves shares one version' );
+for ( $i = 0; $i < ABMM_Data::MAX_VERSIONS + 3; $i++ ) {
+	$checker->remember_version( 'versioned', array( 'title' => "Forced $i", 'items' => array() ), true );
+}
+check( ABMM_Data::MAX_VERSIONS === count( $checker->menu_versions( 'versioned' ) ), 'The history is bounded' );
+check( ! isset( $checker->menu_versions( 'versioned' )[0]['menu'] ), 'The list leaves out menu data' );
+check( ! $checker->remember_version( 'large', array( 'title' => str_repeat( 'x', ABMM_Data::MAX_VERSION_BYTES + 1 ) ), true ), 'An oversized menu is not kept' );
+$versions = $checker->menu_versions( 'versioned' );
+$now      = $checker->revision( $checker->get_all()['versioned'] );
+check( is_wp_error( $checker->restore_version( 'versioned', 'missing', $now ) ), 'An unknown version is refused' );
+check( is_wp_error( $checker->restore_version( 'versioned', $versions[0]['id'], 'stale' ) ), 'A stale restore is refused' );
+check( 'Second' === $checker->get_all()['versioned']['title'], 'A refused restore changes nothing' );
+check( true === $checker->restore_version( 'versioned', $versions[0]['id'], $now ), 'A saved version restores' );
+check( $versions[0]['title'] === $checker->get_all()['versioned']['title'], 'The menu is back to that version' );
+check( 'Second' === $checker->menu_versions( 'versioned' )[0]['title'], 'The replaced version is kept, so a restore can be undone' );
+
 echo "Readiness flags plain-text links and long labels.\n";

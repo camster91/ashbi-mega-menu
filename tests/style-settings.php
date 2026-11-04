@@ -47,6 +47,7 @@ function wp_generate_password( $length = 12 ) { return substr( md5( uniqid( '', 
 function wp_strip_all_tags( $text ) { return strip_tags( (string) $text ); }
 function wp_json_encode( $data ) { return json_encode( $data ); }
 function is_preview() { return false; }
+function get_bloginfo() { return 'Example Site'; }
 function is_admin() { return $GLOBALS['abmm_test_is_admin']; }
 function get_post_status() { return 'publish'; }
 function current_user_can() { return $GLOBALS['abmm_test_admin']; }

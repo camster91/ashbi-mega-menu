@@ -356,4 +356,263 @@ async function backupFixture(strings = {}) {
  assert.equal($('[data-abmm-workflow="content"]').attr('aria-current'),'step');
  assert.equal(f.window.document.activeElement,$('#abmm-readiness-panel')[0],'focus lands on the checklist');
  f.close();
+ await auditRegressions();
 })().catch(error=>{console.error(error);process.exitCode=1;});
+
+// Findings from the admin UX audit.
+async function auditRegressions(){
+ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const issueText=$=>$('.abmm-readiness-issues li').map((_,li)=>$(li).text()).get();
+ const payload=request=>JSON.parse(request.data.menu_data);
+
+ // Every settings control marks the menu dirty: static, so a new control cannot be forgotten.
+ const builderView=fs.readFileSync('admin/views/builder.php','utf8');
+ const panels=builderView.slice(builderView.indexOf('id="abmm-section-panel-settings"'),builderView.indexOf('id="abmm-section-panel-help"'));
+ const wired=source.slice(source.indexOf('var designSelectors = ['),source.indexOf("].join(', ');",source.indexOf('var designSelectors = [')));
+ for(const [tag] of panels.matchAll(/<(?:input|select)\b[^>]*\bid="abmm-[^"]+"[^>]*>/g)){
+  const id=/\bid="([^"]+)"/.exec(tag)[1];
+  if(/class="[^"]*abmm-color|type="hidden"|abmm-url-field|abmm-link-(target|rel|class)/.test(tag)) continue;
+  assert.ok(wired.includes("'#"+id+"'") || /abmm-(cta|brand)-/.test(id) && source.includes("'#"+id+"'"),id+' is missing from designSelectors, so changing it would not mark the menu dirty');
+ }
+ const settings=['<label><input type="checkbox" id="abmm-mobile-enhancements"></label>','<input type="checkbox" id="abmm-header-transparent">','<input type="number" id="abmm-header-z-index" value="1000">'];
+ for(const [selector,edit] of [['#abmm-mobile-enhancements',$el=>$el.prop('checked',true)],['#abmm-header-transparent',$el=>$el.prop('checked',true)],['#abmm-header-z-index',$el=>$el.val('50')]]){
+  const f=await fixture(false,false,null,'demo',menu,settings.join(''));
+  assert.match(f.$('.abmm-save-status').text(),/savedState/);
+  edit(f.$(selector)); f.$(selector).trigger('change');
+  assert.match(f.$('.abmm-save-status').text(),/unsavedState/,selector+' marks the menu dirty');
+  f.close();
+ }
+
+ // A placed menu says that saving updates the site; others keep the plain label.
+ let f=await fixture(); f.$('#abmm-builder').attr('data-menu-placed','1'); f.$('#abmm-menu-title').val('Changed').trigger('input');
+ assert.equal(f.$('.abmm-save-menu__label').text(),'Save and update site'); f.close();
+ f=await fixture(); f.$('#abmm-menu-title').val('Changed').trigger('input');
+ assert.equal(f.$('.abmm-save-menu__label').text(),'Save changes'); f.close();
+
+ // The checklist flags links that go nowhere, in the layout visitors see only.
+ const deadMenu={...menu,items:[
+  {id:'real',label:'Real',type:'link',url:'/real'},
+  {id:'dead',label:'Dead',type:'link',url:'#'},
+  {id:'mega',label:'Mega',type:'mega',mega_style:'features',links:[{id:'f1',label:'Shown',url:'/shown'},{id:'f2',label:'Empty feature',url:''}],categories:[{id:'c',title:'C',groups:[{id:'g',title:'G',links:[{id:'h1',label:'Hidden dead',url:'#'},{id:'h2',label:'Hidden broken',url:'about'}]}]}]},
+  {id:'only',label:'Only hidden',type:'mega',mega_style:'features',links:[],categories:[{id:'c2',title:'C2',groups:[{id:'g2',title:'G2',links:[{id:'h3',label:'Real but hidden',url:'/hidden'}]}]}]},
+ ]};
+ f=await fixture(false,false,null,'demo',deadMenu); let $=f.$;
+ let issues=issueText($);
+ assert.ok(issues.some(text=>text.includes('"Dead"')),'a top link pointing at # is flagged: '+JSON.stringify(issues));
+ assert.ok(issues.some(text=>text.includes('"Empty feature"')),'an empty link in the active layout is flagged');
+ assert.ok(!issues.some(text=>/Hidden (dead|broken)/.test(text)),'links in the hidden layout are not flagged');
+ assert.ok(issues.includes('checkMega'),'links hidden by the layout do not satisfy a mega item');
+ assert.equal($('[data-abmm-builder-section="content"] .abmm-issue-count').text(),String(issues.length),'the Content tab shows the issue count');
+ assert.equal($('[data-abmm-workflow="content"] .abmm-issue-count').text(),String(issues.length),'the Edit step shows the issue count');
+ // A link issue opens that row.
+ $('.abmm-readiness-issues button').filter((_,b)=>$(b).text().includes('"Dead"')).trigger('click');
+ assert.equal(f.window.document.activeElement,$('#abmm-nav-items .abmm-nav-item-row').eq(1).find('.abmm-nav-url')[0],'a top link issue focuses that row\'s URL');
+ assert.ok($('#abmm-nav-items .abmm-nav-item-row').eq(1).hasClass('is-expanded'),'the row opens');
+ // An issue whose field is on another tab switches to it first.
+ $('[data-abmm-builder-section-panel="settings"]').append('<input id="abmm-brand-title">');
+ $('.abmm-readiness-issues').append('<li><button type="button" data-field="abmm-brand-title">Logo</button></li>');
+ $('.abmm-readiness-issues button[data-field="abmm-brand-title"]').trigger('click');
+ assert.equal($('[data-abmm-builder-section-panel="settings"]').prop('hidden'),false,'a logo issue opens the Settings tab');
+ assert.equal(f.window.document.activeElement,$('#abmm-brand-title')[0],'and focuses the field');
+ f.close();
+
+ // Removing a row keeps keyboard focus nearby, and Undo does not expire on a timer.
+ assert.ok(!/statusTimer = setTimeout\(renderSaveState, 6000\)/.test(source),'Undo has no time limit');
+ const rows={...menu,items:['a','b','c'].map(id=>({id,label:id.toUpperCase(),type:'link',url:'/'+id}))};
+ f=await fixture(false,false,null,'demo',rows); $=f.$;
+ $('#abmm-nav-items .abmm-nav-item-row').eq(0).find('.abmm-remove-nav').trigger('click');
+ assert.equal($('#abmm-nav-items .abmm-nav-item-row').length,2);
+ assert.equal(f.window.document.activeElement.closest('.abmm-nav-item-row'),$('#abmm-nav-items .abmm-nav-item-row')[0],'focus moves to the next row');
+ await wait(30);
+ assert.equal($('.abmm-status-undo').length,1,'Undo is offered');
+ $('.abmm-status-undo').trigger('click');
+ assert.equal($('#abmm-nav-items .abmm-nav-item-row').length,3,'Undo restores the row');
+ f.close();
+
+ // Leaving with unsaved changes asks first, by every route.
+ f=await fixture(false,false,null,'demo',menu,'<button class="abmm-save-and-leave">Save and leave</button><div id="abmm-exit-dialog" hidden></div>'); $=f.$;
+ const leave=()=>{const e=new f.window.Event('beforeunload',{cancelable:true}); f.window.dispatchEvent(e); return e.defaultPrevented;};
+ assert.equal(leave(),false,'a clean menu leaves freely');
+ $('#abmm-menu-title').val('Changed').trigger('input');
+ assert.equal(leave(),true,'an unsaved menu asks before unload');
+ $('.abmm-save-and-leave').trigger('click');
+ assert.equal(f.requests.filter(r=>r.data.action==='abmm_save_menu').length,1,'Save and leave really saves');
+ f.close();
+
+ // A failed draft write is known, so the exit dialog can warn instead of promising a draft.
+ assert.ok(/state\.draftStoreFailed = true/.test(source));
+
+ // After a save conflict, Discard continues from the latest saved version.
+ f=await fixture(); $=f.$;
+ $('#abmm-menu-title').val('Mine').trigger('input'); $('.abmm-save-menu').trigger('click');
+ f.requests[f.requests.length-1].d.reject({responseJSON:{data:{conflict:true,message:'changed'}}});
+ assert.equal($('.abmm-save-menu').prop('disabled'),true);
+ $('.abmm-discard-draft').trigger('click');
+ const reload=f.requests[f.requests.length-1];
+ assert.equal(reload.data.action,'abmm_get_menu','discarding fetches the latest saved copy');
+ reload.d.resolve({success:true,data:{menu:{...menu,title:'Server copy'},revision:'revision-2'}});
+ assert.equal($('#abmm-menu-title').val(),'Server copy');
+ assert.equal($('.abmm-save-menu').prop('disabled'),false,'saving works again');
+ $('#abmm-menu-title').val('Next edit').trigger('input'); $('.abmm-save-menu').trigger('click');
+ assert.equal(f.requests[f.requests.length-1].data.base_revision,'revision-2','the next save cannot conflict on the old revision');
+ f.close();
+
+ // The draft panel says how old the draft is.
+ f=await fixture(false,false,{revision:'revision-1',menu:{...menu,title:'Draft'},updated:Date.now()},'demo',menu,'<p class="abmm-draft-recovery__age"></p>');
+ assert.match(f.$('.abmm-draft-recovery__age').text(),/Unsaved draft from/); f.close();
+
+ // A preset can no longer lose custom colors for good.
+ const presetGrid='<input type="hidden" id="abmm-preset" value="custom"><input id="abmm-accent" class="abmm-color" value="#111111"><div id="abmm-preset-grid"><button type="button" class="abmm-preset-card" data-preset="bold" data-values=\'{"accent":"#222222"}\'>Bold</button><button type="button" class="abmm-preset-card abmm-preset-card--custom" data-preset="custom" disabled>Custom</button></div>';
+ f=await fixture(false,false,null,'demo',{...menu,settings:{preset:'custom',accent:'#111111'}},presetGrid); $=f.$;
+ await wait(5);
+ assert.equal($('.abmm-preset-card--custom').prop('disabled'),false,'a custom menu has an active Custom card');
+ $('.abmm-preset-card[data-preset="bold"]').trigger('click');
+ assert.equal($('#abmm-accent').val(),'#222222');
+ assert.equal($('.abmm-status-undo').length,1,'replacing custom colors offers Undo');
+ assert.equal($('.abmm-preset-card--custom').prop('disabled'),false,'the Custom card stays available');
+ await wait(5);
+ $('.abmm-preset-card--custom').trigger('click');
+ assert.equal($('#abmm-accent').val(),'#111111','the Custom card brings the colors back');
+ assert.equal($('#abmm-preset').val(),'custom');
+ f.close();
+
+ // Low contrast and an unnamed logo get a hint, without blocking anything.
+ const hints='<div id="abmm-contrast-warning" hidden><ul></ul></div><p id="abmm-logo-alt-warning" hidden></p><input id="abmm-cta-text" class="abmm-color" value="#999999"><input id="abmm-accent" class="abmm-color" value="#aaaaaa"><input type="checkbox" id="abmm-brand-show" checked><input id="abmm-brand-logo-url" value="https://example.test/logo.png"><input id="abmm-brand-title"><input id="abmm-brand-alt">';
+ f=await fixture(false,false,null,'demo',{...menu,settings:{cta_text:'#999999',accent:'#aaaaaa'},brand:{show:true,logo_url:'https://example.test/logo.png',title:'',alt:''}},hints); $=f.$;
+ assert.equal($('#abmm-contrast-warning').prop('hidden'),false,'low contrast warns');
+ assert.match($('#abmm-contrast-warning li').text(),/contrast 1\.\d:1/);
+ assert.equal($('#abmm-logo-alt-warning').prop('hidden'),false,'a logo with no alt or title warns');
+ $('#abmm-brand-alt').val('Acme').trigger('change');
+ assert.equal($('#abmm-logo-alt-warning').prop('hidden'),true,'adding alt text clears it');
+ $('#abmm-cta-text').val('#ffffff').trigger('change'); $('#abmm-accent').val('#000000').trigger('change');
+ f.close();
+
+ // Switching a Classic menu to Ashbi keeps what switching back needs.
+ const classic='<select id="abmm-render-mode"><option value="emm-classic">Classic</option><option value="">Ashbi</option></select><input id="abmm-classic-toggle-label" value="Products">';
+ f=await fixture(false,false,null,'demo',{...menu,settings:{render_mode:'emm-classic',classic_edge_bleed:8,classic_phone_scroll_fix:true,classic_toggle_label:'Products',classic_bar_padding:'8px 16px',classic_plain_markup:true}},classic); $=f.$;
+ assert.equal($('#abmm-classic-toggle-label').val(),'Products');
+ $('#abmm-render-mode').val('').trigger('change'); $('.abmm-save-menu').trigger('click');
+ let saved=payload(f.requests[f.requests.length-1]).settings;
+ assert.equal(saved.render_mode,undefined,'the menu uses the Ashbi look');
+ assert.equal(saved.classic_origin,true,'its origin is recorded');
+ assert.equal(saved.classic_edge_bleed,8); assert.equal(saved.classic_phone_scroll_fix,true); assert.equal(saved.classic_toggle_label,'Products'); assert.equal(saved.classic_bar_padding,'8px 16px'); assert.equal(saved.classic_plain_markup,true);
+ f.close();
+ f=await fixture(false,false,null,'demo',{...menu,settings:{classic_origin:true,classic_edge_bleed:8}},classic.replace('<option value="">','<option value="" selected>')); $=f.$;
+ assert.equal($('#abmm-render-mode').val(),'','a switched menu loads as Ashbi');
+ $('#abmm-render-mode').val('emm-classic').trigger('change'); $('.abmm-save-menu').trigger('click');
+ saved=payload(f.requests[f.requests.length-1]).settings;
+ assert.equal(saved.render_mode,'emm-classic','and can switch back'); assert.equal(saved.classic_origin,undefined); assert.equal(saved.classic_edge_bleed,8);
+ f.close();
+ // An ordinary menu gains no Classic settings.
+ f=await fixture(); $=f.$; $('#abmm-menu-title').val('Changed').trigger('input'); $('.abmm-save-menu').trigger('click');
+ assert.ok(!Object.keys(payload(f.requests[f.requests.length-1]).settings).some(key=>/classic|render_mode/.test(key)),'other menus keep exactly their data');
+ f.close();
+
+ // Switching layout says the other layout's links are kept.
+ f=await fixture(false,false,null,'demo',deadMenu,'<button class="abmm-mega-style-card" data-style="platforms">C</button>'); $=f.$;
+ $('[data-abmm-preview-item="2"] > .abmm-nav__link').trigger('click');
+ await wait(5);
+ assert.equal(f.window.document.activeElement,$('[data-abmm-preview-item="2"] > .abmm-nav__link')[0],'a re-rendered preview gives focus back to the same item');
+ f.close();
+
+ // List page.
+ const list=async body=>{
+  const dom=new JSDOM('<body>'+body+'</body>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true});
+  const {window}=dom; const $=require('jquery')(window); window.jQuery=$;
+  window.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({archivePlacements:'%1$d %2$d %3$d %4$d',archiveConfirmTitle:'%1$s'},{get:(t,k)=>t[k]||String(k)})};
+  const requests=[]; $.post=(_,data)=>{const d=$.Deferred();requests.push({data,d});return d.promise();};
+  window.eval(source); window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
+  await wait(20);
+  return {window,$,requests,close:()=>window.close()};
+ };
+ const card='<div id="abmm-list-status"></div><div class="abmm-menu-card" data-menu-id="x"><button class="abmm-delete-menu" data-menu-id="x">Archive</button><button class="abmm-menu-versions" data-menu-id="x">Versions</button></div>';
+ for(const known of [2,0]){
+  f=await list(card); $=f.$;
+  $('.abmm-delete-menu').trigger('click');
+  f.requests[0].d.resolve({success:true,data:{blocks:0,widgets:0,shortcodes:0,other:known,known,warning:'w'}});
+  assert.equal($('.abmm-archive-confirm').hasClass('is-danger'),known>0,'a placed menu gets a danger confirm');
+  assert.equal($('.abmm-confirm-archive').hasClass('abmm-button-danger'),known>0);
+  assert.equal($('.abmm-confirm-archive').hasClass('button-primary'),known===0);
+  assert.equal(/disappear/.test($('.abmm-archive-confirm').text()),known>0,'the consequence is named');
+  assert.match($('.abmm-archive-confirm').text(),new RegExp('0 0 0 '+known),'page builder placements count');
+  f.close();
+ }
+ // Saved versions list and restore.
+ f=await list(card); $=f.$;
+ $('.abmm-menu-versions').trigger('click');
+ assert.equal(f.requests[0].data.action,'abmm_menu_versions');
+ f.requests[0].d.resolve({success:true,data:{revision:'rev-now',versions:[{id:'v1',saved_at:1,saved_label:'Today',items:3}]}});
+ assert.match($('.abmm-version-list').text(),/Today, 3 menu items/);
+ $('.abmm-restore-version').trigger('click');
+ assert.equal(f.requests[1].data.action,'abmm_restore_menu_version');
+ assert.equal(f.requests[1].data.version_id,'v1'); assert.equal(f.requests[1].data.base_revision,'rev-now');
+ f.close();
+ // A double-click cannot permanently delete, and the armed state expires.
+ f=await list('<div id="abmm-list-status"></div><div class="abmm-archive-row"><button class="abmm-permanent-delete" data-menu-id="x">Permanently delete</button></div>'); $=f.$;
+ const button=$('.abmm-permanent-delete')[0];
+ button.dispatchEvent(new f.window.MouseEvent('click',{bubbles:true,detail:1}));
+ button.dispatchEvent(new f.window.MouseEvent('click',{bubbles:true,detail:2}));
+ assert.equal(f.requests.length,0,'the second click of a double-click is ignored');
+ button.dispatchEvent(new f.window.MouseEvent('click',{bubbles:true,detail:1}));
+ assert.equal(f.requests[0].data.action,'abmm_permanently_delete_menu','a separate second click confirms');
+ f.close();
+ // Opening the recovery panel loads its list, once.
+ f=await list('<details id="abmm-backup-panel" open><button class="abmm-load-backups">Refresh</button><div id="abmm-backup-list"></div><div id="abmm-backup-status"></div></details>'); $=f.$;
+ $('#abmm-backup-panel').trigger('toggle');
+ assert.equal(f.requests[0].data.action,'abmm_list_backups');
+ f.close();
+ // The checklist speaks to a menu that is already on the site.
+ f=await fixture(false,false,null,'demo',{...menu,items:[{id:'home',label:'Home',type:'link',url:'#'}]}); $=f.$;
+ assert.match($('.abmm-readiness-summary').text(),/before you place this menu/,'an unplaced menu is told to fix things before placing it');
+ f.close();
+ {
+  const placed=new JSDOM('<body><div id="abmm-builder" data-menu-id="demo" data-menu-revision="r" data-menu-placed="1"><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></div><script id="abmm-menu-data" type="application/json">'+JSON.stringify({...menu,items:[{id:'home',label:'Home',type:'link',url:'#'}]})+'</script></body>',{url:'http://localhost/',runScripts:'outside-only'});
+  const w=placed.window; const jq=require('jquery')(w); w.jQuery=jq; w.matchMedia=()=>({matches:false}); jq.fn.wpColorPicker=jq.fn.sortable=function(){return this;};
+  w.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({},{get:(_,key)=>String(key)}),icons:[]}; jq.post=()=>jq.Deferred().promise();
+  w.eval(source); w.document.dispatchEvent(new w.Event('DOMContentLoaded')); await wait(20);
+  assert.match(jq('.abmm-readiness-summary').text(),/to fix on this menu\.$/,'a placed menu is not told to place it');
+  w.close();
+ }
+
+ // A save with no edits changes nothing, using the real editor form.
+ const editorForm=fs.readFileSync('admin/views/builder.php','utf8').replace(/<\?php[\s\S]*?\?>/g,'');
+ const defaults={preset:'classic',mobile_enhancements:true,presentation:'stacked',layout:'sidebar-right',sidebar_bg:'#f0f0f5',active_bg:'#ffffff',panel_bg:'#ffffff',header_bg:'#ffffff',header_transparent:true,header_z_index:2000,accent:'#1a73e8',text_color:'#2c2c2c',nav_link_color:'#2c2c2c',nav_hover_color:'#1a73e8',muted_color:'#6b6b6b',border_color:'#e5e5ea',cta_text:'#ffffff',icon_inherit_text:false,icon_color:'#2c2c2c',icon_hover_color:'#1a73e8',icon_active_color:'#1a73e8',icon_size:24,icon_background:'',icon_border_color:'',icon_radius:4,grid_columns:4,panel_width:900,full_width:false,sidebar_width:300,border_radius:6,shadow:'large',nav_align:'left',cta_style:'square',uppercase_cats:true,show_cat_desc:false,panel_title_align:'left',style:{panel_height_mode:'fixed',panel_height:600,font_family_mode:'inherit'}};
+ const stored={title:'Main',items:[{id:'home',label:'Home',type:'link',url:'/',target:'_blank',rel:'nofollow',class:'x'},{id:'prod',label:'Products',type:'mega',url:'',columns:2,categories:[{id:'c1',title:'One',groups:[{id:'g1',title:'',links:[{id:'l1',label:'A',url:'/a'}]}]}]}],cta:{show:true,label:'Go',url:'/go',target:'_blank',rel:'nofollow',class:'cta'},brand:{show:true,title:'Brand',url:'/',logo_url:'/l.png',logo_dark_url:'/d.png',alt:'Brand',logo_height:48,target:'_blank',rel:'noopener',class:'site-logo'},context:{label:'Old'}};
+ const roundTrip=async(settings,classic)=>{
+  const data={...stored,settings};
+  const dom=new JSDOM('<body>'+editorForm+'</body>',{url:'http://localhost/',runScripts:'outside-only'});
+  const w=dom.window; const jq=require('jquery')(w); w.jQuery=jq; w.matchMedia=()=>({matches:false});
+  jq.expr.pseudos.visible=el=>!el.hidden&&!el.closest('[hidden]'); jq.fn.wpColorPicker=jq.fn.sortable=function(){return this;};
+  jq('#abmm-builder').attr({'data-menu-id':'demo','data-menu-revision':'r','data-menu-placed':'1'});
+  // PHP prints the stored values into the form. It is stripped here, so a restored draft fills the form instead.
+  jq('#abmm-menu-data').text(JSON.stringify({...data,title:'Before the draft'}));
+  w.localStorage.setItem('abmmDraft:demo',JSON.stringify({revision:'r',updated:Date.now(),menu:data}));
+  // The PHP that prints Classic controls and option lists is gone: match what it would print.
+  if(!classic){ jq('#abmm-render-mode').closest('label').remove(); jq('.abmm-classic-notice').remove(); }
+  ['abmm-brand-logo-url','abmm-brand-logo-dark-url'].forEach(id=>{ if(!jq('#'+id).length) jq('#abmm-builder').append(jq('<input>').attr('id',id)); });
+  const sel=(id,v)=>{const el=jq(id); if(el.is('select')&&!el.find('option').filter((_,o)=>o.value===String(v)).length) el.append(jq('<option>').val(String(v)));};
+  sel('#abmm-layout',settings.layout); sel('#abmm-nav-align',settings.nav_align); sel('#abmm-grid-cols',settings.grid_columns); sel('#abmm-shadow',settings.shadow); sel('#abmm-cta-style',settings.cta_style); sel('#abmm-panel-title-align',settings.panel_title_align);
+  w.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({},{get:(_,key)=>String(key)}),icons:[]};
+  const posts=[]; jq.post=(_,body)=>{posts.push(body);return jq.Deferred().promise();};
+  w.eval(source); w.document.dispatchEvent(new w.Event('DOMContentLoaded')); await wait(30);
+  jq('.abmm-restore-draft').trigger('click');
+  jq('.abmm-save-menu').first().trigger('click');
+  const body=posts.filter(p=>p.action==='abmm_save_menu').pop();
+  assert.ok(body,'the editor posts a save');
+  const sent=JSON.parse(body.menu_data);
+  w.close();
+  return sent;
+ };
+ const sorted=v=>Array.isArray(v)?v.map(sorted):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,sorted(v[k])])):v;
+ let sent=await roundTrip(defaults,false);
+ assert.deepEqual(sorted(sent),sorted({...stored,settings:defaults}),'a native menu saves unchanged');
+ const classicSettings={...defaults,render_mode:'emm-classic',classic_edge_bleed:8,classic_phone_scroll_fix:true,classic_toggle_label:'Products',classic_bar_padding:'8px 16px',classic_plain_markup:true};
+ sent=await roundTrip(classicSettings,true);
+ assert.deepEqual(sorted(sent),sorted({...stored,settings:classicSettings}),'a Classic menu saves unchanged, keeping settings with no control');
+
+ // Controls that were taken out of the editor stay out.
+ for(const id of ['abmm-classic-phone-scroll-fix','abmm-classic-bar-padding','abmm-classic-plain-markup']) assert.ok(!editorForm.includes(id),id+' is not offered in the editor');
+
+ // Import errors stay until the next attempt.
+ assert.ok(/if \(msg && !isError\) \{\s+state\.importStatusTimer/.test(source),'import errors do not time out');
+}

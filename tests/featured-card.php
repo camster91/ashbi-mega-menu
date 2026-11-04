@@ -51,6 +51,7 @@ function home_url( $path = '' ) { return 'https://example.test' . $path; }
 function wp_generate_password( $length = 12 ) { return substr( md5( uniqid( '', true ) ), 0, $length ); }
 function wp_strip_all_tags( $text ) { return strip_tags( (string) $text ); }
 function is_preview() { return false; }
+function get_bloginfo() { return 'Example Site'; }
 function get_post_status() { return 'publish'; }
 function add_action() {}
 function add_filter() {}
@@ -189,5 +190,22 @@ $columns['links'] = array( array( 'label' => 'Blog', 'url' => '/blog/', 'descrip
 $html = $render( $columns );
 verify_featured( 1 === preg_match( '#<span class="abmm-mega__grid-copy">\s*<span class="abmm-mega__grid-label">Blog</span>\s*<span class="abmm-mega__grid-description">News &amp; updates</span>#', $html ), 'A simple-column link shows its escaped description.' );
 verify_featured( 1 === substr_count( $html, 'abmm-mega__grid-copy' ), 'A link without a description keeps the plain label.' );
+
+// Links that open a new tab say so to screen readers; other links stay as they were.
+$new_tab = $mega( 'features' );
+$new_tab['links'] = array( array( 'label' => 'Docs', 'url' => '/docs/', 'target' => '_blank' ), array( 'label' => 'Guides', 'url' => '/guides/' ) );
+$html = $render( $new_tab );
+verify_featured( 1 === substr_count( $html, 'abmm-new-tab-note' ), 'Only the link that opens a new tab gets a note.' );
+verify_featured( 1 === preg_match( '#target="_blank"[^>]*>.*?abmm-new-tab-note"> \(opens in a new tab\)</span></a>#s', $html ), 'The note is inside its link.' );
+$html = $render( $columns );
+verify_featured( false === strpos( $html, 'abmm-new-tab-note' ), 'A menu with no new-tab links gains no note.' );
+
+// A linked logo with no alt text or title is named after the site; an unlinked one stays decorative.
+$logo_html = function ( $url ) use ( $data ) {
+	$GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ] = array( 'test' => $data->sanitize_menu( array( 'title' => 'Test', 'items' => array(), 'brand' => array( 'show' => true, 'title' => '', 'alt' => '', 'url' => $url, 'logo_url' => 'https://example.test/logo.svg' ) ) ) );
+	return ABMM_Frontend::instance()->render( 'test' );
+};
+verify_featured( false !== strpos( $logo_html( 'https://example.test/' ), 'alt="Example Site"' ), 'A linked logo with no alt text is named after the site.' );
+verify_featured( false !== strpos( $logo_html( '' ), 'alt=""' ), 'An unlinked logo with no alt text stays decorative.' );
 
 echo "Featured card sanitising and rendering checks passed.\n";

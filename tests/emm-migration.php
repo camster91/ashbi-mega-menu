@@ -45,6 +45,9 @@ class ABMM_Test_DB {
 		}
 		return false !== strpos( $query, ' LIKE ' ) ? ( $GLOBALS['abmm_content_uses_shortcode'] ? '7' : null ) : '1';
 	}
+	public function get_col( $query ) {
+		return $GLOBALS['abmm_test_elementor'] ?? array();
+	}
 	public function get_results( $query ) {
 		$rows = array();
 		foreach ( $GLOBALS['abmm_meta'] as $post_id => $meta ) {
@@ -98,6 +101,7 @@ function trailingslashit( $path ) { return rtrim( $path, '/\\' ) . '/'; }
 function wp_generate_password( $length = 12 ) { return substr( md5( uniqid( '', true ) ), 0, $length ); }
 function wp_generate_uuid4() { static $i = 0; return 'backup-' . ++$i; }
 function is_preview() { return false; }
+function get_bloginfo() { return 'Example Site'; }
 function get_post_status() { return 'publish'; }
 function get_queried_object_id() { return 0; }
 function get_the_ID() { return 0; }
@@ -328,6 +332,73 @@ verify_migration( array( 'menu_demo-copy' ) === $migration->menus_in_use( array(
 unset( $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
 verify_migration( array() === $migration->menus_in_use( array( 'menu_demo-copy' ) ), 'Nothing is listed when no page places a menu.' );
 unset( $GLOBALS['abmm_test_content'], $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
+
+// Classic options stay with a menu switched to the Ashbi look, and no other menu gains them.
+$plain = ABMM_Data::instance()->sanitize_menu( array( 'title' => 'Plain', 'items' => array(), 'settings' => array( 'classic_edge_bleed' => 8, 'classic_toggle_label' => 'No' ) ) );
+verify_migration( ! array_filter( array_keys( $plain['settings'] ), function ( $key ) { return 0 === strpos( $key, 'classic_' ) || 'render_mode' === $key; } ), 'An ordinary menu gains no Classic settings.' );
+$switched = ABMM_Data::instance()->sanitize_menu( array( 'title' => 'Switched', 'items' => array(), 'settings' => array( 'classic_origin' => true, 'classic_edge_bleed' => 8, 'classic_toggle_label' => '<b>Products</b>' ) ) );
+verify_migration( true === $switched['settings']['classic_origin'] && ! isset( $switched['settings']['render_mode'] ), 'A switched menu records its origin and uses the Ashbi look.' );
+verify_migration( 8 === $switched['settings']['classic_edge_bleed'] && 'Products' === $switched['settings']['classic_toggle_label'], 'A switched menu keeps its Classic options, sanitized.' );
+$classic_menu = ABMM_Data::instance()->sanitize_menu( array( 'title' => 'Classic', 'items' => array(), 'settings' => array( 'render_mode' => 'emm-classic', 'classic_origin' => true, 'classic_toggle_label' => str_repeat( 'x', 60 ) ) ) );
+verify_migration( 'emm-classic' === $classic_menu['settings']['render_mode'] && ! isset( $classic_menu['settings']['classic_origin'] ), 'A Classic menu needs no origin flag.' );
+verify_migration( 40 === strlen( $classic_menu['settings']['classic_toggle_label'] ), 'The toggle label is capped.' );
+verify_migration( 'Clean' === ABMM_Data::design_presets()['classic']['label'], 'The default preset no longer shares a name with the Classic look.' );
+
+// A re-import keeps edits unless a row is ticked, and each replaced menu can be rolled back.
+$edited                 = ABMM_Data::instance()->get_all();
+$edited['main_nav']['title'] = 'My edits';
+ABMM_Data::instance()->replace_all( $edited );
+$rows = array_column( $migration->preview()['menus'], null, 'id' );
+verify_migration( ! empty( $rows['main_nav']['edited'] ), 'Preview spots an imported menu that no longer matches Easy Mega Menu.' );
+$_POST = array( '_wpnonce' => 'valid', 'abmm_select_menus' => '1' );
+try { $migration->handle_import(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( false !== strpos( $stop->getMessage(), 'abmm_notice=imported' ), 'Importing nothing still finishes.' ); }
+verify_migration( 'My edits' === ABMM_Data::instance()->get_all()['main_nav']['title'], 'An unticked row keeps its edits.' );
+$_POST = array( '_wpnonce' => 'valid', 'abmm_select_menus' => '1', 'menus' => array( 'main_nav' ) );
+try { $migration->handle_import(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( false !== strpos( $stop->getMessage(), 'abmm_notice=imported' ), 'Importing a ticked row finishes.' ); }
+verify_migration( 'My edits' !== ABMM_Data::instance()->get_all()['main_nav']['title'], 'A ticked row replaces the edits.' );
+verify_migration( 'My edits' === ( ABMM_Data::instance()->menu_versions( 'main_nav' )[0]['title'] ?? '' ), 'The replaced menu keeps a saved version.' );
+
+// The switch will not blank a placed header without being told to.
+$GLOBALS['abmm_test_content'] = '[easy_mega_menu id="not_imported"]';
+$saved_source                 = $GLOBALS['abmm_options']['emm_menus'];
+$GLOBALS['abmm_options']['emm_menus']['not_imported'] = $saved_source['main_nav'];
+unset( $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
+verify_migration( array( 'not_imported' ) === $migration->placed_but_not_imported( true ), 'Placed menus that were not imported are found.' );
+verify_migration( $migration->is_source_menu( 'not_imported' ) && ! $migration->is_source_menu( 'unknown_id' ), 'Easy Mega Menu IDs are recognised.' );
+$_POST = array( '_wpnonce' => 'valid', 'takeover' => '1' );
+try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( false !== strpos( $stop->getMessage(), 'abmm_notice=takeover_blocked' ) && ! ABMM_EMM_Migration::takeover_enabled(), 'The switch stays off when placed menus are missing.' ); }
+$_POST = array( '_wpnonce' => 'valid', 'takeover' => '1', 'confirm_missing' => '1' );
+try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( ABMM_EMM_Migration::takeover_enabled(), 'An explicit confirmation turns it on.' ); }
+verify_migration( false !== strpos( $notice( 'dashboard' ), 'not_imported' ), 'With the switch on, administrators are told which headers are empty.' );
+$_POST = array( '_wpnonce' => 'valid' );
+try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( ! ABMM_EMM_Migration::takeover_enabled(), 'The switch turns off again.' ); }
+$GLOBALS['abmm_options']['emm_menus'] = $saved_source;
+unset( $GLOBALS['abmm_test_content'], $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
+
+// The plugin's own Elementor widget counts as a placement, nested at any depth.
+$abmm_widget_tree = json_encode(
+	array(
+		array(
+			'elType'   => 'container',
+			'elements' => array(
+				array( 'elType' => 'widget', 'widgetType' => 'ashbi-mega-menu', 'settings' => array( 'menu_id' => 'widget_menu' ), 'elements' => array() ),
+				array( 'elType' => 'widget', 'widgetType' => 'heading', 'settings' => array( 'menu_id' => 'not_ours' ), 'elements' => array() ),
+			),
+		),
+	)
+);
+$GLOBALS['abmm_test_elementor'] = array( $abmm_widget_tree, '{not json' );
+unset( $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
+verify_migration( $migration->elementor_widget_uses_menu( 'widget_menu' ), 'A menu shown by the Elementor widget is found.' );
+verify_migration( ! $migration->elementor_widget_uses_menu( 'not_ours' ), 'Other widgets with the same setting name do not count.' );
+verify_migration( ! $migration->elementor_widget_uses_menu( 'widget' ), 'A partial menu ID does not match.' );
+$GLOBALS['abmm_test_elementor'] = array();
+verify_migration( $migration->elementor_widget_uses_menu( 'widget_menu' ), 'The widget search is cached.' );
+verify_migration( ! $migration->elementor_widget_uses_menu( 'widget_menu', true ), 'A fresh search sees the widget has gone.' );
+$abmm_first_menu = (string) array_key_first( ABMM_Data::instance()->get_all() );
+$GLOBALS['abmm_test_elementor'] = array( json_encode( array( array( 'widgetType' => 'ashbi-mega-menu', 'settings' => array() ) ) ) );
+verify_migration( '' !== $abmm_first_menu && $migration->elementor_widget_uses_menu( $abmm_first_menu, true ), 'A widget left at its default shows the first menu.' );
+unset( $GLOBALS['abmm_test_elementor'], $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
 
 // While Easy Mega Menu still runs a site with imported menus, Ashbi adds no body classes.
 define( 'EMM_VERSION', '1.6.76' );

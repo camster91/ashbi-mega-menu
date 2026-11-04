@@ -10,6 +10,9 @@
 	var OVERFLOW_HYSTERESIS = 16;
 	var STACK_HOST_CLASS = 'abmm-stack-host--active';
 	var OBSCURED_HEADER_CLASS = 'abmm-obscured-by-open-menu';
+	// A pointer passing over the bar or the category rail should not change anything.
+	var HOVER_OPEN_DELAY = 100;
+	var CATEGORY_HOVER_DELAY = 120;
 
 	function closest(el, sel) {
 		while (el && el.nodeType === 1) {
@@ -113,6 +116,54 @@
 		if (target && typeof target.focus === 'function') target.focus();
 	}
 
+	/** Focus a keyboard user placed in this header, as opposed to focus left by a click. */
+	function hasKeyboardFocus(header) {
+		var active = document.activeElement;
+		if (!active || !header.contains(active)) return false;
+		try {
+			return active.matches(':focus-visible');
+		} catch (err) {
+			return true;
+		}
+	}
+
+	/**
+	 * While a drawer is open, everything outside it is out of reach for keyboards
+	 * and assistive technology. The header can be nested deep in theme markup, so
+	 * walk up from it and mark the siblings along the way.
+	 */
+	function setOutsideInert(header, on) {
+		(header.__ashbiMegaMenuInert || []).forEach(function (element) {
+			element.removeAttribute('inert');
+		});
+		header.__ashbiMegaMenuInert = [];
+		if (!on) return;
+		var node = header;
+		while (node && node !== document.body && node.parentElement) {
+			Array.prototype.forEach.call(node.parentElement.children, function (sibling) {
+				if (sibling === node || sibling.id === 'wpadminbar' || sibling.hasAttribute('inert')) return;
+				if (sibling.matches('script, style, link, template, noscript')) return;
+				sibling.setAttribute('inert', '');
+				header.__ashbiMegaMenuInert.push(sibling);
+			});
+			node = node.parentElement;
+		}
+	}
+
+	/** Screen readers hear which menu a drilled-in screen belongs to. */
+	function ensureLiveRegion(header) {
+		var drawer = header.querySelector('.abmm-nav__drawer');
+		if (!drawer) return null;
+		var region = drawer.querySelector('[data-abmm-live]');
+		if (region) return region;
+		region = document.createElement('span');
+		region.className = 'abmm-live-region';
+		region.setAttribute('data-abmm-live', '');
+		region.setAttribute('role', 'status');
+		drawer.appendChild(region);
+		return region;
+	}
+
 	/**
 	 * Public events for add-ons (analytics, logging), dispatched on the menu
 	 * root and bubbling. The plugin itself never sends them anywhere.
@@ -163,6 +214,8 @@
 		});
 		var bar = mega.querySelector('[data-abmm-mobile-bar]');
 		if (bar) bar.hidden = true;
+		mega.removeAttribute('role');
+		mega.removeAttribute('aria-label');
 	}
 
 	function setSectionOpen(section, open) {
@@ -211,16 +264,18 @@
 		bar.className = 'abmm-mobile-bar';
 		bar.setAttribute('data-abmm-mobile-bar', '');
 		bar.innerHTML =
-			'<button type="button" class="abmm-mobile-back" data-abmm-back aria-label="Back">' +
+			'<button type="button" class="abmm-mobile-back" data-abmm-back>' +
 			'<svg width="18" height="18" viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
 			'<span></span></button>' +
 			'<span class="abmm-mobile-title" data-abmm-mobile-title></span>' +
-			'<button type="button" class="abmm-nav__drawer-close abmm-mobile-close" data-abmm-drawer-close aria-label="Close menu">' +
+			'<button type="button" class="abmm-nav__drawer-close abmm-mobile-close" data-abmm-drawer-close>' +
 			'<span aria-hidden="true">&times;</span></button>';
 		// The visible label is shown in every drawer, so use the translated word when the page provides it.
 		var header = closest(mega, '.abmm-header');
-		bar.querySelector('.abmm-mobile-back span').textContent =
-			(header && header.getAttribute('data-abmm-back-label')) || runtimeString('back', 'Back');
+		var backLabel = (header && header.getAttribute('data-abmm-back-label')) || runtimeString('back', 'Back');
+		bar.querySelector('.abmm-mobile-back span').textContent = backLabel;
+		bar.querySelector('[data-abmm-back]').setAttribute('aria-label', backLabel);
+		bar.querySelector('.abmm-mobile-close').setAttribute('aria-label', runtimeString('closeMenu', 'Close menu'));
 		mega.insertBefore(bar, mega.firstChild);
 		return bar;
 	}
@@ -258,7 +313,9 @@
 			var url;
 			try { url = new URL(href, document.baseURI); } catch (err) { return; }
 			if (!/^https?:$/.test(url.protocol)) return;
-			var title = link.textContent.replace(/\s+/g, ' ').trim();
+			var titleCopy = link.cloneNode(true);
+			titleCopy.querySelectorAll('.abmm-new-tab-note').forEach(function (note) { note.remove(); });
+			var title = titleCopy.textContent.replace(/\s+/g, ' ').trim();
 			if (!title) return;
 			var section = closest(link, '.abmm-mega__section');
 			var cat = section && section.querySelector('.abmm-mega__cat-title');
@@ -352,7 +409,6 @@
 		var headerRect = header.getBoundingClientRect();
 		var preferred = '.e-con-inner, .elementor-container, .site-header__inner, .header-inner, .container';
 		var fallback = null;
-		var fullWidthFallback = null;
 		var node = header.parentElement;
 
 		while (node && node !== document.documentElement) {
@@ -366,23 +422,27 @@
 			};
 			var isUsable = contentRect.width > headerRect.width + 64 && contentRect.width <= window.innerWidth - 16;
 			if (isUsable && node.matches && node.matches(preferred)) return contentRect;
-			if (
-				isUsable &&
-				!fullWidthFallback &&
-				rect.left <= 16 &&
-				rect.right >= window.innerWidth - 16
-			) {
-				fullWidthFallback = contentRect;
-			}
 			if (isUsable && contentRect.width <= panelWidth + 32 && (!fallback || contentRect.width > fallback.width)) {
 				fallback = contentRect;
 			}
 			node = node.parentElement;
 		}
 
-		return fullWidthFallback || fallback || {
-			left: 16,
-			width: Math.max(0, window.innerWidth - 32)
+		if (fallback) return fallback;
+
+		// No known container: line the panel up with the menu rather than the
+		// screen, which can be far wider. A panel wider than the menu is centred on it.
+		var navRect = (header.querySelector('.abmm-nav') || header).getBoundingClientRect();
+		var left = navRect.left;
+		var width = navRect.width;
+		if (panelWidth > width) {
+			left -= (panelWidth - width) / 2;
+			width = panelWidth;
+		}
+		left = Math.max(16, left);
+		return {
+			left: left,
+			width: Math.max(0, Math.min(width, window.innerWidth - 16 - left))
 		};
 	}
 
@@ -400,19 +460,11 @@
 			accordion.style.removeProperty('--abmm-active-panel-height');
 			return;
 		}
-		// Use the tallest category so switching categories does not make the panel jump.
-		// The panel column stretches to the accordion's height so its footer strip
-		// sits on the bottom edge. Measure without the previous value, then use the
-		// taller of the category rail and the tallest category's content so
-		// switching categories does not make the panel jump.
+		// Fit the category on show: reserving the tallest one leaves most of the
+		// panel empty under a short list. Measure without the previous value, then
+		// use the taller of the category rail and this category's content.
 		accordion.style.removeProperty('--abmm-active-panel-height');
-		var height = Math.ceil(accordion.getBoundingClientRect().height);
-		mega.querySelectorAll('.abmm-mega__panel').forEach(function (other) {
-			var wasHidden = other.hidden;
-			other.hidden = false;
-			height = Math.max(height, panelContentHeight(other));
-			other.hidden = wasHidden;
-		});
+		var height = Math.max(Math.ceil(accordion.getBoundingClientRect().height), panelContentHeight(panel));
 		// The featured card is positioned beside the columns, so it adds no height
 		// of its own. Keep the panel tall enough for it.
 		var featured = accordion.querySelector(':scope > .abmm-mega__featured');
@@ -581,8 +633,18 @@
 		item.setAttribute('data-drill', 'links');
 		header.setAttribute('data-drill-level', '2');
 		setMobileBar(panel, label, true);
+		panel.setAttribute('role', 'group');
+		panel.setAttribute('aria-label', label);
+		var liveRegion = ensureLiveRegion(header);
+		if (liveRegion) liveRegion.textContent = label;
 
-		header.querySelector('.abmm-nav__drawer').scrollTop = 0;
+		var drillDrawer = header.querySelector('.abmm-nav__drawer');
+		// A first category taller than the screen would bury the others below it.
+		var firstSection = panel.querySelector('.abmm-mega__section');
+		if (firstSection && firstSection.getBoundingClientRect().height > drillDrawer.clientHeight) {
+			setSectionCollapsed(firstSection, true);
+		}
+		drillDrawer.scrollTop = 0;
 		window.requestAnimationFrame(function () {
 			if (isFeatures) {
 				focusFirst(panel, panel.querySelector('[data-abmm-back]'));
@@ -618,6 +680,33 @@
 	}
 
 
+	/* Anything can end an open drawer from outside: a site script removing its
+	 * class, a visibility rule hiding it on rotation, a builder replacing it. The
+	 * page must never stay inert behind a drawer nobody can see. Runs only while
+	 * a drawer is open. */
+	function watchOpenDrawer(header, on) {
+		if (header.__ashbiMegaMenuDrawerWatch) {
+			header.__ashbiMegaMenuDrawerWatch();
+			header.__ashbiMegaMenuDrawerWatch = null;
+		}
+		if (!on || !window.MutationObserver) return;
+		var root = document.documentElement;
+		var check = function () {
+			var present = root.contains(header) && header.classList.contains('is-mobile-open');
+			// A page with no layout has nothing to measure, so only a missing box
+			// on a page that does have one counts as hidden.
+			var hidden = !header.getClientRects().length && root.getClientRects().length > 0;
+			if (!present || hidden) setDrawerOpen(header, false, false);
+		};
+		var observer = new MutationObserver(check);
+		observer.observe(root, { attributes: true, attributeFilter: ['class', 'style', 'hidden'], childList: true, subtree: true });
+		window.addEventListener('resize', check);
+		header.__ashbiMegaMenuDrawerWatch = function () {
+			observer.disconnect();
+			window.removeEventListener('resize', check);
+		};
+	}
+
 	function setDrawerOpen(header, open, restoreFocus) {
 		var toggle = header.querySelector('.abmm-nav__toggle');
 		var backdrop = header.querySelector('[data-abmm-backdrop]');
@@ -629,6 +718,8 @@
 		}
 		var wasOpen = header.classList.contains('is-mobile-open');
 		header.classList.toggle('is-mobile-open', open);
+		setOutsideInert(header, open && isMobile(header));
+		watchOpenDrawer(header, open && isMobile(header));
 		if (wasOpen !== !!open) emit(header, 'abmm:drawer', { open: !!open });
 		syncActiveStackHost();
 		if (toggle) {
@@ -647,7 +738,10 @@
 		} else {
 			updateMobileGeometry(header);
 			window.requestAnimationFrame(function () {
-				focusFirst(drawer, toggle);
+				var browsable = drawer ? visibleFocusable(drawer).filter(function (element) {
+					return !element.matches('input');
+				}) : [];
+				focusFirst(null, browsable[0] || toggle);
 			});
 		}
 	}
@@ -758,7 +852,7 @@
 			.replace(/[^A-Za-z0-9_-]+/g, '-')
 			.replace(/^-+|-+$/g, '') || 'clone';
 
-		header.querySelectorAll('[id]').forEach(function (element) {
+		[header].concat(Array.prototype.slice.call(header.querySelectorAll('[id]'))).forEach(function (element) {
 			var originalId = element.id;
 			if (!originalId || document.getElementById(originalId) === element) return;
 
@@ -799,10 +893,14 @@
 			var brand = closest(logo, '.abmm-nav__brand');
 			if (!brand) return;
 			var sync = function () {
-				brand.classList.toggle(
-					'abmm-nav__brand--logo-failed',
-					logo.complete && logo.naturalWidth === 0
-				);
+				var failed = logo.complete && logo.naturalWidth === 0;
+				brand.classList.toggle('abmm-nav__brand--logo-failed', failed);
+				// The fallback text is the link's name once the image is gone.
+				var fallbackText = brand.querySelector('.abmm-nav__brand-fallback');
+				if (fallbackText) {
+					if (failed) fallbackText.removeAttribute('aria-hidden');
+					else fallbackText.setAttribute('aria-hidden', 'true');
+				}
 			};
 			logo.addEventListener('load', sync);
 			logo.addEventListener('error', sync);
@@ -823,11 +921,28 @@
 		header.__ashbiMegaMenuInitialized = true;
 		header.setAttribute('data-abmm-initialized', 'true');
 		initMenuSearch(header);
+		ensureLiveRegion(header);
 
 		var hoverMq = window.matchMedia('(hover: hover) and (pointer: fine)');
 		var desktopOpenMode = header.getAttribute('data-abmm-desktop-open') === 'click' ? 'click' : 'hover';
-		var desktopCloseDelay = 800;
+		var desktopCloseDelay = 280;
 		var closeTimer = null;
+		var openTimer = null;
+		var categoryTimer = null;
+
+		function clearOpenTimer() {
+			if (openTimer) {
+				clearTimeout(openTimer);
+				openTimer = null;
+			}
+		}
+
+		function clearCategoryTimer() {
+			if (categoryTimer) {
+				clearTimeout(categoryTimer);
+				categoryTimer = null;
+			}
+		}
 
 		function clearCloseTimer() {
 			if (closeTimer) {
@@ -847,7 +962,7 @@
 				if (
 					(openItem && openItem.__ashbiMegaMenuClickOpen === true) ||
 					(header.matches && header.matches(':hover')) ||
-					header.contains(document.activeElement)
+					hasKeyboardFocus(header)
 				) return;
 				closeAllMegas(header);
 			}, desktopCloseDelay);
@@ -861,12 +976,24 @@
 			item.addEventListener('mouseenter', function () {
 				if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
 				clearCloseTimer();
+				clearOpenTimer();
 				if (item.classList.contains('abmm-nav__item--mega')) {
-					if (!item.classList.contains('is-open')) openMegaDesktop(item);
+					if (item.classList.contains('is-open')) return;
+					// Moving between open panels is immediate; a pointer only passing
+					// over the bar opens nothing.
+					if (document.querySelector('.abmm-nav__item--mega.is-open')) {
+						openMegaDesktop(item);
+						return;
+					}
+					openTimer = setTimeout(function () {
+						openTimer = null;
+						if (!isMobile(header)) openMegaDesktop(item);
+					}, HOVER_OPEN_DELAY);
 				} else {
 					closeAllMegas(header);
 				}
 			});
+			item.addEventListener('mouseleave', clearOpenTimer);
 		});
 
 		header.addEventListener('mouseleave', function (event) {
@@ -916,6 +1043,7 @@
 				e.preventDefault();
 				e.stopPropagation();
 				clearCloseTimer();
+				clearOpenTimer();
 
 				if (isMobile(header)) {
 					if (item.classList.contains('is-open')) {
@@ -943,11 +1071,24 @@
 
 		header.querySelectorAll('.abmm-mega__cat').forEach(function (btn) {
 			btn.addEventListener('mouseenter', function () {
-				if (!isMobile(header) && hoverMq.matches) activateCategoryDesktop(btn);
+				if (isMobile(header) || !hoverMq.matches) return;
+				clearCategoryTimer();
+				// Switch only once the pointer rests here: on its way from a category
+				// to one of its links it crosses the categories in between.
+				categoryTimer = setTimeout(function () {
+					categoryTimer = null;
+					var openItem = closest(btn, '.abmm-nav__item--mega');
+					if (!openItem || !openItem.classList.contains('is-open')) return;
+					// Switching would hide the link a keyboard user is on.
+					if (closest(document.activeElement, '.abmm-mega__panel') && hasKeyboardFocus(header)) return;
+					activateCategoryDesktop(btn);
+				}, CATEGORY_HOVER_DELAY);
 			});
+			btn.addEventListener('mouseleave', clearCategoryTimer);
 			btn.addEventListener('click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
+				clearCategoryTimer();
 				if (isMobile(header)) {
 					showCategoryMobile(btn);
 				} else {
@@ -956,6 +1097,7 @@
 			});
 			btn.addEventListener('keydown', function (e) {
 				if (['ArrowDown', 'ArrowUp', 'Home', 'End'].indexOf(e.key) === -1) return;
+				clearCategoryTimer();
 				var mega = closest(btn, '.abmm-mega');
 				if (!mega) return;
 				var buttons = Array.prototype.slice.call(mega.querySelectorAll('.abmm-mega__cat'));
@@ -976,7 +1118,15 @@
 				e.preventDefault();
 				e.stopPropagation();
 				var section = closest(btn, '.abmm-mega__section');
-				if (section) setSectionCollapsed(section, btn.getAttribute('aria-expanded') === 'true');
+				if (!section) return;
+				var expanding = btn.getAttribute('aria-expanded') !== 'true';
+				setSectionCollapsed(section, !expanding);
+				if (!expanding || typeof section.scrollIntoView !== 'function') return;
+				// Bring links that opened below the fold into view, heading first.
+				var drawer = closest(section, '.abmm-nav__drawer');
+				if (drawer && section.getBoundingClientRect().bottom > drawer.getBoundingClientRect().bottom) {
+					section.scrollIntoView({ block: 'start' });
+				}
 			});
 		});
 
@@ -1060,6 +1210,8 @@
 			}
 			if (e.key !== 'Escape') return;
 			clearCloseTimer();
+			clearOpenTimer();
+			clearCategoryTimer();
 			if (isMobile(header)) {
 				var openItem = header.querySelector('.abmm-nav__item--mega.is-open');
 				if (openItem) {
@@ -1068,8 +1220,10 @@
 				}
 			}
 			var openTrigger = header.querySelector('.abmm-nav__item--mega.is-open [data-abmm-mega-trigger]');
+			// A panel opened by hovering must not pull focus away from elsewhere on the page.
+			var focusWasInside = header.contains(document.activeElement);
 			closeAllMegas(header);
-			if (openTrigger && typeof openTrigger.focus === 'function') openTrigger.focus();
+			if (focusWasInside && openTrigger && typeof openTrigger.focus === 'function') openTrigger.focus();
 			if (header.classList.contains('is-mobile-open')) {
 				setDrawerOpen(header, false, true);
 			}

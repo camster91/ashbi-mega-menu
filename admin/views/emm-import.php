@@ -16,18 +16,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $abmm_takeover       = ABMM_EMM_Migration::takeover_enabled();
 $abmm_source_active  = ABMM_EMM_Migration::source_active();
-$abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'conflict' ) );
+$abmm_missing        = $this->placed_but_not_imported();
 ?>
 <div class="wrap abmm-emm-import">
 	<h1><?php esc_html_e( 'Import from Easy Mega Menu', 'ashbi-mega-menu' ); ?></h1>
 	<p><?php esc_html_e( 'Copy your Easy Mega Menu menus into Ashbi Mega Menu. Easy Mega Menu\'s data is only read: nothing in it is changed or deleted, so you can switch back at any time.', 'ashbi-mega-menu' ); ?></p>
 
 	<?php if ( 'imported' === $notice ) : ?>
-		<div class="notice notice-success"><p><?php esc_html_e( 'Import finished. Easy Mega Menu was not changed.', 'ashbi-mega-menu' ); ?></p></div>
+		<div class="notice notice-success">
+			<p><?php esc_html_e( 'Import finished. Easy Mega Menu was not changed.', 'ashbi-mega-menu' ); ?></p>
+			<p>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>"><?php esc_html_e( 'Open your menus', 'ashbi-mega-menu' ); ?></a>
+				<?php if ( $abmm_source_active ) : ?>
+					<span aria-hidden="true">&middot;</span>
+					<a href="<?php echo esc_url( admin_url( 'plugins.php' ) ); ?>"><?php esc_html_e( 'Go to Plugins to deactivate Easy Mega Menu after testing', 'ashbi-mega-menu' ); ?></a>
+				<?php endif; ?>
+			</p>
+		</div>
 	<?php elseif ( 'error' === $notice ) : ?>
 		<div class="notice notice-error"><p><?php echo esc_html( '' !== $error ? $error : __( 'The import did not finish. Try again, or restore a snapshot from Tools.', 'ashbi-mega-menu' ) ); ?></p></div>
 	<?php elseif ( 'saved' === $notice ) : ?>
 		<div class="notice notice-success"><p><?php esc_html_e( 'Setting saved.', 'ashbi-mega-menu' ); ?></p></div>
+	<?php elseif ( 'takeover_blocked' === $notice ) : ?>
+		<div class="notice notice-error"><p><?php esc_html_e( 'The switch was not turned on. Some placed menus are not imported yet, see step 3.', 'ashbi-mega-menu' ); ?></p></div>
 	<?php endif; ?>
 
 	<?php if ( is_array( $result ) ) : ?>
@@ -55,8 +66,9 @@ $abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'c
 		<table class="widefat striped">
 			<thead>
 				<tr>
+					<th scope="col"><?php esc_html_e( 'Copy', 'ashbi-mega-menu' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Menu', 'ashbi-mega-menu' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'ID (kept)', 'ashbi-mega-menu' ); ?></th>
+<th scope="col"><?php esc_html_e( 'ID (kept)', 'ashbi-mega-menu' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Top items', 'ashbi-mega-menu' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Links', 'ashbi-mega-menu' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Not copied exactly', 'ashbi-mega-menu' ); ?></th>
@@ -64,13 +76,20 @@ $abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'c
 			</thead>
 			<tbody>
 				<?php foreach ( $preview['menus'] as $abmm_row ) : ?>
+					<?php $abmm_replaces_edits = $abmm_row['conflict'] || ! empty( $abmm_row['edited'] ); ?>
 					<tr>
+						<td>
+							<?php /* The checkbox joins the import form below through its form attribute. */ ?>
+							<input type="checkbox" form="abmm-emm-import-form" name="menus[]" value="<?php echo esc_attr( $abmm_row['id'] ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: menu title. */ __( 'Copy %s', 'ashbi-mega-menu' ), $abmm_row['title'] ) ); ?>" <?php checked( ! $abmm_replaces_edits ); ?> />
+						</td>
 						<td>
 							<strong><?php echo esc_html( $abmm_row['title'] ); ?></strong>
 							<?php if ( $abmm_row['conflict'] ) : ?>
-								<br /><em><?php esc_html_e( 'An Ashbi menu already uses this ID. It is kept unless you choose to replace it below.', 'ashbi-mega-menu' ); ?></em>
+								<br /><em><?php esc_html_e( 'An Ashbi menu already uses this ID. It is kept unless you tick this row, which replaces it.', 'ashbi-mega-menu' ); ?></em>
+							<?php elseif ( ! empty( $abmm_row['edited'] ) ) : ?>
+								<br /><em><?php esc_html_e( 'Your Ashbi copy differs from Easy Mega Menu, usually because you edited it. It is kept unless you tick this row, which replaces your edits.', 'ashbi-mega-menu' ); ?></em>
 							<?php elseif ( $abmm_row['exists'] ) : ?>
-								<br /><em><?php esc_html_e( 'Imported before: it will be updated.', 'ashbi-mega-menu' ); ?></em>
+								<br /><em><?php esc_html_e( 'Imported before, with no differences.', 'ashbi-mega-menu' ); ?></em>
 							<?php endif; ?>
 						</td>
 						<td><code><?php echo esc_html( $abmm_row['id'] ); ?></code></td>
@@ -102,14 +121,12 @@ $abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'c
 			<?php endif; ?>
 		</p>
 
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="abmm-emm-import-form">
 			<input type="hidden" name="action" value="abmm_emm_import" />
+			<input type="hidden" name="abmm_select_menus" value="1" />
 			<?php wp_nonce_field( 'abmm_emm_import' ); ?>
-			<?php if ( $abmm_has_conflicts ) : ?>
-				<p><label><input type="checkbox" name="overwrite" value="1" /> <?php esc_html_e( 'Replace Ashbi menus that use the same ID', 'ashbi-mega-menu' ); ?></label></p>
-			<?php endif; ?>
-			<?php submit_button( __( 'Import menus', 'ashbi-mega-menu' ), 'primary', 'submit', false ); ?>
-			<span class="description"><?php esc_html_e( 'A snapshot of your Ashbi menus is saved first.', 'ashbi-mega-menu' ); ?></span>
+			<?php submit_button( __( 'Import ticked menus', 'ashbi-mega-menu' ), 'primary', 'submit', false ); ?>
+			<span class="description"><?php esc_html_e( 'A snapshot of your Ashbi menus is saved first, and each replaced menu keeps a saved version you can restore from its menu card.', 'ashbi-mega-menu' ); ?></span>
 		</form>
 	<?php endif; ?>
 
@@ -130,8 +147,16 @@ $abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'c
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 		<input type="hidden" name="action" value="abmm_emm_takeover" />
 		<?php wp_nonce_field( 'abmm_emm_takeover' ); ?>
+		<?php if ( $abmm_missing ) : ?>
+			<div class="notice notice-warning inline">
+				<p><?php echo esc_html( sprintf( /* translators: %s: comma-separated menu IDs. */ __( 'Your pages place these menus, but they are not imported: %s. Import them first, because with this switch on and Easy Mega Menu inactive those headers show nothing.', 'ashbi-mega-menu' ), implode( ', ', $abmm_missing ) ) ); ?></p>
+			</div>
+		<?php endif; ?>
 		<p><label><input type="checkbox" name="takeover" value="1" <?php checked( $abmm_takeover ); ?> /> <?php esc_html_e( 'Handle [easy_mega_menu] shortcodes', 'ashbi-mega-menu' ); ?></label></p>
-		<p class="description">
+		<?php if ( $abmm_missing ) : ?>
+			<p><label><input type="checkbox" name="confirm_missing" value="1" /> <?php esc_html_e( 'Turn it on anyway, even though those headers will be empty', 'ashbi-mega-menu' ); ?></label></p>
+		<?php endif; ?>
+<p class="description">
 			<?php if ( $abmm_source_active ) : ?>
 				<?php esc_html_e( 'Easy Mega Menu is active, so it still answers its own shortcodes. Ashbi takes over only after you deactivate it.', 'ashbi-mega-menu' ); ?>
 			<?php elseif ( $abmm_takeover ) : ?>
@@ -140,6 +165,6 @@ $abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'c
 				<?php esc_html_e( 'Easy Mega Menu is not active. Turning this on makes your headers show the imported menus.', 'ashbi-mega-menu' ); ?>
 			<?php endif; ?>
 		</p>
-		<?php submit_button( __( 'Save', 'ashbi-mega-menu' ), 'secondary', 'submit', false ); ?>
+		<?php submit_button( __( 'Save switch setting', 'ashbi-mega-menu' ), 'secondary', 'submit', false ); ?>
 	</form>
 </div>
