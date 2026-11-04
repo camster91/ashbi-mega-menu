@@ -45,6 +45,9 @@ class ABMM_Test_DB {
 		}
 		return false !== strpos( $query, ' LIKE ' ) ? ( $GLOBALS['abmm_content_uses_shortcode'] ? '7' : null ) : '1';
 	}
+	public function get_col( $query ) {
+		return $GLOBALS['abmm_test_elementor'] ?? array();
+	}
 	public function get_results( $query ) {
 		$rows = array();
 		foreach ( $GLOBALS['abmm_meta'] as $post_id => $meta ) {
@@ -371,6 +374,31 @@ $_POST = array( '_wpnonce' => 'valid' );
 try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( ! ABMM_EMM_Migration::takeover_enabled(), 'The switch turns off again.' ); }
 $GLOBALS['abmm_options']['emm_menus'] = $saved_source;
 unset( $GLOBALS['abmm_test_content'], $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
+
+// The plugin's own Elementor widget counts as a placement, nested at any depth.
+$abmm_widget_tree = json_encode(
+	array(
+		array(
+			'elType'   => 'container',
+			'elements' => array(
+				array( 'elType' => 'widget', 'widgetType' => 'ashbi-mega-menu', 'settings' => array( 'menu_id' => 'widget_menu' ), 'elements' => array() ),
+				array( 'elType' => 'widget', 'widgetType' => 'heading', 'settings' => array( 'menu_id' => 'not_ours' ), 'elements' => array() ),
+			),
+		),
+	)
+);
+$GLOBALS['abmm_test_elementor'] = array( $abmm_widget_tree, '{not json' );
+unset( $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
+verify_migration( $migration->elementor_widget_uses_menu( 'widget_menu' ), 'A menu shown by the Elementor widget is found.' );
+verify_migration( ! $migration->elementor_widget_uses_menu( 'not_ours' ), 'Other widgets with the same setting name do not count.' );
+verify_migration( ! $migration->elementor_widget_uses_menu( 'widget' ), 'A partial menu ID does not match.' );
+$GLOBALS['abmm_test_elementor'] = array();
+verify_migration( $migration->elementor_widget_uses_menu( 'widget_menu' ), 'The widget search is cached.' );
+verify_migration( ! $migration->elementor_widget_uses_menu( 'widget_menu', true ), 'A fresh search sees the widget has gone.' );
+$abmm_first_menu = (string) array_key_first( ABMM_Data::instance()->get_all() );
+$GLOBALS['abmm_test_elementor'] = array( json_encode( array( array( 'widgetType' => 'ashbi-mega-menu', 'settings' => array() ) ) ) );
+verify_migration( '' !== $abmm_first_menu && $migration->elementor_widget_uses_menu( $abmm_first_menu, true ), 'A widget left at its default shows the first menu.' );
+unset( $GLOBALS['abmm_test_elementor'], $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
 
 // While Easy Mega Menu still runs a site with imported menus, Ashbi adds no body classes.
 define( 'EMM_VERSION', '1.6.76' );

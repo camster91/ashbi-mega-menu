@@ -959,7 +959,7 @@ msgid "Add your links and save"
 msgstr ""
 
 #: admin/views/list.php:61
-msgid "Replace any sample links with your own pages and clear the checklist in the editor. Done when a menu shows Ready."
+msgid "Replace any sample links with your own pages and clear the checklist in the editor. Done when a menu no longer shows Needs attention."
 msgstr ""
 
 #: admin/views/list.php:66
@@ -4064,14 +4064,6 @@ msgid_plural "%d menus copied."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/views/builder.php:225
-msgid "Let long phone submenus scroll to the last link"
-msgstr ""
-
-#: admin/views/builder.php:228
-msgid "Fixes an Easy Mega Menu problem where the last links of a long category could not be reached on phones. The phone menu then scrolls as one list. Off keeps the original behaviour."
-msgstr ""
-
 #: includes/class-abmm-emm-migration.php:437
 msgid "The menus were imported, but product navigation could not be saved. Run the import again."
 msgstr ""
@@ -4437,31 +4429,11 @@ msgid "Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Savi
 msgstr ""
 
 #: admin/views/builder.php
-msgid "Phone menu bar padding"
-msgstr ""
-
-#: admin/views/builder.php
-msgid "Optional. A CSS value such as 0 or 8px 16px. Use it when the site's own styles change the phone bar. Empty keeps the stylesheet's padding."
-msgstr ""
-
-#: admin/views/builder.php
-msgid "Use plain elements instead of header and headings"
-msgstr ""
-
-#: admin/views/builder.php
-msgid "Stops each menu counting as a page banner and adding headings before the page's title. The markup then differs from Easy Mega Menu's, so site CSS that targets those elements stops applying."
-msgstr ""
-
-#: admin/views/builder.php
 msgid "Phone menu button label"
 msgstr ""
 
 #: admin/views/builder.php
 msgid "Optional. Tells two phone menus on one page apart, for example \"Products\". Empty keeps the icon on its own."
-msgstr ""
-
-#: admin/views/builder.php
-msgid "This menu was imported from Easy Mega Menu and keeps its Classic look on your site. The desktop preview shows its content in Ashbi's style; the tablet and phone previews show the Classic look. Color and size changes below still apply. Check the final look on your site."
 msgstr ""
 
 #: admin/views/builder.php
@@ -4767,3 +4739,19 @@ msgstr ""
 #: includes/class-abmm-product-profiles.php
 msgid "Delete “%s” and its branding? Its pages will go back to showing only the main menu. This cannot be undone."
 msgstr ""
+
+#: admin/views/builder.php:262
+msgid "Color and size changes below still apply to the Classic look."
+msgstr ""
+
+#: assets/js/admin.js:794
+msgid "No problems found."
+msgstr ""
+
+#. translators: %d: number of checklist items still to fix.
+#: assets/js/admin.js:797
+#, javascript-format
+msgid "%d thing to fix on this menu."
+msgid_plural "%d things to fix on this menu."
+msgstr[0] ""
+msgstr[1] ""

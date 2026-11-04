@@ -840,6 +840,9 @@ class ABMM_Admin {
 			if ( 0 === $blocks + $shortcodes && $migration->content_uses_shortcode( 'ashbi_mega_menu', (string) $menu_id, $fresh ) ) {
 				++$other;
 			}
+			if ( $migration->elementor_widget_uses_menu( (string) $menu_id, $fresh ) ) {
+				++$other;
+			}
 		}
 
 		return array(

@@ -141,23 +141,18 @@ test.describe('classic menu in the editor', () => {
 
 		// An edit re-renders the frame; the open drawer comes back as it was.
 		await page.locator('[data-abmm-builder-section="design"]').click();
-		const fix = page.locator('#abmm-classic-phone-scroll-fix');
-		const wasChecked = await fix.isChecked();
-		await fix.setChecked(!wasChecked);
-		await fix.setChecked(wasChecked);
+		const label = page.locator('#abmm-classic-toggle-label');
+		await label.fill('Products');
 		await expect(frame.locator('header.emm-header')).toHaveClass(/\bis-mobile-open\b/);
 		await expect(frame.locator('.emm-nav__list > .emm-nav__item.is-open')).toHaveCount(1);
 
-		// Turning on the phone scroll fix and saving keeps the menu classic.
-		if (!(await fix.isChecked())) {
-			await fix.check();
-			const saved = page.waitForResponse((response) =>
-				response.url().includes('admin-ajax.php') && (response.request().postData() || '').includes('action=abmm_save_menu'));
-			await page.locator('.abmm-save-menu').first().click();
-			expect((await (await saved).json()).success).toBe(true);
-		}
+		// Setting a phone button label and saving keeps the menu classic.
+		const saved = page.waitForResponse((response) =>
+			response.url().includes('admin-ajax.php') && (response.request().postData() || '').includes('action=abmm_save_menu'));
+		await page.locator('.abmm-save-menu').first().click();
+		expect((await (await saved).json()).success).toBe(true);
 		await page.goto('/?pagename=e2e-classic');
-		await expect(page.locator('header.emm-header[data-emm-id="main_nav"]')).toHaveClass(/\bemm-phone-scroll-fix\b/);
+		await expect(page.locator('header.emm-header[data-emm-id="main_nav"] .emm-nav__toggle')).toHaveAttribute('aria-label', /^Products: /);
 		expect(errors).toEqual([]);
 	});
 });

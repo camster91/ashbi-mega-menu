@@ -145,10 +145,10 @@ const set = ($, key, value) => $(`[data-abmm-style-key="${key}"]`).val(value).tr
 
 	// Undo also restores the classic look controls.
 	const classicMenu = Object.assign({}, menu, { settings: { render_mode: 'emm-classic' } });
-	f = await fixture(classicMenu, '<select id="abmm-render-mode"><option value="emm-classic">Classic</option><option value="">Ashbi</option></select><input type="checkbox" id="abmm-classic-phone-scroll-fix"><p class="abmm-classic-notice">Notice</p>');
+	f = await fixture(classicMenu, '<select id="abmm-render-mode"><option value="emm-classic">Classic</option><option value="">Ashbi</option></select><input id="abmm-classic-toggle-label"><p class="abmm-classic-notice">Notice</p>');
 	({ window, $, requests } = f);
 	$('#abmm-render-mode').val('emm-classic');
-	$('#abmm-classic-phone-scroll-fix').prop('checked', true).trigger('change');
+	$('#abmm-classic-toggle-label').val('Products').trigger('change');
 	await wait(window, 450);
 	$('#abmm-render-mode').val('').trigger('change');
 	await wait(window, 450);
@@ -156,10 +156,10 @@ const set = ($, key, value) => $(`[data-abmm-style-key="${key}"]`).val(value).tr
 	assert.equal($('#abmm-render-mode').val(), 'emm-classic', 'Undo brings back the Classic look.');
 	assert.equal($('.abmm-classic-notice').prop('hidden'), false, 'The Classic notice comes back with it.');
 	$('.abmm-undo').trigger('click');
-	assert.equal($('#abmm-classic-phone-scroll-fix').prop('checked'), false, 'Undo turns the phone scroll fix back off.');
+	assert.equal($('#abmm-classic-toggle-label').val(), '', 'Undo clears the phone button label.');
 	const classicSaved = savedSettings($, requests);
 	assert.equal(classicSaved.render_mode, 'emm-classic', 'The undone state is what gets saved.');
-	assert.equal(classicSaved.classic_phone_scroll_fix, undefined, 'The undone phone fix is not saved.');
+	assert.equal(classicSaved.classic_toggle_label, undefined, 'The undone label is not saved.');
 	window.close();
 
 	// Undo and redo restore colours without turning the chosen preset into Custom.
