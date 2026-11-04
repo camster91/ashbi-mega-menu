@@ -310,6 +310,8 @@ for (const file of ['emm-frontend.js', 'emm-frontend.css', 'emm-fixes.css', 'emm
 	assert.ok(/@media \(scripting: none\)/.test(fixes), 'The links stay reachable without JavaScript.');
 	assert.ok(/@media \(forced-colors: active\)/.test(fixes), 'High contrast is covered.');
 	assert.ok(/max-height: none !important/.test(fixes), 'Long phone lists are not nested scroll boxes.');
+	assert.ok(/\.emm-mobile-bar \.emm-mobile-back \{[^}]*display: inline-flex;[^}]*width: auto;/.test(fixes), 'The phone Back button sets its own layout.');
+	assert.ok(/'fixesCss'\s*=> add_query_arg\( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL \. 'assets\/classic\/emm-fixes\.css' \)/.test(php), 'The preview frame gets the fixes stylesheet.');
 }
 
 console.log('Classic script: single binding, open/close, measurable phone header, hover and rail timing, drawer links, inert page, labels, ids, bleed config and clean bundled assets passed.');

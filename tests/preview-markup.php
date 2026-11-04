@@ -170,6 +170,7 @@ $classic = preview_request( array_merge( $valid, array( 'menu_data' => json_enco
 verify_preview( $classic->response['success'] && 0 === strpos( trim( $classic->response['data']['html'] ), '<header class="emm-header' ), 'A classic menu previews with the classic markup.' );
 $assets = $classic->response['data']['assets'];
 verify_preview( false !== strpos( $assets['css'], 'assets/classic/emm-frontend.css' ) && false !== strpos( $assets['js'], 'assets/classic/emm-frontend.js' ) && '' === $assets['inlineCss'], 'Classic previews load the classic stylesheet and script.' );
+verify_preview( false !== strpos( $assets['fixesCss'], 'assets/classic/emm-fixes.css' ), 'The classic preview loads the fixes stylesheet, like live pages.' );
 verify_preview( false === stripos( $classic->response['data']['html'], 'javascript:' ), 'Classic previews are sanitized too.' );
 verify_preview( array() === $GLOBALS['abmm_test_options'], 'A classic preview stores nothing.' );
 $classic_menu['settings']['classic_phone_scroll_fix'] = true;

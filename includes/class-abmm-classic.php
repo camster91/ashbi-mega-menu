@@ -318,13 +318,14 @@ class ABMM_Classic {
 	 *
 	 * @param array  $menu    Menu being previewed (may be unsaved).
 	 * @param string $menu_id ID the preview renders with.
-	 * @return array{css:string,js:string,inlineCss:string}
+	 * @return array{css:string,fixesCss:string,js:string,inlineCss:string}
 	 */
 	public function preview_assets( $menu, $menu_id = 'preview' ) {
 		$site    = $this->site_assets();
 		$css_url = $this->upload_url( $site['css'] );
 		return array(
 			'css'       => $css_url ? add_query_arg( 'ver', $site['version'] ? $site['version'] : ABMM_VERSION, $css_url ) : add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/classic/emm-frontend.css' ),
+			'fixesCss'  => add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/classic/emm-fixes.css' ),
 			'js'        => add_query_arg( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL . 'assets/classic/emm-frontend.js' ),
 			'inlineCss' => ( ! empty( $menu['settings']['classic_phone_scroll_fix'] ) ? self::phone_scroll_fix_css() : '' )
 				. ABMM_Style::css( $menu['settings']['style'] ?? array(), ABMM_Style::scope( $menu_id, 'emm' ), 'emm' ),
