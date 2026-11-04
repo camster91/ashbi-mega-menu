@@ -57,6 +57,13 @@ class ABMM_Classic {
 	private $plain_markup = false;
 
 	/**
+	 * Whether the current render is for the editor's preview frame.
+	 *
+	 * @var bool
+	 */
+	private $preview_mode = false;
+
+	/**
 	 * @var ABMM_Classic_Icons|null
 	 */
 	private $icons = null;
@@ -314,7 +321,37 @@ class ABMM_Classic {
 	}
 
 	/**
-	 * Stylesheet, script and extra CSS for the editor's phone and tablet frames.
+	 * Render unsaved menu data for the editor's preview frames: the live markup
+	 * plus link IDs, so a click on a link selects it in the editor.
+	 *
+	 * @param array  $menu    Menu being previewed (may be unsaved).
+	 * @param string $menu_id ID the preview renders with.
+	 * @return string HTML
+	 */
+	public function render_preview( $menu, $menu_id ) {
+		$this->preview_mode = true;
+		try {
+			return $this->render_menu( $menu, $menu_id, array( 'presentation' => 'stacked' ) );
+		} finally {
+			$this->preview_mode = false;
+		}
+	}
+
+	/**
+	 * Preview-only link ID attribute, empty on the live site.
+	 *
+	 * @param array $link Link data.
+	 * @return string Escaped attribute with a leading space, or ''.
+	 */
+	private function preview_link_attr( $link ) {
+		if ( ! $this->preview_mode || empty( $link['id'] ) ) {
+			return '';
+		}
+		return ' data-abmm-link-id="' . esc_attr( (string) $link['id'] ) . '"';
+	}
+
+	/**
+	 * Stylesheet, script and extra CSS for the editor's preview frames.
 	 *
 	 * @param array  $menu    Menu being previewed (may be unsaved).
 	 * @param string $menu_id ID the preview renders with.
@@ -1249,7 +1286,7 @@ class ABMM_Classic {
 		$has_url   = ! empty( $link['url'] );
 		ob_start();
 		?>
-		<li class="emm-mega__col-item">
+		<li class="emm-mega__col-item"<?php echo $this->preview_link_attr( $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<?php if ( $has_url ) : ?>
 				<a <?php echo $this->link_attrs( $link, 'emm-mega__col-link' . ( $has_icon ? ' has-icon' : '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $link['url'] ); ?>">
 			<?php else : ?>
@@ -1311,7 +1348,7 @@ class ABMM_Classic {
 		$has_url = ! empty( $link['url'] );
 		ob_start();
 		?>
-		<li class="emm-mega__grid-item">
+		<li class="emm-mega__grid-item"<?php echo $this->preview_link_attr( $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<?php if ( $has_url ) : ?>
 				<a <?php echo $this->link_attrs( $link, 'emm-mega__grid-link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $link['url'] ); ?>">
 			<?php else : ?>
