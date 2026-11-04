@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.5
+
+Fixes from a UX and accessibility audit.
+
+- **Both menu styles**: panels open after a short delay and close sooner, a category switches only once the pointer rests on it, and clicking a category no longer holds a panel open. With JavaScript off, every link shows as a plain list. The page behind an open phone drawer is inert, level changes are announced, and high-contrast mode shows the menu button.
+- **Classic menus**: tapping a link closes the drawer, every link in a long phone submenu can be reached, a click after hover keeps the panel open, and panels close when focus leaves. Fixes ship in a new stylesheet, `emm-fixes.css`, so imported sites get them without importing again. New filters: `abmm_classic_plain_markup` and `abmm_classic_bar_padding`.
+- **Native menus**: panels fit the active category, long first categories start collapsed on phones, opening the drawer no longer focuses search, and colour contrast is fixed in the built-in presets.
+- **Editor**: menu cards show whether a menu is placed and whether it needs attention, and every control now marks the menu as changed. Each menu keeps up to 10 saved versions. Archive counts page builder and takeover placements, and permanent delete takes a snapshot. The Easy Mega Menu import lets you choose menus and warns before overwriting edits. Leaving with unsaved changes now warns on every route. New setting: a label for a Classic menu's phone button.
+
 ## 1.2.4
 
 - **Phone menus**: tapping a section now opens it when the header measures zero wide in its layout column and a script on the site resets open menus it considers hidden. The header keeps a minimum width of 1px while its drawer is open.

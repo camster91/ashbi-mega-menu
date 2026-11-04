@@ -482,12 +482,12 @@ class ABMM_Classic {
 
 		/**
 		 * Visible words beside this menu's phone button, for pages that stack two
-		 * menus and so show two identical buttons. Empty by default.
+		 * menus and so show two identical buttons. Defaults to the menu's setting.
 		 *
 		 * @param string $label   Label text.
 		 * @param string $menu_id Menu ID.
 		 */
-		$toggle_label = trim( (string) apply_filters( 'abmm_classic_toggle_label', '', $menu_id ) );
+		$toggle_label = trim( (string) apply_filters( 'abmm_classic_toggle_label', $menu['settings']['classic_toggle_label'] ?? '', $menu_id ) );
 
 		/**
 		 * Padding of this menu's phone bar, such as "0" or "8px 16px". Beats a site
