@@ -73,6 +73,9 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'More actions', 'ashbi-mega-menu' ); ?></span>
 				</button>
 				<div class="abmm-more-menu__list" id="abmm-more-menu-list" role="menu" aria-label="<?php esc_attr_e( 'More actions', 'ashbi-mega-menu' ); ?>" hidden>
+					<a role="menuitem" class="abmm-more-menu__item abmm-open-history" href="<?php echo esc_url( add_query_arg( 'abmm_history', rawurlencode( $edit_id ), admin_url( 'admin.php?page=ashbi-mega-menu' ) ) ); ?>">
+						<span class="dashicons dashicons-backup" aria-hidden="true"></span><?php esc_html_e( 'History', 'ashbi-mega-menu' ); ?>
+					</a>
 					<button type="button" role="menuitem" class="abmm-more-menu__item abmm-export-current-menu" data-menu-id="<?php echo esc_attr( $edit_id ); ?>">
 						<span class="dashicons dashicons-download" aria-hidden="true"></span><?php esc_html_e( 'Export as JSON', 'ashbi-mega-menu' ); ?>
 					</button>
@@ -679,8 +682,8 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					</button>
 					<span class="abmm-mega-editor__divider" aria-hidden="true"></span>
 					<div class="abmm-mega-editor__heading">
-						<p class="abmm-mega-editor__eyebrow" id="abmm-mega-editor-eyebrow"><?php esc_html_e( 'Mega menu content', 'ashbi-mega-menu' ); ?></p>
-						<h2 id="abmm-mega-editor-title" tabindex="-1"><?php esc_html_e( 'Edit Mega Menu', 'ashbi-mega-menu' ); ?></h2>
+						<p class="abmm-mega-editor__eyebrow" id="abmm-mega-editor-eyebrow"><?php esc_html_e( 'Dropdown content', 'ashbi-mega-menu' ); ?></p>
+						<h2 id="abmm-mega-editor-title" tabindex="-1"><?php esc_html_e( 'Edit dropdown', 'ashbi-mega-menu' ); ?></h2>
 					</div>
 					<p class="abmm-mega-editor__note"><?php esc_html_e( 'Changes show in the preview right away. Save from the top bar.', 'ashbi-mega-menu' ); ?></p>
 				</div>
@@ -688,19 +691,19 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				<div class="abmm-mega-style-picker" id="abmm-mega-style-picker">
 					<p class="abmm-mega-style-picker__label"><?php esc_html_e( 'Layout', 'ashbi-mega-menu' ); ?></p>
 					<div class="abmm-mega-style-cards">
-						<button type="button" class="abmm-mega-style-card" data-style="platforms">
-							<span class="abmm-mega-style-card__preview abmm-mega-style-card__preview--platforms" aria-hidden="true">
-								<span></span><span></span>
-							</span>
-							<strong><?php esc_html_e( 'Categories + links', 'ashbi-mega-menu' ); ?></strong>
-							<small><?php esc_html_e( 'A list of categories, each with its own links', 'ashbi-mega-menu' ); ?></small>
-						</button>
 						<button type="button" class="abmm-mega-style-card" data-style="features">
 							<span class="abmm-mega-style-card__preview abmm-mega-style-card__preview--features" aria-hidden="true">
 								<span></span><span></span><span></span><span></span>
 							</span>
 							<strong><?php esc_html_e( 'Simple columns', 'ashbi-mega-menu' ); ?></strong>
 							<small><?php esc_html_e( 'Links in 2, 3 or 4 columns', 'ashbi-mega-menu' ); ?></small>
+						</button>
+						<button type="button" class="abmm-mega-style-card" data-style="platforms">
+							<span class="abmm-mega-style-card__preview abmm-mega-style-card__preview--platforms" aria-hidden="true">
+								<span></span><span></span>
+							</span>
+							<strong><?php esc_html_e( 'Categories + links', 'ashbi-mega-menu' ); ?></strong>
+							<small><?php esc_html_e( 'A list of categories, each with its own links', 'ashbi-mega-menu' ); ?></small>
 						</button>
 					</div>
 					<label class="abmm-field abmm-mega-columns-field">
@@ -712,13 +715,16 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 							<option value="4">4</option>
 						</select>
 					</label>
-					<div class="abmm-field abmm-category-bar-field" id="abmm-category-bar-field" hidden>
-						<span><?php esc_html_e( 'Category bar', 'ashbi-mega-menu' ); ?></span>
-						<label class="abmm-checkbox-label">
-							<input type="checkbox" id="abmm-hide-category-bar" value="1" />
-							<?php esc_html_e( 'Hide the category bar and use the full width for columns', 'ashbi-mega-menu' ); ?>
-						</label>
-					</div>
+					<details class="abmm-more-options" id="abmm-mega-more-options" hidden>
+						<summary><?php esc_html_e( 'More options', 'ashbi-mega-menu' ); ?></summary>
+						<div class="abmm-field abmm-category-bar-field" id="abmm-category-bar-field" hidden>
+							<span><?php esc_html_e( 'Category bar', 'ashbi-mega-menu' ); ?></span>
+							<label class="abmm-checkbox-label">
+								<input type="checkbox" id="abmm-hide-category-bar" value="1" />
+								<?php esc_html_e( 'Hide the category bar and use the full width for columns', 'ashbi-mega-menu' ); ?>
+							</label>
+						</div>
+					</details>
 				</div>
 
 				<!-- Category-bar layout editor -->
@@ -831,14 +837,15 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				<button type="button" class="button abmm-upload-icon"><?php esc_html_e( 'Upload custom icon', 'ashbi-mega-menu' ); ?></button>
 				<button type="button" class="button-link abmm-clear-icon"><?php esc_html_e( 'Clear icon', 'ashbi-mega-menu' ); ?></button>
 			</div>
-			<div class="abmm-icon-appearance" id="abmm-icon-appearance" hidden>
+			<details class="abmm-icon-appearance abmm-more-options" id="abmm-icon-appearance" hidden>
+				<summary><?php esc_html_e( 'More options', 'ashbi-mega-menu' ); ?></summary>
 				<div class="abmm-icon-appearance__head">
 					<h3><?php esc_html_e( 'Icon style for this item', 'ashbi-mega-menu' ); ?></h3>
 					<button type="button" class="button-link abmm-reset-icon-style"><?php esc_html_e( 'Reset to menu style', 'ashbi-mega-menu' ); ?></button>
 				</div>
 				<p class="description"><?php esc_html_e( 'Overrides the icon style from the Design tab for this item only.', 'ashbi-mega-menu' ); ?></p>
 				<div class="abmm-icon-appearance__fields" id="abmm-icon-appearance-fields"></div>
-			</div>
+			</details>
 		</div>
 	</div>
 </div>
