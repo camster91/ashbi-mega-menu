@@ -36,6 +36,20 @@ class ABMM_Frontend {
 	private $rendered = array();
 
 	/**
+	 * Whether the toolbar was already built on this page.
+	 *
+	 * @var bool
+	 */
+	private $toolbar_built = false;
+
+	/**
+	 * Whether the toolbar got its "Edit mega menu" link when it was built.
+	 *
+	 * @var bool
+	 */
+	private $toolbar_link_added = false;
+
+	/**
 	 * Whether the current render is the editor's device preview.
 	 *
 	 * @var bool
@@ -56,44 +70,89 @@ class ABMM_Frontend {
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
 		add_filter( 'script_loader_tag', array( $this, 'add_nitropack_exclusion_attribute' ), 10, 3 );
 		add_action( 'admin_bar_menu', array( $this, 'admin_bar_edit_link' ), 85 );
+		// Just before the toolbar's own wp_footer fallback at 1000.
+		add_action( 'wp_footer', array( $this, 'late_toolbar_link' ), 999 );
 	}
 
 	/**
 	 * Add "Edit mega menu" to the toolbar on pages that show a menu, so the
 	 * person looking at the site can jump straight to that menu's editor.
-	 * The toolbar is built after the page content, so every menu on the page
-	 * has rendered by then.
+	 * Themes that call wp_body_open() build the toolbar before their header, so
+	 * no menu has rendered yet; late_toolbar_link() adds the link for those.
 	 *
 	 * @param WP_Admin_Bar $admin_bar Toolbar.
 	 */
 	public function admin_bar_edit_link( $admin_bar ) {
-		if ( is_admin() || ! $this->rendered || ! current_user_can( 'manage_options' ) ) {
+		if ( is_admin() ) {
 			return;
 		}
-		$link = function ( $menu_id ) {
+		$this->toolbar_built = true;
+		if ( ! $this->rendered || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		foreach ( $this->edit_link_nodes() as $node ) {
+			$admin_bar->add_node( $node );
+		}
+		$this->toolbar_link_added = true;
+	}
+
+	/**
+	 * Add the link in the browser when the toolbar was printed before any menu
+	 * rendered. The toolbar's script binds its dropdowns on DOMContentLoaded,
+	 * so a link with several menus still opens like any other.
+	 */
+	public function late_toolbar_link() {
+		if ( ! $this->toolbar_built || $this->toolbar_link_added || ! $this->rendered || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$nodes = $this->edit_link_nodes();
+		$top   = array_shift( $nodes );
+		$items = '';
+		foreach ( $nodes as $node ) {
+			$items .= sprintf( '<li id="wp-admin-bar-%s"><a class="ab-item" href="%s">%s</a></li>', esc_attr( $node['id'] ), esc_url( $node['href'] ), $node['title'] );
+		}
+		$html = sprintf(
+			'<li id="wp-admin-bar-%1$s"%2$s><a class="ab-item" href="%3$s"%4$s>%5$s</a>%6$s</li>',
+			esc_attr( $top['id'] ),
+			$items ? ' class="menupop"' : '',
+			esc_url( $top['href'] ),
+			$items ? ' aria-haspopup="true"' : '',
+			$top['title'],
+			$items ? '<div class="ab-sub-wrapper"><ul id="wp-admin-bar-' . esc_attr( $top['id'] ) . '-default" class="ab-submenu">' . $items . '</ul></div>' : ''
+		);
+		wp_print_inline_script_tag( '(function(){var list=document.getElementById("wp-admin-bar-root-default");if(list){list.insertAdjacentHTML("beforeend",' . wp_json_encode( $html ) . ');}})();' );
+	}
+
+	/**
+	 * The toolbar entries for the menus rendered on this page: the main link,
+	 * then one child per menu when there are several.
+	 *
+	 * @return array[] Toolbar nodes with escaped titles.
+	 */
+	private function edit_link_nodes() {
+		$link   = function ( $menu_id ) {
 			return add_query_arg( array( 'page' => 'ashbi-mega-menu', 'edit' => rawurlencode( $menu_id ) ), admin_url( 'admin.php' ) );
 		};
 		$single = 1 === count( $this->rendered );
-		$admin_bar->add_node(
+		$nodes  = array(
 			array(
 				'id'    => 'abmm-edit-menu',
 				'title' => '<span class="ab-icon dashicons dashicons-menu-alt" aria-hidden="true"></span>' . esc_html__( 'Edit mega menu', 'ashbi-mega-menu' ),
 				'href'  => $single ? $link( (string) array_key_first( $this->rendered ) ) : admin_url( 'admin.php?page=ashbi-mega-menu' ),
-			)
+			),
 		);
 		if ( $single ) {
-			return;
+			return $nodes;
 		}
 		foreach ( $this->rendered as $menu_id => $title ) {
-			$admin_bar->add_node(
-				array(
-					'parent' => 'abmm-edit-menu',
-					'id'     => 'abmm-edit-menu-' . substr( md5( $menu_id ), 0, 10 ),
-					'title'  => esc_html( '' !== $title ? $title : $menu_id ),
-					'href'   => $link( $menu_id ),
-				)
+			$nodes[] = array(
+				'parent' => 'abmm-edit-menu',
+				'id'     => 'abmm-edit-menu-' . substr( md5( $menu_id ), 0, 10 ),
+				'title'  => esc_html( '' !== $title ? $title : $menu_id ),
+				'href'   => $link( $menu_id ),
 			);
 		}
+		return $nodes;
 	}
 
 	/**
