@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4
+
+- **Phone menus**: tapping a section now opens it when the header measures zero wide in its layout column and a script on the site resets open menus it considers hidden. The header keeps a width of 1px while its drawer is open.
+
 ## 1.2.3
 
 - **Edit mega menu** now shows in the toolbar on themes that call `wp_body_open()` before their header, such as Hello Elementor, where the toolbar is built before any menu renders.

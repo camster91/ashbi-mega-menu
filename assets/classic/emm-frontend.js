@@ -489,6 +489,14 @@
 			});
 		}
 		header.classList.toggle('is-mobile-open', open);
+		/* The header can measure zero wide on a phone, its button overflowing a
+		 * shrunken layout column. Site scripts that reset open headers with no
+		 * width as hidden would close each section as it opens. */
+		if (open && header.getBoundingClientRect().width === 0) {
+			header.style.minWidth = '1px';
+		} else if (!open) {
+			header.style.removeProperty('min-width');
+		}
 		syncActiveStackHost();
 		if (toggle) {
 			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
