@@ -54,18 +54,32 @@ function load({ copies = 1, config, mobile = false } = {}) {
 	const toggle = header.querySelector('.emm-nav__toggle');
 	toggle.click();
 	assert.ok(header.classList.contains('is-mobile-open'), 'The toggle opens the drawer.');
-	assert.equal(header.style.minWidth, '1px', 'A zero-width header stays measurable while its drawer is open.');
+	assert.equal(header.style.minWidth, '1px', 'The header stays measurable while its drawer is open.');
 	toggle.click();
 	assert.ok(!header.classList.contains('is-mobile-open'), 'The toggle closes the drawer.');
 	assert.equal(header.style.minWidth, '', 'Closing the drawer restores the header.');
 }
+
+// A header with width when the drawer opens can still collapse later, such as
+// when a phone rotates, so the minimum does not depend on its width at opening.
 {
 	const window = load({ mobile: true });
 	const header = window.document.querySelector('header.emm-header');
 	header.getBoundingClientRect = () => ({ width: 32, height: 52, top: 0, left: 0, right: 32, bottom: 52 });
 	header.querySelector('.emm-nav__toggle').click();
-	assert.ok(header.classList.contains('is-mobile-open'), 'The toggle opens the drawer.');
-	assert.equal(header.style.minWidth, '', 'A header that already has a width is left alone.');
+	assert.equal(header.style.minWidth, '1px', 'A header with width is covered if it collapses while open.');
+}
+
+// A min-width the plugin did not set is left alone, opening and closing.
+{
+	const window = load({ mobile: true });
+	const header = window.document.querySelector('header.emm-header');
+	const toggle = header.querySelector('.emm-nav__toggle');
+	header.style.minWidth = '200px';
+	toggle.click();
+	assert.equal(header.style.minWidth, '200px', 'Opening keeps a min-width set by the site.');
+	toggle.click();
+	assert.equal(header.style.minWidth, '200px', 'Closing keeps a min-width set by the site.');
 }
 
 // The edge bleed is configuration, not a hard-coded menu ID.
