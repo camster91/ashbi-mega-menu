@@ -1199,6 +1199,7 @@
 		$('#abmm-logo-alt-warning').prop('hidden', !(brand.show && String(brand.logo_url || brand.logo_dark_url || '').trim() && !String(brand.alt || '').trim() && !String(brand.title || '').trim()));
 		var classicLook = String(s.render_mode || '') === 'emm-classic' && state.previewViewport === 'desktop';
 		$('.abmm-classic-preview-note').prop('hidden', !classicLook);
+		if (window.ABMMAdvanced) window.ABMMAdvanced.refresh(getMenu());
 	}
 
 	function previewColorValue(value, fallback) {

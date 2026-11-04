@@ -785,6 +785,16 @@ class ABMM_Data {
 	}
 
 	/**
+	 * Settings for a menu created from nothing: the defaults, in the site's own
+	 * font. Kept out of default_settings(), which existing menus fill gaps from.
+	 *
+	 * @return array
+	 */
+	public static function new_menu_settings() {
+		return array_merge( self::default_settings(), array( 'style' => array( 'font_family_mode' => 'inherit' ) ) );
+	}
+
+	/**
 	 * Built-in design presets (easy one-click themes).
 	 *
 	 * @return array
@@ -918,7 +928,7 @@ class ABMM_Data {
 					'alt'           => '',
 					'logo_height'   => 40,
 				),
-				'settings' => self::default_settings(),
+				'settings' => self::new_menu_settings(),
 			)
 		);
 
@@ -1694,7 +1704,7 @@ class ABMM_Data {
 	 * @return array
 	 */
 	public static function generic_starter() {
-		$settings = self::default_settings();
+		$settings = self::new_menu_settings();
 		$settings['mobile_enhancements'] = true;
 		$sample = '#' . self::SAMPLE_FRAGMENT;
 		$link   = function ( $label, $icon, $description ) use ( $sample ) {
@@ -2148,7 +2158,7 @@ class ABMM_Data {
 					'alt'           => '',
 					'logo_height'   => 40,
 				),
-				'settings' => self::default_settings(),
+				'settings' => self::new_menu_settings(),
 			)
 		);
 		return array( 'menu' => $menu, 'report' => $report );
