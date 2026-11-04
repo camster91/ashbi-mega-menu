@@ -73,8 +73,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 						?>
 						<?php echo esc_html( $placement_recommendation['steps'] ); ?>
 					</p>
-					<p class="abmm-setup-guide__note"><?php esc_html_e( 'Placed it in a theme file or a page builder? Those can\'t be detected: check it on your site in the next step.', 'ashbi-mega-menu' ); ?></p>
-					<p class="abmm-setup-guide__note"><?php esc_html_e( 'Keep your theme\'s menu while you test, so visitors never lose navigation. Once the new menu works, remove the old one from the header to avoid two menus. To roll back, remove the Ashbi block, widget or shortcode: your theme\'s menu and settings are never changed by this plugin.', 'ashbi-mega-menu' ); ?></p>
+					<details class="abmm-setup-guide__tips">
+						<summary><?php esc_html_e( 'Tips for switching safely', 'ashbi-mega-menu' ); ?></summary>
+						<p class="abmm-setup-guide__note"><?php esc_html_e( 'Placed it in a theme file or a page builder? Those can\'t be detected: check it on your site in the next step.', 'ashbi-mega-menu' ); ?></p>
+						<p class="abmm-setup-guide__note"><?php esc_html_e( 'Keep your theme\'s menu while you test, so visitors never lose navigation. Once the new menu works, remove the old one from the header to avoid two menus. To roll back, remove the Ashbi block, widget or shortcode: your theme\'s menu and settings are never changed by this plugin.', 'ashbi-mega-menu' ); ?></p>
+					</details>
 					<?php if ( ! $abmm_guide_steps['place'] ) : ?><a class="button" href="<?php echo esc_url( $abmm_guide_edit . '#placement' ); ?>"><?php esc_html_e( 'Get the block, widget or shortcode', 'ashbi-mega-menu' ); ?></a><?php endif; ?>
 				</li>
 				<li class="<?php echo $abmm_guide_steps['verify'] ? 'is-done' : ''; ?><?php echo ( 'verify' === $abmm_guide_next || ( 'place' === $abmm_guide_next && $abmm_guide_steps['edit'] ) ) ? ' is-next' : ''; ?>">
@@ -136,11 +139,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</div>
 				</fieldset>
 			<?php endif; ?>
-			<ol class="abmm-how">
-				<li><span aria-hidden="true">1</span><?php esc_html_e( 'Build your menu', 'ashbi-mega-menu' ); ?></li>
-				<li><span aria-hidden="true">2</span><?php esc_html_e( 'Place it with a block, widget or shortcode', 'ashbi-mega-menu' ); ?></li>
-				<li><span aria-hidden="true">3</span><?php esc_html_e( 'Check it on desktop and mobile', 'ashbi-mega-menu' ); ?></li>
-			</ol>
 			<button type="button" class="button-link abmm-onboarding-choice abmm-welcome__skip" data-choice="dismiss"><?php esc_html_e( 'Skip for now', 'ashbi-mega-menu' ); ?></button>
 		</section>
 	<?php elseif ( empty( $menus ) ) : ?>
@@ -375,16 +373,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 								</span>
 							<?php endif; ?>
 						</p>
-						<div class="abmm-menu-card__shortcode">
-							<code><?php echo esc_html( $abmm_shortcode ); ?></code>
-							<button type="button" class="button button-small abmm-copy-shortcode" data-shortcode="<?php echo esc_attr( $abmm_shortcode ); ?>" title="<?php esc_attr_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Copy', 'ashbi-mega-menu' ); ?></button>
-						</div>
+						<details class="abmm-menu-card__reveal">
+							<summary><?php esc_html_e( 'Shortcode', 'ashbi-mega-menu' ); ?></summary>
+							<div class="abmm-menu-card__shortcode">
+								<code><?php echo esc_html( $abmm_shortcode ); ?></code>
+								<button type="button" class="button button-small abmm-copy-shortcode" data-shortcode="<?php echo esc_attr( $abmm_shortcode ); ?>" title="<?php esc_attr_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Copy', 'ashbi-mega-menu' ); ?></button>
+							</div>
+						</details>
 </div>
 					<div class="abmm-menu-card__actions">
 						<a class="button abmm-menu-card__main" href="<?php echo esc_url( $abmm_edit_url ); ?>">
 							<?php echo esc_html( $abmm_is_ready || $abmm_placed ? __( 'Edit menu', 'ashbi-mega-menu' ) : __( 'Finish setup', 'ashbi-mega-menu' ) ); ?>
 						</a>
-						<a class="button" href="<?php echo esc_url( $abmm_edit_url . '#placement' ); ?>"><?php esc_html_e( 'Place & verify', 'ashbi-mega-menu' ); ?></a>
+						<a class="button" href="<?php echo esc_url( $abmm_edit_url . '#placement' ); ?>"><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></a>
 <div class="abmm-card-menu">
 							<button type="button" class="button abmm-card-menu__toggle" aria-haspopup="menu" aria-expanded="false" aria-controls="<?php echo esc_attr( $abmm_actions_id ); ?>">
 								<span class="abmm-card-menu__dots" aria-hidden="true">&#8943;</span>

@@ -88,16 +88,16 @@ test.describe('editor', () => {
 		await expect(page.locator('#abmm-preview .abmm-nav')).toBeVisible();
 	}
 
-	test('dashboard, editor tabs and content editor pass axe', async ({ page, browserName }) => {
+	test('dashboard, editor steps and content editor pass axe', async ({ page, browserName }) => {
 		await page.goto('/wp-admin/admin.php?page=ashbi-mega-menu');
 		await axe(page, '#wpbody-content');
 		await openEditor(page, browserName);
 		await axe(page, '#wpbody-content');
-		for (const section of ['design', 'settings']) {
-			await page.locator(`[data-abmm-builder-section="${section}"]`).click();
+		for (const step of ['design', 'help', 'verify']) {
+			await page.locator(`[data-abmm-workflow="${step}"]`).click();
 			await axe(page, '#abmm-builder-sidebar');
 		}
-		await page.locator('[data-abmm-builder-section="content"]').click();
+		await page.locator('[data-abmm-workflow="content"]').click();
 		await page.locator('#abmm-nav-items .abmm-edit-mega').first().click();
 		await expect(page.locator('#abmm-mega-editor')).toBeVisible();
 		await axe(page, '#wpbody-content');

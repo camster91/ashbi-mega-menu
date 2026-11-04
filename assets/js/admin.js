@@ -467,6 +467,10 @@
 		renderSaveState();
 	}
 
+	function menuIsPlaced() {
+		return String($('#abmm-builder').attr('data-menu-placed')) === '1';
+	}
+
 	function renderSaveState() {
 		var $el = $('.abmm-save-status');
 		if (!$el.length || state.loadFailed) return;
@@ -475,6 +479,18 @@
 			.addClass('is-visible is-' + state.saveState)
 			.attr('role', state.saveState === 'failed' ? 'alert' : 'status');
 		$('<span class="abmm-save-status__message" />').text(state.saveMessage).appendTo($el);
+		// Saving is publishing, so say where. Theme templates and PHP cannot be detected.
+		if (state.saveState === 'saved') {
+			var placed = menuIsPlaced();
+			$el.append(' ');
+			$('<span class="abmm-save-status__placement" />')
+				.toggleClass('is-live', placed)
+				.text(placed ? __('Live where placed', 'ashbi-mega-menu') : __('No placement found', 'ashbi-mega-menu'))
+				.attr('title', placed
+					? __('Found on your site. Every save updates it there right away.', 'ashbi-mega-menu')
+					: __('Not found in your pages, widgets or page builder content. Placements in theme templates or PHP cannot be detected.', 'ashbi-mega-menu'))
+				.appendTo($el);
+		}
 		// A conflict cannot be fixed by retrying; the draft recovery panel offers reload instead.
 		if (state.saveState === 'failed' && !state.draftConflict) {
 			$('<button type="button" class="button-link abmm-retry-save" />')
@@ -508,7 +524,7 @@
 		var saved = state.saveState === 'saved';
 		var saving = state.saveState === 'saving';
 		// A placed menu goes live on save, so its button says so.
-		var placed = String($('#abmm-builder').attr('data-menu-placed')) === '1';
+		var placed = menuIsPlaced();
 		var label = saving ? __('Saving…', 'ashbi-mega-menu') : (saved ? __('Saved', 'ashbi-mega-menu') : (placed ? __('Save and update site', 'ashbi-mega-menu') : __('Save changes', 'ashbi-mega-menu')));
 		// Update the children in place: rebuilding them between mousedown and
 		// mouseup (a field's blur changes the save state) would drop the click.
@@ -796,8 +812,8 @@
 				.find('button').text(issue.message).attr('data-field', issue.field).attr('data-item', typeof issue.item === 'number' ? issue.item : null).data('issue', issue).end()
 				.appendTo($list);
 		});
-		// The checklist lives on the Content tab: keep its count visible from the others.
-		$('[data-abmm-builder-section="content"], [data-abmm-workflow="content"]').each(function () {
+		// The checklist lives on the Check step: keep its count visible from the others.
+		$('[data-abmm-workflow="verify"]').each(function () {
 			var $count = $(this).children('.abmm-issue-count');
 			if (result.ready) { $count.remove(); return; }
 			if (!$count.length) $count = $('<span class="abmm-issue-count" />').appendTo(this);
@@ -806,60 +822,57 @@
 		});
 		// The shortcode is always available; a draft only gets a reminder.
 		$('.abmm-placement-panel').toggleClass('is-draft', !result.ready);
-		$('.abmm-placement-save-hint').text(
-			hasUnsavedChanges() || state.draftConflict ? S.placementUnsaved :
-				(!result.ready && S.placementDraft ? S.placementDraft : S.placementSaved)
-		);
-		// Edit shows a tick once the saved menu passes its checklist.
+		var placementHint = hasUnsavedChanges() || state.draftConflict ? S.placementUnsaved :
+			(!result.ready && S.placementDraft ? S.placementDraft : '');
+		$('.abmm-placement-save-hint').text(placementHint).prop('hidden', !placementHint);
+		// Content shows a tick once the saved menu passes its checklist.
 		$('[data-abmm-workflow="content"]').toggleClass('is-done', result.ready && !hasUnsavedChanges());
 		setBuilderSection(state.builderSection);
 	}
 
+	// The stepper is the only navigation: each step opens its own panel.
+	var BUILDER_STEPS = ['content', 'design', 'help', 'verify'];
+
 	function setBuilderSection(section) {
-		section = ['content', 'design', 'settings', 'help'].indexOf(section) !== -1 ? section : 'content';
+		section = BUILDER_STEPS.indexOf(section) !== -1 ? section : 'content';
 		state.builderSection = section;
-		if (section !== 'help') state.lastEditSection = section;
-		$('.abmm-builder-sections [data-abmm-builder-section]').each(function () {
-			var $control = $(this);
-			var active = $control.data('abmm-builder-section') === section;
-			$control.toggleClass('is-active', active)
-				.attr('aria-selected', active ? 'true' : 'false')
-				.attr('tabindex', active ? '0' : '-1');
-		});
 		$('.abmm-builder-section-group').each(function () {
 			var $panel = $(this);
 			$panel.prop('hidden', $panel.data('abmm-builder-section-panel') !== section);
 		});
-		// One navigation: the stepper picks the stage, the tabs only exist inside
-		// Edit (Content, Design, Settings). Place and Check share the place panel.
-		$('.abmm-builder-sections').prop('hidden', section === 'help');
-		$('#abmm-builder-sidebar').toggleClass('is-place-step', section === 'help')
-			.find('.abmm-builder-sidebar__mobile-head strong')
-			.text(section === 'help' ? __('Place and check', 'ashbi-mega-menu') : __('Edit menu', 'ashbi-mega-menu'));
-		var step = section === 'help' ? (state.workflowStep === 'verify' ? 'verify' : 'help') : 'content';
-		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + step + '"]').attr('aria-current', 'step');
+		var titles = {
+			content: __('Content', 'ashbi-mega-menu'),
+			design: __('Design', 'ashbi-mega-menu'),
+			help: __('Place', 'ashbi-mega-menu'),
+			verify: __('Check', 'ashbi-mega-menu'),
+		};
+		$('#abmm-builder-sidebar .abmm-builder-sidebar__mobile-head strong').text(titles[section]);
+		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + section + '"]').attr('aria-current', 'step');
 	}
 
 	function initBuilderSections() {
-		// "Place & verify" on the dashboard links straight to the Place tab; the
-		// card's "N issues" pill links to the checklist on the Content tab.
+		// "Place" on the dashboard links straight to the Place step; the card's
+		// "N issues" pill links to the checklist on the Check step.
 		var hash = window.location.hash;
 		if (hash === '#placement') state.builderSection = 'help';
-		$('.abmm-builder-sections').on('click', '[data-abmm-builder-section]', function () {
-			state.workflowStep = '';
-			setBuilderSection(String($(this).data('abmm-builder-section') || 'content'));
+		if (hash === '#abmm-readiness-panel') state.builderSection = 'verify';
+		$('[data-abmm-workflow]').on('click', function () {
+			var step = String($(this).attr('data-abmm-workflow') || 'content');
+			setBuilderSection(step);
+			if (builderPanelIsNarrow()) openBuilderPanel(this);
+			if (step === 'verify') $('#abmm-readiness-panel, #abmm-verification-panel').first().trigger('focus');
 		});
-		$('.abmm-builder-sections').on('keydown', '[data-abmm-builder-section]', function (event) {
+		$('[data-abmm-workflow]').on('keydown', function (event) {
 			var keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
 			if (keys.indexOf(event.key) === -1) return;
 			event.preventDefault();
-			var $tabs = $('.abmm-builder-sections [data-abmm-builder-section]');
-			var index = $tabs.index(this);
+			var $steps = $('[data-abmm-workflow]');
+			var index = $steps.index(this);
 			if (event.key === 'Home') index = 0;
-			else if (event.key === 'End') index = $tabs.length - 1;
-			else index = (index + (event.key === 'ArrowRight' ? 1 : -1) + $tabs.length) % $tabs.length;
-			var $next = $tabs.eq(index);
-			setBuilderSection(String($next.data('abmm-builder-section') || 'content'));
+			else if (event.key === 'End') index = $steps.length - 1;
+			else index = (index + (event.key === 'ArrowRight' ? 1 : -1) + $steps.length) % $steps.length;
+			var $next = $steps.eq(index);
+			setBuilderSection(String($next.attr('data-abmm-workflow') || 'content'));
 			$next.trigger('focus');
 		});
 		setBuilderSection(state.builderSection);
@@ -869,6 +882,9 @@
 				if ($checklist[0].scrollIntoView) $checklist[0].scrollIntoView({ block: 'start' });
 				$checklist.trigger('focus');
 			}
+		}
+		if ((hash === '#placement' || hash === '#abmm-readiness-panel') && builderPanelIsNarrow()) {
+			openBuilderPanel($('[data-abmm-workflow="' + state.builderSection + '"]')[0]);
 		}
 	}
 
@@ -2649,14 +2665,6 @@
 		initBuilderSections();
 		initSaveShortcut();
 		initHistory();
-		$('[data-abmm-workflow]').on('click', function () {
-			var step = $(this).attr('data-abmm-workflow');
-			state.workflowStep = step;
-			// Edit returns to the tab the user was last on.
-			setBuilderSection(step === 'content' ? (state.lastEditSection || 'content') : 'help');
-			if (builderPanelIsNarrow()) openBuilderPanel(this);
-			if (step === 'verify') $('#abmm-verification-panel').trigger('focus');
-		});
 		$('.abmm-copy-placement').on('click', function () {
 			var $button = $(this), shortcode = String($button.attr('data-shortcode'));
 			if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -2812,9 +2820,11 @@
 
 		$('.abmm-readiness-issues').on('click', 'button', function () {
 			var field = document.getElementById($(this).data('field'));
-			// The field may sit on another tab; a hidden field cannot take focus.
+			// The checklist is on the Check step and fixes are on others. A hidden
+			// field cannot take focus, so open its step and any disclosure around it.
 			var section = field ? $(field).closest('[data-abmm-builder-section-panel]').data('abmm-builder-section-panel') : '';
-			if (section && section !== state.builderSection) setBuilderSection(String(section));
+			setBuilderSection(String(section || 'content'));
+			if (field) $(field).parents('details').prop('open', true);
 			if (openIssueTarget($(this).data('issue'), this)) return;
 			// An issue inside one dropdown opens that dropdown's content editor,
 			// then goes to the field to fix when the editor has one.
