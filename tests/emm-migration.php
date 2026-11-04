@@ -32,9 +32,19 @@ class ABMM_Test_DB {
 	public $postmeta = 'wp_postmeta';
 	public $posts    = 'wp_posts';
 	public function esc_like( $text ) { return addcslashes( $text, '_%\\' ); }
-	public function prepare( $query ) { return $query; }
+	public function prepare( $query, ...$args ) { $GLOBALS['abmm_last_args'] = $args; return $query; }
 	public function query( $query ) { return 1; }
-	public function get_var( $query ) { return false !== strpos( $query, ' LIKE ' ) ? ( $GLOBALS['abmm_content_uses_shortcode'] ? '7' : null ) : '1'; }
+	public function get_var( $query ) {
+		if ( isset( $GLOBALS['abmm_test_content'] ) ) {
+			foreach ( $GLOBALS['abmm_last_args'] as $arg ) {
+				if ( 0 === strpos( (string) $arg, '%id=' ) && false !== strpos( $GLOBALS['abmm_test_content'], stripslashes( trim( $arg, '%' ) ) ) ) {
+					return '7';
+				}
+			}
+			return null;
+		}
+		return false !== strpos( $query, ' LIKE ' ) ? ( $GLOBALS['abmm_content_uses_shortcode'] ? '7' : null ) : '1';
+	}
 	public function get_results( $query ) {
 		$rows = array();
 		foreach ( $GLOBALS['abmm_meta'] as $post_id => $meta ) {
@@ -309,6 +319,15 @@ unset( $GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] );
 verify_migration( '' === $notice( 'dashboard' ), 'No warning when no content uses [easy_mega_menu].' );
 $GLOBALS['abmm_content_uses_shortcode'] = true;
 unset( $GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] );
+
+// The import screen names the menus pages really use; menu_demo must not match menu_demo-copy.
+$GLOBALS['abmm_test_content'] = '[easy_mega_menu id="menu_demo-copy"] [easy_mega_menu id=\\"product_nav\\"]';
+verify_migration( array( 'menu_demo-copy', 'product_nav' ) === $migration->menus_in_use( array( 'menu_demo', 'menu_demo-copy', 'product_nav', 'unused' ) ), 'Only menus placed on pages are listed, in plain or Elementor-escaped quotes.' );
+$GLOBALS['abmm_test_content'] = '';
+verify_migration( array( 'menu_demo-copy' ) === $migration->menus_in_use( array( 'menu_demo-copy' ) ), 'The in-use list is cached.' );
+unset( $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
+verify_migration( array() === $migration->menus_in_use( array( 'menu_demo-copy' ) ), 'Nothing is listed when no page places a menu.' );
+unset( $GLOBALS['abmm_test_content'], $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
 
 // While Easy Mega Menu still runs a site with imported menus, Ashbi adds no body classes.
 define( 'EMM_VERSION', '1.6.76' );

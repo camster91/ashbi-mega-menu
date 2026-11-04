@@ -4150,10 +4150,6 @@ msgstr ""
 msgid "2. Test before you switch"
 msgstr ""
 
-#: admin/views/emm-import.php:110
-msgid "Imported menus use the Classic (Easy Mega Menu) look. Put one on a private draft page with the Ashbi shortcode and compare it with your live header:"
-msgstr ""
-
 #: admin/views/emm-import.php:113
 msgid "3. Switch"
 msgstr ""
@@ -4557,4 +4553,12 @@ msgstr ""
 
 #: includes/class-abmm-admin.php:606
 msgid "Your theme has widget areas. In Appearance → Widgets, add the Ashbi Mega Menu block to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme."
+msgstr ""
+
+#: admin/views/emm-import.php:118
+msgid "Imported menus use the Classic (Easy Mega Menu) look. Put one on a private draft page with the Ashbi shortcode and compare it with your live header. A plain page is narrower than a full-width header, so dropdowns can open in a different place: compare with the Easy Mega Menu shortcode on a draft with the same layout."
+msgstr ""
+
+#: admin/views/emm-import.php:120
+msgid "Your pages use these menus, so test each one:"
 msgstr ""

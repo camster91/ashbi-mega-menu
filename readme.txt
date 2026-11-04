@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,10 @@ Uninstallation removes the plugin's stored menus, archived menus, product profil
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
+
+= 1.2.2 =
+* While Easy Mega Menu is active, classic menus on test pages match how they will look after the switch.
+* The Easy Mega Menu import screen lists the menus your pages actually use.
 
 = 1.2.1 =
 * Warning when Easy Mega Menu is inactive and content still uses its [easy_mega_menu] shortcode, which would show as text.

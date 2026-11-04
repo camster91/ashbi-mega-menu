@@ -114,8 +114,16 @@ $abmm_has_conflicts  = (bool) array_filter( wp_list_pluck( $preview['menus'], 'c
 	<?php endif; ?>
 
 	<h2><?php esc_html_e( '2. Test before you switch', 'ashbi-mega-menu' ); ?></h2>
-	<p><?php esc_html_e( 'Imported menus use the Classic (Easy Mega Menu) look. Put one on a private draft page with the Ashbi shortcode and compare it with your live header:', 'ashbi-mega-menu' ); ?></p>
-	<p><code>[ashbi_mega_menu id="<?php echo esc_html( $preview['menus'][0]['id'] ?? 'menu-id' ); ?>"]</code></p>
+	<?php $abmm_menus_in_use = $this->menus_in_use( array_column( $preview['menus'] ?? array(), 'id' ) ); ?>
+	<p><?php esc_html_e( 'Imported menus use the Classic (Easy Mega Menu) look. Put one on a private draft page with the Ashbi shortcode and compare it with your live header. A plain page is narrower than a full-width header, so dropdowns can open in a different place: compare with the Easy Mega Menu shortcode on a draft with the same layout.', 'ashbi-mega-menu' ); ?></p>
+	<?php if ( $abmm_menus_in_use ) : ?>
+		<p><?php esc_html_e( 'Your pages use these menus, so test each one:', 'ashbi-mega-menu' ); ?></p>
+		<?php foreach ( $abmm_menus_in_use as $abmm_menu_id ) : ?>
+			<p><code>[ashbi_mega_menu id="<?php echo esc_html( $abmm_menu_id ); ?>"]</code></p>
+		<?php endforeach; ?>
+	<?php else : ?>
+		<p><code>[ashbi_mega_menu id="<?php echo esc_html( $preview['menus'][0]['id'] ?? 'menu-id' ); ?>"]</code></p>
+	<?php endif; ?>
 
 	<h2><?php esc_html_e( '3. Switch', 'ashbi-mega-menu' ); ?></h2>
 	<p><?php esc_html_e( 'Turn this on, then deactivate Easy Mega Menu (do not delete it). Your headers keep their [easy_mega_menu] shortcodes and Ashbi answers them. To switch back, reactivate Easy Mega Menu: it takes over again straight away.', 'ashbi-mega-menu' ); ?></p>
