@@ -3403,6 +3403,10 @@ body.abmm-builder-sheet-open {
 	display: none;
 }
 
+.abmm-wrap .abmm-load-backups[hidden] {
+	display: none;
+}
+
 .abmm-more-options > summary {
 	width: fit-content;
 	min-height: 24px;

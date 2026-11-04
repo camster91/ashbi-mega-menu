@@ -52,6 +52,8 @@ The plugin saves a backup of all your menus before big changes, such as an impor
 
 **Restoring a backup replaces all your menus,** not just one. So it's for big mistakes. The plugin saves your current menus as a new backup first.
 
+The list loads by itself. If it can't load, a **Try again** button shows.
+
 Before you restore one, check its date and how many menus it has. These are backups of your menus only. They don't back up your whole site.
 
 ## Export a copy

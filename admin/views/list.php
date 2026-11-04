@@ -582,8 +582,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="abmm-history-section">
 			<h3><?php esc_html_e( 'All menus', 'ashbi-mega-menu' ); ?></h3>
 			<p class="description"><?php esc_html_e( 'A backup is taken automatically before imports and other big changes, and the last five are kept. Restoring replaces all current menus, after saving them as a new backup first.', 'ashbi-mega-menu' ); ?></p>
-			<button type="button" class="button abmm-load-backups"><?php esc_html_e( 'Refresh backups', 'ashbi-mega-menu' ); ?></button>
 			<div id="abmm-backup-status" role="status" aria-live="polite" tabindex="-1"></div>
+			<button type="button" class="button abmm-load-backups" hidden><?php esc_html_e( 'Try again', 'ashbi-mega-menu' ); ?></button>
 			<div id="abmm-backup-list"></div>
 		</div>
 		</div>

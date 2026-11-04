@@ -31,7 +31,7 @@ These are the screenshots the docs need. Each doc marks its spot with a hidden c
 | `08-link-search.png` | The link search open with page results | Search box and a result | user-guide |
 | `09-dropdown-simple-columns.png` | Dropdown editor on **Simple columns** with links filled in | Layout choice and **Add link** | user-guide |
 | `10-dropdown-categories.png` | Dropdown editor on **Categories + links** with one category selected | Category list and columns | user-guide |
-| `11-featured-card.png` | Dropdown editor with the featured card on, plus the card in the preview | The card's fields | user-guide |
+| `11-featured-card.png` | Dropdown editor with the **Featured card** section open and the card on, plus the card in the preview | The card's fields | user-guide |
 | `12-more-options.png` | A link's options open, with **More options** expanded | Open in new tab, Relationship and CSS classes | user-guide |
 | `13-button-panel.png` | The **Button** section with **Show button** on | Button text and URL | user-guide |
 | `14-logo-panel.png` | The **Logo** section with **Show logo** on and a logo chosen | Picture button and alternative text | style-your-menu, user-guide |

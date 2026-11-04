@@ -203,7 +203,7 @@ Click a row's icon spot to open the icon window.
 
 ### Featured card
 
-A featured card is an optional highlight at the end of a panel. Use it for a launch, a guide or an offer.
+A featured card is an optional highlight at the end of a panel. Use it for a launch, a guide or an offer. It sits in a closed section at the bottom of the dropdown editor. The section opens by itself if the card has anything in it.
 
 <!-- screenshot: 11-featured-card.png -->
 

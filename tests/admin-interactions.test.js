@@ -183,7 +183,22 @@ async function backupFixture(strings = {}) {
  requests[1].d.reject({responseJSON:{data:{message:'Menus changed. Reload snapshots.'}}});
  assert.equal($('#abmm-backup-status').attr('role'),'alert');
  assert.match($('#abmm-backup-status').text(),/Menus changed/);
- assert.equal($('.abmm-load-backups').prop('disabled'),false); f.close();
+ assert.equal($('.abmm-load-backups').prop('disabled'),false);
+ assert.equal($('.abmm-load-backups').prop('hidden'),false,'a failed restore offers a fresh list');
+ f.close();
+ // The backup list loads by itself, so its button only shows to try again.
+ f=await backupFixture(); $=f.$; requests=f.requests;
+ $('.abmm-load-backups').prop('hidden',true).trigger('click');
+ requests[0].d.reject({});
+ assert.equal($('#abmm-backup-status').attr('role'),'alert');
+ assert.equal($('.abmm-load-backups').prop('hidden'),false,'a failed load offers Try again');
+ $('.abmm-load-backups').trigger('click');
+ requests[1].d.resolve({success:false,data:{message:'Nope'}});
+ assert.equal($('.abmm-load-backups').prop('hidden'),false,'so does a refused load');
+ $('.abmm-load-backups').trigger('click');
+ requests[2].d.resolve({success:true,data:{backups:[],revision:'r'}});
+ assert.equal($('.abmm-load-backups').prop('hidden'),true,'a good load hides it again');
+ f.close();
  f=await backupFixture({backupLoading:'Chargement',backupExport:'<b>Exporter</b>',backupSummary:'%2$s menus — %1$s'}); $=f.$;
  $('.abmm-load-backups').trigger('click'); assert.equal($('#abmm-backup-status').text(),'Chargement');
  f.requests[0].d.resolve({success:true,data:{backups:[{id:'backup-1',created_at:'2026-10-10',menu_count:2}],revision:'collection-1'}});
@@ -247,12 +262,12 @@ async function backupFixture(strings = {}) {
  f.close();
  // Featured card: row summaries count content, the card renders as the panel's
  // last child, and items without a card never gain a `featured` key.
- const featuredEditor = `<div id="abmm-mega-editor" hidden><h2 id="abmm-mega-editor-title"></h2><button class="abmm-close-mega-editor">Back</button><ul id="abmm-features-link-list"></ul>
+ const featuredEditor = `<div id="abmm-mega-editor" hidden><h2 id="abmm-mega-editor-title"></h2><button class="abmm-close-mega-editor">Back</button><details id="abmm-featured-details"><summary>Featured card</summary><ul id="abmm-features-link-list"></ul>
   <section id="abmm-featured-editor"><input type="checkbox" id="abmm-featured-show"><div id="abmm-featured-fields" hidden>
   <input id="abmm-featured-title" class="abmm-featured-input" data-featured-key="title"><textarea id="abmm-featured-text" class="abmm-featured-input" data-featured-key="text"></textarea>
   <input id="abmm-featured-label" class="abmm-featured-input" data-featured-key="label"><input id="abmm-featured-url" class="abmm-featured-input" data-featured-key="url">
   <div id="abmm-featured-media"><span class="abmm-featured-media__thumb"></span><button class="abmm-featured-choose-image">Choose</button><button class="abmm-featured-remove-image" hidden>Remove</button></div>
-  <input id="abmm-featured-image" class="abmm-featured-input" data-featured-key="image_url"></div></section></div>`;
+  <input id="abmm-featured-image" class="abmm-featured-input" data-featured-key="image_url"></div></section></details></div>`;
  const megaMenu = {...menu, items:[
   {id:'shop',label:'Shop',type:'mega',mega_style:'platforms',columns:3,categories:[{id:'c1',title:'Cat',groups:[{id:'g1',title:'Col',links:[{id:'l1',label:'One',url:'/one'},{id:'l2',label:'Two',url:'https://elsewhere.example/two'}]}]}]},
   {id:'feat',label:'Feat',type:'mega',mega_style:'features',links:[{id:'f1',label:'A',url:'/a'}],featured:{show:true,title:'New',text:'Short',label:'Learn more',url:'/new',image_url:'/img.jpg'}},
@@ -269,9 +284,12 @@ async function backupFixture(strings = {}) {
  assert.equal($('#abmm-preview [data-abmm-preview-item="0"] .abmm-mega__featured').length,0,'no card without a featured key');
  $('#abmm-nav-items .abmm-nav-item-row').eq(0).find('.abmm-edit-mega').trigger('click');
  assert.equal($('#abmm-featured-show').prop('checked'),false);
+ assert.equal($('#abmm-featured-details').prop('open'),false,'a dropdown with no card starts with its section closed');
+ $('#abmm-featured-details').prop('open',true);
  $('#abmm-featured-show').prop('checked',true).trigger('change');
  assert.equal($('#abmm-featured-fields').prop('hidden'),false,'the switch reveals the card fields');
  $('#abmm-featured-show').prop('checked',false).trigger('change');
+ assert.equal($('#abmm-featured-details').prop('open'),true,'turning the card off does not close the section under the user');
  $('.abmm-save-menu').trigger('click');
  let saved = JSON.parse(f.requests[0].data.menu_data);
  assert.equal('featured' in saved.items[0],false,'switching an empty card on and off leaves no featured key');
@@ -287,6 +305,8 @@ async function backupFixture(strings = {}) {
  f.requests[1].d.resolve({success:true,data:{revision:'revision-3'}});
  // A checklist item about one dropdown opens that dropdown's editor at the field to fix.
  $('#abmm-nav-items .abmm-nav-item-row').eq(1).find('.abmm-edit-mega').trigger('click');
+ assert.equal($('#abmm-featured-details').prop('open'),true,'a dropdown with a card opens its section, so nothing is hidden and active');
+ $('#abmm-featured-details').prop('open',false);
  $('#abmm-featured-url').val('').trigger('input');
  $('.abmm-close-mega-editor').trigger('click');
  const featuredIssue = $('.abmm-readiness-issues button').filter((_, b) => $(b).text().includes('featured card'));
@@ -296,6 +316,7 @@ async function backupFixture(strings = {}) {
  assert.equal($('#abmm-mega-editor-title').text(),'Feat');
  await new Promise((resolve) => f.window.setTimeout(resolve, 300));
  assert.equal(f.window.document.activeElement.id,'abmm-featured-url','and moves to the featured link field');
+ assert.equal($('#abmm-featured-details').prop('open'),true,'with its section open');
  $('#abmm-featured-url').val('/new').trigger('input');
  $('.abmm-close-mega-editor').trigger('click');
  // Mega link rows: the URL is a quiet chip, and one button opens link editing and options.
@@ -797,6 +818,18 @@ async function simplicityRegressions(){
  assert.match(builderView,/unset\( \$abmm_place_others\[ \$abmm_place_method \] \)/,'the recommended method is not listed twice');
  assert.equal((builderView.match(/\$abmm_shortcode_field\(\);/g)||[]).length,2,'the shortcode shows with the recommendation or under the others');
  assert.ok(!/abmm-builder-header__subtitle[^\n]*ashbi_mega_menu/.test(builderView),'the header no longer repeats the shortcode');
+ // Small leftovers: nothing extra on the default path, and nothing lost.
+ assert.match(listView,/class="button abmm-load-backups" hidden/,'the backup button starts hidden');
+ assert.match(builderView,/<details class="abmm-more-options abmm-featured-details" id="abmm-featured-details">[\s\S]*id="abmm-featured-editor"[\s\S]*<\/section>\s*<\/details>/,'the featured card sits in a closed section');
+ assert.match(builderView,/abmm-builder-header__subtitle<\?php echo \$abmm_is_placed \? ' is-placed'/,'the header line knows when the status says the same');
+ {
+  const brand=fs.readFileSync('assets/css/brand-admin.css','utf8');
+  const line=brand.match(/\.abmm-builder-header__subtitle \{[^}]*\}/)[0];
+  assert.ok(!/nowrap|overflow:hidden/.test(line),'the header line wraps, so long translations cannot clip');
+  assert.match(brand,/\(min-width:783px\) and \(max-width:1319px\), \(max-width:480px\) \{[^@]*__subtitle\.is-placed \{display:block\}/,'it returns where the status has no room');
+ }
+ assert.match(builderView,/abmm-place-rollback[^\n]*Keep your theme[^\n]*never changes your theme/,'the rollback advice keeps its meaning');
+ assert.match(builderView,/abmm-placement-state/,'Check still says what cannot be detected');
 
  // The saved state says where the menu is live, and admits what cannot be detected.
  let f=await fixture(); let $=f.$;

@@ -1300,7 +1300,9 @@
 .abmm-wrap .abmm-builder-header .abmm-menu-title-input {display:block;width:100%;max-width:min(560px,100%);height:32px;min-height:32px;margin:0 0 0 -7px;padding:0 6px!important;color:var(--abmm-brand-ink);background:transparent;border:1px solid transparent!important;border-radius:7px;box-shadow:none;font-size:22px!important;font-weight:650;letter-spacing:-.35px;line-height:30px;text-overflow:ellipsis}
 .abmm-wrap .abmm-builder-header .abmm-menu-title-input:hover {background:#fff;border-color:var(--abmm-brand-line)!important}
 .abmm-wrap .abmm-builder-header .abmm-menu-title-input:focus {background:#fff;border-color:var(--abmm-brand-blue)!important;box-shadow:var(--abmm-ui-ring);outline:0}
-.abmm-builder-header__subtitle {display:flex;align-items:center;gap:6px;max-width:100%;margin:1px 0 0;overflow:hidden;color:var(--abmm-brand-muted);font-size:13px;line-height:18px;white-space:nowrap}
+.abmm-builder-header__subtitle {max-width:100%;margin:1px 0 0;color:var(--abmm-brand-muted);font-size:13px;line-height:18px}
+/* A placed menu's status beside the save button says this already. */
+.abmm-wrap .abmm-builder-header .abmm-builder-header__subtitle.is-placed {display:none}
 .abmm-builder-header__subtitle code {overflow:hidden;padding:0 5px;color:var(--abmm-brand-muted);background:#e6e9f0;border-radius:4px;font-size:12px;line-height:18px;text-overflow:ellipsis;white-space:nowrap}
 .abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions {flex:none;gap:6px}
 /* The stepper sits in the header: Content, Design, Place, Check. */
@@ -1421,7 +1423,9 @@
 .abmm-switch input:focus-visible + .abmm-switch__track {outline:2px solid var(--abmm-brand-blue);outline-offset:2px}
 
 /* Featured card editor. */
-.abmm-wrap .abmm-featured-editor {margin:0;padding:16px 20px 20px;border-top:1px solid var(--abmm-brand-line)}
+.abmm-wrap .abmm-featured-details {margin:0;padding:12px 20px;border-top:1px solid var(--abmm-brand-line)}
+.abmm-wrap .abmm-featured-details > summary h3 {display:inline;margin:0;color:inherit;font:inherit}
+.abmm-wrap .abmm-featured-editor {margin:0;padding:0}
 .abmm-featured-editor__head {display:flex;align-items:center;justify-content:space-between;gap:16px}
 .abmm-wrap .abmm-featured-editor__head h3 {margin:0;color:var(--abmm-brand-ink);font-size:13px;font-weight:600}
 .abmm-wrap .abmm-featured-editor__head .description {margin:2px 0 0;color:var(--abmm-brand-muted);font-size:12px;line-height:1.45}
@@ -1583,6 +1587,7 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
 @media (min-width:783px) and (max-width:1319px), (max-width:480px) {
 	/* No room beside the title or on a small phone: the Check step still says it. */
 	.abmm-wrap .abmm-builder-header .abmm-save-status__placement {position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+	.abmm-wrap .abmm-builder-header .abmm-builder-header__subtitle.is-placed {display:block}
 }
 /* The count is not a step number. */
 .abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav button > .abmm-issue-count,

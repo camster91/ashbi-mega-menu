@@ -52,7 +52,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				<label class="screen-reader-text" for="abmm-menu-title"><?php esc_html_e( 'Menu name', 'ashbi-mega-menu' ); ?></label>
 				<input type="text" id="abmm-menu-title" class="abmm-menu-title-input" value="<?php echo esc_attr( $menu['title'] ); ?>" placeholder="<?php esc_attr_e( 'Menu name', 'ashbi-mega-menu' ); ?>" title="<?php esc_attr_e( 'Rename this menu', 'ashbi-mega-menu' ); ?>" />
 			</h1>
-			<p class="abmm-builder-header__subtitle"><?php esc_html_e( 'Saved changes go live wherever this menu is placed.', 'ashbi-mega-menu' ); ?></p>
+			<p class="abmm-builder-header__subtitle<?php echo $abmm_is_placed ? ' is-placed' : ''; ?>"><?php esc_html_e( 'Saved changes go live wherever this menu is placed.', 'ashbi-mega-menu' ); ?></p>
 			</div>
 			<nav class="abmm-setup-flow abmm-workflow-nav" aria-label="<?php esc_attr_e( 'Menu setup steps', 'ashbi-mega-menu' ); ?>">
 			<button type="button" data-abmm-workflow="content"><span aria-hidden="true">1</span><?php esc_html_e( 'Content', 'ashbi-mega-menu' ); ?></button>
@@ -604,8 +604,8 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					}
 					?>
 				</div>
-				<p class="description abmm-place-width"><?php esc_html_e( 'Give the menu the full width of the page. In a narrow column or sidebar it shows the phone menu, even on a wide screen.', 'ashbi-mega-menu' ); ?></p>
-				<p class="description abmm-place-rollback"><?php esc_html_e( 'Keep your theme\'s menu while you test. When the new menu works, remove the old one from the header so there is only one. To roll back, remove the Ashbi block, widget or shortcode: this plugin never changes your theme\'s menu.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description abmm-place-width"><?php esc_html_e( 'Give the menu the full page width. In a narrow column it shows the phone menu.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description abmm-place-rollback"><?php esc_html_e( 'Keep your theme\'s menu until this one works, then remove it so only one shows. To go back, remove this menu\'s block, widget or shortcode; this plugin never changes your theme\'s menu.', 'ashbi-mega-menu' ); ?></p>
 				<details class="abmm-design-more abmm-disclosure abmm-place-others">
 					<summary><?php esc_html_e( 'Other ways to place it', 'ashbi-mega-menu' ); ?></summary>
 					<ul class="abmm-place-options">
@@ -757,10 +757,11 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				</div>
 
 				<!-- Featured card: an optional highlighted card after the link columns -->
+				<details class="abmm-more-options abmm-featured-details" id="abmm-featured-details">
+				<summary><h3 id="abmm-featured-heading"><?php esc_html_e( 'Featured card', 'ashbi-mega-menu' ); ?></h3></summary>
 				<section class="abmm-featured-editor" id="abmm-featured-editor" aria-labelledby="abmm-featured-heading">
 					<div class="abmm-featured-editor__head">
 						<div class="abmm-featured-editor__intro">
-							<h3 id="abmm-featured-heading"><?php esc_html_e( 'Featured card', 'ashbi-mega-menu' ); ?></h3>
 							<p class="description" id="abmm-featured-help"><?php esc_html_e( 'An optional card after the link columns. Use it for a launch, a guide or an offer.', 'ashbi-mega-menu' ); ?></p>
 						</div>
 						<label class="abmm-switch">
@@ -810,6 +811,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 						</div>
 					</div>
 				</section>
+				</details>
 			</div>
 		</div>
 		<div class="abmm-builder-panel-backdrop" id="abmm-builder-panel-backdrop" hidden aria-hidden="true"></div>

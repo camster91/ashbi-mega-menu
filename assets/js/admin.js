@@ -1509,7 +1509,11 @@
 		function status(message, error) {
 			$status.text(message).attr('role', error ? 'alert' : 'status');
 		}
-		// The list loads the first time the panel opens; the button refreshes it.
+		// The list loads the first time the panel opens. The button only shows to
+		// try again after a failure.
+		function showRetry(show) {
+			$('.abmm-load-backups').prop('hidden', !show);
+		}
 		$('#abmm-backup-panel').one('toggle', function () {
 			if (this.open) $('.abmm-load-backups').trigger('click');
 		});
@@ -1518,7 +1522,8 @@
 			status(S.backupLoading || 'Loading recovery snapshots…', false);
 			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_list_backups', nonce: abmmAdmin.nonce })
 				.done(function (res) {
-					if (!res || !res.success || !res.data) { status(responseMessage(res, S.backupLoadError || 'Snapshots could not be loaded.'), true); return; }
+					if (!res || !res.success || !res.data) { status(responseMessage(res, S.backupLoadError || 'Snapshots could not be loaded.'), true); showRetry(true); return; }
+					showRetry(false);
 					revision = String(res.data.revision || '');
 					$list.empty();
 					(res.data.backups || []).forEach(function (backup) {
@@ -1529,7 +1534,7 @@
 						$row.appendTo($list);
 					});
 					status($list.children().length ? (S.backupGuidance || 'Export a snapshot before restoring. Restore replaces every current menu.') : (S.backupEmpty || 'No recovery snapshots are available yet.'), false);
-				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupLoadError || 'Snapshots could not be loaded.'), true); })
+				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupLoadError || 'Snapshots could not be loaded.'), true); showRetry(true); })
 				.always(function () { $button.prop('disabled', false); });
 		});
 		$list.on('click', '.abmm-export-backup', function () {
@@ -1562,10 +1567,10 @@
 			status(S.backupRestoring || 'Restoring snapshot…', false);
 			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_restore_backup', nonce: abmmAdmin.nonce, backup_id: $row.attr('data-backup-id'), revision: revision })
 				.done(function (res) {
-					if (!res || !res.success) { status(responseMessage(res, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); return; }
+					if (!res || !res.success) { status(responseMessage(res, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); showRetry(true); return; }
 					status(responseMessage(res, S.backupRestored || 'Snapshot restored. Reloading menus…'), false);
 					setTimeout(function () { window.location.reload(); }, 700);
-				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); })
+				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); showRetry(true); })
 				.always(function () { $buttons.prop('disabled', false); $row.find('.abmm-backup-confirm').remove(); });
 		});
 	}
@@ -3589,6 +3594,9 @@
 		$('#abmm-mega-editor').prop('hidden', false);
 		$('#abmm-nav-items .abmm-nav-item-row').removeClass('is-selected').eq(index).addClass('is-selected');
 		$('#abmm-mega-more-options').prop('open', false);
+		// A card with anything in it is never hidden behind a closed section.
+		var card = featuredData(item);
+		$('#abmm-featured-details').prop('open', !!card && (!!card.show || !featuredIsEmpty(card)));
 		syncMegaEditorUI();
 		if (megaEditorIsNarrow()) {
 			syncMegaEditorSheetState();
