@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2
+
+Found by testing 1.2.1 side by side with Easy Mega Menu on a live site.
+
+- **Test pages look like the site after the switch**: while Easy Mega Menu is active, a classic menu on a test page no longer adds a second copy of the stylesheet after the theme's. That copy beat the theme's styles, so buttons and phone drawer items looked different from how they will after the switch. Live pages are not affected.
+- **Easy Mega Menu import** lists the shortcodes of the menus your pages actually use, instead of always the first menu, and explains that a plain draft page can open dropdowns in a different place than a full-width header.
+
 ## 1.2.1
 
 Found by building a full menu in the editor from scratch, as a site owner would.

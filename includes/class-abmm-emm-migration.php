@@ -599,6 +599,39 @@ class ABMM_EMM_Migration {
 	}
 
 	/**
+	 * Which of these menus site content places with [easy_mega_menu]. Cached for
+	 * an hour, like shortcode_in_content().
+	 *
+	 * @param string[] $ids Menu IDs.
+	 * @return string[] The IDs in use, in the given order.
+	 */
+	public function menus_in_use( $ids ) {
+		$used = get_transient( 'abmm_emm_menus_in_use' );
+		if ( ! is_array( $used ) ) {
+			global $wpdb;
+			$used      = array();
+			$shortcode = '%' . $wpdb->esc_like( 'easy_mega_menu' ) . '%';
+			// One-off searches of site content, as in shortcode_in_content().
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			foreach ( $ids as $id ) {
+				$id = (string) $id;
+				// Elementor stores the shortcode's quotes with backslashes. The closing quote keeps menu_demo from matching menu_demo-copy.
+				$plain   = '%' . $wpdb->esc_like( 'id="' . $id . '"' ) . '%';
+				$slashed = '%' . $wpdb->esc_like( 'id=\\"' . $id . '\\"' ) . '%';
+				$single  = '%' . $wpdb->esc_like( "id='" . $id . "'" ) . '%';
+				if ( $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ( %s, %s, %s ) AND post_content LIKE %s AND ( post_content LIKE %s OR post_content LIKE %s ) LIMIT 1", 'trash', 'auto-draft', 'inherit', $shortcode, $plain, $single ) )
+					|| $wpdb->get_var( $wpdb->prepare( "SELECT pm.meta_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND p.post_status NOT IN ( %s, %s, %s ) AND pm.meta_value LIKE %s AND ( pm.meta_value LIKE %s OR pm.meta_value LIKE %s OR pm.meta_value LIKE %s ) LIMIT 1", '_elementor_data', 'trash', 'auto-draft', 'inherit', $shortcode, $plain, $slashed, $single ) )
+					|| $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value LIKE %s AND ( option_value LIKE %s OR option_value LIKE %s OR option_value LIKE %s ) LIMIT 1", $wpdb->esc_like( 'widget_' ) . '%', $shortcode, $plain, $slashed, $single ) ) ) {
+					$used[] = $id;
+				}
+			}
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			set_transient( 'abmm_emm_menus_in_use', $used, HOUR_IN_SECONDS );
+		}
+		return array_values( array_intersect( array_map( 'strval', $ids ), $used ) );
+	}
+
+	/**
 	 * Warn when Easy Mega Menu is inactive but its menus are still stored and
 	 * nothing answers [easy_mega_menu]: WordPress then prints the shortcode as
 	 * plain text on the site. Shown on the Dashboard, Plugins and this plugin's

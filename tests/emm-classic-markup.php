@@ -199,5 +199,28 @@ $dirty = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script><symb
 $clean = ABMM_EMM_Migration::sanitize_sprite( $dirty );
 verify_classic( false === stripos( $clean, 'script' ) && false === stripos( $clean, 'onload' ) && false === stripos( $clean, 'evil' ) && false !== strpos( $clean, 'emm-icon-x' ), 'Copied sprites keep only drawing elements.' );
 
+// While Easy Mega Menu's stylesheet is on the page, a classic menu must not link the copy after
+// the theme's styles; its inline CSS still prints. Runs last: the constant stays defined.
+function wp_style_is( $handle, $status ) { return 'emm-frontend' === $handle && 'enqueued' === $status && ! empty( $GLOBALS['abmm_test_source_css'] ); }
+function wp_styles() { return $GLOBALS['abmm_test_wp_styles']; }
+$GLOBALS['abmm_test_wp_styles'] = (object) array( 'registered' => array( 'abmm-classic' => (object) array( 'src' => 'copy.css' ) ) );
+$enqueued = new ReflectionProperty( ABMM_Classic::class, 'assets_enqueued' );
+$enqueued->setAccessible( true );
+$enqueued->setValue( ABMM_Classic::instance(), false );
+ABMM_Classic::instance()->enqueue_assets();
+verify_classic( 'copy.css' === $GLOBALS['abmm_test_wp_styles']->registered['abmm-classic']->src, 'With Easy Mega Menu inactive the classic stylesheet is linked.' );
+define( 'EMM_VERSION', 'test' );
+$enqueued->setValue( ABMM_Classic::instance(), false );
+ABMM_Classic::instance()->enqueue_assets();
+verify_classic( 'copy.css' === $GLOBALS['abmm_test_wp_styles']->registered['abmm-classic']->src, 'Easy Mega Menu active without its stylesheet queued: the copy is linked.' );
+$GLOBALS['abmm_test_source_css'] = true;
+$enqueued->setValue( ABMM_Classic::instance(), false );
+ABMM_Classic::instance()->enqueue_assets();
+verify_classic( false === $GLOBALS['abmm_test_wp_styles']->registered['abmm-classic']->src && isset( $GLOBALS['abmm_test_styles']['abmm-classic'] ), 'With the Easy Mega Menu stylesheet on the page, only the inline CSS is printed.' );
+// Block themes render the menu first, so the same check runs late in wp_enqueue_scripts.
+$GLOBALS['abmm_test_wp_styles']->registered['abmm-classic']->src = 'copy.css';
+ABMM_Classic::instance()->defer_to_source_stylesheet();
+verify_classic( false === $GLOBALS['abmm_test_wp_styles']->registered['abmm-classic']->src, 'The late check also drops the copy.' );
+
 array_map( 'unlink', glob( $abmm_uploads . '/' . ABMM_Classic::UPLOAD_DIR . '/*' ) ?: array() );
 echo "Classic markup: $checked Easy Mega Menu headers match byte for byte; mapping is exact and stable.\n";

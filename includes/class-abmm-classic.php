@@ -66,6 +66,8 @@ class ABMM_Classic {
 
 	private function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
+		// Block themes render the page, and so the menu, before this hook runs.
+		add_action( 'wp_enqueue_scripts', array( $this, 'defer_to_source_stylesheet' ), 999 );
 		add_filter( 'script_loader_tag', array( $this, 'add_nitropack_exclusion' ), 10, 2 );
 		add_filter( 'style_loader_tag', array( $this, 'add_nitropack_exclusion' ), 10, 2 );
 		add_filter( 'body_class', array( $this, 'body_class' ) );
@@ -233,8 +235,7 @@ class ABMM_Classic {
 			wp_add_inline_style( 'abmm-classic', $style_css );
 		}
 		// While Easy Mega Menu is active its own stylesheet (the same rules) is
-		// already queued, so live pages stay byte for byte as they were; classic
-		// menus rendered by Ashbi then queue this one themselves.
+		// already queued, so live pages stay byte for byte as they were.
 		if ( $summary['classic'] && ! self::source_active() ) {
 			wp_enqueue_style( 'abmm-classic' );
 		}
@@ -302,9 +303,22 @@ class ABMM_Classic {
 		if ( $this->assets_enqueued ) {
 			return;
 		}
+		$this->defer_to_source_stylesheet();
 		wp_enqueue_style( 'abmm-classic' );
 		wp_enqueue_script( 'abmm-classic' );
 		$this->assets_enqueued = true;
+	}
+
+	/**
+	 * Easy Mega Menu's stylesheet (the same rules) loads in the head, before the
+	 * theme's. Linking the copy later would let it beat the theme's styles, so a
+	 * test page would look unlike the site after the switch. While that stylesheet
+	 * is on the page, only this one's inline CSS is printed.
+	 */
+	public function defer_to_source_stylesheet() {
+		if ( self::source_active() && ( wp_style_is( 'emm-frontend', 'enqueued' ) || wp_style_is( 'emm-frontend', 'done' ) ) && isset( wp_styles()->registered['abmm-classic'] ) ) {
+			wp_styles()->registered['abmm-classic']->src = false;
+		}
 	}
 
 	/**
