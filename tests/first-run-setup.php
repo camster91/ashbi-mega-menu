@@ -49,6 +49,9 @@ function wp_generate_password( $length = 12 ) { return substr( md5( uniqid( '', 
 function wp_strip_all_tags( $text ) { return strip_tags( (string) $text ); }
 function is_preview() { return false; }
 function add_action() {}
+function get_transient() { return false; }
+function set_transient() { return true; }
+define( 'MINUTE_IN_SECONDS', 60 );
 function add_filter() {}
 function apply_filters( $tag, $value ) { return $value; }
 function wp_register_style() {}
