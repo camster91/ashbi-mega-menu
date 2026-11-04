@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Edit mega menu** now shows in the toolbar on themes that call `wp_body_open()` before their header, such as Hello Elementor, where the toolbar is built before any menu renders.
+
 ## 1.2.2
 
 Found by testing 1.2.1 side by side with Easy Mega Menu on a live site.

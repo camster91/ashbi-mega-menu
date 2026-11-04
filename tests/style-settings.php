@@ -59,6 +59,7 @@ function wp_enqueue_style() {}
 function wp_enqueue_script() {}
 function wp_localize_script() {}
 function wp_add_inline_script() {}
+function wp_print_inline_script_tag( $js ) { $GLOBALS['abmm_test_late_script'] = $js; }
 function wp_add_inline_style( $handle, $css ) { $GLOBALS['abmm_test_inline'][ $handle ] = ( $GLOBALS['abmm_test_inline'][ $handle ] ?? '' ) . $css; }
 function wp_upload_dir() { return array( 'error' => 'none' ); }
 function abmm_menu_search_strings() { return array(); }
@@ -205,6 +206,37 @@ $GLOBALS['abmm_test_is_admin'] = true;
 $frontend->admin_bar_edit_link( $bar );
 verify_style( array() === $bar->nodes, 'No link inside wp-admin.' );
 $GLOBALS['abmm_test_is_admin'] = false;
+
+// Themes that call wp_body_open() build the toolbar before any menu renders.
+$built = new ReflectionProperty( 'ABMM_Frontend', 'toolbar_built' );
+$added = new ReflectionProperty( 'ABMM_Frontend', 'toolbar_link_added' );
+$built->setAccessible( true );
+$added->setAccessible( true );
+$late = function () use ( $frontend ) {
+	$GLOBALS['abmm_test_late_script'] = '';
+	$frontend->late_toolbar_link();
+	return $GLOBALS['abmm_test_late_script'];
+};
+$rendered->setValue( $frontend, array() );
+$built->setValue( $frontend, false );
+$added->setValue( $frontend, false );
+$frontend->render( 'main' );
+verify_style( '' === $late(), 'No late link when the toolbar is still to come, or not showing at all.' );
+$frontend->admin_bar_edit_link( new ABMM_Test_Admin_Bar() );
+verify_style( '' === $late(), 'No second link when the toolbar already has one.' );
+$rendered->setValue( $frontend, array() );
+$added->setValue( $frontend, false );
+$frontend->admin_bar_edit_link( new ABMM_Test_Admin_Bar() );
+verify_style( '' === $late(), 'No late link on pages without a menu.' );
+$frontend->render( 'main' );
+$script = $late();
+verify_style( false !== strpos( $script, 'wp-admin-bar-abmm-edit-menu' ) && false !== strpos( $script, 'edit=main' ) && false === strpos( $script, 'menupop' ), 'A toolbar built before the menu gets the direct link afterwards.' );
+$frontend->render( 'second' );
+$script = $late();
+verify_style( false !== strpos( $script, 'menupop' ) && false !== strpos( $script, 'edit=second' ) && false === strpos( $script, '<b>menu' ) && false === strpos( $script, '</script' ), 'Several menus get an escaped dropdown afterwards.' );
+$GLOBALS['abmm_test_admin'] = false;
+verify_style( '' === $late(), 'Visitors and editors without manage_options get no late link.' );
+$GLOBALS['abmm_test_admin'] = true;
 
 // Elementor widget, with a minimal stand-in for Elementor's classes.
 eval( '
