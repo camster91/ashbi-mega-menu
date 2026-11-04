@@ -71,6 +71,36 @@ test.describe('classic menu on desktop', () => {
 		await expect(trigger).toBeFocused();
 	});
 
+	test('a click after hover pins the panel, and tabbing out closes it', async ({ page }) => {
+		await page.goto(classicPage);
+		const trigger = page.locator('header.emm-header [data-emm-mega-trigger]').first();
+		await trigger.hover();
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await trigger.click();
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await page.mouse.move(5, 790);
+		await page.waitForTimeout(500);
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await trigger.click();
+		await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+		await trigger.focus();
+		await page.keyboard.press('Enter');
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await page.evaluate(() => {
+			const outside = document.createElement('button');
+			outside.id = 'e2e-outside';
+			document.body.appendChild(outside);
+			outside.focus();
+		});
+		await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+	});
+
+	test('the fixes stylesheet loads with the classic stylesheet', async ({ page }) => {
+		await page.goto(classicPage);
+		await expect(page.locator('link#abmm-classic-fixes-css')).toHaveCount(1);
+	});
+
 	test('both shortcodes print the same classic header', async ({ page }) => {
 		const markup = async (path) => {
 			await page.goto(path);
@@ -158,5 +188,22 @@ test.describe('classic menu on a phone', () => {
 		await header.locator('[data-emm-drawer-close]:visible, .emm-nav__toggle:visible').first().click();
 		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 		expect(errors).toEqual([]);
+	});
+
+	test('the page is inert while the drawer is open, and a tap on a link closes it', async ({ page }) => {
+		await page.goto(classicPage);
+		const header = page.locator('header.emm-header').first();
+		const toggle = header.locator('.emm-nav__toggle');
+		await toggle.click();
+		await expect(header.locator('.emm-nav__drawer')).toHaveAttribute('role', 'dialog');
+		await header.locator('[data-emm-mega-trigger]').first().click();
+		await expect(header.locator('[data-emm-back]').first()).toHaveAttribute('aria-label', /./);
+		await header.locator('.emm-mega__cat[data-emm-cat="finance"]').click();
+		const link = header.locator('a.emm-mega__col-link', { hasText: 'Invoicing' });
+		await expect(link).toBeVisible();
+		await link.evaluate((element) => element.setAttribute('href', '#e2e-target'));
+		await link.click();
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+		await expect(page.locator('html')).not.toHaveClass(/\bemm-drawer-open\b/);
 	});
 });

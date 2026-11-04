@@ -1,0 +1,203 @@
+/**
+ * Ashbi Mega Menu: fixes on top of the classic stylesheet.
+ *
+ * Sites that switched from Easy Mega Menu use a copy of its stylesheet that only
+ * changes on re-import, so these live in their own file. Nothing here changes
+ * how a closed menu looks on a desktop.
+ */
+
+/* ---- Phones, and bars that fall back to the phone layout ---- */
+@media (max-width: 900px) {
+	/* A category's list was its own scroll box, sized to the screen but starting
+	 * below the drawer's header, so its last links could not be reached. */
+	.emm-header .emm-mega__panel {
+		max-height: none !important;
+		overflow: visible !important;
+	}
+
+	/* Rows fill the drawer, so the whole row answers a tap. */
+	.emm-header .emm-mega__columns {
+		align-items: stretch;
+	}
+
+	.emm-header .emm-mega__col-list > li,
+	.emm-header .emm-mega__col-link {
+		width: 100%;
+	}
+
+	/* A panel's own link is otherwise unreachable on a phone. */
+	.emm-header .emm-mega__panel:not([hidden]):has(> .emm-mega__panel-title > a) {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.emm-header .emm-mega__panel-title:has(> a) {
+		display: block !important;
+		order: 1;
+		position: static;
+		margin: 0;
+		padding: 0;
+		border-top: 1px solid var(--emm-border);
+	}
+
+	.emm-header .emm-mega__panel-title > a {
+		display: flex;
+		align-items: center;
+		min-height: 48px;
+		padding: 0.5rem 1.15rem;
+	}
+
+	.emm-header .emm-mega__col-title > a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+	}
+
+	.emm-header .emm-mobile-back {
+		min-width: 44px;
+		min-height: 44px;
+		gap: 0.25rem;
+	}
+
+	.emm-header .emm-mobile-back span {
+		display: inline;
+	}
+
+	.emm-header .emm-nav__cta--drawer {
+		min-height: 44px;
+	}
+
+	.emm-header .emm-nav__toggle-label {
+		margin-left: 0.4rem;
+		font-size: 14px;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.emm-header .emm-nav__toggle:has(.emm-nav__toggle-label) {
+		width: auto;
+		padding-inline: 0.5rem;
+	}
+
+	/* An explicit per-menu padding beats a site override in any load order. */
+	.emm-header[style*="--emm-bar-padding"] .emm-nav__bar {
+		padding: var(--emm-bar-padding) !important;
+	}
+}
+
+.emm-header.emm-force-mobile .emm-mega__panel {
+	max-height: none !important;
+	overflow: visible !important;
+}
+
+.emm-header.emm-force-mobile .emm-mega__columns {
+	align-items: stretch;
+}
+
+/* ---- Focus moved by a tap or click draws no keyboard ring ---- */
+.emm-header .emm-nav__drawer:focus,
+.emm-header .emm-mobile-title:focus {
+	outline: none;
+}
+
+.emm-header a:focus:not(:focus-visible),
+.emm-header button:focus:not(:focus-visible) {
+	outline: none !important;
+}
+
+.emm-header .emm-mobile-back:focus:not(:focus-visible),
+.emm-header .emm-nav__toggle:focus:not(:focus-visible),
+.emm-header .emm-nav__drawer-close:focus:not(:focus-visible) {
+	background: transparent;
+	color: var(--emm-text);
+}
+
+/* ---- Desktop panels ---- */
+@media (min-width: 901px) {
+	/* The stacked layout's accordion padding beat the reset for link-only panels,
+	 * which left a stray line and an inset. */
+	.emm-header .emm-mega--columns-only .emm-mega__accordion {
+		padding: 0;
+	}
+
+	.emm-header .emm-mega--columns-only .emm-mega__panel {
+		border-left: 0;
+	}
+
+	/* One long list fills the panel instead of leaving most of it empty. */
+	.emm-header .emm-mega:not(.emm-mega--compact):not(.emm-mega--columns-compact) .emm-mega__columns:has(> .emm-mega__col:only-child) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.emm-header .emm-mega:not(.emm-mega--compact):not(.emm-mega--columns-compact) .emm-mega__col:only-child .emm-mega__col-list:has(> :nth-child(7)) {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: 1.5rem;
+	}
+}
+
+/* Dots line up with the first line of text. */
+.emm-header .emm-mega__col-link:not(.has-icon)::before {
+	margin-top: calc(0.7em - 2.5px);
+}
+
+/* ---- High contrast ---- */
+@media (forced-colors: active) {
+	.emm-header .emm-nav__toggle {
+		border: 1px solid ButtonText;
+	}
+
+	.emm-header .emm-nav__toggle-bar,
+	.emm-header .emm-nav__toggle-bar::before,
+	.emm-header .emm-nav__toggle-bar::after {
+		background: ButtonText;
+		forced-color-adjust: none;
+	}
+
+	.emm-header .emm-mega__cat.is-active {
+		border: 2px solid Highlight;
+	}
+}
+
+/* ---- Without JavaScript the links stay reachable ---- */
+@media (scripting: none) {
+	.emm-header .emm-nav__toggle,
+	.emm-header .emm-nav__drawer-head,
+	.emm-header [data-emm-backdrop] {
+		display: none !important;
+	}
+
+	.emm-header .emm-nav__drawer {
+		display: block !important;
+		position: static !important;
+		max-height: none;
+		box-shadow: none;
+	}
+
+	.emm-header .emm-nav__inner {
+		flex-wrap: wrap;
+	}
+
+	.emm-header .emm-nav__list {
+		display: block;
+		width: 100%;
+	}
+
+	.emm-header [data-emm-mega-panel][hidden],
+	.emm-header .emm-mega__panel[hidden] {
+		display: block !important;
+	}
+
+	.emm-header [data-emm-mega-panel] {
+		position: static !important;
+		width: auto !important;
+		max-width: none !important;
+		transform: none !important;
+	}
+
+	.emm-header .emm-mega__panel {
+		position: static !important;
+		max-height: none !important;
+		overflow: visible !important;
+	}
+}
