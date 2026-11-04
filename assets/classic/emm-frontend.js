@@ -489,6 +489,17 @@
 			});
 		}
 		header.classList.toggle('is-mobile-open', open);
+		/* The header can measure zero wide on a phone, its button overflowing a
+		 * shrunken layout column. Site scripts that reset open headers with no
+		 * width as hidden would close each section as it opens. It can also
+		 * collapse while open, so this does not depend on its current width. */
+		if (open && !header.style.minWidth) {
+			header.style.minWidth = '1px';
+			header.__easyMegaMenuDrawerMinWidth = true;
+		} else if (!open && header.__easyMegaMenuDrawerMinWidth) {
+			header.style.removeProperty('min-width');
+			header.__easyMegaMenuDrawerMinWidth = false;
+		}
 		syncActiveStackHost();
 		if (toggle) {
 			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
