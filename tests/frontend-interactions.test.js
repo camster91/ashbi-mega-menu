@@ -389,6 +389,7 @@ window.setTimeout(() => {
 		window.setTimeout(() => {
 			assert.equal(window.document.documentElement.classList.contains('abmm-external-drawer-open'), false);
 			console.log('Frontend interaction checks passed.');
+			for (const toggle of window.document.querySelectorAll('.abmm-header.is-mobile-open .abmm-nav__toggle')) toggle.click();
 			dom.window.close();
 		}, 0);
 	}, 0);

@@ -60,7 +60,7 @@ export default function Edit({ attributes, setAttributes }) {
 					{blockData?.contextualNavigation && (
 						<ToggleControl
 							__nextHasNoMarginBottom
-							label={__('Use page product navigation', 'ashbi-mega-menu')}
+							label={__('Show Product Navigation on product pages', 'ashbi-mega-menu')}
 							help={__("On a product's pages, show that product's links under the menu.", 'ashbi-mega-menu')}
 							checked={context === 'page'}
 							onChange={(on) => setAttributes({ context: on ? 'page' : '' })}

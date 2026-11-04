@@ -131,7 +131,7 @@ test.describe('menu editor', () => {
 		const menuId = await page.locator('.abmm-header').first().getAttribute('data-abmm-id');
 		const errors = watchErrors(page);
 		await page.goto(`/wp-admin/admin.php?page=ashbi-mega-menu&edit=${encodeURIComponent(menuId)}`);
-		await page.locator('[data-abmm-builder-section="design"]').click();
+		await page.locator('[data-abmm-workflow="design"]').click();
 
 		const title = page.locator('#abmm-advanced-settings > summary');
 		const shadow = page.locator('#abmm-shadow');

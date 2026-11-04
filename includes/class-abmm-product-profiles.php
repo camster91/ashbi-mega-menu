@@ -322,7 +322,7 @@ class ABMM_Product_Profiles {
 							} elseif ( ! $item['root_page_id'] ) {
 								$status = array( 'key' => 'draft', 'label' => __( 'No main page', 'ashbi-mega-menu' ), 'hint' => __( 'Choose a main product page so the pages below it show these links.', 'ashbi-mega-menu' ) );
 							} else {
-								$status = array( 'key' => 'ready', 'label' => __( 'Set up', 'ashbi-mega-menu' ), 'hint' => __( 'Its links show on these pages wherever the menu has page product navigation turned on.', 'ashbi-mega-menu' ) );
+								$status = array( 'key' => 'ready', 'label' => __( 'Set up', 'ashbi-mega-menu' ), 'hint' => __( 'Its links show on these pages wherever the menu has Product Navigation turned on.', 'ashbi-mega-menu' ) );
 							}
 							?>
 							<li class="abmm-product-card<?php echo $is_selected ? ' is-selected' : ''; ?>">
@@ -707,7 +707,7 @@ JS;
 	 */
 	public function save_profile() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage product navigation.', 'ashbi-mega-menu' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Product Navigation.', 'ashbi-mega-menu' ) );
 		}
 		check_admin_referer( 'abmm_save_product_profile' );
 		$raw      = isset( $_POST['profile'] ) ? wp_unslash( $_POST['profile'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Structured input is validated and sanitized field by field before persistence; upload paths are verified with is_uploaded_file().
@@ -727,7 +727,7 @@ JS;
 	 */
 	public function delete_profile() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage product navigation.', 'ashbi-mega-menu' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Product Navigation.', 'ashbi-mega-menu' ) );
 		}
 		$profile_id = isset( $_REQUEST['profile'] ) && is_scalar( $_REQUEST['profile'] ) ? sanitize_key( wp_unslash( $_REQUEST['profile'] ) ) : '';
 		check_admin_referer( 'abmm_delete_product_profile_' . $profile_id );

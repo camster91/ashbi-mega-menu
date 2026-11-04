@@ -6,8 +6,8 @@
  * beside the section names each one and opens it.
  *
  * SETTINGS classifies every menu setting. Basic is always shown, advanced is
- * tucked away (in the section, or on the Settings tab for now), internal has no
- * control. A test fails when a setting has no entry. The logic is pure and
+ * tucked away (in the section, or under "More logo options" on Content), internal
+ * has no control. A test fails when a setting has no entry. The logic is pure and
  * exported for tests; `refresh()` wires it to the DOM.
  */
 (function (window) {
@@ -99,13 +99,23 @@
 		when: function (settings) { return ['max', 'fixed'].indexOf((settings.style || {}).panel_height_mode) !== -1; },
 	};
 
+	// Logo fine-tuning, stored in menu.brand. They only count while the logo shows.
+	SETTINGS['brand.logo_dark_url'] = { tier: 'advanced', field: '#abmm-brand-logo-dark-url', normal: [''] };
+	SETTINGS['brand.logo_height'] = { tier: 'advanced', field: '#abmm-brand-logo-height', normal: ['40'] };
+
 	function normalize(value) {
 		if (value === null || value === undefined || value === false) return '';
 		if (value === true) return '1';
 		return String(value).trim().toLowerCase();
 	}
 
-	function valueOf(settings, key) {
+	function isBrandKey(key) {
+		return key.indexOf('brand.') === 0;
+	}
+
+	function valueOf(menu, key) {
+		var settings = menu.settings || {};
+		if (isBrandKey(key)) return (menu.brand || {})[key.slice(6)];
 		if (key.indexOf('style.') !== 0) return settings[key];
 		return (settings.style || {})[key.slice(6)];
 	}
@@ -138,7 +148,8 @@
 			if (entry.tier !== 'advanced') return false;
 			if (entry.classicUnused && classic) return false;
 			if (entry.when && !entry.when(settings)) return false;
-			var value = valueOf(settings, key);
+			if (isBrandKey(key) && !(menu.brand || {}).show) return false;
+			var value = valueOf(menu, key);
 			if (value === undefined) return false;
 			if (entry.normal && entry.normal.indexOf(normalize(value)) !== -1) return false;
 			return normalize(value) !== normalize(base[key]);
@@ -194,8 +205,8 @@
 		var panel = element.closest('[data-abmm-builder-section-panel]');
 		if (panel && panel.hidden) {
 			var section = panel.getAttribute('data-abmm-builder-section-panel');
-			var tab = window.document.querySelector('.abmm-builder-sections [data-abmm-builder-section="' + section + '"]');
-			if (tab) tab.click();
+			var step = window.document.querySelector('[data-abmm-workflow="' + section + '"]');
+			if (step) step.click();
 		}
 		for (var node = element.parentNode; node && node.nodeType === 1; node = node.parentNode) {
 			if (node.tagName === 'DETAILS') node.open = true;

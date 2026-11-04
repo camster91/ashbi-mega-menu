@@ -12,20 +12,17 @@
 	/* Edit these tables when the editor changes. A step whose target is missing or
 	 * hidden is skipped. `reveal` lists controls that can show a hidden target. */
 	var TOUR_STEPS = [
-		{ id: 'links', selectors: ['.abmm-add-nav-item', '#abmm-nav-items'], reveal: ['#abmm-section-tab-content', '[data-abmm-workflow="content"]'] },
+		{ id: 'links', selectors: ['.abmm-add-nav-item', '#abmm-nav-items'], reveal: ['[data-abmm-workflow="content"]'] },
 		{ id: 'save', selectors: ['.abmm-save-menu'] },
 		{ id: 'place', selectors: ['[data-abmm-workflow="help"]'] },
 		{ id: 'check', selectors: ['[data-abmm-workflow="verify"]'] },
 	];
 
-	/* `where` is relative to the target: append, before or after. `closest` moves the
-	 * target outward first, because a button inside a <label> would take its control. */
+	/* Only for what the screen can't say itself. `where` is relative to the target:
+	 * append, before or after. `closest` moves the target outward first, because a
+	 * button inside a <label> would take its control. */
 	var HINTS = [
-		{ id: 'place', selectors: ['#abmm-placement-title'], where: 'append', doc: 'user-guide.md#put-it-in-a-header' },
-		{ id: 'advanced', selectors: ['.abmm-advanced-settings'], where: 'before', doc: 'user-guide.md#fonts-and-dropdown-height' },
-		{ id: 'dropdown', selectors: ['.abmm-mega-style-picker__label'], where: 'append', doc: 'user-guide.md#build-and-verify-a-menu' },
-		{ id: 'history', selectors: ['#abmm-backup-panel > summary'], where: 'after', doc: 'user-guide.md#export-import-and-recover' },
-		{ id: 'site-look', selectors: ['#abmm-render-mode'], closest: 'label', where: 'before', doc: 'migrate-from-easy-mega-menu.md' },
+		{ id: 'advanced', selectors: ['#abmm-advanced-settings'], where: 'before', doc: 'style-your-menu.md#advanced-settings' },
 	];
 
 	/* The guide stays away while any of these shows. */

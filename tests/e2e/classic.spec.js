@@ -114,13 +114,22 @@ test.describe('classic menu on desktop', () => {
 	});
 });
 
+// The phone button label sits in Advanced settings, under Mobile navigation.
+async function showToggleLabel(page) {
+	await page.locator('[data-abmm-workflow="design"]').click();
+	const advanced = page.locator('#abmm-advanced-settings');
+	if (!(await advanced.evaluate((node) => node.open))) await advanced.locator('> summary').click();
+	const group = advanced.locator('[data-abmm-advanced-group="mobile"]');
+	if (!(await group.evaluate((node) => node.open))) await group.locator('> summary').click();
+}
+
 test.describe('classic menu in the editor', () => {
 	test.use({ viewport: { width: 1440, height: 900 } });
 
 	test('shows the Classic notice, keeps the look on save and previews the classic phone menu', async ({ page }) => {
 		const errors = watchErrors(page);
 		await page.goto('/wp-admin/admin.php?page=ashbi-mega-menu&edit=main_nav');
-		await page.locator('[data-abmm-builder-section="design"]').click();
+		await page.locator('[data-abmm-workflow="design"]').click();
 		await expect(page.locator('#abmm-render-mode')).toHaveValue('emm-classic');
 		await expect(page.locator('.abmm-classic-notice').first()).toBeVisible();
 
@@ -140,7 +149,7 @@ test.describe('classic menu in the editor', () => {
 		await expect(page.locator('#abmm-mega-editor')).toBeVisible();
 
 		// An edit re-renders the frame; the open drawer comes back as it was.
-		await page.locator('[data-abmm-builder-section="design"]').click();
+		await showToggleLabel(page);
 		const label = page.locator('#abmm-classic-toggle-label');
 		await label.fill('Products');
 		await expect(frame.locator('header.emm-header')).toHaveClass(/\bis-mobile-open\b/);
@@ -180,7 +189,7 @@ test.describe('classic menu desktop preview', () => {
 		await expect(frame.locator('.abmm-canvas-selected')).toHaveCount(1);
 
 		// An edit re-renders the frame; the open dropdown comes back. Nothing is saved.
-		await page.locator('[data-abmm-builder-section="design"]').click();
+		await showToggleLabel(page);
 		const label = page.locator('#abmm-classic-toggle-label');
 		await label.fill('Menu');
 		await expect(frame.locator('.emm-nav__toggle-label')).toHaveCount(1);

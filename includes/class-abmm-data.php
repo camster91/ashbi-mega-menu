@@ -128,7 +128,7 @@ class ABMM_Data {
 				if ( ! hash_equals( $current_revision, $expected_revision ) ) {
 					return new WP_Error(
 						'abmm_menu_conflict',
-						__( 'This menu changed on the server. Your local draft was not overwritten.', 'ashbi-mega-menu' ),
+						__( 'This menu changed on the server. Your unsaved changes were not overwritten.', 'ashbi-mega-menu' ),
 						array(
 							'conflict' => true,
 							'revision' => $current_revision,

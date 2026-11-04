@@ -34,7 +34,7 @@ $abmm_missing        = $this->placed_but_not_imported();
 			</p>
 		</div>
 	<?php elseif ( 'error' === $notice ) : ?>
-		<div class="notice notice-error"><p><?php echo esc_html( '' !== $error ? $error : __( 'The import did not finish. Try again, or restore a snapshot from Tools.', 'ashbi-mega-menu' ) ); ?></p></div>
+		<div class="notice notice-error"><p><?php echo esc_html( '' !== $error ? $error : __( 'The import did not finish. Try again, or restore a backup from History.', 'ashbi-mega-menu' ) ); ?></p></div>
 	<?php elseif ( 'saved' === $notice ) : ?>
 		<div class="notice notice-success"><p><?php esc_html_e( 'Setting saved.', 'ashbi-mega-menu' ); ?></p></div>
 	<?php elseif ( 'takeover_blocked' === $notice ) : ?>
@@ -55,7 +55,7 @@ $abmm_missing        = $this->placed_but_not_imported();
 				<li><?php echo esc_html( sprintf( /* translators: %s: product profile IDs. */ __( 'Branding not copied, because its profile or menu was not imported or you already have your own: %s', 'ashbi-mega-menu' ), implode( ', ', $result['kept_branding'] ) ) ); ?></li>
 			<?php endif; ?>
 			<li><?php echo esc_html( $result['assets']['message'] ?? '' ); ?></li>
-			<li><?php echo esc_html( sprintf( /* translators: 1: product profiles, 2: branding settings, 3: pages. */ __( 'Product navigation: %1$d profiles, %2$d branding settings and %3$d page assignments copied.', 'ashbi-mega-menu' ), (int) $result['profiles'], (int) $result['branding'], (int) $result['pages'] ) ); ?></li>
+			<li><?php echo esc_html( sprintf( /* translators: 1: product profiles, 2: branding settings, 3: pages. */ __( 'Product Navigation: %1$d profiles, %2$d branding settings and %3$d page assignments copied.', 'ashbi-mega-menu' ), (int) $result['profiles'], (int) $result['branding'], (int) $result['pages'] ) ); ?></li>
 		</ul>
 	<?php endif; ?>
 
@@ -126,7 +126,7 @@ $abmm_missing        = $this->placed_but_not_imported();
 			<input type="hidden" name="abmm_select_menus" value="1" />
 			<?php wp_nonce_field( 'abmm_emm_import' ); ?>
 			<?php submit_button( __( 'Import ticked menus', 'ashbi-mega-menu' ), 'primary', 'submit', false ); ?>
-			<span class="description"><?php esc_html_e( 'A snapshot of your Ashbi menus is saved first, and each replaced menu keeps a saved version you can restore from its menu card.', 'ashbi-mega-menu' ); ?></span>
+			<span class="description"><?php esc_html_e( 'A backup of your Ashbi menus is saved first, and each replaced menu keeps a saved version you can restore from History.', 'ashbi-mega-menu' ); ?></span>
 		</form>
 	<?php endif; ?>
 

@@ -56,7 +56,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 			</div>
 			<nav class="abmm-setup-flow abmm-workflow-nav" aria-label="<?php esc_attr_e( 'Menu setup steps', 'ashbi-mega-menu' ); ?>">
 			<button type="button" data-abmm-workflow="content"><span aria-hidden="true">1</span><?php esc_html_e( 'Content', 'ashbi-mega-menu' ); ?></button>
-			<button type="button" data-abmm-workflow="design" data-abmm-builder-section="design"><span aria-hidden="true">2</span><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></button>
+			<button type="button" data-abmm-workflow="design"><span aria-hidden="true">2</span><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></button>
 			<button type="button" data-abmm-workflow="help"><span aria-hidden="true">3</span><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></button>
 			<button type="button" data-abmm-workflow="verify"><span aria-hidden="true">4</span><?php esc_html_e( 'Check', 'ashbi-mega-menu' ); ?></button>
 		</nav>
@@ -101,12 +101,12 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 	</div>
 
 	<div class="abmm-draft-recovery" id="abmm-draft-recovery" role="status" hidden>
-		<h2><?php esc_html_e( 'Unsaved local draft found', 'ashbi-mega-menu' ); ?></h2>
+		<h2><?php esc_html_e( 'Unsaved changes found', 'ashbi-mega-menu' ); ?></h2>
 		<p class="abmm-draft-recovery__age"></p>
 		<p class="abmm-draft-recovery__message"></p>
-		<button type="button" class="button button-primary abmm-restore-draft"><?php esc_html_e( 'Restore local draft', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" class="button button-primary abmm-restore-draft"><?php esc_html_e( 'Restore my changes', 'ashbi-mega-menu' ); ?></button>
 		<button type="button" class="button abmm-download-draft"><?php esc_html_e( 'Download a copy', 'ashbi-mega-menu' ); ?></button>
-		<button type="button" class="button abmm-discard-draft"><?php esc_html_e( 'Discard local draft', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" class="button abmm-discard-draft"><?php esc_html_e( 'Discard my changes', 'ashbi-mega-menu' ); ?></button>
 	</div>
 
 	<script type="application/json" id="abmm-menu-data"><?php echo wp_json_encode( $menu, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
@@ -242,11 +242,6 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 							<option value="" <?php selected( ! $abmm_classic ); ?>><?php esc_html_e( 'Ashbi', 'ashbi-mega-menu' ); ?></option>
 						</select>
 						<span class="description" id="abmm-render-mode-help"><?php esc_html_e( 'Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Saving a switch changes how the menu looks on your site right away. You can switch back here at any time.', 'ashbi-mega-menu' ); ?></span>
-					</label>
-					<label class="abmm-field abmm-classic-notice">
-						<span><?php esc_html_e( 'Phone menu button label', 'ashbi-mega-menu' ); ?></span>
-						<input type="text" id="abmm-classic-toggle-label" maxlength="40" aria-describedby="abmm-classic-toggle-label-help" value="<?php echo esc_attr( $abmm_settings['classic_toggle_label'] ?? '' ); ?>" />
-						<span class="description" id="abmm-classic-toggle-label-help"><?php esc_html_e( 'Optional. Tells two phone menus on one page apart, for example "Products". Empty keeps the icon on its own.', 'ashbi-mega-menu' ); ?></span>
 					</label>
 					<div class="notice notice-info inline abmm-classic-notice">
 						<p><?php esc_html_e( 'Color and size changes below still apply to the Classic look.', 'ashbi-mega-menu' ); ?></p>
@@ -555,19 +550,29 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					</label>
 					<button type="button" class="button-link abmm-style-reset" data-abmm-style-reset="height"><?php esc_html_e( 'Reset height to default', 'ashbi-mega-menu' ); ?></button>
 				</details>
+
+				<details class="abmm-design-more" data-abmm-advanced-group="mobile">
+					<summary><?php esc_html_e( 'Mobile navigation', 'ashbi-mega-menu' ); ?></summary>
+					<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
+					<p class="description"><?php esc_html_e( 'Adds search, full-width rows and a Back label to the phone menu.', 'ashbi-mega-menu' ); ?></p>
+					<?php if ( $abmm_classic_origin ) : ?>
+					<label class="abmm-field abmm-classic-notice">
+						<span><?php esc_html_e( 'Phone menu button label', 'ashbi-mega-menu' ); ?></span>
+						<input type="text" id="abmm-classic-toggle-label" maxlength="40" aria-describedby="abmm-classic-toggle-label-help" value="<?php echo esc_attr( $abmm_settings['classic_toggle_label'] ?? '' ); ?>" />
+						<span class="description" id="abmm-classic-toggle-label-help"><?php esc_html_e( 'Optional. Tells two phone menus on one page apart, for example "Products". Empty keeps the icon on its own.', 'ashbi-mega-menu' ); ?></span>
+					</label>
+					<?php endif; ?>
+				</details>
+
+				<?php if ( abmm_contextual_navigation_enabled() ) : ?>
+				<details class="abmm-design-more abmm-product-navigation-panel" data-abmm-advanced-group="product-navigation">
+					<summary><?php esc_html_e( 'Product Navigation', 'ashbi-mega-menu' ); ?></summary>
+					<p class="description"><?php esc_html_e( 'Show extra links on specific sections of your site, such as a product or department.', 'ashbi-mega-menu' ); ?></p>
+					<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Manage Product Navigation', 'ashbi-mega-menu' ); ?></a></p>
+				</details>
+				<?php endif; ?>
 				</details>
 			</section>
-
-			<section class="abmm-builder-panel">
-				<h2><?php esc_html_e( 'Mobile navigation', 'ashbi-mega-menu' ); ?></h2>
-				<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
-				<p class="description"><?php esc_html_e( 'Adds search, full-width rows and a Back label to the phone menu.', 'ashbi-mega-menu' ); ?></p>
-			</section>
-			<?php if ( abmm_contextual_navigation_enabled() ) : ?><section class="abmm-builder-panel abmm-product-navigation-panel">
-				<h2><?php esc_html_e( 'Product Navigation', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Show extra links on specific sections of your site, such as a product or department.', 'ashbi-mega-menu' ); ?></p>
-				<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Manage product navigation', 'ashbi-mega-menu' ); ?></a></p>
-			</section><?php endif; ?>
 			</div>
 
 			<div class="abmm-builder-section-group abmm-builder-section-group--place" id="abmm-section-panel-help" data-abmm-builder-section-panel="help" role="region" aria-labelledby="abmm-placement-title" hidden>
@@ -637,8 +642,9 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				<ul class="abmm-help-links">
 					<li><button type="button" class="button-link" data-abmm-guide-start hidden><?php esc_html_e( 'Show the guide again', 'ashbi-mega-menu' ); ?></button></li>
 					<li><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/getting-started.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Getting started guide', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
-					<li><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/user-guide.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Placement and troubleshooting', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
-					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>"><?php esc_html_e( 'Backups and import', 'ashbi-mega-menu' ); ?></a></li>
+					<li><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/place-your-menu.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Place your menu', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
+					<li><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/troubleshooting.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Fix a problem', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
+					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>"><?php esc_html_e( 'History and import', 'ashbi-mega-menu' ); ?></a></li>
 					<li><a href="https://github.com/camster91/ashbi-mega-menu/issues/new" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Report a problem', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
 				</ul>
 				<details class="abmm-design-more abmm-disclosure">
@@ -814,9 +820,9 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 	<div class="abmm-exit-dialog__backdrop"></div>
 	<div class="abmm-exit-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="abmm-exit-dialog-title" aria-describedby="abmm-exit-dialog-description" tabindex="-1">
 		<h2 id="abmm-exit-dialog-title"><?php esc_html_e( 'Leave with unsaved changes?', 'ashbi-mega-menu' ); ?></h2>
-		<p id="abmm-exit-dialog-description"><?php esc_html_e( 'Save them now, or leave and recover them later from a draft kept in this browser.', 'ashbi-mega-menu' ); ?></p>
+		<p id="abmm-exit-dialog-description"><?php esc_html_e( 'Save them now, or leave and get them back later. This browser keeps a copy.', 'ashbi-mega-menu' ); ?></p>
 		<button type="button" class="button button-primary abmm-save-and-leave"><?php esc_html_e( 'Save and leave', 'ashbi-mega-menu' ); ?></button>
-		<button type="button" class="button abmm-leave-builder"><?php esc_html_e( 'Leave, keep draft', 'ashbi-mega-menu' ); ?></button>
+		<button type="button" class="button abmm-leave-builder"><?php esc_html_e( 'Leave, keep a copy', 'ashbi-mega-menu' ); ?></button>
 		<button type="button" class="button abmm-stay-builder"><?php esc_html_e( 'Keep editing', 'ashbi-mega-menu' ); ?></button>
 	</div>
 </div>

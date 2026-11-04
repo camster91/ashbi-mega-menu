@@ -27,7 +27,7 @@ const styleFields = `
 async function fixture(menuData = menu, extra = '', options = {}) {
 	const dom = new JSDOM(`<body><div class="abmm-builder-topbar"><button class="abmm-save-menu">Save</button><span class="abmm-save-status"></span></div>
 	<div id="abmm-builder" data-menu-id="demo" data-menu-revision="revision-1"><aside id="abmm-builder-sidebar">
-	<div class="abmm-builder-sections"><button data-abmm-builder-section="content">content</button><button data-abmm-builder-section="design">design</button></div>
+	<nav class="abmm-workflow-nav"><button data-abmm-workflow="content">content</button><button data-abmm-workflow="design">design</button></nav>
 	<div class="abmm-builder-section-group" data-abmm-builder-section-panel="content"></div><div class="abmm-builder-section-group" data-abmm-builder-section-panel="design">${styleFields}${extra}</div>
 	<input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></aside>
 	<main class="abmm-builder__main"><div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div id="abmm-preview"></div></div></main></div>

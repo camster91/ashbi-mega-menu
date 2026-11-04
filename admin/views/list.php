@@ -501,7 +501,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php if ( empty( $abmm_nav_menus ) && empty( $abmm_block_navigations ) ) : ?>
 				<p class="description abmm-nav-import__empty"><?php esc_html_e( 'This site has no WordPress menus to import yet. Build one under Appearance → Menus, or in the Site Editor for a block theme.', 'ashbi-mega-menu' ); ?></p>
 			<?php else : ?>
-				<p class="description"><?php esc_html_e( 'Creates a new draft. The WordPress menu and your theme are not changed, and the draft is not placed anywhere until you place it.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Creates a new menu. The WordPress menu and your theme are not changed, and the new menu is not on your site until you place it.', 'ashbi-mega-menu' ); ?></p>
 				<div class="abmm-nav-import__controls">
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'WordPress menu', 'ashbi-mega-menu' ); ?></span>
@@ -543,7 +543,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</div>
 				<div id="abmm-nav-import-result" class="abmm-nav-import__result" aria-live="polite" hidden></div>
 				<div class="abmm-nav-import__actions">
-					<button type="button" class="button button-primary abmm-nav-import-confirm" disabled aria-describedby="abmm-nav-import-hint"><?php esc_html_e( 'Import as draft', 'ashbi-mega-menu' ); ?></button>
+					<button type="button" class="button button-primary abmm-nav-import-confirm" disabled aria-describedby="abmm-nav-import-hint"><?php esc_html_e( 'Import as a new menu', 'ashbi-mega-menu' ); ?></button>
 					<span class="description" id="abmm-nav-import-hint"><?php esc_html_e( 'Preview the menu first.', 'ashbi-mega-menu' ); ?></span>
 				</div>
 				<p id="abmm-nav-import-status" class="abmm-nav-import__status" role="status"></p>
@@ -592,14 +592,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<details class="abmm-tool" id="abmm-modules-panel">
 		<summary>
 			<span class="abmm-tool__icon dashicons dashicons-admin-settings" aria-hidden="true"></span>
-			<span class="abmm-tool__text"><strong><?php esc_html_e( 'Advanced options', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Section-specific navigation for larger sites.', 'ashbi-mega-menu' ); ?></small></span>
+			<span class="abmm-tool__text"><strong><?php esc_html_e( 'Product Navigation', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Extra links for each product or section of a larger site.', 'ashbi-mega-menu' ); ?></small></span>
 		</summary>
 		<form class="abmm-tool__body" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<?php wp_nonce_field( 'abmm_save_modules' ); ?>
 			<input type="hidden" name="action" value="abmm_save_modules" />
-			<label><input type="checkbox" name="contextual_navigation" value="1" <?php checked( $contextual_navigation_enabled ); ?> /> <strong><?php esc_html_e( 'Contextual navigation for multi-section sites', 'ashbi-mega-menu' ); ?></strong></label>
-			<p class="description"><?php esc_html_e( 'Advanced: add inherited local navigation and identity overrides for products, services, departments, documentation areas or locations. Leave disabled for a standard site menu.', 'ashbi-mega-menu' ); ?></p>
-			<?php submit_button( __( 'Save modules', 'ashbi-mega-menu' ), 'secondary', 'submit', false ); ?>
+			<label><input type="checkbox" name="contextual_navigation" value="1" <?php checked( $contextual_navigation_enabled ); ?> /> <strong><?php esc_html_e( 'Turn on Product Navigation', 'ashbi-mega-menu' ); ?></strong></label>
+			<p class="description"><?php esc_html_e( 'Gives each product, service, department or location its own extra links and logo on its pages. Leave this off for a standard site menu.', 'ashbi-mega-menu' ); ?></p>
+			<?php submit_button( __( 'Save this setting', 'ashbi-mega-menu' ), 'secondary', 'submit', false ); ?>
 		</form>
 	</details>
 

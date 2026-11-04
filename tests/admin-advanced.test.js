@@ -72,11 +72,12 @@ const entries = Object.keys(SETTINGS);
 	const section = builder.slice(start, end);
 	const opens = (section.match(/<details\b/g) || []).length;
 	const closes = (section.match(/<\/details>/g) || []).length;
-	assert.equal(closes, opens + 1, 'The section closes once, after all six groups.');
-	assert.equal(opens, 6, 'It holds the six groups.');
+	assert.equal(closes, opens + 1, 'The section closes once, after all its groups.');
+	assert.equal(opens, 8, 'It holds the eight groups.');
 	assert.doesNotMatch(builder.slice(start - 200, start), /<details[^>]*\bopen\b/, 'It starts closed.');
 
-	const elsewhere = ['mobile_enhancements', 'classic_toggle_label', 'classic_bar_padding', 'classic_plain_markup'];
+	// Bar padding and plain markup have no control; the logo's fine-tuning sits with the logo on Content.
+	const elsewhere = ['classic_bar_padding', 'classic_plain_markup', 'brand.logo_dark_url', 'brand.logo_height'];
 	for (const key of entries) {
 		const entry = SETTINGS[key];
 		if (!entry.field) continue;
@@ -165,9 +166,10 @@ const active = (settings, extra) => [...activeKeys(menu(settings, extra), baseli
 }
 
 const page = `
-	<div class="abmm-builder-sections"><button data-abmm-builder-section="design"></button><button data-abmm-builder-section="settings"></button></div>
-	<div data-abmm-builder-section-panel="settings" hidden>
+	<nav class="abmm-workflow-nav"><button data-abmm-workflow="content"></button><button data-abmm-workflow="design"></button></nav>
+	<div data-abmm-builder-section-panel="content" hidden>
 		<label class="abmm-field abmm-field--toggle"><span>Enhanced mobile menu</span><input type="checkbox" id="abmm-mobile-enhancements"></label>
+		<details><summary>More logo options</summary><label class="abmm-field"><span>Logo height (px)</span><input type="number" id="abmm-brand-logo-height"></label></details>
 	</div>
 	<div data-abmm-builder-section-panel="design">
 		<button class="abmm-preset-card" data-preset="dark" data-values='${JSON.stringify(dark)}'></button>
@@ -234,17 +236,45 @@ const buttonFor = (window, key) => window.document.querySelector(`[data-abmm-adv
 	window.close();
 }
 
-// A setting on another tab is still reachable from the summary.
+// A setting on another step is still reachable from the summary.
 {
 	const window = moduleWindow(page);
-	window.document.querySelector('[data-abmm-builder-section="settings"]').addEventListener('click', () => {
-		window.document.querySelector('[data-abmm-builder-section-panel="settings"]').hidden = false;
+	window.document.querySelector('[data-abmm-workflow="content"]').addEventListener('click', () => {
+		window.document.querySelector('[data-abmm-builder-section-panel="content"]').hidden = false;
 	});
 	window.ABMMAdvanced.refresh(menu({ mobile_enhancements: true }));
 	buttonFor(window, 'mobile_enhancements').click();
-	assert.equal(window.document.querySelector('[data-abmm-builder-section-panel="settings"]').hidden, false, 'It switches to the tab.');
+	assert.equal(window.document.querySelector('[data-abmm-builder-section-panel="content"]').hidden, false, 'It switches to the step.');
 	assert.equal(window.document.activeElement, window.document.getElementById('abmm-mobile-enhancements'));
 	window.close();
+}
+
+// The logo's fine-tuning is named too, but only while the logo shows.
+{
+	assert.deepEqual(active({}, { brand: { show: true, logo_dark_url: '', logo_height: 40 } }), [], 'Logo defaults are not customisations.');
+	assert.deepEqual(active({}, { brand: { show: true, logo_dark_url: 'https://example.test/dark.png', logo_height: 60 } }), ['brand.logo_dark_url', 'brand.logo_height'], 'Changed logo options are reported.');
+	assert.deepEqual(active({}, { brand: { show: false, logo_dark_url: 'https://example.test/dark.png', logo_height: 60 } }), [], 'A hidden logo has nothing active.');
+
+	const window = moduleWindow(page);
+	window.document.querySelector('[data-abmm-workflow="content"]').addEventListener('click', () => {
+		window.document.querySelector('[data-abmm-builder-section-panel="content"]').hidden = false;
+	});
+	window.ABMMAdvanced.refresh(menu({}, { brand: { show: true, logo_dark_url: '', logo_height: 60 } }));
+	const button = buttonFor(window, 'brand.logo_height');
+	assert.equal(button.textContent, 'Logo height (px)');
+	button.click();
+	assert.equal(window.document.querySelector('[data-abmm-builder-section-panel="content"]').hidden, false, 'It opens the Content step.');
+	assert.equal(window.document.getElementById('abmm-brand-logo-height').closest('details').open, true, 'And the logo options.');
+	assert.equal(window.document.activeElement, window.document.getElementById('abmm-brand-logo-height'));
+	window.close();
+}
+
+// The two phone settings moved into Advanced, in their own group, and the old attribute is gone.
+{
+	const group = builder.slice(builder.indexOf('data-abmm-advanced-group="mobile"'), builder.indexOf('data-abmm-advanced-group="product-navigation"'));
+	assert.ok(group.includes('id="abmm-mobile-enhancements"') && group.includes('id="abmm-classic-toggle-label"'), 'Mobile navigation holds both phone settings.');
+	assert.ok(!builder.includes('data-abmm-builder-section="'), 'The stepper is the only navigation.');
+	for (const id of ['abmm-classic-bar-padding', 'abmm-classic-plain-markup']) assert.ok(!builder.includes('id="' + id + '"'), id + ' stays out of the editor.');
 }
 
 // Active with no control: listed as text, never hidden and never a dead button.

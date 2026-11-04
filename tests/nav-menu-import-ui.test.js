@@ -6,7 +6,7 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 
 (async () => {
-	// jsdom cannot navigate; the editor URL is checked on the "Open the draft" link instead.
+	// jsdom cannot navigate; the editor URL is checked on the "Open the new menu" link instead.
 	const virtualConsole = new VirtualConsole();
 	virtualConsole.on('jsdomError', (error) => { if (!/navigation/i.test(error.message)) console.error(error); });
 	const dom = new JSDOM(`<body>
@@ -14,7 +14,7 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 			<select id="abmm-nav-import-menu"><optgroup label="Appearance → Menus"><option value="term:7">Main (12 items)</option></optgroup><optgroup label="Site Editor navigation"><option value="navigation:9">Header</option></optgroup></select>
 			<button type="button" class="button abmm-nav-import-preview">Preview</button>
 			<div id="abmm-nav-import-result" hidden></div>
-			<button type="button" class="button button-primary abmm-nav-import-confirm" disabled aria-describedby="abmm-nav-import-hint">Import as draft</button>
+			<button type="button" class="button button-primary abmm-nav-import-confirm" disabled aria-describedby="abmm-nav-import-hint">Import as a new menu</button>
 			<span id="abmm-nav-import-hint">Preview the menu first.</span>
 			<p id="abmm-nav-import-status" role="status"></p>
 		</div></details></body>`, { url: 'http://localhost/wp-admin/admin.php?page=ashbi-mega-menu', runScripts: 'outside-only', virtualConsole });

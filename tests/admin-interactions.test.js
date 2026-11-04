@@ -488,7 +488,7 @@ async function auditRegressions(){
 
  // The draft panel says how old the draft is.
  f=await fixture(false,false,{revision:'revision-1',menu:{...menu,title:'Draft'},updated:Date.now()},'demo',menu,'<p class="abmm-draft-recovery__age"></p>');
- assert.match(f.$('.abmm-draft-recovery__age').text(),/Unsaved draft from/); f.close();
+ assert.match(f.$('.abmm-draft-recovery__age').text(),/Unsaved changes from/); f.close();
 
  // A preset can no longer lose custom colors for good.
  const presetGrid='<input type="hidden" id="abmm-preset" value="custom"><input id="abmm-accent" class="abmm-color" value="#111111"><div id="abmm-preset-grid"><button type="button" class="abmm-preset-card" data-preset="bold" data-values=\'{"accent":"#222222"}\'>Bold</button><button type="button" class="abmm-preset-card abmm-preset-card--custom" data-preset="custom" disabled>Custom</button></div>';

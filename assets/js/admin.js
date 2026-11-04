@@ -624,7 +624,7 @@
 		var conflict = state.draftConflict || draft.revision !== loadedRevision;
 		$('#abmm-draft-recovery').prop('hidden', false);
 		/* translators: %s: date and time the draft was last changed. */
-		$('.abmm-draft-recovery__age').text(draft.updated ? sprintf(__('Unsaved draft from %s.', 'ashbi-mega-menu'), new Date(draft.updated).toLocaleString()) : '');
+		$('.abmm-draft-recovery__age').text(draft.updated ? sprintf(__('Unsaved changes from %s.', 'ashbi-mega-menu'), new Date(draft.updated).toLocaleString()) : '');
 		$('.abmm-draft-recovery__message').text(
 			conflict
 				? S.draftStale
@@ -1789,9 +1789,9 @@
 					$confirm.prop('disabled', false);
 					return;
 				}
-				status(__('Imported as a draft. Opening it…', 'ashbi-mega-menu'));
+				status(__('Imported as a new menu. Opening it…', 'ashbi-mega-menu'));
 				// A link too, in case opening the editor is slow or blocked.
-				$status.append(' ', $('<a class="abmm-nav-import__open" />').attr('href', res.data.edit_url).text(__('Open the draft', 'ashbi-mega-menu')));
+				$status.append(' ', $('<a class="abmm-nav-import__open" />').attr('href', res.data.edit_url).text(__('Open the new menu', 'ashbi-mega-menu')));
 				window.location.assign(res.data.edit_url);
 			}).fail(function (xhr) {
 				status(requestErrorMessage(xhr, __('The menu could not be imported.', 'ashbi-mega-menu')), true);
@@ -2475,7 +2475,7 @@
 			persistLocalDraft();
 			state.pendingExitUrl = $(this).attr('href');
 			if (state.draftStoreFailed) {
-				$('#abmm-exit-dialog-description').text(__('This browser could not keep a recovery draft, so leaving now loses these changes. Save them first.', 'ashbi-mega-menu'));
+				$('#abmm-exit-dialog-description').text(__('This browser could not keep a copy, so leaving now loses these changes. Save them first.', 'ashbi-mega-menu'));
 			}
 			openBuilderModal('#abmm-exit-dialog', this, '.abmm-save-and-leave');
 		});

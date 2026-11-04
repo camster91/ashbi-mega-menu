@@ -449,7 +449,7 @@ class ABMM_EMM_Migration {
 			}
 		);
 		if ( is_wp_error( $stored ) ) {
-			return new WP_Error( $stored->get_error_code(), __( 'The menus were imported, but product navigation could not be saved. Run the import again.', 'ashbi-mega-menu' ) );
+			return new WP_Error( $stored->get_error_code(), __( 'The menus were imported, but Product Navigation could not be saved. Run the import again.', 'ashbi-mega-menu' ) );
 		}
 
 		foreach ( $assignments as $post_id => $profile ) {

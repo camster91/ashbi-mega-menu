@@ -23,11 +23,12 @@ const DATA = {
 		check: { title: 'Check it', body: 'Check body' },
 	},
 	hints: {
+		advanced: { title: 'Advanced', body: 'Advanced hint' },
+		// Test-only entries, so each way of placing a hint keeps its coverage.
 		place: { title: 'Placing a menu', body: 'Place hint' },
 		dropdown: { title: 'Dropdowns', body: 'Dropdown hint' },
 		'site-look': { title: 'Site look', body: 'Look hint' },
 		history: { title: 'History', body: 'History hint' },
-		advanced: { title: 'Advanced', body: 'Advanced hint' },
 	},
 };
 
@@ -67,6 +68,19 @@ function page({ menu = { items: [] }, html = PAGE, url = 'https://example.test/w
 	return window;
 }
 
+// The shipped table has one hint. These exercise the other placements it supports.
+const TEST_HINTS = [
+	{ id: 'place', selectors: ['#abmm-placement-title'], where: 'append', doc: 'user-guide.md#put-it-in-a-header' },
+	{ id: 'dropdown', selectors: ['.abmm-mega-style-picker__label'], where: 'append', doc: 'user-guide.md' },
+	{ id: 'history', selectors: ['#abmm-backup-panel > summary'], where: 'after', doc: 'undo-and-history.md' },
+	{ id: 'site-look', selectors: ['#abmm-render-mode'], closest: 'label', where: 'before', doc: 'migrate-from-easy-mega-menu.md' },
+];
+const pageWithHints = (options) => {
+	const window = page(options);
+	window.ABMMAdminGuide.HINTS.push(...TEST_HINTS);
+	return window;
+};
+
 const key = (window, name, extra = {}) => {
 	const event = new window.KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true, ...extra });
 	window.document.activeElement.dispatchEvent(event);
@@ -87,6 +101,17 @@ const breakStorage = (window) => Object.defineProperty(window, 'localStorage', {
 	for (const item of [...G.TOUR_STEPS, ...G.HINTS]) {
 		assert.ok(new RegExp(`'${item.id}'\\s*=>\\s*array\\(`).test(adminPhp), `${item.id} has its wording in PHP.`);
 	}
+	// Quiet by design: a hint only where the screen can't say it itself.
+	assert.deepEqual([...G.HINTS].map((item) => item.id), ['advanced'], 'Only the Advanced settings hint ships.');
+	assert.equal(G.HINTS[0].selectors[0], '#abmm-advanced-settings');
+	assert.ok(builderView.includes('id="abmm-advanced-settings"'), 'The hint points at an element in the editor.');
+	for (const item of G.HINTS) {
+		const file = path.join(root, 'docs', item.doc.split('#')[0]);
+		assert.ok(fs.existsSync(file), `${item.doc} exists.`);
+		const anchor = item.doc.split('#')[1];
+		if (anchor) assert.ok(new RegExp(`^#+ ${anchor.replace(/-/g, '[ -]')}\\s*$`, 'im').test(fs.readFileSync(file, 'utf8')), `${item.doc} has that heading.`);
+	}
+	for (const id of ['place', 'dropdown', 'site-look', 'history']) assert.ok(!new RegExp(`'hints'[\\s\\S]*'${id}'\\s*=>\\s*array\\(`).test(adminPhp), `The ${id} hint's wording is gone.`);
 	assert.ok(/data-abmm-guide-start/.test(builderView), 'The Help area has the show-again control.');
 	assert.ok(/hidden/.test(builderView.split('data-abmm-guide-start')[1].split('>')[0]), 'It stays hidden until the script is running.');
 }
@@ -324,7 +349,7 @@ const breakStorage = (window) => Object.defineProperty(window, 'localStorage', {
 
 // Hints: placed safely, one at a time, with a real link, and Escape returns focus.
 {
-	const window = page();
+	const window = pageWithHints();
 	const doc = window.document;
 	const guide = window.ABMMAdminGuide.create({ window, data: DATA });
 	const hint = (id) => doc.querySelector(`[data-abmm-guide-hint="${id}"]`);
@@ -337,6 +362,15 @@ const breakStorage = (window) => Object.defineProperty(window, 'localStorage', {
 	assert.equal(hint('site-look').nextElementSibling, doc.getElementById('look-label'));
 	assert.equal(doc.querySelector('#abmm-backup-panel > summary').contains(hint('history')), false, 'A hint never goes inside a summary, where a click would toggle it.');
 	assert.equal(hint('advanced'), null, 'A hint with no target is left out.');
+	{
+		const shipped = page({ html: '<!doctype html><body><div id="abmm-builder"><details id="abmm-advanced-settings"><summary>Advanced settings</summary></details></div></body>' });
+		shipped.ABMMAdminGuide.create({ window: shipped, data: DATA });
+		const real = shipped.document.querySelector('[data-abmm-guide-hint="advanced"]');
+		assert.ok(real, 'The shipped hint finds its target.');
+		assert.equal(real.nextElementSibling, shipped.document.getElementById('abmm-advanced-settings'), 'It sits just before the section, not inside its summary.');
+		real.click();
+		assert.equal(shipped.document.getElementById('abmm-guide-hint-panel').querySelector('a').href, 'https://example.test/docs/style-your-menu.md#advanced-settings');
+	}
 	guide.addHints();
 	assert.equal(doc.querySelectorAll('[data-abmm-guide-hint="place"]').length, 1, 'Hints are not added twice.');
 
@@ -418,7 +452,7 @@ assert.doesNotMatch(source, /Add your links|Save your work|What's this\?\s*%/, '
 
 // The script starts itself when PHP provides the wording.
 {
-	const dom = new JSDOM(PAGE, { runScripts: 'outside-only', url: 'https://example.test/wp-admin/', pretendToBeVisual: true });
+	const dom = new JSDOM(PAGE.replace('</div>\n<div class="abmm-exit-dialog"', '<details id="abmm-advanced-settings"><summary>Advanced</summary></details></div>\n<div class="abmm-exit-dialog"'), { runScripts: 'outside-only', url: 'https://example.test/wp-admin/', pretendToBeVisual: true });
 	const { window } = dom;
 	window.HTMLElement.prototype.getBoundingClientRect = () => ({ width: 100, height: 30, top: 20, bottom: 50, left: 20, right: 120 });
 	const node = window.document.createElement('script');
@@ -430,7 +464,7 @@ assert.doesNotMatch(source, /Add your links|Save your work|What's this\?\s*%/, '
 	window.eval(source);
 	setTimeout(() => {
 		assert.ok(window.document.querySelector('.abmm-guide--tour'), 'It starts once the page has loaded.');
-		assert.ok(window.document.querySelector('[data-abmm-guide-hint="place"]'), 'Hints are added.');
+		assert.ok(window.document.querySelector('[data-abmm-guide-hint="advanced"]'), 'Hints are added.');
 		console.log('Admin guide: auto-start rules, dismissal, skipped steps, focus, storage failure and hints passed.');
 		window.close();
 	}, 30);
