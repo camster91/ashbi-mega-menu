@@ -515,9 +515,96 @@ async function auditRegressions(){
  assert.equal(f.window.document.activeElement,$('[data-abmm-preview-item="2"] > .abmm-nav__link')[0],'a re-rendered preview gives focus back to the same item');
  f.close();
 
+ // A new dropdown starts on Simple columns; stored types and existing layouts stay as they are.
+ f=await fixture(false,false,null,'demo',{...menu,items:[
+  {id:'plain',label:'Plain',type:'link',url:'/plain'},
+  {id:'kept',label:'Kept',type:'link',url:'/kept',categories:[{id:'c9',title:'Kept',groups:[]}]},
+  {id:'was',label:'Was',type:'link',url:'/was',mega_style:'platforms',columns:4,categories:[],links:[]},
+ ]}); $=f.$;
+ assert.deepEqual(Array.from($('#abmm-nav-items .abmm-nav-type')[0].options,o=>[o.value,o.textContent]),[['link','Link'],['mega','Dropdown']],'the labels change, the stored values do not');
+ [0,1,2].forEach(i=>$('#abmm-nav-items .abmm-nav-type').eq(i).val('mega').trigger('change'));
+ assert.equal($('#abmm-nav-items .abmm-nav-type-chip').first().text(),'Dropdown');
+ $('.abmm-save-menu').trigger('click');
+ saved=JSON.parse(f.requests[0].data.menu_data);
+ assert.equal(saved.items[0].type,'mega');
+ assert.equal(saved.items[0].mega_style,'features','a new dropdown starts on Simple columns');
+ assert.equal(saved.items[0].columns,2);
+ assert.equal(saved.items[1].mega_style,'platforms','an item with categories keeps them');
+ assert.equal(saved.items[2].mega_style,'platforms','a layout the item already has is kept');
+ assert.equal(saved.items[2].columns,4);
+ f.close();
+
+ // "More options" starts closed, and open when something in it is in use. Nothing hidden is lost.
+ const moreEditor='<div id="abmm-mega-editor" hidden><h2 id="abmm-mega-editor-title"></h2><button class="abmm-close-mega-editor">Back</button><details id="abmm-mega-more-options" hidden><summary>More</summary><div id="abmm-category-bar-field" hidden><input type="checkbox" id="abmm-hide-category-bar"></div></details><ul id="abmm-features-link-list"></ul><ul id="abmm-cat-list"></ul><div id="abmm-cat-detail"></div></div>'
+  +'<div id="abmm-icon-modal" hidden><input id="abmm-icon-search"><div id="abmm-icon-grid"></div><details id="abmm-icon-appearance" hidden><summary>More</summary><div id="abmm-icon-appearance-fields"></div></details></div>';
+ const oneCat=id=>({id,title:id,groups:[{id:id+'g',title:'',links:[]}]});
+ const moreMenu={...menu,items:[
+  {id:'p',label:'P',type:'link',url:'/p'},
+  {id:'r',label:'R',type:'link',url:'/r',rel:'nofollow',class:'hi',target:'_blank'},
+  {id:'one',label:'One',type:'mega',mega_style:'platforms',columns:3,categories:[oneCat('a')]},
+  {id:'hid',label:'Hid',type:'mega',mega_style:'platforms',columns:3,hide_category_bar:true,categories:[oneCat('b')]},
+  {id:'two',label:'Two',type:'mega',mega_style:'platforms',columns:3,categories:[oneCat('c'),oneCat('d')]},
+  {id:'col',label:'Col',type:'mega',mega_style:'features',columns:2,links:[{id:'f1',label:'A',url:'/a'},{id:'f2',label:'B',url:'/b',icon_color:'#111111'},{id:'f3',label:'C',url:'/c',rel:'ugc'},{id:'f4',label:'D',url:'/d',icon_radius:0}]},
+  {id:'old',label:'Old',type:'mega',categories:[oneCat('e')]},
+ ]};
+ f=await fixture(false,false,null,'demo',moreMenu,moreEditor); $=f.$;
+ const navRow=i=>$('#abmm-nav-items .abmm-nav-item-row').eq(i);
+ assert.equal(navRow(0).find('.abmm-link-options .abmm-more-options').prop('open'),false,'closed when rel and classes are empty');
+ assert.equal(navRow(1).find('.abmm-link-options .abmm-more-options').prop('open'),true,'open when they have a value');
+ assert.equal(navRow(0).find('.abmm-link-target').closest('.abmm-more-options').length,0,'new tab stays one click away');
+ navRow(0).find('.abmm-link-rel').val('sponsored').trigger('input');
+ assert.equal(navRow(0).find('.abmm-link-options').hasClass('has-options'),true,'the options button shows a value is set');
+ const megaMore=$('#abmm-mega-more-options');
+ navRow(2).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('hidden'),false,'the option shows with one category');
+ assert.equal(megaMore.prop('open'),false);
+ navRow(3).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('open'),true,'a hidden category bar opens More options');
+ assert.equal($('#abmm-hide-category-bar').prop('checked'),true);
+ navRow(4).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('hidden'),true,'with no option to show, More options is left out');
+ navRow(2).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('open'),false,'the next dropdown starts closed again');
+ navRow(5).find('.abmm-edit-mega').trigger('click');
+ assert.equal(megaMore.prop('hidden'),true,'Simple columns has no category bar');
+ const featureRow=i=>$('#abmm-features-link-list .abmm-link-row').eq(i);
+ assert.equal(featureRow(0).find('.abmm-link-edit .abmm-more-options').prop('open'),false);
+ assert.equal(featureRow(2).find('.abmm-link-edit .abmm-more-options').prop('open'),true);
+ const iconMore=$('#abmm-icon-appearance');
+ const pickIcon=i=>featureRow(i).find('.abmm-pick-link-icon').trigger('click');
+ pickIcon(0);
+ assert.equal(iconMore.prop('hidden'),false);
+ assert.equal(iconMore.prop('open'),false,'the icon style starts closed');
+ pickIcon(1);
+ assert.equal(iconMore.prop('open'),true,'a custom icon colour opens it');
+ pickIcon(0);
+ assert.equal(iconMore.prop('open'),false,'and the next item starts closed again');
+ pickIcon(3);
+ assert.equal(iconMore.prop('open'),true,'a radius of 0 counts as in use');
+ navRow(6).find('.abmm-edit-mega').trigger('click');
+ $('.abmm-save-menu').trigger('click');
+ saved=JSON.parse(f.requests[0].data.menu_data);
+ assert.equal(saved.items[0].rel,'sponsored','a closed field still saves');
+ assert.equal(saved.items[1].rel,'nofollow');
+ assert.equal(saved.items[1].class,'hi');
+ assert.equal(saved.items[1].target,'_blank');
+ assert.equal(saved.items[3].hide_category_bar,true);
+ assert.equal(saved.items[5].links[1].icon_color,'#111111');
+ assert.equal(saved.items[5].links[2].rel,'ugc');
+ assert.equal(saved.items[6].mega_style,'platforms','an existing dropdown with no stored layout stays on categories');
+ f.close();
+
+ // History brings versions and backups together, reachable from each card and the editor.
+ const listView=fs.readFileSync('admin/views/list.php','utf8');
+ assert.match(builderView,/abmm-open-history" href="[^"]*'abmm_history'/,'the editor links to History');
+ assert.match(listView,/abmm-menu-versions"[^\n]*'History'/,'the card menu says History');
+ assert.match(listView,/id="abmm-backup-panel"[\s\S]*'History'[\s\S]*id="abmm-history-menu"[\s\S]*abmm-load-backups/,'one panel holds both');
+ assert.doesNotMatch(listView,/'Recovery snapshots'|'Saved versions'/);
+ assert.match(listView,/<details class="abmm-import-api abmm-more-options">/,'the developer panel starts closed');
+
  // List page.
- const list=async body=>{
-  const dom=new JSDOM('<body>'+body+'</body>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true});
+ const list=async(body,url='http://localhost/')=>{
+  const dom=new JSDOM('<body>'+body+'</body>',{url,runScripts:'outside-only',pretendToBeVisual:true});
   const {window}=dom; const $=require('jquery')(window); window.jQuery=$;
   window.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({archivePlacements:'%1$d %2$d %3$d %4$d',archiveConfirmTitle:'%1$s'},{get:(t,k)=>t[k]||String(k)})};
   const requests=[]; $.post=(_,data)=>{const d=$.Deferred();requests.push({data,d});return d.promise();};
@@ -537,15 +624,41 @@ async function auditRegressions(){
   assert.match($('.abmm-archive-confirm').text(),new RegExp('0 0 0 '+known),'page builder placements count');
   f.close();
  }
- // Saved versions list and restore.
- f=await list(card); $=f.$;
+ // A card's History opens the shared panel on that menu, with its versions and restore.
+ const historyPanel='<details id="abmm-backup-panel"><h3 id="abmm-history-title" tabindex="-1">One menu</h3><select id="abmm-history-menu"><option value="w">W</option><option value="x">X</option><option value="y">Y</option></select><div id="abmm-history-versions"></div></details>';
+ f=await list(card+historyPanel); $=f.$;
+ assert.equal(f.requests.length,0,'nothing loads until History opens');
  $('.abmm-menu-versions').trigger('click');
+ assert.equal($('#abmm-backup-panel').prop('open'),true);
+ assert.equal($('#abmm-history-menu').val(),'x','it opens on the card it came from');
  assert.equal(f.requests[0].data.action,'abmm_menu_versions');
+ assert.equal(f.requests[0].data.menu_id,'x');
+ await wait(5);
+ assert.equal(f.window.document.activeElement.id,'abmm-history-title','focus moves to History');
  f.requests[0].d.resolve({success:true,data:{revision:'rev-now',versions:[{id:'v1',saved_at:1,saved_label:'Today',items:3}]}});
  assert.match($('.abmm-version-list').text(),/Today, 3 menu items/);
  $('.abmm-restore-version').trigger('click');
  assert.equal(f.requests[1].data.action,'abmm_restore_menu_version');
  assert.equal(f.requests[1].data.version_id,'v1'); assert.equal(f.requests[1].data.base_revision,'rev-now');
+ // Switching menus shows the new menu, and a slow answer for the old one is ignored.
+ $('#abmm-history-menu').val('w').trigger('change');
+ $('#abmm-history-menu').val('y').trigger('change');
+ assert.equal(f.requests[3].data.menu_id,'y');
+ f.requests[3].d.resolve({success:true,data:{revision:'r',versions:[{id:'v9',saved_at:1,saved_label:'Newer',items:1}]}});
+ f.requests[2].d.resolve({success:true,data:{revision:'r',versions:[{id:'v8',saved_at:1,saved_label:'Stale',items:1}]}});
+ assert.match($('.abmm-version-list').text(),/Newer/);
+ assert.doesNotMatch($('.abmm-version-list').text(),/Stale/);
+ f.close();
+ // The editor's History link lands on the same panel, on the menu it came from.
+ f=await list(card+historyPanel,'http://localhost/?abmm_history=y'); $=f.$;
+ assert.equal($('#abmm-backup-panel').prop('open'),true);
+ assert.equal($('#abmm-history-menu').val(),'y');
+ assert.equal(f.requests[0].data.menu_id,'y');
+ f.close();
+ // An ID that isn't a menu here only opens the panel on the first menu.
+ f=await list(card+historyPanel,'http://localhost/?abmm_history=gone'); $=f.$;
+ assert.equal($('#abmm-history-menu').val(),'w');
+ assert.equal(f.requests[0].data.menu_id,'w');
  f.close();
  // A double-click cannot permanently delete, and the armed state expires.
  f=await list('<div id="abmm-list-status"></div><div class="abmm-archive-row"><button class="abmm-permanent-delete" data-menu-id="x">Permanently delete</button></div>'); $=f.$;

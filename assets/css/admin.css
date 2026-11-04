@@ -3374,3 +3374,67 @@ body.abmm-builder-sheet-open {
 		box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.35);
 	}
 }
+
+/* "More options": rarely needed settings, closed until one is in use. */
+.abmm-more-options[hidden] {
+	display: none;
+}
+
+.abmm-more-options > summary {
+	width: fit-content;
+	min-height: 24px;
+	line-height: 24px;
+	color: var(--abmm-brand-muted, #50575e);
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.abmm-more-options > summary:hover {
+	color: var(--abmm-brand-ink, #1d2327);
+}
+
+.abmm-more-options > summary:focus-visible {
+	outline: 2px solid var(--abmm-brand-blue, #2271b1);
+	outline-offset: 2px;
+}
+
+.abmm-more-options[open] > summary {
+	margin-bottom: 8px;
+}
+
+.abmm-more-options__fields {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.abmm-wrap .abmm-mega-style-picker .abmm-more-options {
+	flex-basis: 100%;
+}
+
+.abmm-import-api.abmm-more-options {
+	margin-top: 16px;
+}
+
+/* History: a menu's saved versions and the backups of all menus, in one panel. */
+.abmm-history-section + .abmm-history-section {
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid var(--abmm-brand-line, #dcdcde);
+}
+
+.abmm-history-section > h3 {
+	margin: 0 0 4px;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.abmm-history-section > h3:focus {
+	outline: none;
+}
+
+.abmm-history-menu-field {
+	max-width: 360px;
+	margin: 10px 0;
+}

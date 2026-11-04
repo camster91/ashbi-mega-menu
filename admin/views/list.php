@@ -398,7 +398,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<div class="abmm-card-menu__list" id="<?php echo esc_attr( $abmm_actions_id ); ?>" role="menu" aria-label="<?php esc_attr_e( 'More actions', 'ashbi-mega-menu' ); ?>" hidden>
 								<button type="button" role="menuitem" tabindex="-1" class="button abmm-export-menu" data-menu-id="<?php echo esc_attr( $id ); ?>" title="<?php esc_attr_e( 'Export as JSON', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Export', 'ashbi-mega-menu' ); ?></button>
 								<button type="button" role="menuitem" tabindex="-1" class="button abmm-duplicate-menu" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Duplicate', 'ashbi-mega-menu' ); ?></button>
-								<button type="button" role="menuitem" tabindex="-1" class="button abmm-menu-versions" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Saved versions', 'ashbi-mega-menu' ); ?></button>
+								<button type="button" role="menuitem" tabindex="-1" class="button abmm-menu-versions" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'History', 'ashbi-mega-menu' ); ?></button>
 								<button type="button" role="menuitem" tabindex="-1" class="button abmm-delete-menu" data-menu-id="<?php echo esc_attr( $id ); ?>" data-menu-title="<?php echo esc_attr( $abmm_title ); ?>"><?php esc_html_e( 'Archive', 'ashbi-mega-menu' ); ?></button>
 							</div>
 						</div>
@@ -459,8 +459,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<div id="abmm-import-preview" class="abmm-import-preview" hidden aria-live="polite"></div>
 				</form>
 			</div>
-			<div class="abmm-import-api">
-				<h3><?php esc_html_e( 'For developers & AI agents', 'ashbi-mega-menu' ); ?></h3>
+			<details class="abmm-import-api abmm-more-options">
+				<summary><?php esc_html_e( 'For developers & AI agents', 'ashbi-mega-menu' ); ?></summary>
 				<p class="description"><?php esc_html_e( 'Programmatically manage menus using the REST API or WP-CLI.', 'ashbi-mega-menu' ); ?></p>
 				<div class="abmm-api-refs">
 					<div class="abmm-api-ref">
@@ -474,7 +474,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<code>wp abmm import --file=menu.json --mode=merge</code>
 					</div>
 				</div>
-			</div>
+			</details>
 		</div>
 	</details>
 
@@ -553,13 +553,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<details class="abmm-tool" id="abmm-backup-panel">
 		<summary>
 			<span class="abmm-tool__icon dashicons dashicons-backup" aria-hidden="true"></span>
-			<span class="abmm-tool__text"><strong><?php esc_html_e( 'Recovery snapshots', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Undo an import by restoring an automatic backup.', 'ashbi-mega-menu' ); ?></small></span>
+			<span class="abmm-tool__text"><strong><?php esc_html_e( 'History', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Go back to an earlier version of a menu, or undo an import.', 'ashbi-mega-menu' ); ?></small></span>
 		</summary>
 		<div class="abmm-tool__body">
-		<p class="description"><?php esc_html_e( 'The last five backups are kept. Restoring replaces all current menus, after saving them as a new backup first. To roll back one menu, use Saved versions in its card\'s menu.', 'ashbi-mega-menu' ); ?></p>
-		<button type="button" class="button abmm-load-backups"><?php esc_html_e( 'Refresh backups', 'ashbi-mega-menu' ); ?></button>
-		<div id="abmm-backup-status" role="status" aria-live="polite" tabindex="-1"></div>
-		<div id="abmm-backup-list"></div>
+		<?php if ( ! empty( $menus ) ) : ?>
+			<?php
+			$abmm_history_titles = array();
+			foreach ( $menus as $abmm_history_id => $abmm_history_menu ) {
+				$abmm_history_titles[ $abmm_history_id ] = ! empty( $abmm_history_menu['title'] ) ? (string) $abmm_history_menu['title'] : __( 'Untitled', 'ashbi-mega-menu' );
+			}
+			$abmm_history_counts = array_count_values( $abmm_history_titles );
+			?>
+			<div class="abmm-history-section">
+				<h3 id="abmm-history-title" tabindex="-1"><?php esc_html_e( 'One menu', 'ashbi-mega-menu' ); ?></h3>
+				<p class="description"><?php esc_html_e( 'Each save keeps a version of the menu. Going back changes only that menu.', 'ashbi-mega-menu' ); ?></p>
+				<label class="abmm-field abmm-history-menu-field">
+					<span><?php esc_html_e( 'Menu', 'ashbi-mega-menu' ); ?></span>
+					<select id="abmm-history-menu">
+						<?php foreach ( $abmm_history_titles as $abmm_history_id => $abmm_history_title ) : ?>
+							<option value="<?php echo esc_attr( $abmm_history_id ); ?>"><?php echo esc_html( $abmm_history_counts[ $abmm_history_title ] > 1 ? $abmm_history_title . ' (' . $abmm_history_id . ')' : $abmm_history_title ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</label>
+				<div id="abmm-history-versions"></div>
+			</div>
+		<?php endif; ?>
+		<div class="abmm-history-section">
+			<h3><?php esc_html_e( 'All menus', 'ashbi-mega-menu' ); ?></h3>
+			<p class="description"><?php esc_html_e( 'A backup is taken automatically before imports and other big changes, and the last five are kept. Restoring replaces all current menus, after saving them as a new backup first.', 'ashbi-mega-menu' ); ?></p>
+			<button type="button" class="button abmm-load-backups"><?php esc_html_e( 'Refresh backups', 'ashbi-mega-menu' ); ?></button>
+			<div id="abmm-backup-status" role="status" aria-live="polite" tabindex="-1"></div>
+			<div id="abmm-backup-list"></div>
+		</div>
 		</div>
 	</details>
 
