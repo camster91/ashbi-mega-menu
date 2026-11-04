@@ -584,11 +584,14 @@ class ABMM_EMM_Migration {
 			return 'yes' === $cached;
 		}
 		global $wpdb;
-		$like    = '%' . $wpdb->esc_like( 'easy_mega_menu' ) . '%';
-		$skipped = "'trash','auto-draft','inherit'";
-		$found   = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ($skipped) AND post_content LIKE %s LIMIT 1", '%' . $wpdb->esc_like( '[easy_mega_menu' ) . '%' ) )
-			|| $wpdb->get_var( $wpdb->prepare( "SELECT pm.meta_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = '_elementor_data' AND p.post_status NOT IN ($skipped) AND pm.meta_value LIKE %s LIMIT 1", $like ) )
-			|| $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE 'widget\_%%' AND option_value LIKE %s LIMIT 1", $like ) );
+		$like   = '%' . $wpdb->esc_like( 'easy_mega_menu' ) . '%';
+		$widget = $wpdb->esc_like( 'widget_' ) . '%';
+		// One-off searches of site content (cached above); no API searches post content, Elementor data and widgets.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$found = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ( %s, %s, %s ) AND post_content LIKE %s LIMIT 1", 'trash', 'auto-draft', 'inherit', '%' . $wpdb->esc_like( '[easy_mega_menu' ) . '%' ) )
+			|| $wpdb->get_var( $wpdb->prepare( "SELECT pm.meta_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND p.post_status NOT IN ( %s, %s, %s ) AND pm.meta_value LIKE %s LIMIT 1", '_elementor_data', 'trash', 'auto-draft', 'inherit', $like ) )
+			|| $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value LIKE %s LIMIT 1", $widget, $like ) );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		/** Filters whether site content still uses [easy_mega_menu]. */
 		$found = (bool) apply_filters( 'abmm_emm_shortcode_in_use', (bool) $found );
 		set_transient( 'abmm_emm_shortcode_in_use', $found ? 'yes' : 'no', HOUR_IN_SECONDS );
