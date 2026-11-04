@@ -1,0 +1,175 @@
+/**
+ * Ashbi Mega Menu: the editor's quiet guide. Above the admin bar, below media modals.
+ */
+
+.abmm-guide {
+	position: fixed;
+	z-index: 100100;
+	box-sizing: border-box;
+	width: 320px;
+	max-width: calc(100vw - 24px);
+	max-height: calc(100vh - 24px);
+	overflow-y: auto;
+	padding: 16px;
+	background: #fff;
+	color: #1d2327;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.abmm-guide--hint {
+	width: 280px;
+}
+
+/* Narrow screens, or a target that has gone away: rest along the bottom. */
+.abmm-guide.is-docked {
+	top: auto;
+	right: 12px;
+	bottom: 12px;
+	left: 12px;
+	width: auto;
+	max-height: 60vh;
+}
+
+.abmm-guide__count {
+	margin: 0 0 4px;
+	color: #50575e;
+	font-size: 12px;
+}
+
+.abmm-guide__title {
+	margin: 0 0 6px;
+	padding: 0;
+	color: inherit;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+/* Focus lands here from the script so screen readers announce the step. It isn't a
+ * tab stop, so the panel appearing is the only cue it needs. */
+.abmm-guide__title:focus {
+	outline: none;
+}
+
+.abmm-guide__body {
+	margin: 0 0 12px;
+	font-size: 14px;
+}
+
+.abmm-guide__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.abmm-guide__skip,
+.abmm-guide__more {
+	margin-inline-end: auto;
+}
+
+/* WordPress's own button styles reach these on every screen they appear on. */
+.abmm-guide .button-link.abmm-guide__skip {
+	min-height: 32px;
+	padding: 0 4px;
+	color: #50575e;
+}
+
+.abmm-guide__more {
+	min-height: 24px;
+	padding: 4px 0;
+}
+
+.abmm-guide__actions [hidden] {
+	display: none;
+}
+
+.abmm-guide a:focus-visible,
+.abmm-guide button:focus-visible {
+	outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+	outline-offset: 2px;
+	box-shadow: none;
+}
+
+/* The tour's target. An outline takes no space, so nothing around it moves. */
+.abmm-guide-target {
+	outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+	outline-offset: 2px;
+}
+
+/* A small mark that stays out of the way until someone wants it. */
+.abmm-guide-hint {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 24px;
+	height: 24px;
+	margin: 0;
+	margin-inline-start: 4px;
+	padding: 0;
+	background: transparent;
+	color: #50575e;
+	border: 1px solid transparent;
+	border-radius: 50%;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+/* Sits in the top corner of the field that follows it, on that field's label row. */
+.abmm-guide-hint--corner {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	margin-block-end: -24px;
+	margin-inline-start: auto;
+}
+
+.abmm-guide-hint:hover,
+.abmm-guide-hint[aria-expanded="true"] {
+	color: var(--wp-admin-theme-color, #2271b1);
+	border-color: currentColor;
+}
+
+.abmm-guide-hint:focus-visible {
+	outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+	outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.abmm-guide {
+		animation: abmm-guide-in 120ms ease-out;
+	}
+}
+
+@keyframes abmm-guide-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@media (forced-colors: active) {
+	.abmm-guide {
+		border-color: CanvasText;
+	}
+
+	.abmm-guide-target {
+		outline-color: Highlight;
+	}
+
+	.abmm-guide-hint {
+		border-color: ButtonText;
+	}
+}

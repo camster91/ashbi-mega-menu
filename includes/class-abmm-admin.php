@@ -82,6 +82,71 @@ class ABMM_Admin {
 	}
 
 	/**
+	 * Wording and links for the editor's guide (assets/js/admin-guide.js). A step or
+	 * hint left out here is left out of the guide.
+	 *
+	 * @return array
+	 */
+	private function guide_data() {
+		return array(
+			'docsUrl' => 'https://github.com/camster91/ashbi-mega-menu/blob/main/docs/',
+			'labels'  => array(
+				'next'      => __( 'Next', 'ashbi-mega-menu' ),
+				'back'      => __( 'Back', 'ashbi-mega-menu' ),
+				'skip'      => __( 'Skip', 'ashbi-mega-menu' ),
+				'done'      => __( 'Done', 'ashbi-mega-menu' ),
+				'close'     => __( 'Close', 'ashbi-mega-menu' ),
+				'readMore'  => __( 'Read more', 'ashbi-mega-menu' ),
+				'newTab'    => __( '(opens in a new tab)', 'ashbi-mega-menu' ),
+				/* translators: 1: current step number, 2: total number of steps. */
+				'stepCount' => __( 'Step %1$d of %2$d', 'ashbi-mega-menu' ),
+				/* translators: %s: the name of a feature, such as Site look. */
+				'whatsThis' => __( 'What\'s this? %s', 'ashbi-mega-menu' ),
+			),
+			'steps'   => array(
+				'links' => array(
+					'title' => __( 'Add your links', 'ashbi-mega-menu' ),
+					'body'  => __( 'Add the pages you want in your menu. Drag them or use the arrows to put them in order.', 'ashbi-mega-menu' ),
+				),
+				'save'  => array(
+					'title' => __( 'Save your work', 'ashbi-mega-menu' ),
+					'body'  => __( 'Press Save to keep your changes. If this menu is already on your site, saving updates it right away.', 'ashbi-mega-menu' ),
+				),
+				'place' => array(
+					'title' => __( 'Put it on your site', 'ashbi-mega-menu' ),
+					'body'  => __( 'Open Place to see the easiest way to add this menu to your site.', 'ashbi-mega-menu' ),
+				),
+				'check' => array(
+					'title' => __( 'Check it on your site', 'ashbi-mega-menu' ),
+					'body'  => __( 'Open Check for a short list of things to try on your site. Then you are done.', 'ashbi-mega-menu' ),
+				),
+			),
+			'hints'   => array(
+				'place'     => array(
+					'title' => __( 'Placing a menu', 'ashbi-mega-menu' ),
+					'body'  => __( 'Placing puts your menu on your site. The easiest way is marked for you. Keep your old menu until the new one works.', 'ashbi-mega-menu' ),
+				),
+				'advanced'  => array(
+					'title' => __( 'Advanced settings', 'ashbi-mega-menu' ),
+					'body'  => __( 'Most people never need these. Use them to fine-tune colors, fonts and sizes.', 'ashbi-mega-menu' ),
+				),
+				'dropdown'  => array(
+					'title' => __( 'Dropdowns and columns', 'ashbi-mega-menu' ),
+					'body'  => __( 'A dropdown opens a panel of links. Simple columns show all the links at once. Categories add a side list, which helps when you have many links.', 'ashbi-mega-menu' ),
+				),
+				'history'   => array(
+					'title' => __( 'History', 'ashbi-mega-menu' ),
+					'body'  => __( 'The plugin keeps older copies of your menus. If something goes wrong, you can put an older copy back.', 'ashbi-mega-menu' ),
+				),
+				'site-look' => array(
+					'title' => __( 'Site look', 'ashbi-mega-menu' ),
+					'body'  => __( 'Classic keeps the look your menu had in Easy Mega Menu. Ashbi uses this plugin\'s own style. You can switch back, but saving a switch changes your live menu.', 'ashbi-mega-menu' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Enqueue admin assets.
 	 *
 	 * @param string $hook Current admin page hook.
@@ -113,6 +178,9 @@ class ABMM_Admin {
 
 		wp_enqueue_script( 'abmm-preview-canvas', ABMM_PLUGIN_URL . 'assets/js/preview-canvas.js', array(), ABMM_VERSION, true );
 		wp_enqueue_script( 'abmm-admin-advanced', ABMM_PLUGIN_URL . 'assets/js/admin-advanced.js', array( 'wp-i18n' ), ABMM_VERSION, true );
+		wp_enqueue_style( 'abmm-admin-guide', ABMM_PLUGIN_URL . 'assets/css/admin-guide.css', array( 'abmm-admin' ), ABMM_VERSION );
+		wp_enqueue_script( 'abmm-admin-guide', ABMM_PLUGIN_URL . 'assets/js/admin-guide.js', array(), ABMM_VERSION, true );
+		wp_localize_script( 'abmm-admin-guide', 'abmmGuide', $this->guide_data() );
 		wp_enqueue_script(
 			'abmm-admin',
 			ABMM_PLUGIN_URL . 'assets/js/admin.js',

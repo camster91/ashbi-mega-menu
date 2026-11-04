@@ -635,6 +635,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 			<section class="abmm-builder-panel abmm-builder-help" aria-labelledby="abmm-builder-help-title">
 				<h2 id="abmm-builder-help-title"><?php esc_html_e( 'Need help?', 'ashbi-mega-menu' ); ?></h2>
 				<ul class="abmm-help-links">
+					<li><button type="button" class="button-link" data-abmm-guide-start hidden><?php esc_html_e( 'Show the guide again', 'ashbi-mega-menu' ); ?></button></li>
 					<li><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/getting-started.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Getting started guide', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
 					<li><a href="https://github.com/camster91/ashbi-mega-menu/blob/main/docs/user-guide.md" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Placement and troubleshooting', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a></li>
 					<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>"><?php esc_html_e( 'Backups and import', 'ashbi-mega-menu' ); ?></a></li>
