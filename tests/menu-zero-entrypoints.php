@@ -34,6 +34,13 @@ class WP_Block_Supports { public static $block_to_render = array( 'blockName' =>
 function get_block_wrapper_attributes() { return 'class="wp-block-ashbi-mega-menu-mega-menu alignfull"'; }
 verify_roundtrip('<div class="wp-block-ashbi-mega-menu-mega-menu alignfull"><nav data-menu="first"></nav></div>'===$block->render_block(array('menuId'=>'first','align'=>'full'), '', null), 'Full-width block lost its alignment wrapper');
 verify_roundtrip('<nav data-menu="first"></nav>'===$block->render_block(array('menuId'=>'first'), '', null), 'A block without alignment gained a wrapper');
+// The editor preview (block renderer REST request) is already inside the editor's own wrapper.
+define( 'REST_REQUEST', true );
+$GLOBALS['wp'] = (object) array( 'query_vars' => array( 'rest_route' => '/wp/v2/block-renderer/ashbi-mega-menu/mega-menu' ) );
+verify_roundtrip('<nav data-menu="first"></nav>'===$block->render_block(array('menuId'=>'first','align'=>'full'), '', null), 'The editor preview got a second block wrapper');
+$GLOBALS['wp']->query_vars['rest_route'] = '/wp/v2/posts/1';
+verify_roundtrip(0===strpos($block->render_block(array('menuId'=>'first','align'=>'full'), '', null), '<div'), 'Other REST renders lost the alignment wrapper');
+unset( $GLOBALS['wp'] );
 ob_start();
 (new ABMM_Widget())->widget(array('before_widget'=>'','after_widget'=>''), array('menu_id'=>'0'));
 $html=ob_get_clean();

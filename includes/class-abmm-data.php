@@ -460,12 +460,12 @@ class ABMM_Data {
 		if ( ! empty( $menu['cta']['show'] ) && ! $usable_link( $menu['cta'] ) ) {
 			$issues[] = array( 'field' => 'abmm-cta-url', 'message' => __( 'Complete the enabled call-to-action label and destination.', 'ashbi-mega-menu' ) );
 		}
-		foreach ( $menu['items'] ?? array() as $item ) {
+		foreach ( $menu['items'] ?? array() as $index => $item ) {
 			$card = is_array( $item['featured'] ?? null ) ? $item['featured'] : array();
 			// The card hides its link text when there is no link, so the text would silently vanish.
 			if ( 'mega' === ( $item['type'] ?? 'link' ) && ! empty( $card['show'] ) && '' !== trim( (string) ( $card['title'] ?? '' ) ) && '' !== trim( (string) ( $card['label'] ?? '' ) ) && ! $this->is_usable_destination( $card['url'] ?? '' ) ) {
 				/* translators: %s: mega menu label. */
-				$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'The featured card in %s has link text but no link. Add a link or clear the text.', 'ashbi-mega-menu' ), trim( (string) ( $item['label'] ?? '' ) ) ?: __( 'this mega menu', 'ashbi-mega-menu' ) ) );
+				$issues[] = array( 'field' => 'abmm-featured-url', 'item' => $index, 'message' => sprintf( __( 'The featured card in %s has link text but no link. Add a link or clear the text.', 'ashbi-mega-menu' ), trim( (string) ( $item['label'] ?? '' ) ) ?: __( 'this mega menu', 'ashbi-mega-menu' ) ) );
 			}
 		}
 		foreach ( $menu['items'] ?? array() as $item ) {

@@ -175,7 +175,7 @@ class ABMM_Product_Branding {
 				return $menus;
 			}
 			$brand['product_text']    = $resolved['profile']['label'];
-			$brand['product_url']     = $resolved['profile']['url'] ?? '';
+			$brand['product_url']     = ABMM_Product_Profiles::instance()->product_url( $resolved['profile'] );
 			$brand['product_wordmark_url'] = $this->attachment_url( $config['wordmark_attachment_id'], $config['wordmark_url'] );
 			$brand['product_wordmark_dark_url'] = $this->attachment_url( $config['wordmark_dark_attachment_id'], $config['wordmark_dark_url'] );
 			$brand['product_wordmark_height'] = $config['wordmark_height'];
@@ -200,7 +200,7 @@ class ABMM_Product_Branding {
 
 		$brand['show']          = true;
 		$brand['title']         = '';
-		$brand['url']           = $profile['url'] ?? '';
+		$brand['url']           = ABMM_Product_Profiles::instance()->product_url( $profile );
 		$brand['logo_url']      = $logo_url;
 		$brand['logo_dark_url'] = $this->attachment_url( $config['logo_dark_attachment_id'], $config['logo_dark_url'] );
 		$brand['alt']           = '' !== $config['alt'] ? $config['alt'] : ( $profile['label'] ?? '' );

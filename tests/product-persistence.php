@@ -29,7 +29,8 @@ check(is_wp_error($profiles->store_profile('', $one, ABMM_Option_Store::revision
 check('three' === $profiles->store_profile('',array('title'=>'Three','label'=>'Three','url'=>'/three/'),ABMM_Option_Store::revision(null)), 'New create failed');
 // Choosing only the main product page fills in the product page URL; with neither, saving is refused.
 if ( ! function_exists( 'get_permalink' ) ) { function get_permalink( $id ) { return 'https://example.test/?page_id=' . $id; } }
-check('four' === $profiles->store_profile('',array('title'=>'Four','label'=>'Four','root_page_id'=>7),ABMM_Option_Store::revision(null)) && 'https://example.test/?page_id=7' === $profiles->get_all()['four']['url'], 'The main product page did not fill in the product URL');
+check('four' === $profiles->store_profile('',array('title'=>'Four','label'=>'Four','root_page_id'=>7),ABMM_Option_Store::revision(null)) && '' === $profiles->get_all()['four']['url'] && 'https://example.test/?page_id=7' === $profiles->product_url($profiles->get_all()['four']), 'An empty product URL did not follow the main product page');
+check(is_wp_error($profiles->store_profile('',array('title'=>'Five','label'=>'Five'),ABMM_Option_Store::revision(null))), 'A product with neither a URL nor a main page was saved');
 check(is_wp_error($profiles->store_profile('',array('title'=>'Five','label'=>'Five'),ABMM_Option_Store::revision(null))), 'A product without a URL or main page was saved');
 $config = $brands->sanitize_config(array());
 $new_config = $config; $new_config['alt'] = 'Updated';

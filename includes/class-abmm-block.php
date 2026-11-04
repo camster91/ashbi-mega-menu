@@ -55,6 +55,19 @@ class ABMM_Block {
 	}
 
 	/**
+	 * Whether this render is the block editor's server-side preview request.
+	 *
+	 * @return bool
+	 */
+	private static function is_editor_preview() {
+		if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
+			return false;
+		}
+		$route = isset( $GLOBALS['wp']->query_vars['rest_route'] ) ? (string) $GLOBALS['wp']->query_vars['rest_route'] : '';
+		return false !== strpos( $route, '/block-renderer/' );
+	}
+
+	/**
 	 * Server-side render callback.
 	 *
 	 * @param array    $attributes Block attributes.
@@ -70,9 +83,10 @@ class ABMM_Block {
 		$context = function_exists( 'abmm_contextual_navigation_enabled' ) && abmm_contextual_navigation_enabled() && 'page' === ( $attributes['context'] ?? '' ) ? 'page' : '';
 		$html    = ABMM_Frontend::instance()->render( $menu_id, array( 'context' => $context ) );
 		// Wide or full width and extra CSS classes chosen in the editor live on
-		// a wrapper. Without them the markup stays exactly as before.
+		// a wrapper. Without them the markup stays exactly as before. The editor
+		// preview already sits inside the editor's own block wrapper.
 		$has_wrapper_settings = '' !== (string) ( $attributes['align'] ?? '' ) || '' !== trim( (string) ( $attributes['className'] ?? '' ) );
-		if ( '' !== $html && $has_wrapper_settings && function_exists( 'get_block_wrapper_attributes' ) && class_exists( 'WP_Block_Supports' ) && ! empty( WP_Block_Supports::$block_to_render ) ) {
+		if ( '' !== $html && $has_wrapper_settings && ! self::is_editor_preview() && function_exists( 'get_block_wrapper_attributes' ) && class_exists( 'WP_Block_Supports' ) && ! empty( WP_Block_Supports::$block_to_render ) ) {
 			$html = '<div ' . get_block_wrapper_attributes() . '>' . $html . '</div>';
 		}
 		return $html;

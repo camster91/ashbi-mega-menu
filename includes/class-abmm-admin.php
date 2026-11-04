@@ -574,6 +574,16 @@ class ABMM_Admin {
 	}
 
 	/**
+	 * Whether Appearance → Widgets uses the block editor (WordPress 5.8+ unless
+	 * the Classic Widgets plugin or a theme turns it off).
+	 *
+	 * @return bool
+	 */
+	public static function uses_block_widgets() {
+		return function_exists( 'wp_use_widgets_block_editor' ) && wp_use_widgets_block_editor();
+	}
+
+	/**
 	 * The safest placement for the active theme.
 	 *
 	 * @return array { method: block|widget|shortcode, label, steps }
@@ -591,7 +601,10 @@ class ABMM_Admin {
 			return array(
 				'method' => 'widget',
 				'label'  => __( 'Widget', 'ashbi-mega-menu' ),
-				'steps'  => __( 'Your theme has widget areas. In Appearance → Widgets, add the "Ashbi Mega Menu (classic widget)" widget to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme.', 'ashbi-mega-menu' ),
+				// The block widget editor offers the block; the classic widget is hidden there.
+				'steps'  => self::uses_block_widgets()
+					? __( 'Your theme has widget areas. In Appearance → Widgets, add the Ashbi Mega Menu block to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme.', 'ashbi-mega-menu' )
+					: __( 'Your theme has widget areas. In Appearance → Widgets, add the "Ashbi Mega Menu (classic widget)" widget to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme.', 'ashbi-mega-menu' ),
 			);
 		}
 		return array(

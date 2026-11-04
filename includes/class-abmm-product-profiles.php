@@ -160,7 +160,9 @@ class ABMM_Product_Profiles {
 			return array( 'profile' => null, 'source' => 'fallback', 'post_id' => $post_id );
 		}
 
-		return array( 'profile' => $profiles[ $assigned ], 'source' => $source, 'post_id' => $post_id );
+		$profile        = $profiles[ $assigned ];
+		$profile['url'] = $this->product_url( $profile );
+		return array( 'profile' => $profile, 'source' => $source, 'post_id' => $post_id );
 	}
 
 	/**
@@ -380,8 +382,8 @@ class ABMM_Product_Profiles {
 							<p class="abmm-profile-admin__form-eyebrow"><?php echo esc_html( $edit_id ? __( 'Edit product', 'ashbi-mega-menu' ) : __( 'New product', 'ashbi-mega-menu' ) ); ?></p>
 							<h2><?php echo esc_html( $edit_id ? ( $profile['title'] ?: $profile['label'] ?: $edit_id ) : __( 'Add a product', 'ashbi-mega-menu' ) ); ?></h2>
 						</div>
-						<?php if ( $edit_id && '' !== $profile['url'] ) : ?>
-							<a class="abmm-profile-admin__view" href="<?php echo esc_url( $profile['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View page', 'ashbi-mega-menu' ); ?><span class="dashicons dashicons-external" aria-hidden="true"></span><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a>
+						<?php $view_url = $this->product_url( $profile ); if ( $edit_id && '' !== $view_url ) : ?>
+							<a class="abmm-profile-admin__view" href="<?php echo esc_url( $view_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View page', 'ashbi-mega-menu' ); ?><span class="dashicons dashicons-external" aria-hidden="true"></span><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a>
 						<?php endif; ?>
 					</div>
 					<fieldset class="abmm-profile-admin__fieldset">
@@ -750,6 +752,19 @@ JS;
 		return $profile;
 	}
 
+	/**
+	 * Where the product name links to: the product page URL, or the main
+	 * product page's current address when that is left empty.
+	 */
+	public function product_url( $profile ) {
+		$url = (string) ( $profile['url'] ?? '' );
+		$page_id = absint( $profile['root_page_id'] ?? 0 );
+		if ( '' === $url && $page_id && function_exists( 'get_permalink' ) ) {
+			$url = $this->sanitize_url( (string) get_permalink( $page_id ) );
+		}
+		return $url;
+	}
+
 	/** Save one record under the common collection lock, preserving other products. */
 	public function store_profile( $id, $profile, $revision ) {
 		return ABMM_Option_Store::locked( function () use ( $id, $profile, $revision ) {
@@ -761,11 +776,8 @@ JS;
 			$profile = $this->sanitize_profile( $profile );
 			// Use the same key normalization as reads, requests and deletes before collision checks.
 			if ( $is_new ) { $id = sanitize_key( sanitize_title( $profile['title'] ?: $profile['label'] ) ); }
-			// The product page URL defaults to the main product page, which is usually the same page.
-			if ( '' === $profile['url'] && $profile['root_page_id'] && function_exists( 'get_permalink' ) ) {
-				$profile['url'] = $this->sanitize_url( (string) get_permalink( $profile['root_page_id'] ) );
-			}
-			if ( ! $id || '' === $profile['label'] || '' === $profile['url'] ) {
+			// An empty product page URL follows the main product page (see product_url()).
+			if ( ! $id || '' === $profile['label'] || '' === $this->product_url( $profile ) ) {
 				return new WP_Error( 'abmm_product_invalid', __( 'Add a product name, and a product page URL or main product page, before saving.', 'ashbi-mega-menu' ) );
 			}
 			if ( $is_new && isset( $profiles[ $id ] ) ) {

@@ -30,9 +30,11 @@ class WP_Error {
 class ABMM_Test_DB {
 	public $options  = 'wp_options';
 	public $postmeta = 'wp_postmeta';
+	public $posts    = 'wp_posts';
+	public function esc_like( $text ) { return addcslashes( $text, '_%\\' ); }
 	public function prepare( $query ) { return $query; }
 	public function query( $query ) { return 1; }
-	public function get_var( $query ) { return '1'; }
+	public function get_var( $query ) { return false !== strpos( $query, ' LIKE ' ) ? ( $GLOBALS['abmm_content_uses_shortcode'] ? '7' : null ) : '1'; }
 	public function get_results( $query ) {
 		$rows = array();
 		foreach ( $GLOBALS['abmm_meta'] as $post_id => $meta ) {
@@ -53,6 +55,7 @@ $GLOBALS['abmm_meta']       = array();
 $GLOBALS['abmm_shortcodes'] = array();
 $GLOBALS['abmm_can']        = true;
 $GLOBALS['wpdb']            = new ABMM_Test_DB();
+$GLOBALS['abmm_content_uses_shortcode'] = true;
 $GLOBALS['wp_filesystem']   = new ABMM_Test_FS();
 $_SERVER['REQUEST_URI']     = '/';
 
@@ -118,6 +121,7 @@ function check_admin_referer( $action ) { if ( 'valid' !== ( $_POST['_wpnonce'] 
 function wp_die( $message ) { throw new ABMM_Test_Redirect( 'die' ); }
 function wp_create_nonce() { return 'n'; }
 function set_transient( $key, $value ) { $GLOBALS['abmm_transients'][ $key ] = $value; return true; }
+if ( ! function_exists( 'get_transient' ) ) { function get_transient( $key ) { return $GLOBALS['abmm_transients'][ $key ] ?? false; } }
 function wp_delete_file( $file ) { @unlink( $file ); }
 function get_current_user_id() { return 1; }
 function wp_safe_redirect( $url ) { throw new ABMM_Test_Redirect( $url ); }
@@ -298,6 +302,13 @@ verify_migration( '' === $notice( 'edit-post' ) && '' === $notice( 'mega-menu_pa
 $GLOBALS['abmm_can'] = false;
 verify_migration( '' === $notice( 'dashboard' ), 'Only administrators see the warning.' );
 $GLOBALS['abmm_can'] = true;
+// Once no content uses [easy_mega_menu] any more, the warning goes away (the check is cached).
+$GLOBALS['abmm_content_uses_shortcode'] = false;
+verify_migration( false !== strpos( $notice( 'dashboard' ), 'show the shortcode as text' ), 'The content check is cached for an hour.' );
+unset( $GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] );
+verify_migration( '' === $notice( 'dashboard' ), 'No warning when no content uses [easy_mega_menu].' );
+$GLOBALS['abmm_content_uses_shortcode'] = true;
+unset( $GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] );
 
 // While Easy Mega Menu still runs a site with imported menus, Ashbi adds no body classes.
 define( 'EMM_VERSION', '1.6.76' );
