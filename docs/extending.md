@@ -47,6 +47,16 @@ apply_filters( 'abmm_menu_html', string $html, string $menu_id, array $menu, arr
 
 Output is not escaped again: escape anything you add. Keep the classes and `data-abmm-*` attributes the front-end script uses.
 
+**Classic menu filters** (since 1.2.5): these only affect menus using the Classic look.
+
+```php
+apply_filters( 'abmm_classic_plain_markup', bool $plain, string $menu_id ); // Use plain elements, not header and heading elements.
+apply_filters( 'abmm_classic_toggle_label', string $label, string $menu_id ); // Words beside the phone menu button.
+apply_filters( 'abmm_classic_bar_padding', string $padding, string $menu_id ); // Phone bar padding, such as "0" or "8px 16px".
+```
+
+Plain markup differs from Easy Mega Menu's, so site CSS aimed at those elements stops applying.
+
 ### Data and validation
 
 **`abmm_sanitize_menu`** (filter): runs after the plugin sanitizes a menu, whenever one is saved, imported, previewed or compared.

@@ -1,8 +1,12 @@
 # Accessibility test results
 
-This page records what has actually been tested, how, and what is still open. It is evidence, not a conformance claim: the plugin does **not** claim WCAG 2.1 AA conformance until the pending manual checks below are done. The procedure for running each check is in [accessibility-compatibility-qa.md](accessibility-compatibility-qa.md).
+This page says what has been tested, how it was tested, and what is still open. WCAG is the main standard for making websites usable by people with disabilities. **The plugin does not claim to meet WCAG 2.1 AA.** That won't change until the manual checks listed below are done.
 
-Last updated 2026-10-28 for issue #3, against the editor and public menu as of the `claude/a11y-audit` branch (WordPress 7.1.3, PHP 8.5, Twenty Twenty-Five, SQLite).
+In short: automated tools and browser tests pass. **No one has yet tested the plugin with a real screen reader or on real touch devices.** Screen readers are tools that read a page out loud.
+
+The steps for running each check are in [accessibility-compatibility-qa.md](accessibility-compatibility-qa.md).
+
+The table below was last updated 2026-10-28 for issue #3, against the editor and public menu as of the `claude/a11y-audit` branch (WordPress 7.1.3, PHP 8.5, Twenty Twenty-Five, SQLite). Later fixes are listed at the end. They were tested in Chromium browser tests and on local copies of the menus only.
 
 ## Results
 
@@ -17,7 +21,7 @@ Last updated 2026-10-28 for issue #3, against the editor and public menu as of t
 | 200% zoom (720 × 450) and 400% zoom (320 × 256) | Viewport emulation in Chromium and WebKit | **Pass** after the fixes below: no horizontal scrolling on the dashboard, editor, Products, Coverage or public page; the phone drawer is usable with a visible close button. |
 | Windows high contrast | `forced-colors: active` emulation in Chromium, visible-focus check repeated | **Pass** in emulation after the fixes below: this row previously passed while the phone menu button's bars and the active category's marker were invisible, because the check only covered focus. **Not tested on Windows** with a real high-contrast theme. |
 | Reduced motion | `prefers-reduced-motion: reduce` emulation | **Pass**: no transitions or animations longer than 20 ms in the public menu; canvas zoom and the inspector highlight respect it. |
-| Colour contrast of built-in presets | axe on all five presets, desktop panel open with a link hovered, from hand-built markup | **Pass** after the fixes below. The earlier result covered closed and drawer states only, and missed hovered links, category descriptions and featured cards. Custom colours chosen in the Design tab are the site owner's responsibility; the editor does not yet warn about low contrast. |
+| Colour contrast of built-in presets | axe on all five presets, desktop panel open with a link hovered, from hand-built markup | **Pass** after the fixes below. The earlier result covered closed and drawer states only, and missed hovered links, category descriptions and featured cards. Custom colours chosen in Design are the site owner's responsibility. The editor now warns when colours may be hard to read, but the warning does not stop a save and is not a full contrast check. |
 
 ## Pending
 
@@ -46,7 +50,19 @@ These need a person with the assistive technology or device. Until they are reco
 - **Focus:** Escape only returns focus to the menu if it was already inside it, and hovering another category no longer hides the link a keyboard user is on.
 - **Without scripts:** every link shows as a plain list, using `@media (scripting: none)`.
 
-Still open: a logo with neither alt text nor a title gives its link no name, and links that open a new tab do not say so.
+- **New tabs and logos:** links that open a new tab now say so to screen readers. A linked logo with no alt text and no title now uses the site name.
+
+## Later Classic menu fixes
+
+These apply to menus imported from Easy Mega Menu. They have not been tested with a screen reader either.
+
+- **High contrast:** the phone menu button and the active category stay visible in emulation.
+- **Keyboard:** a panel closes when focus leaves it, and it no longer covers the focused link. Escape only returns focus if it was already in the menu.
+- **Drawer:** the page behind an open drawer is inert, and the drawer is a dialog. Other menus on the page stay live, so a logo beside another menu stays reachable. Level changes are announced, and Back says where it goes.
+- **Names:** a logo that fails to load has a name, and script labels are translated. A labelled phone button keeps its label in its accessible name.
+- **Landmarks and headings:** still open by default. Each Classic menu is a `header` with `h3` and `h4` titles, to keep Easy Mega Menu's exact markup. Developers can change that with the `abmm_classic_plain_markup` filter.
+
+Still open: the Classic desktop preview, the time before scripts load, and the manual checks under Pending.
 
 ## Retesting
 
