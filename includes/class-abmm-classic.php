@@ -50,6 +50,13 @@ class ABMM_Classic {
 	private $render_sequence = 0;
 
 	/**
+	 * Whether the menu being rendered uses plain elements instead of banner and headings.
+	 *
+	 * @var bool
+	 */
+	private $plain_markup = false;
+
+	/**
 	 * @var ABMM_Classic_Icons|null
 	 */
 	private $icons = null;
@@ -216,6 +223,12 @@ class ABMM_Classic {
 			array(),
 			$css_url && $site['version'] ? $site['version'] : ABMM_VERSION
 		);
+		wp_register_style(
+			'abmm-classic-fixes',
+			ABMM_PLUGIN_URL . 'assets/classic/emm-fixes.css',
+			array( 'abmm-classic' ),
+			ABMM_VERSION
+		);
 		wp_register_script(
 			'abmm-classic',
 			ABMM_PLUGIN_URL . 'assets/classic/emm-frontend.js',
@@ -224,8 +237,12 @@ class ABMM_Classic {
 			true
 		);
 		$summary = $this->classic_summary();
-		if ( $summary['bleed'] ) {
-			wp_add_inline_script( 'abmm-classic', 'window.abmmClassic=' . wp_json_encode( array( 'edgeBleed' => $summary['bleed'] ) ) . ';', 'before' );
+		if ( $summary['classic'] ) {
+			$config = array( 'i18n' => self::script_strings() );
+			if ( $summary['bleed'] ) {
+				$config['edgeBleed'] = $summary['bleed'];
+			}
+			wp_add_inline_script( 'abmm-classic', 'window.abmmClassic=' . wp_json_encode( $config ) . ';', 'before' );
 		}
 		if ( $summary['phone_fix'] ) {
 			wp_add_inline_style( 'abmm-classic', self::phone_scroll_fix_css() );
@@ -238,7 +255,24 @@ class ABMM_Classic {
 		// already queued, so live pages stay byte for byte as they were.
 		if ( $summary['classic'] && ! self::source_active() ) {
 			wp_enqueue_style( 'abmm-classic' );
+			wp_enqueue_style( 'abmm-classic-fixes' );
 		}
+	}
+
+	/**
+	 * Words the classic script creates itself, in the site's language.
+	 *
+	 * @return array<string,string>
+	 */
+	private static function script_strings() {
+		return array(
+			'back'       => __( 'Back', 'ashbi-mega-menu' ),
+			/* translators: %s: where the Back button returns to, such as a section name. */
+			'backTo'     => __( 'Back to %s', 'ashbi-mega-menu' ),
+			'backToMenu' => __( 'Back to menu', 'ashbi-mega-menu' ),
+			'openMenu'   => __( 'Open menu', 'ashbi-mega-menu' ),
+			'closeMenu'  => __( 'Close menu', 'ashbi-mega-menu' ),
+		);
 	}
 
 	/**
@@ -305,6 +339,11 @@ class ABMM_Classic {
 		}
 		$this->defer_to_source_stylesheet();
 		wp_enqueue_style( 'abmm-classic' );
+		// While Easy Mega Menu is active, test pages stay as they will look with its
+		// styles alone, apart from what the script does.
+		if ( ! self::source_active() ) {
+			wp_enqueue_style( 'abmm-classic-fixes' );
+		}
 		wp_enqueue_script( 'abmm-classic' );
 		$this->assets_enqueued = true;
 	}
@@ -330,12 +369,13 @@ class ABMM_Classic {
 	 * @return string
 	 */
 	public function add_nitropack_exclusion( $tag, $handle ) {
-		if ( 'abmm-classic' !== $handle || false !== stripos( $tag, ' nitro-exclude' ) ) {
+		if ( ! in_array( $handle, array( 'abmm-classic', 'abmm-classic-fixes' ), true ) || false !== stripos( $tag, ' nitro-exclude' ) ) {
 			return $tag;
 		}
 		$excluded = 0 === stripos( ltrim( $tag ), '<link' )
 			? preg_replace( '#\s*/>#', ' nitro-exclude />', $tag, 1 )
-			: preg_replace( '/<script\b/i', '<script nitro-exclude', $tag, 1 );
+			// The tag includes the inline settings script, which must not be the only one marked.
+			: preg_replace( '/<script\b/i', '<script nitro-exclude', $tag );
 		return is_string( $excluded ) ? $excluded : $tag;
 	}
 
@@ -429,6 +469,38 @@ class ABMM_Classic {
 		$this->render_sequence++;
 		$instance_id = 'emm-' . sanitize_html_class( $menu_id ) . '-' . $this->render_sequence;
 
+		/**
+		 * Render this menu without banner and heading elements: a div instead of
+		 * header, and div titles instead of h3 and h4. Off by default so imported
+		 * menus keep Easy Mega Menu's exact markup.
+		 *
+		 * @param bool   $plain   Whether to use plain elements.
+		 * @param string $menu_id Menu ID.
+		 */
+		$this->plain_markup = (bool) apply_filters( 'abmm_classic_plain_markup', false, $menu_id );
+		$wrapper_tag        = $this->plain_markup ? 'div' : 'header';
+
+		/**
+		 * Visible words beside this menu's phone button, for pages that stack two
+		 * menus and so show two identical buttons. Empty by default.
+		 *
+		 * @param string $label   Label text.
+		 * @param string $menu_id Menu ID.
+		 */
+		$toggle_label = trim( (string) apply_filters( 'abmm_classic_toggle_label', '', $menu_id ) );
+
+		/**
+		 * Padding of this menu's phone bar, such as "0" or "8px 16px". Beats a site
+		 * override whatever order an optimizer loads the stylesheets in. Empty keeps
+		 * the stylesheet's padding.
+		 *
+		 * @param string $padding CSS padding.
+		 * @param string $menu_id Menu ID.
+		 */
+		$bar_padding = trim( (string) apply_filters( 'abmm_classic_bar_padding', '', $menu_id ) );
+		$bar_padding = preg_match( '/^[0-9.a-z%\s-]+$/i', $bar_padding ) ? $bar_padding : '';
+		$header_vars = $this->css_vars( $settings ) . ( '' !== $bar_padding ? ';--emm-bar-padding:' . $bar_padding : '' );
+
 		$classes = array(
 			'emm-header',
 			'emm-presentation--' . $presentation,
@@ -460,7 +532,7 @@ class ABMM_Classic {
 
 		ob_start();
 		?>
-		<header class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" id="<?php echo esc_attr( $instance_id ); ?>" style="<?php echo esc_attr( $this->css_vars( $settings ) ); ?>" data-emm-id="<?php echo esc_attr( $menu_id ); ?>" data-emm-instance="<?php echo esc_attr( $instance_id ); ?>" data-emm-presentation="<?php echo esc_attr( $presentation ); ?>" data-emm-desktop-open="<?php echo esc_attr( 'click' === ( $settings['desktop_interaction'] ?? '' ) ? 'click' : 'hover' ); ?>">
+		<<?php echo esc_html( $wrapper_tag ); ?> class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" id="<?php echo esc_attr( $instance_id ); ?>" style="<?php echo esc_attr( $header_vars ); ?>" data-emm-id="<?php echo esc_attr( $menu_id ); ?>" data-emm-instance="<?php echo esc_attr( $instance_id ); ?>" data-emm-presentation="<?php echo esc_attr( $presentation ); ?>" data-emm-desktop-open="<?php echo esc_attr( 'click' === ( $settings['desktop_interaction'] ?? '' ) ? 'click' : 'hover' ); ?>">
 			<?php echo $this->render_utility_links( $utility_links ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<nav class="emm-nav" aria-label="<?php echo esc_attr( $menu['title'] ); ?>">
 				<div class="emm-nav__bar">
@@ -469,7 +541,7 @@ class ABMM_Classic {
 					<button type="button" class="emm-nav__toggle" aria-expanded="false" aria-controls="<?php echo esc_attr( $instance_id ); ?>-drawer" aria-label="<?php esc_attr_e( 'Open menu', 'ashbi-mega-menu' ); ?>">
 						<span class="emm-nav__toggle-box" aria-hidden="true">
 							<span class="emm-nav__toggle-bar"></span>
-						</span>
+						</span><?php echo ( '' !== $toggle_label ? '<span class="emm-nav__toggle-label">' . esc_html( $toggle_label ) . '</span>' : '' ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</button>
 
 					<?php if ( ! empty( $cta['show'] ) && ! empty( $cta['label'] ) ) : ?>
@@ -514,7 +586,7 @@ class ABMM_Classic {
 			<?php if ( ! $is_unified ) : ?>
 				<?php echo $this->render_product_navigation( $profile, 'rail', $cta, $brand ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php endif; ?>
-		</header>
+		</<?php echo esc_html( $wrapper_tag ); ?>>
 		<?php
 		return ob_get_clean();
 	}
@@ -1076,13 +1148,13 @@ class ABMM_Classic {
 									<?php echo $active ? '' : 'hidden'; ?>
 								>
 									<?php if ( ! empty( $cat['panel_title'] ) ) : ?>
-										<h3 class="emm-mega__panel-title">
+										<<?php echo $this->plain_markup ? 'div' : 'h3'; ?> class="emm-mega__panel-title">
 											<?php if ( ! empty( $cat['panel_url'] ) ) : ?>
 												<a <?php echo $this->link_attrs( array_merge( $cat['panel_link'] ?? $cat, array( 'url' => $cat['panel_url'] ) ), '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $cat['panel_url'] ); ?>"><?php echo esc_html( $cat['panel_title'] ); ?></a>
 											<?php else : ?>
 												<?php echo esc_html( $cat['panel_title'] ); ?>
 											<?php endif; ?>
-										</h3>
+										</<?php echo $this->plain_markup ? 'div' : 'h3'; ?>>
 									<?php endif; ?>
 
 									<?php echo $this->render_category_columns( $cat ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -1140,13 +1212,13 @@ class ABMM_Classic {
 			<?php foreach ( $groups as $group ) : ?>
 				<div class="emm-mega__col">
 					<?php if ( ! empty( $group['title'] ) ) : ?>
-						<h4 class="emm-mega__col-title">
+						<<?php echo $this->plain_markup ? 'div' : 'h4'; ?> class="emm-mega__col-title">
 							<?php if ( ! empty( $group['url'] ) ) : ?>
 								<a <?php echo $this->link_attrs( $group, '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $group['url'] ); ?>"><?php echo esc_html( $group['title'] ); ?></a>
 							<?php else : ?>
 								<?php echo esc_html( $group['title'] ); ?>
 							<?php endif; ?>
-						</h4>
+						</<?php echo $this->plain_markup ? 'div' : 'h4'; ?>>
 					<?php endif; ?>
 					<ul class="emm-mega__col-list">
 						<?php foreach ( ( $group['links'] ?? array() ) as $link ) : ?>

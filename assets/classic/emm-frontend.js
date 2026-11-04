@@ -16,6 +16,26 @@
 	var OBSCURED_HEADER_CLASS = 'emm-obscured-by-open-menu';
 	var EXTERNAL_DRAWER_CLASS = 'emm-external-drawer-open';
 	var EXTERNAL_MEGA_CLASS = 'emm-external-mega-open';
+	var HOVER_OPEN_DELAY = 100;
+	var HOVER_CLOSE_DELAY = 300;
+	var CATEGORY_REST_DELAY = 130;
+	var HOST_ROW_MAX_HEIGHT = 160;
+	// A tap or click moves focus without a visible ring. Keyboards, and anything
+	// that activates a control without a pointer, get the first item instead.
+	var pointerInput = false;
+
+	function classicString(key, fallback) {
+		var strings = window.abmmClassic && window.abmmClassic.i18n;
+		return strings && strings[key] ? strings[key] : fallback;
+	}
+
+	function matchesSafely(element, selector) {
+		try {
+			return !!(element && element.matches && element.matches(selector));
+		} catch (error) {
+			return false;
+		}
+	}
 
 	function classicEdgeBleed(menuId) {
 		var config = window.abmmClassic && window.abmmClassic.edgeBleed;
@@ -116,10 +136,33 @@
 		);
 	}
 
-	function focusFirst(container, fallback) {
+	function focusQuietly(element) {
+		if (!element || typeof element.focus !== 'function') return;
+		if (!element.hasAttribute('tabindex')) element.setAttribute('tabindex', '-1');
+		element.focus({ preventScroll: true });
+	}
+
+	function focusFirst(container, fallback, pointerTarget) {
+		if (pointerInput && pointerTarget) {
+			focusQuietly(pointerTarget);
+			return;
+		}
 		var focusable = container ? visibleFocusable(container) : [];
 		var target = focusable[0] || fallback;
 		if (target && typeof target.focus === 'function') target.focus();
+	}
+
+	function announce(header, text) {
+		var status = header.__easyMegaMenuStatus;
+		if (!status) {
+			status = document.createElement('div');
+			status.className = 'emm-sr-status';
+			status.setAttribute('role', 'status');
+			status.style.cssText = 'position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0';
+			header.appendChild(status);
+			header.__easyMegaMenuStatus = status;
+		}
+		status.textContent = text || '';
 	}
 
 	function closeAllMegas(root) {
@@ -184,22 +227,40 @@
 		bar = document.createElement('div');
 		bar.className = 'emm-mobile-bar';
 		bar.setAttribute('data-emm-mobile-bar', '');
+		var header = closest(mega, '.emm-header');
+		var drawerClose = header ? header.querySelector('.emm-nav__drawer-head [data-emm-drawer-close]') : null;
 		bar.innerHTML =
-			'<button type="button" class="emm-mobile-back" data-emm-back aria-label="Back">' +
+			'<button type="button" class="emm-mobile-back" data-emm-back>' +
 			'<svg width="18" height="18" viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5L4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-			'<span>Back</span></button>' +
+			'<span></span></button>' +
 			'<span class="emm-mobile-title" data-emm-mobile-title></span>' +
-			'<button type="button" class="emm-nav__drawer-close emm-mobile-close" data-emm-drawer-close aria-label="Close menu">' +
+			'<button type="button" class="emm-nav__drawer-close emm-mobile-close" data-emm-drawer-close>' +
 			'<span aria-hidden="true">&times;</span></button>';
+		bar.querySelector('[data-emm-back] span').textContent = classicString('back', 'Back');
+		bar.querySelector('.emm-mobile-close').setAttribute(
+			'aria-label',
+			(drawerClose && drawerClose.getAttribute('aria-label')) || classicString('closeMenu', 'Close menu')
+		);
 		mega.insertBefore(bar, mega.firstChild);
 		return bar;
 	}
 
-	function setMobileBar(mega, title, visible) {
+	function setMobileBar(mega, title, visible, backTarget) {
 		var bar = ensureMobileBar(mega);
 		bar.hidden = !visible;
 		var titleEl = bar.querySelector('[data-emm-mobile-title]');
 		if (titleEl) titleEl.textContent = title || '';
+		var back = bar.querySelector('[data-emm-back]');
+		if (back) {
+			back.setAttribute(
+				'aria-label',
+				backTarget
+					? classicString('backTo', 'Back to %s').replace('%s', backTarget)
+					: classicString('backToMenu', 'Back to menu')
+			);
+		}
+		var header = closest(mega, '.emm-header');
+		if (visible && header) announce(header, title);
 	}
 
 	function preferredPanelContainerRect(header, panelWidth) {
@@ -254,12 +315,16 @@
 			accordion.style.removeProperty('--emm-active-panel-height');
 			return;
 		}
+		// Grow only while the panel is open, so moving between categories does not
+		// make its edge jump under the pointer. Closing clears this.
 		var height = Math.ceil(panel.getBoundingClientRect().height);
-		if (height > 0) accordion.style.setProperty('--emm-active-panel-height', height + 'px');
+		var current = parseInt(accordion.style.getPropertyValue('--emm-active-panel-height'), 10) || 0;
+		if (height > current) accordion.style.setProperty('--emm-active-panel-height', height + 'px');
 	}
 
 	function positionDesktopPanel(panel, header) {
 		if (!panel) return;
+		panel.style.top = '';
 		if (!header || isMobile(header)) {
 			panel.style.left = '';
 			panel.style.right = '';
@@ -290,9 +355,27 @@
 			var triggerRect = trigger ? trigger.getBoundingClientRect() : null;
 			var globalRight = Math.min(window.innerWidth - 16, containerLeft + containerWidth);
 			var globalLeftBound = Math.max(16, containerLeft);
-			var globalLeft = Math.max(globalLeftBound, Math.min(triggerRect ? triggerRect.left : globalRight - width, globalRight - width));
-			var offsetRect = item && window.getComputedStyle(item).position !== 'static' ? item.getBoundingClientRect() : navRect;
+			var preferredLeft = triggerRect ? triggerRect.left : globalRight - width;
+			// A wide host, such as a full-width row on a large monitor, must not
+			// let panels drift away from the bar they belong to. Bleed menus ask
+			// to pass these edges, so they keep the host's.
+			var barContent = header.querySelector('.emm-nav__inner');
+			var barRect = barContent ? barContent.getBoundingClientRect() : navRect;
+			if (!edgeBleed && barRect.width > 0) {
+				if (barRect.width >= width) {
+					globalRight = Math.min(globalRight, barRect.right);
+					globalLeftBound = Math.max(globalLeftBound, barRect.left);
+				} else {
+					preferredLeft = barRect.left + (barRect.width - width) / 2;
+				}
+			}
+			var globalLeft = Math.max(globalLeftBound, Math.min(preferredLeft, globalRight - width));
+			var itemAnchored = !!item && window.getComputedStyle(item).position !== 'static';
+			var offsetRect = itemAnchored ? item.getBoundingClientRect() : navRect;
 			panel.style.left = Math.round(globalLeft - offsetRect.left) + 'px';
+			// Panels anchored to their item would otherwise start higher than those
+			// anchored to the bar, because an item is shorter than the bar.
+			if (itemAnchored && navRect.height > 0) panel.style.top = Math.round(navRect.bottom - offsetRect.top - 4) + 'px';
 			panel.style.right = 'auto';
 			panel.style.width = Math.round(width) + 'px';
 			panel.style.maxWidth = 'none';
@@ -380,11 +463,11 @@
 			}
 			item.setAttribute('data-drill', 'links');
 			header.setAttribute('data-drill-level', '2');
-			setMobileBar(panel, label, true);
+			setMobileBar(panel, label, true, '');
 		} else {
 			item.setAttribute('data-drill', 'cats');
 			header.setAttribute('data-drill-level', '1');
-			setMobileBar(panel, label, true);
+			setMobileBar(panel, label, true, '');
 			panel.querySelectorAll('.emm-mega__section').forEach(function (s) {
 				setSectionOpen(s, false);
 			});
@@ -392,16 +475,17 @@
 
 		header.querySelector('.emm-nav__drawer').scrollTop = 0;
 		window.requestAnimationFrame(function () {
+			var pointerTarget = panel.querySelector('[data-emm-mobile-title]');
 			if (isFeatures) {
-				focusFirst(panel, panel.querySelector('[data-emm-back]'));
+				focusFirst(panel, panel.querySelector('[data-emm-back]'), pointerTarget);
 				return;
 			}
 			if (isColumnsOnly) {
 				var directPanel = panel.querySelector('.emm-mega__section.is-open .emm-mega__panel');
-				focusFirst(directPanel, panel.querySelector('[data-emm-back]'));
+				focusFirst(directPanel, panel.querySelector('[data-emm-back]'), pointerTarget);
 				return;
 			}
-			focusFirst(panel.querySelector('.emm-mega__accordion'), panel.querySelector('[data-emm-back]'));
+			focusFirst(panel.querySelector('.emm-mega__accordion'), panel.querySelector('[data-emm-back]'), pointerTarget);
 		});
 	}
 
@@ -423,11 +507,13 @@
 			(catBtn.querySelector('.emm-mega__cat-title') || {}).textContent ||
 			catBtn.getAttribute('data-emm-cat') ||
 			'';
-		setMobileBar(mega, title.trim(), true);
+		var itemTrigger = item.querySelector('[data-emm-mega-trigger]');
+		var rootLabel = (itemTrigger && itemTrigger.textContent ? itemTrigger.textContent : '').replace(/\s+/g, ' ').trim();
+		setMobileBar(mega, title.trim(), true, rootLabel);
 		header.querySelector('.emm-nav__drawer').scrollTop = 0;
 		window.requestAnimationFrame(function () {
 			var activePanel = section.querySelector('.emm-mega__panel');
-			focusFirst(activePanel, mega.querySelector('[data-emm-back]'));
+			focusFirst(activePanel, mega.querySelector('[data-emm-back]'), mega.querySelector('[data-emm-mobile-title]'));
 		});
 	}
 
@@ -449,11 +535,13 @@
 			panel.querySelectorAll('.emm-mega__section').forEach(function (s) {
 				setSectionOpen(s, false);
 			});
-			setMobileBar(panel, rootLabel, true);
+			setMobileBar(panel, rootLabel, true, '');
 			header.querySelector('.emm-nav__drawer').scrollTop = 0;
 			window.requestAnimationFrame(function () {
 				var categoryTrigger = item._emmLastCategoryTrigger;
-				if (categoryTrigger && typeof categoryTrigger.focus === 'function') {
+				if (pointerInput) {
+					focusQuietly(panel.querySelector('[data-emm-mobile-title]'));
+				} else if (categoryTrigger && typeof categoryTrigger.focus === 'function') {
 					categoryTrigger.focus();
 				} else {
 					focusFirst(panel.querySelector('.emm-mega__accordion'), panel.querySelector('[data-emm-back]'));
@@ -465,7 +553,11 @@
 		// Back to root menu
 		closeAllMegas(header);
 		header.querySelector('.emm-nav__drawer').scrollTop = 0;
-		if (trigger && typeof trigger.focus === 'function') trigger.focus();
+		if (pointerInput) {
+			focusQuietly(header.querySelector('.emm-nav__drawer'));
+		} else if (trigger && typeof trigger.focus === 'function') {
+			trigger.focus();
+		}
 	}
 
 	function closeExternalProductDrawers() {
@@ -476,6 +568,37 @@
 			// close control is absent or whose listener has not initialized yet.
 			container.classList.remove('active');
 		});
+	}
+
+	/* While a drawer is open, only it should be reachable. Branches holding another
+	 * menu stay live so a visitor can still switch between stacked menus. */
+	function setPageInert(header, on) {
+		if (!on) {
+			(header.__easyMegaMenuInert || []).forEach(function (element) {
+				element.removeAttribute('inert');
+			});
+			header.__easyMegaMenuInert = null;
+			return;
+		}
+		if (header.__easyMegaMenuInert) return;
+		var made = [];
+		var node = header;
+		while (node && node !== document.body && node.parentElement) {
+			Array.prototype.forEach.call(node.parentElement.children, function (sibling) {
+				if (
+					sibling === node ||
+					sibling.id === 'wpadminbar' ||
+					sibling.hasAttribute('inert') ||
+					/^(SCRIPT|STYLE|LINK|TEMPLATE|NOSCRIPT)$/.test(sibling.tagName) ||
+					sibling.matches('.emm-header') ||
+					sibling.querySelector('.emm-header')
+				) return;
+				sibling.setAttribute('inert', '');
+				made.push(sibling);
+			});
+			node = node.parentElement;
+		}
+		header.__easyMegaMenuInert = made;
 	}
 
 	function setDrawerOpen(header, open, restoreFocus) {
@@ -503,9 +626,22 @@
 		syncActiveStackHost();
 		if (toggle) {
 			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-			toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+			toggle.setAttribute('aria-label', open ? header.__easyMegaMenuCloseLabel : header.__easyMegaMenuOpenLabel);
 		}
 		if (backdrop) backdrop.hidden = !open;
+		setPageInert(header, open && isMobile(header));
+		if (drawer) {
+			if (open && isMobile(header)) {
+				var nav = header.querySelector('.emm-nav');
+				drawer.setAttribute('role', 'dialog');
+				drawer.setAttribute('aria-modal', 'true');
+				if (nav && nav.getAttribute('aria-label')) drawer.setAttribute('aria-label', nav.getAttribute('aria-label'));
+			} else {
+				drawer.removeAttribute('role');
+				drawer.removeAttribute('aria-modal');
+				drawer.removeAttribute('aria-label');
+			}
+		}
 		document.documentElement.classList.toggle(
 			'emm-drawer-open',
 			open || !!document.querySelector('.emm-header.is-mobile-open')
@@ -516,7 +652,7 @@
 		} else {
 			updateMobileGeometry(header);
 			window.requestAnimationFrame(function () {
-				focusFirst(drawer, toggle);
+				focusFirst(drawer, toggle, drawer);
 			});
 		}
 	}
@@ -531,12 +667,60 @@
 
 		if (!isMobile(header)) {
 			header.style.removeProperty('--emm-mobile-offset');
+			clearStackedStickyTop(header);
 			return;
 		}
 
 		var bar = header.querySelector('.emm-nav__bar');
-		var offset = bar ? Math.max(adminOffset, Math.round(bar.getBoundingClientRect().bottom)) : adminOffset;
+		var barBottom = bar ? Math.round(bar.getBoundingClientRect().bottom) : 0;
+		var offset = bar ? Math.max(adminOffset, barBottom, hostRowBottom(header, barBottom)) : adminOffset;
 		header.style.setProperty('--emm-mobile-offset', offset + 'px');
+		syncStackedStickyTop(header, adminOffset);
+	}
+
+	/* A logo can sit beside the menu in a taller row of the page builder. The drawer
+	 * starts below that row, not below the shorter bar, so it never cuts the logo.
+	 * Only a short ancestor holding no other menu counts as that row. */
+	function hostRowBottom(header, barBottom) {
+		var bottom = 0;
+		var node = header.parentElement;
+		while (node && node !== document.body && node !== document.documentElement) {
+			var rect = node.getBoundingClientRect();
+			if (
+				rect.height <= 0 ||
+				rect.height > HOST_ROW_MAX_HEIGHT ||
+				rect.bottom < barBottom ||
+				rect.bottom > window.innerHeight / 2 ||
+				node.querySelectorAll('.emm-header').length > 1
+			) break;
+			bottom = Math.round(rect.bottom);
+			node = node.parentElement;
+		}
+		return bottom;
+	}
+
+	function clearStackedStickyTop(header) {
+		if (header.__easyMegaMenuStackedTop) {
+			header.style.removeProperty('top');
+			header.__easyMegaMenuStackedTop = false;
+		}
+	}
+
+	/* Two sticky menus side by side in one parent would both stick at the top and
+	 * the second would slide behind the first. Stick it below the first instead. */
+	function syncStackedStickyTop(header, adminOffset) {
+		var previous = header.previousElementSibling;
+		if (
+			!previous ||
+			!previous.classList.contains('emm-header') ||
+			window.getComputedStyle(header).position !== 'sticky' ||
+			window.getComputedStyle(previous).position !== 'sticky'
+		) {
+			clearStackedStickyTop(header);
+			return;
+		}
+		header.style.top = adminOffset + Math.round(previous.getBoundingClientRect().height) + 'px';
+		header.__easyMegaMenuStackedTop = true;
 	}
 
 	function updateOverflowRisk(header) {
@@ -614,7 +798,7 @@
 			.replace(/[^A-Za-z0-9_-]+/g, '-')
 			.replace(/^-+|-+$/g, '') || 'clone';
 
-		header.querySelectorAll('[id]').forEach(function (element) {
+		[header].concat(Array.prototype.slice.call(header.querySelectorAll('[id]'))).forEach(function (element) {
 			var originalId = element.id;
 			if (!originalId || document.getElementById(originalId) === element) return;
 
@@ -654,11 +838,18 @@
 		header.querySelectorAll('.emm-nav__brand-logo').forEach(function (logo) {
 			var brand = closest(logo, '.emm-nav__brand');
 			if (!brand) return;
+			var fallback = brand.querySelector('.emm-nav__brand-fallback');
 			var sync = function () {
-				brand.classList.toggle(
-					'emm-nav__brand--logo-failed',
-					logo.complete && logo.naturalWidth === 0
-				);
+				var failed = logo.complete && logo.naturalWidth === 0;
+				brand.classList.toggle('emm-nav__brand--logo-failed', failed);
+				// The hidden image no longer names the link, so its fallback must.
+				if (fallback) {
+					if (failed) {
+						fallback.removeAttribute('aria-hidden');
+					} else {
+						fallback.setAttribute('aria-hidden', 'true');
+					}
+				}
 			};
 			logo.addEventListener('load', sync);
 			logo.addEventListener('error', sync);
@@ -682,8 +873,29 @@
 		var hoverMq = window.matchMedia('(hover: hover) and (pointer: fine)');
 		var desktopOpenMode = header.getAttribute('data-emm-desktop-open') === 'click' ? 'click' : 'hover';
 		var unifiedHover = header.getAttribute('data-emm-presentation') === 'unified' && desktopOpenMode === 'hover';
-		var desktopCloseDelay = unifiedHover ? 150 : 800;
+		var desktopCloseDelay = unifiedHover ? 150 : HOVER_CLOSE_DELAY;
 		var closeTimer = null;
+		var openTimer = null;
+		var categoryTimer = null;
+		var toggleButton = header.querySelector('.emm-nav__toggle');
+		var drawerCloseButton = header.querySelector('.emm-nav__drawer-head [data-emm-drawer-close]');
+		// Keep the translated labels the server printed.
+		header.__easyMegaMenuOpenLabel = (toggleButton && toggleButton.getAttribute('aria-label')) || classicString('openMenu', 'Open menu');
+		header.__easyMegaMenuCloseLabel = (drawerCloseButton && drawerCloseButton.getAttribute('aria-label')) || classicString('closeMenu', 'Close menu');
+
+		function clearOpenTimer() {
+			if (openTimer) {
+				clearTimeout(openTimer);
+				openTimer = null;
+			}
+		}
+
+		function clearCategoryTimer() {
+			if (categoryTimer) {
+				clearTimeout(categoryTimer);
+				categoryTimer = null;
+			}
+		}
 
 		function clearCloseTimer() {
 			if (closeTimer) {
@@ -703,7 +915,8 @@
 				if (
 					(!unifiedHover && openItem && openItem.__easyMegaMenuClickOpen === true) ||
 					(header.matches && header.matches(':hover')) ||
-					(header.contains(document.activeElement) && (!unifiedHover || document.activeElement.matches(':focus-visible')))
+					// A click leaves focus here too; only keyboard focus keeps a panel up.
+					(header.contains(document.activeElement) && matchesSafely(document.activeElement, ':focus-visible'))
 				) return;
 				closeAllMegas(header);
 			}, desktopCloseDelay);
@@ -717,16 +930,29 @@
 			item.addEventListener('mouseenter', function () {
 				if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
 				clearCloseTimer();
+				clearOpenTimer();
 				if (item.classList.contains('emm-nav__item--mega')) {
-					if (!item.classList.contains('is-open')) openMegaDesktop(item);
+					if (item.classList.contains('is-open')) return;
+					// Passing over the bar on the way elsewhere must not open a panel,
+					// but moving between panels stays instant.
+					if (document.querySelector('.emm-header.emm-has-open-menu')) {
+						openMegaDesktop(item);
+						return;
+					}
+					openTimer = setTimeout(function () {
+						openTimer = null;
+						if (!isMobile(header)) openMegaDesktop(item);
+					}, HOVER_OPEN_DELAY);
 				} else {
 					closeAllMegas(header);
 				}
 			});
+			item.addEventListener('mouseleave', clearOpenTimer);
 		});
 
 		header.addEventListener('mouseleave', function (event) {
 			if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
+			clearOpenTimer();
 			if (isWithinHeader(event.relatedTarget)) {
 				clearCloseTimer();
 				return;
@@ -783,7 +1009,14 @@
 					return;
 				}
 
+				clearOpenTimer();
 				if (item.classList.contains('is-open')) {
+					// Hovering already opened this panel. A click that follows
+					// should keep it open, not close it under the pointer.
+					if (desktopOpenMode === 'hover' && hoverMq.matches && item.__easyMegaMenuClickOpen !== true) {
+						item.__easyMegaMenuClickOpen = true;
+						return;
+					}
 					closeAllMegas(header);
 				} else {
 					openMegaDesktop(item);
@@ -794,11 +1027,29 @@
 
 		header.querySelectorAll('.emm-mega__cat').forEach(function (btn) {
 			btn.addEventListener('mouseenter', function () {
-				if (!isMobile(header) && hoverMq.matches) activateCategoryDesktop(btn);
+				if (isMobile(header) || !hoverMq.matches) return;
+				clearCategoryTimer();
+				// Nor may a pointer hide a link a keyboard user has focused.
+				var focused = document.activeElement;
+				var megaOfButton = closest(btn, '.emm-mega');
+				if (
+					megaOfButton &&
+					megaOfButton.contains(focused) &&
+					closest(focused, '.emm-mega__panel') &&
+					matchesSafely(focused, ':focus-visible')
+				) return;
+				// Crossing other categories on the way to a link must not swap the
+				// links being aimed at, so a category switches only on a brief rest.
+				categoryTimer = setTimeout(function () {
+					categoryTimer = null;
+					activateCategoryDesktop(btn);
+				}, CATEGORY_REST_DELAY);
 			});
+			btn.addEventListener('mouseleave', clearCategoryTimer);
 			btn.addEventListener('click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
+				clearCategoryTimer();
 				var item = closest(btn, '.emm-nav__item--mega');
 				if (isMobile(header)) {
 					if (item) drillIntoCategory(item, btn);
@@ -849,6 +1100,40 @@
 			setDrawerOpen(header, false, true);
 		});
 
+		// Tapping a link leaves the page or moves within it; the drawer must not
+		// stay on top with the page locked.
+		header.addEventListener('click', function (e) {
+			if (!header.classList.contains('is-mobile-open') || e.defaultPrevented) return;
+			if (e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+			var link = closest(e.target, 'a[href]');
+			if (!link || !header.contains(link)) return;
+			if (link.matches('[data-emm-mega-trigger], [data-emm-back], [data-emm-drawer-close]')) return;
+			var href = (link.getAttribute('href') || '').trim();
+			var target = (link.getAttribute('target') || '').toLowerCase();
+			if (!href || href === '#' || /^(javascript|data):/i.test(href)) return;
+			if (link.hasAttribute('download') || (target && target !== '_self' && target !== '_top' && target !== '_parent')) return;
+			setDrawerOpen(header, false, false);
+		});
+
+		// Back/Forward can restore the outgoing document without reinitializing
+		// its scripts. Never restore a stale drawer or its scroll and page locks.
+		window.addEventListener('pagehide', function () {
+			if (header.classList.contains('is-mobile-open')) setDrawerOpen(header, false, false);
+		});
+		window.addEventListener('pageshow', function (e) {
+			if (e.persisted && header.classList.contains('is-mobile-open')) setDrawerOpen(header, false, false);
+		});
+
+		// Tabbing out of the menu closes an open desktop panel. Only a focus move to
+		// another element counts: a null relatedTarget is a click on blank space or
+		// a window switch, which must not close it.
+		header.addEventListener('focusout', function (event) {
+			if (isMobile(header) || isWithinHeader(event.relatedTarget) || !event.relatedTarget) return;
+			if (!header.querySelector('.emm-nav__item--mega.is-open')) return;
+			clearCloseTimer();
+			closeAllMegas(header);
+		});
+
 		var backdrop = header.querySelector('[data-emm-backdrop]');
 		if (backdrop) {
 			backdrop.addEventListener('click', function () {
@@ -865,7 +1150,7 @@
 				if (!focusable.length) return;
 				var first = focusable[0];
 				var last = focusable[focusable.length - 1];
-				if (e.shiftKey && document.activeElement === first) {
+				if (e.shiftKey && (document.activeElement === first || document.activeElement === drawer)) {
 					e.preventDefault();
 					last.focus();
 				} else if (!e.shiftKey && document.activeElement === last) {
@@ -884,8 +1169,10 @@
 				}
 			}
 			var openTrigger = header.querySelector('.emm-nav__item--mega.is-open [data-emm-mega-trigger]');
+			var focusWasHere = header.contains(document.activeElement);
 			closeAllMegas(header);
-			if (openTrigger && typeof openTrigger.focus === 'function') openTrigger.focus();
+			// A panel opened by hover must not pull focus away from the page.
+			if (focusWasHere && openTrigger && typeof openTrigger.focus === 'function') openTrigger.focus();
 			if (header.classList.contains('is-mobile-open')) {
 				setDrawerOpen(header, false, true);
 			}
@@ -1063,6 +1350,15 @@
 			subtree: true
 		});
 	}
+
+	['pointerdown', 'mousedown', 'touchstart'].forEach(function (type) {
+		document.addEventListener(type, function () {
+			pointerInput = true;
+		}, { capture: true, passive: true });
+	});
+	document.addEventListener('keydown', function () {
+		pointerInput = false;
+	}, true);
 
 	observeDynamicHeaders();
 	observeExternalProductDrawers();
