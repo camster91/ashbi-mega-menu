@@ -411,7 +411,7 @@ class ABMM_Admin {
 			$classic = ABMM_Classic::instance();
 			wp_send_json_success(
 				array(
-					'html'   => $classic->render_menu( $menu, '' !== $id ? $id : 'preview', array( 'presentation' => 'stacked' ) ),
+					'html'   => $classic->render_preview( $menu, '' !== $id ? $id : 'preview' ),
 					'assets' => $classic->preview_assets( $menu, '' !== $id ? $id : 'preview' ),
 				)
 			);

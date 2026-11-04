@@ -163,12 +163,12 @@ test.describe('editor canvas', () => {
 		await page.goto(`/wp-admin/admin.php?page=ashbi-mega-menu&edit=${encodeURIComponent(menuId)}`);
 		await expect(page.locator('#abmm-preview .abmm-nav')).toBeVisible();
 
-		const readout = page.locator('.abmm-preview-zoom__value');
+		const fit = page.locator('[data-abmm-zoom="fit"]');
 		await page.locator('.abmm-editor-chrome__label').click();
 		await page.keyboard.press('Control+1');
-		await expect(readout).toHaveText('100%');
+		await expect(fit).toHaveAttribute('aria-pressed', 'false');
 		await page.keyboard.press('Control+0');
-		await expect(page.locator('[data-abmm-zoom="fit"]')).toHaveAttribute('aria-pressed', 'true');
+		await expect(fit).toHaveAttribute('aria-pressed', 'true');
 
 		await page.locator('[data-abmm-preview-viewport="mobile"]').click();
 		const frame = page.frameLocator('#abmm-preview iframe.abmm-preview-device');

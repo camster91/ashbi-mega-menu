@@ -234,5 +234,71 @@ assert.equal(C.storageKey('x', ''), 'abmmCanvas:0:desktop');
 	assert.ok(changes.length > 0);
 }
 
+// The toolbar keeps Fit only; the zoom gestures and shortcuts above are the rest.
+{
+	const builder = fs.readFileSync(path.join(__dirname, '..', 'admin', 'views', 'builder.php'), 'utf8');
+	assert.ok(builder.includes('data-abmm-zoom="fit"'), 'The toolbar keeps Fit.');
+	assert.ok(!/data-abmm-zoom="(?:in|out|actual)"|abmm-zoom-menu|abmm-preview-zoom__value/.test(builder), 'The toolbar has no other zoom controls.');
+	assert.ok(builder.includes('Actual size: Ctrl/Cmd + 1'), 'Fit\'s tooltip names the actual size shortcut.');
+}
+
 console.log('Canvas zoom at cursor, clamping, Fit, shortcuts, pan and remembered views passed.');
 dom.window.close();
+
+// A Classic menu previews in a frame on desktop too, with the live markup. An
+// Ashbi menu keeps its live-editing preview, and a failed frame says so.
+async function editorPreview(menu, fetchPreview) {
+	const editor = new JSDOM(`<body><div id="abmm-builder" data-menu-id="demo" data-menu-revision="r1">
+	<aside id="abmm-builder-sidebar"><input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div></aside>
+	<main class="abmm-builder__main">
+	<p class="abmm-classic-preview-note" hidden></p><p class="abmm-classic-preview-fallback" hidden></p>
+	<button data-abmm-preview-viewport="desktop"></button><button data-abmm-zoom="fit" aria-pressed="true"></button>
+	<div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div class="abmm-preview-sizer"><div class="abmm-preview-stage"><div class="abmm-preview" id="abmm-preview"></div></div></div></div>
+	</main></div><script id="abmm-menu-data" type="application/json">${JSON.stringify(menu)}</script></body>`, { url: 'http://localhost/', runScripts: 'outside-only' });
+	const { window: win } = editor;
+	const $ = require('jquery')(win);
+	win.jQuery = $;
+	win.matchMedia = () => ({ matches: false });
+	$.fn.wpColorPicker = $.fn.sortable = function () { return this; };
+	win.abmmAdmin = { ajaxUrl: '/ajax', nonce: 'n', strings: new Proxy({}, { get: (_, key) => String(key) }), icons: [], previewAssets: { css: '/frontend.css', js: '/frontend.js', runtime: {} } };
+	const requests = [];
+	win.fetch = (url, options) => { requests.push(options.body.get('action')); return fetchPreview(); };
+	win.eval(fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'admin.js'), 'utf8'));
+	win.document.dispatchEvent(new win.Event('DOMContentLoaded'));
+	await new Promise((resolve) => win.setTimeout(resolve, 30));
+	return { editor, win, requests, $ };
+}
+
+(async () => {
+	const links = { id: 'products', label: 'Products', type: 'mega', categories: [{ id: 'finance', title: 'Finance', groups: [{ links: [{ id: 'link_a', label: 'A', url: '/a' }] }] }] };
+	const respond = () => Promise.resolve({ json: () => Promise.resolve({ success: true, data: { html: '<header class="emm-header"></header>', assets: { css: '/classic.css', fixesCss: '/fixes.css', js: '/classic.js', inlineCss: '' } } }) });
+
+	const classic = await editorPreview({ title: 'C', items: [links], settings: { render_mode: 'emm-classic' } }, respond);
+	const frame = classic.win.document.querySelector('#abmm-preview iframe.abmm-preview-device');
+	assert.ok(frame, 'A Classic menu previews in a frame on desktop.');
+	assert.equal(frame.style.width, '1100px', 'At the desktop width.');
+	assert.equal(frame.style.height, '600px', 'At the desktop frame height.');
+	assert.deepEqual(classic.requests, ['abmm_preview_markup'], 'The markup comes from the live renderer.');
+	const srcdoc = frame.getAttribute('srcdoc') || '';
+	assert.ok(srcdoc.includes('<header class="emm-header">'), 'The frame holds the Classic markup.');
+	assert.ok(srcdoc.indexOf('/classic.css') < srcdoc.indexOf('/fixes.css') && srcdoc.includes('/fixes.css'), 'The fixes stylesheet loads after the Classic one, as on live pages.');
+	assert.equal(classic.win.document.querySelector('.abmm-classic-preview-note').hidden, false, 'The note says what the frame shows.');
+	assert.equal(classic.win.document.querySelector('.abmm-classic-preview-fallback').hidden, true);
+	classic.editor.window.close();
+
+	const ashbi = await editorPreview({ title: 'A', items: [links], settings: {} }, respond);
+	assert.equal(ashbi.win.document.querySelector('iframe.abmm-preview-device'), null, 'An Ashbi menu keeps its live-editing desktop preview.');
+	assert.deepEqual(ashbi.requests, [], 'And asks the server for nothing.');
+	assert.equal(ashbi.win.document.querySelector('.abmm-classic-preview-note').hidden, true);
+	assert.equal(ashbi.win.document.querySelector('.abmm-classic-preview-fallback').hidden, true);
+	ashbi.editor.window.close();
+
+	const failed = await editorPreview({ title: 'C', items: [links], settings: { render_mode: 'emm-classic' } }, () => Promise.reject(new Error('offline')));
+	assert.equal(failed.win.document.querySelector('iframe.abmm-preview-device'), null, 'A failed frame falls back to the built-in preview.');
+	assert.ok(failed.win.document.querySelector('#abmm-preview .abmm-nav'), 'Rather than an empty frame.');
+	assert.equal(failed.win.document.querySelector('.abmm-classic-preview-fallback').hidden, false, 'And says it isn\'t the Classic look.');
+	assert.equal(failed.win.document.querySelector('.abmm-classic-preview-note').hidden, true);
+	failed.editor.window.close();
+
+	console.log('Classic desktop frame, Ashbi preview and the failed-frame warning passed.');
+})().catch((error) => { console.error(error); process.exit(1); });

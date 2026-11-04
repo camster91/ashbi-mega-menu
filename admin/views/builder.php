@@ -651,28 +651,14 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					<span class="dashicons dashicons-edit" aria-hidden="true"></span><?php esc_html_e( 'Edit menu', 'ashbi-mega-menu' ); ?>
 				</button>
 				<p class="abmm-editor-chrome__label"><?php esc_html_e( 'Preview', 'ashbi-mega-menu' ); ?></p>
-				<p class="abmm-editor-chrome__note abmm-classic-preview-note" hidden><?php esc_html_e( 'Desktop shows Ashbi\'s style, not the Classic look. Use tablet or phone to see Classic.', 'ashbi-mega-menu' ); ?></p>
+				<p class="abmm-editor-chrome__note abmm-classic-preview-note" hidden><?php esc_html_e( 'Classic look. Your theme\'s styles aren\'t loaded here, so check the result on your site.', 'ashbi-mega-menu' ); ?></p>
+				<p class="abmm-editor-chrome__note abmm-classic-preview-fallback" hidden><?php esc_html_e( 'The Classic preview couldn\'t load, so this shows Ashbi\'s style. Reload the page to try again.', 'ashbi-mega-menu' ); ?></p>
 				<div class="abmm-preview-viewports" role="group" aria-label="<?php esc_attr_e( 'Preview viewport', 'ashbi-mega-menu' ); ?>">
 					<button type="button" class="button is-active" data-abmm-preview-viewport="desktop" aria-pressed="true" title="<?php esc_attr_e( 'Desktop', 'ashbi-mega-menu' ); ?>"><span class="dashicons dashicons-desktop" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Desktop', 'ashbi-mega-menu' ); ?></span></button>
 					<button type="button" class="button" data-abmm-preview-viewport="tablet" aria-pressed="false" title="<?php esc_attr_e( 'Tablet', 'ashbi-mega-menu' ); ?>"><span class="dashicons dashicons-tablet" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Tablet', 'ashbi-mega-menu' ); ?></span></button>
 					<button type="button" class="button" data-abmm-preview-viewport="mobile" aria-pressed="false" title="<?php esc_attr_e( 'Mobile', 'ashbi-mega-menu' ); ?>"><span class="dashicons dashicons-smartphone" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Mobile', 'ashbi-mega-menu' ); ?></span></button>
 				</div>
-				<div class="abmm-preview-zoom" role="group" aria-label="<?php esc_attr_e( 'Preview zoom', 'ashbi-mega-menu' ); ?>">
-					<button type="button" class="button" data-abmm-zoom="out" aria-label="<?php esc_attr_e( 'Zoom out', 'ashbi-mega-menu' ); ?>">&minus;</button>
-					<div class="abmm-zoom-menu">
-						<button type="button" class="button abmm-preview-zoom__value" aria-haspopup="menu" aria-expanded="false" aria-controls="abmm-zoom-presets" title="<?php esc_attr_e( 'Zoom level', 'ashbi-mega-menu' ); ?>">100%</button>
-						<div class="abmm-zoom-menu__list" id="abmm-zoom-presets" role="menu" aria-label="<?php esc_attr_e( 'Zoom level', 'ashbi-mega-menu' ); ?>" hidden>
-							<?php foreach ( array( 25, 50, 75, 100, 150, 200 ) as $abmm_zoom_preset ) : ?>
-								<button type="button" role="menuitem" tabindex="-1" data-abmm-zoom-preset="<?php echo esc_attr( (string) ( $abmm_zoom_preset / 100 ) ); ?>"><?php echo esc_html( $abmm_zoom_preset . '%' ); ?></button>
-							<?php endforeach; ?>
-							<button type="button" role="menuitem" tabindex="-1" data-abmm-zoom-preset="fit" class="abmm-zoom-menu__fit"><?php esc_html_e( 'Zoom to fit', 'ashbi-mega-menu' ); ?><kbd aria-hidden="true">Ctrl 0</kbd></button>
-						</div>
-					</div>
-					<button type="button" class="button" data-abmm-zoom="in" aria-label="<?php esc_attr_e( 'Zoom in', 'ashbi-mega-menu' ); ?>">+</button>
-					<span class="abmm-preview-zoom__divider" aria-hidden="true"></span>
-					<button type="button" class="button" data-abmm-zoom="fit" aria-pressed="true" title="<?php esc_attr_e( 'Zoom to fit (Ctrl/Cmd + 0)', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Fit', 'ashbi-mega-menu' ); ?></button>
-					<button type="button" class="button" data-abmm-zoom="actual" aria-pressed="false" title="<?php esc_attr_e( 'Actual size (Ctrl/Cmd + 1)', 'ashbi-mega-menu' ); ?>">100%</button>
-				</div>
+				<div class="abmm-preview-zoom"><button type="button" class="button" data-abmm-zoom="fit" aria-pressed="true" title="<?php esc_attr_e( 'Zoom to fit (Ctrl/Cmd + 0). Actual size: Ctrl/Cmd + 1', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Fit', 'ashbi-mega-menu' ); ?></button></div>
 			</div>
 
 			<!-- Preview + inline editor -->

@@ -1197,8 +1197,10 @@
 		$warning.prop('hidden', !$list.children().length);
 		var brand = getMenu().brand || {};
 		$('#abmm-logo-alt-warning').prop('hidden', !(brand.show && String(brand.logo_url || brand.logo_dark_url || '').trim() && !String(brand.alt || '').trim() && !String(brand.title || '').trim()));
-		var classicLook = String(s.render_mode || '') === 'emm-classic' && state.previewViewport === 'desktop';
-		$('.abmm-classic-preview-note').prop('hidden', !classicLook);
+		var classicLook = String(s.render_mode || '') === 'emm-classic';
+		var classicFrame = classicLook && !deviceFrame.failed && devicePreviewAvailable();
+		$('.abmm-classic-preview-note').prop('hidden', !classicFrame);
+		$('.abmm-classic-preview-fallback').prop('hidden', !classicLook || classicFrame);
 		if (window.ABMMAdvanced) window.ABMMAdvanced.refresh(getMenu());
 	}
 
@@ -4242,8 +4244,12 @@
 	// desktop menu is not squeezed into the space between the sidebars.
 	// 1100px keeps the desktop layout (above the 900px mobile breakpoint).
 	// Phone and tablet frames have a fixed screen height, like a real device.
+	// A Classic menu's desktop frame starts at its height and grows to hold an
+	// open panel, up to a limit so a panel sized from the frame's height can't
+	// keep growing it.
 	var PREVIEW_WIDTHS = { desktop: 1100, tablet: 820, mobile: 390 };
-	var PREVIEW_SCREEN_HEIGHTS = { tablet: 1040, mobile: 720 };
+	var PREVIEW_SCREEN_HEIGHTS = { desktop: 600, tablet: 1040, mobile: 720 };
+	var PREVIEW_DESKTOP_MAX_HEIGHT = 1600;
 	var previewCanvas = null;
 
 	function previewFrameSize() {
@@ -4277,7 +4283,6 @@
 		stage.style.width = width + 'px';
 		sizer.style.width = width + 'px';
 		if (previewCanvas) previewCanvas.refresh();
-		else $('.abmm-preview-zoom__value').text('100%');
 	}
 
 	var HINT_KEY = 'abmmCanvasHintSeen';
@@ -4289,28 +4294,10 @@
 		try { window.localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* private window */ }
 	}
 
-	function syncZoomReadout(view, mode) {
+	function syncZoomState(view, mode) {
 		// Once someone has moved the canvas, the gesture hint has done its job.
 		if (mode === 'manual') hideCanvasHint();
-		var percent = Math.round(view.scale * 100) + '%';
-		var $value = $('.abmm-preview-zoom__value');
-		if ($value.text() !== percent) {
-			/* translators: %s: zoom percentage, such as 75%. */
-			$value.text(percent).attr('aria-label', sprintf(__('Zoom %s. Choose a zoom level', 'ashbi-mega-menu'), percent));
-		}
 		$('[data-abmm-zoom="fit"]').attr('aria-pressed', mode === 'fit' ? 'true' : 'false');
-		$('[data-abmm-zoom="actual"]').attr('aria-pressed', mode !== 'fit' && Math.abs(view.scale - 1) < 0.001 ? 'true' : 'false');
-		$('[data-abmm-zoom="in"]').prop('disabled', view.scale >= window.ABMMPreviewCanvas.MAX_SCALE - 0.001);
-		$('[data-abmm-zoom="out"]').prop('disabled', view.scale <= window.ABMMPreviewCanvas.MIN_SCALE + 0.001);
-	}
-
-	function setZoomMenuOpen(open, focusFirst) {
-		var $toggle = $('.abmm-preview-zoom__value');
-		var $list = $('#abmm-zoom-presets');
-		if (!$list.length) return;
-		$toggle.attr('aria-expanded', open ? 'true' : 'false');
-		$list.prop('hidden', !open);
-		if (open && focusFirst) $list.find('[role="menuitem"]').first().trigger('focus');
 	}
 
 	function initPreviewZoom() {
@@ -4327,64 +4314,13 @@
 				fitHeight: function () { return state.previewViewport !== 'desktop'; },
 				device: function () { return state.previewViewport; },
 				userId: (window.abmmAdmin && window.abmmAdmin.userId) || 0,
-				onChange: syncZoomReadout,
+				onChange: syncZoomState,
 			});
 			previewCanvas.restore();
 		}
-		$('.abmm-preview-zoom').on('click', '[data-abmm-zoom]', function () {
-			if (!previewCanvas) return;
-			var action = $(this).attr('data-abmm-zoom');
-			if (action === 'fit') previewCanvas.fit(true);
-			else if (action === 'actual') previewCanvas.zoomTo(1, null, true);
-			else previewCanvas.step(action === 'in' ? 1 : -1);
+		$('[data-abmm-zoom="fit"]').on('click', function () {
+			if (previewCanvas) previewCanvas.fit(true);
 		});
-		$('.abmm-preview-zoom').on('click', '.abmm-preview-zoom__value', function (event) {
-			// Opened from the keyboard (Enter or Space), focus the first preset, as
-			// in a standard menu button; a mouse click leaves focus on the button.
-			setZoomMenuOpen($(this).attr('aria-expanded') !== 'true', event.detail === 0);
-		});
-		$('.abmm-preview-zoom').on('keydown', '.abmm-preview-zoom__value', function (event) {
-			if (event.key === 'Escape' && $(this).attr('aria-expanded') === 'true') {
-				event.preventDefault();
-				setZoomMenuOpen(false);
-				return;
-			}
-			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-			event.preventDefault();
-			setZoomMenuOpen(true, false);
-			var $items = $('#abmm-zoom-presets [role="menuitem"]');
-			(event.key === 'ArrowUp' ? $items.last() : $items.first()).trigger('focus');
-		});
-		$('#abmm-zoom-presets').on('click', '[data-abmm-zoom-preset]', function () {
-			var preset = String($(this).attr('data-abmm-zoom-preset'));
-			if (previewCanvas) {
-				if (preset === 'fit') previewCanvas.fit(true);
-				else previewCanvas.zoomTo(parseFloat(preset), null, true);
-			}
-			setZoomMenuOpen(false);
-			$('.abmm-preview-zoom__value').trigger('focus');
-		});
-		$('#abmm-zoom-presets').on('keydown', '[role="menuitem"]', function (event) {
-			var $items = $('#abmm-zoom-presets [role="menuitem"]');
-			var index = $items.index(this);
-			if (event.key === 'Escape') {
-				event.preventDefault();
-				setZoomMenuOpen(false);
-				$('.abmm-preview-zoom__value').trigger('focus');
-			} else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-				event.preventDefault();
-				$items.eq((index + (event.key === 'ArrowDown' ? 1 : -1) + $items.length) % $items.length).trigger('focus');
-			} else if (event.key === 'Home' || event.key === 'End') {
-				event.preventDefault();
-				$items.eq(event.key === 'Home' ? 0 : $items.length - 1).trigger('focus');
-			} else if (event.key === 'Tab') {
-				setZoomMenuOpen(false);
-			}
-		});
-		$(document).on('mousedown', function (event) {
-			if (!$(event.target).closest('.abmm-zoom-menu').length) setZoomMenuOpen(false);
-		});
-		if (/Mac|iPhone|iPad/.test(window.navigator.platform || '')) $('#abmm-zoom-presets kbd').text('\u23180');
 		$(window).on('resize', function () { if (previewCanvas) previewCanvas.refresh(); });
 		var stage = $('.abmm-preview-stage')[0];
 		if (stage && typeof window.ResizeObserver === 'function') {
@@ -4400,9 +4336,10 @@
 	}
 
 	/* ---------------------------------------------------------------------
-	 * Phone and tablet previews: the live markup, stylesheet and script in a
-	 * frame at the device width, so the two-tap accordion, the sticky drawer
-	 * CTA and every media query behave exactly as on the site.
+	 * Phone and tablet previews, and every preview of a Classic menu: the live
+	 * markup, stylesheet and script in a frame at the device width, so the
+	 * two-tap accordion, the sticky drawer CTA and every media query behave
+	 * exactly as on the site.
 	 * ------------------------------------------------------------------- */
 	var deviceFrame = { seq: 0, timer: null, state: null, viewport: '' };
 
@@ -4457,9 +4394,11 @@
 		var drawer = header.querySelector('.' + p + '-nav__drawer');
 		// Classic sections have no collapse toggles to replay.
 		var sections = open && p === 'abmm' ? Array.prototype.slice.call(open.querySelectorAll('.abmm-mega__section')) : [];
+		var activeSection = open && p === 'emm' ? open.querySelector('.emm-mega__section.is-open') : null;
 		return {
 			open: header.classList.contains('is-mobile-open'),
 			item: open ? items.indexOf(open) : -1,
+			cat: activeSection ? String(activeSection.getAttribute('data-emm-section') || '') : '',
 			expanded: sections.map(function (section) { return !section.classList.contains('is-collapsed'); }),
 			scroll: drawer ? drawer.scrollTop : 0,
 		};
@@ -4469,15 +4408,24 @@
 		var header = frameHeader(frame);
 		var win = frame.contentWindow;
 		if (!header || !win || !saved) return;
+		var desktop = state.previewViewport === 'desktop';
+		// On desktop, a dropdown open in the editor is the one to show.
+		var menuItems = getMenu().items || [];
+		var edited = desktop ? menuItems[state.editingItemIndex] : null;
+		var editedCat = edited ? (edited.categories || [])[state.editingCatIndex] : null;
+		var catId = editedCat ? String(editedCat.id) : saved.cat;
 		win.__abmmQuiet = true;
 		try {
 			var p = framePrefix(header);
 			var toggle = header.querySelector('.' + p + '-nav__toggle');
 			if (saved.open && toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
-			var item = saved.item >= 0 ? header.querySelectorAll('.' + p + '-nav__list > .' + p + '-nav__item')[saved.item] : null;
+			var item = edited ? header.querySelector('.' + p + '-nav__list > [data-' + p + '-item-id="' + cssEscape(String(edited.id)) + '"]') : null;
+			if (!item && saved.item >= 0) item = header.querySelectorAll('.' + p + '-nav__list > .' + p + '-nav__item')[saved.item];
 			var trigger = item && item.querySelector('[data-' + p + '-mega-trigger]');
-			if (saved.open && trigger) {
+			if ((saved.open || desktop) && trigger) {
 				trigger.click();
+				var cat = desktop && catId ? item.querySelector('[data-' + p + '-cat="' + cssEscape(catId) + '"]') : null;
+				if (cat) cat.click();
 				Array.prototype.forEach.call(item.querySelectorAll('.abmm-mega__section'), function (section, index) {
 					var want = saved.expanded[index];
 					var button = section.querySelector('[data-abmm-section-toggle]');
@@ -4492,6 +4440,29 @@
 				win.requestAnimationFrame(function () { win.__abmmQuiet = false; });
 			});
 		}
+	}
+
+	/** The desktop frame holds whatever panel is open, so nothing is clipped. */
+	function sizeDesktopFrame(frame) {
+		var doc = frame.contentDocument;
+		if (!doc || state.previewViewport !== 'desktop') return;
+		var needed = PREVIEW_SCREEN_HEIGHTS.desktop;
+		Array.prototype.forEach.call(doc.querySelectorAll('.emm-mega'), function (panel) {
+			if (panel.getClientRects().length) needed = Math.max(needed, Math.ceil(panel.getBoundingClientRect().bottom) + 24);
+		});
+		frame.style.height = Math.min(needed, PREVIEW_DESKTOP_MAX_HEIGHT) + 'px';
+	}
+
+	function watchDesktopFrame(frame) {
+		var doc = frame.contentDocument;
+		var win = frame.contentWindow;
+		if (!doc || !doc.body || !win || !win.MutationObserver || state.previewViewport !== 'desktop') return;
+		sizeDesktopFrame(frame);
+		var pending = 0;
+		new win.MutationObserver(function () {
+			win.cancelAnimationFrame(pending);
+			pending = win.requestAnimationFrame(function () { sizeDesktopFrame(frame); });
+		}).observe(doc.body, { subtree: true, attributes: true, attributeFilter: ['class', 'hidden'] });
 	}
 
 	function bindDeviceFrame(frame) {
@@ -4523,6 +4494,7 @@
 		frame.onload = function () {
 			bindDeviceFrame(frame);
 			restoreFrameState(frame, deviceFrame.state);
+			watchDesktopFrame(frame);
 			markCanvasSelection();
 			$preview.removeClass('is-loading');
 		};
@@ -4553,16 +4525,17 @@
 
 	/** Returns true when the device frame handles this render. */
 	function renderDeviceFrame() {
-		if (state.previewViewport === 'desktop' || deviceFrame.failed || !devicePreviewAvailable()) return false;
-		var $preview = $('#abmm-preview');
 		var device = state.previewViewport;
+		var classic = String((getMenu().settings || {}).render_mode || '') === 'emm-classic';
+		if ((device === 'desktop' && !classic) || deviceFrame.failed || !devicePreviewAvailable()) return false;
+		var $preview = $('#abmm-preview');
 		var $frame = $preview.find('iframe.abmm-preview-device');
 		if (!$frame.length || deviceFrame.viewport !== device) {
 			deviceFrame.viewport = device;
-			deviceFrame.state = { open: state.previewMobileOpen, item: -1, expanded: [], scroll: 0 };
+			deviceFrame.state = { open: device !== 'desktop' && state.previewMobileOpen, item: -1, cat: '', expanded: [], scroll: 0 };
 			$preview.empty().addClass('has-device-frame is-loading').attr('data-abmm-preview-state', device + '-frame').append(
 				$('<iframe class="abmm-preview-device"></iframe>')
-					.attr('title', device === 'mobile' ? __('Phone preview', 'ashbi-mega-menu') : __('Tablet preview', 'ashbi-mega-menu'))
+					.attr('title', device === 'mobile' ? __('Phone preview', 'ashbi-mega-menu') : device === 'tablet' ? __('Tablet preview', 'ashbi-mega-menu') : __('Desktop preview', 'ashbi-mega-menu'))
 					.css({ width: PREVIEW_WIDTHS[device] + 'px', height: PREVIEW_SCREEN_HEIGHTS[device] + 'px' })
 			);
 			applyPreviewZoom();

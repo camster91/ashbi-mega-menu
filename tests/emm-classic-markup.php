@@ -147,6 +147,19 @@ foreach ( $abmm_cases['pages'] as $page ) {
 	}
 }
 
+// The editor's preview is the same markup plus link IDs, and the live renderer never gets them.
+$preview_id   = $abmm_cases['pages'][0]['headers'][0]['id'];
+$sequence->setValue( ABMM_Classic::instance(), 0 );
+$preview_html = ABMM_Classic::instance()->render_preview( $menus[ $preview_id ], $preview_id );
+$sequence->setValue( ABMM_Classic::instance(), 0 );
+$live_html    = ABMM_Classic::instance()->render_menu( $menus[ $preview_id ], $preview_id, array( 'presentation' => 'stacked' ) );
+verify_classic( false !== strpos( $preview_html, '<li class="emm-mega__col-item" data-abmm-link-id="' ), 'Preview links carry their ID for click-to-select.' );
+verify_classic( false === strpos( $live_html, 'data-abmm-link-id' ), 'The preview flag does not leak into the next live render.' );
+verify_classic( preg_replace( '/ data-abmm-link-id="[^"]*"/', '', $preview_html ) === $live_html, 'A preview differs from the live markup only by its link IDs.' );
+$preview_flag = new ReflectionProperty( 'ABMM_Classic', 'preview_mode' );
+$preview_flag->setAccessible( true );
+verify_classic( false === $preview_flag->getValue( ABMM_Classic::instance() ), 'The preview flag is off after a preview.' );
+
 // Only classic menus: the classic stylesheet is queued early and Ashbi's is not.
 $GLOBALS['abmm_test_styles'] = array();
 ABMM_Frontend::instance()->register_assets();
