@@ -896,6 +896,10 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 					<?php echo esc_html( $display_label ); ?>
 					<svg class="abmm-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
 				</button>
+				<?php if ( '' !== ( $item['url'] ?? '' ) && '#' !== ( $item['url'] ?? '' ) ) : ?>
+					<?php // The button does nothing without scripts; an item with its own page stays a real link. ?>
+					<noscript><a <?php echo $this->link_attrs( $item, 'abmm-nav__link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $display_label ); ?></a></noscript>
+				<?php endif; ?>
 				<?php echo $this->render_mega_panel( $item, $settings, $uid ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php else : ?>
 				<a <?php echo $this->link_attrs( $item, 'abmm-nav__link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $item['url'] ?: '#' ); ?>">
@@ -1013,7 +1017,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 								<div
 									class="abmm-mega__panel<?php echo $active ? ' is-active' : ''; ?>"
 									id="<?php echo esc_attr( $cat_uid ); ?>-panel"
-									role="region"
+									role="group"
 									aria-labelledby="<?php echo esc_attr( $cat_uid ); ?>-trigger"
 									data-abmm-panel="<?php echo esc_attr( $cat_id ); ?>"
 									<?php echo $active ? '' : 'hidden'; ?>
@@ -1186,7 +1190,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 			<?php if ( $has_url ) : ?>
 				<a <?php echo $this->link_attrs( $link, 'abmm-mega__col-link' . ( $has_icon ? ' has-icon' : '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $link['url'] ); ?>">
 			<?php else : ?>
-				<span class="abmm-mega__col-link is-disabled<?php echo $has_icon ? ' has-icon' : ''; ?>" aria-disabled="true">
+				<span class="abmm-mega__col-link is-disabled<?php echo $has_icon ? ' has-icon' : ''; ?>" role="link" aria-disabled="true">
 			<?php endif; ?>
 				<?php if ( $has_icon ) : ?>
 					<span class="abmm-mega__col-icon">
@@ -1266,7 +1270,7 @@ __( '%s navigation', 'ashbi-mega-menu' ), $profile['label'] );
 			<?php if ( $has_url ) : ?>
 				<a <?php echo $this->link_attrs( $link, 'abmm-mega__grid-link' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> href="<?php echo esc_url( $link['url'] ); ?>">
 			<?php else : ?>
-				<span class="abmm-mega__grid-link is-disabled" aria-disabled="true">
+				<span class="abmm-mega__grid-link is-disabled" role="link" aria-disabled="true">
 			<?php endif; ?>
 				<span class="abmm-mega__grid-icon">
 					<?php echo $icons->render( $link['icon'] ?? '', $link['icon_url'] ?? '', 'abmm-icon abmm-icon--sm', $link ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

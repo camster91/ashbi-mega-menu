@@ -969,7 +969,9 @@ a.abmm-product-nav__identity:focus {
 	display: block;
 	font-size: 13px;
 	font-weight: 400;
+	/* The category rail is tinted: lean toward the text colour to keep 4.5:1. */
 	color: var(--abmm-muted);
+	color: color-mix(in srgb, var(--abmm-muted) 60%, var(--abmm-text));
 	line-height: 1.35;
 }
 
@@ -1089,13 +1091,13 @@ a.abmm-product-nav__identity:focus {
 }
 
 .abmm-mega__col-link:hover,
-.abmm-mega__col-link:focus {
+.abmm-mega__col-link:focus-visible {
 	color: var(--abmm-accent) !important;
 	text-decoration: none !important;
 }
 
 .abmm-mega__col-link:hover:not(.has-icon)::before,
-.abmm-mega__col-link:focus:not(.has-icon)::before {
+.abmm-mega__col-link:focus-visible:not(.has-icon)::before {
 	background: var(--abmm-accent);
 }
 
@@ -3412,7 +3414,9 @@ html.abmm-drawer-open {
 }
 
 .abmm-header .abmm-mega__featured-text {
+	/* Small text on the card's tint: lean toward the text colour to keep 4.5:1. */
 	color: var(--abmm-muted);
+	color: color-mix(in srgb, var(--abmm-muted) 60%, var(--abmm-text));
 	font-size: 13px;
 	font-weight: 400;
 	line-height: 1.5;
@@ -3426,6 +3430,7 @@ html.abmm-drawer-open {
 	margin-top: auto;
 	padding-top: 8px;
 	color: var(--abmm-accent);
+	color: color-mix(in srgb, var(--abmm-accent) 70%, var(--abmm-text));
 	font-size: 13px;
 	font-weight: 600;
 	line-height: 20px;
@@ -3572,7 +3577,9 @@ html.abmm-drawer-open {
 
 	.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:hover .abmm-mega__col-label,
 	.abmm-header:not(.abmm-force-mobile) a.abmm-mega__col-link:focus-visible .abmm-mega__col-label {
+		/* On the hover wash the accent can fall below 4.5:1. */
 		color: var(--abmm-accent);
+		color: color-mix(in srgb, var(--abmm-accent) 78%, var(--abmm-text));
 	}
 
 	/* Icon tiles: a 36px neutral tile with a hairline and an accent glyph. */
@@ -3695,9 +3702,19 @@ html.abmm-drawer-open {
 
 	/* Short screens (400% zoom, landscape phones): a pinned footer would leave
 	   room for a single row of links, so let it scroll with the menu. */
+	/* Focus and "scroll into view" stop short of the sticky Back row and CTA footer. */
+	.abmm-header .abmm-nav__drawer {
+		scroll-padding-top: 60px;
+		scroll-padding-bottom: 96px;
+	}
+
 	@media (max-height: 480px) {
 		.abmm-header .abmm-nav__drawer-foot {
 			position: static;
+		}
+
+		.abmm-header .abmm-nav__drawer {
+			scroll-padding-bottom: 16px;
 		}
 	}
 
@@ -3874,3 +3891,187 @@ html.abmm-drawer-open {
 /* Right-to-left: the "see all" arrow points the reading direction. */
 [dir="rtl"] .abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a::after {content:"\2190"}
 [dir="rtl"] .abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a:hover::after {transform:translateX(-3px)}
+
+/* Announces the drilled-in screen; never visible. */
+.abmm-header .abmm-live-region {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* The "see all" link is a full tap target on the drilled-in screen. */
+.abmm-header .abmm-nav__item--mega[data-drill="links"] .abmm-mega__panel-title a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+}
+
+/* The bar has no room for logo, CTA and toggle here; the drawer carries the CTA. */
+@media (max-width: 360px) {
+	.abmm-header .abmm-nav__cta--bar {
+		display: none;
+	}
+}
+
+@media (max-width: 900px) {
+	.abmm-header .abmm-nav__toggle {
+		flex-shrink: 0;
+	}
+}
+
+@media (min-width: 901px) {
+	/* "See all" follows the links it summarises. With a featured card it stays
+	   on the bottom edge, because the strip runs under the card. */
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega:not(.abmm-mega--has-featured) .abmm-mega__columns {
+		flex-grow: 0;
+	}
+}
+
+/* Touch screens wide enough for the desktop panel keep comfortable targets. */
+@media (min-width: 901px) and (pointer: coarse) {
+	.abmm-header:not(.abmm-force-mobile) :is(.abmm-mega__col-link, .abmm-mega__grid-link) {
+		min-height: 44px;
+		align-items: center;
+	}
+
+	.abmm-header:not(.abmm-force-mobile) .abmm-mega__panel-title a {
+		min-height: 44px;
+	}
+}
+
+/* High contrast: backgrounds are dropped, which would erase the hamburger's
+   bars and the active category's marker. */
+@media (forced-colors: active) {
+	.abmm-header .abmm-nav__toggle {
+		border: 1px solid ButtonText;
+	}
+
+	.abmm-header .abmm-nav__toggle-bar,
+	.abmm-header .abmm-nav__toggle-bar::before,
+	.abmm-header .abmm-nav__toggle-bar::after {
+		forced-color-adjust: none;
+		background: ButtonText;
+	}
+
+	.abmm-header.is-mobile-open .abmm-nav__toggle-bar {
+		background: transparent;
+	}
+
+	.abmm-header .abmm-mega__cat.is-active {
+		outline: 2px solid Highlight;
+		outline-offset: -2px;
+	}
+}
+
+/* Without scripts the menu cannot open, so show everything as plain lists. */
+@media (scripting: none) {
+	.abmm-header .abmm-nav__toggle,
+	.abmm-header .abmm-nav__drawer-head,
+	.abmm-header .abmm-nav__cta--bar,
+	.abmm-header .abmm-chevron,
+	.abmm-header .abmm-mega__cat,
+	.abmm-header .abmm-mega__section-chevron {
+		display: none !important;
+	}
+
+	.abmm-header .abmm-nav__link--toggle:has(+ noscript) {
+		display: none !important;
+	}
+
+	.abmm-header .abmm-nav__drawer,
+	.abmm-header .abmm-nav__inner,
+	.abmm-header .abmm-mega,
+	.abmm-header .abmm-mega[hidden],
+	.abmm-header .abmm-mega__inner,
+	.abmm-header .abmm-mega__accordion,
+	.abmm-header .abmm-mega__panel,
+	.abmm-header .abmm-mega__panel[hidden] {
+		position: static !important;
+		display: block !important;
+		width: auto !important;
+		max-width: none !important;
+		height: auto !important;
+		min-height: 0 !important;
+		max-height: none !important;
+		margin: 0 !important;
+		overflow: visible !important;
+		visibility: visible !important;
+		opacity: 1 !important;
+		transform: none !important;
+		box-shadow: none !important;
+		animation: none !important;
+	}
+
+	.abmm-header .abmm-nav__list {
+		display: block !important;
+		padding: 0 20px !important;
+	}
+
+	.abmm-header .abmm-nav__link {
+		min-height: 44px;
+		justify-content: flex-start;
+		font-weight: 700;
+		pointer-events: none;
+	}
+
+	.abmm-header a.abmm-nav__link {
+		pointer-events: auto;
+	}
+
+	.abmm-header .abmm-mega__section-title {
+		display: block !important;
+		margin: 12px 0 4px;
+		font-weight: 650;
+	}
+
+	.abmm-header .abmm-mega__section-toggle {
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		pointer-events: none;
+	}
+
+	.abmm-header .abmm-mega__columns {
+		display: block !important;
+		padding: 0 !important;
+		overflow: visible !important;
+	}
+
+	.abmm-header .abmm-mega__col-link,
+	.abmm-header .abmm-mega__grid-link {
+		display: flex;
+		min-height: 44px;
+		align-items: center;
+	}
+
+	.abmm-header .abmm-mega__grid {
+		display: block !important;
+	}
+
+	.abmm-header .abmm-mega__accordion::before,
+	.abmm-header .abmm-mega__panel-title::before {
+		display: none !important;
+	}
+
+	.abmm-header .abmm-mega__accordion > .abmm-mega__featured {
+		position: static !important;
+		width: auto !important;
+		margin: 12px 0 !important;
+	}
+
+	.abmm-header .abmm-mega__panel-title {
+		position: static !important;
+		display: block !important;
+		min-height: 0 !important;
+		padding: 8px 0 !important;
+	}
+
+	.abmm-header .abmm-nav__drawer-foot {
+		position: static !important;
+	}
+}
