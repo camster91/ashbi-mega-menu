@@ -52,12 +52,13 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				<label class="screen-reader-text" for="abmm-menu-title"><?php esc_html_e( 'Menu name', 'ashbi-mega-menu' ); ?></label>
 				<input type="text" id="abmm-menu-title" class="abmm-menu-title-input" value="<?php echo esc_attr( $menu['title'] ); ?>" placeholder="<?php esc_attr_e( 'Menu name', 'ashbi-mega-menu' ); ?>" title="<?php esc_attr_e( 'Rename this menu', 'ashbi-mega-menu' ); ?>" />
 			</h1>
-			<p class="abmm-builder-header__subtitle"><?php esc_html_e( 'Mega menu', 'ashbi-mega-menu' ); ?> <span aria-hidden="true">&middot;</span> <code>[ashbi_mega_menu id="<?php echo esc_html( $edit_id ); ?>"]</code> <span aria-hidden="true">&middot;</span> <?php esc_html_e( 'Saved changes go live wherever this menu is placed.', 'ashbi-mega-menu' ); ?></p>
+			<p class="abmm-builder-header__subtitle"><?php esc_html_e( 'Saved changes go live wherever this menu is placed.', 'ashbi-mega-menu' ); ?></p>
 			</div>
 			<nav class="abmm-setup-flow abmm-workflow-nav" aria-label="<?php esc_attr_e( 'Menu setup steps', 'ashbi-mega-menu' ); ?>">
-			<button type="button" data-abmm-workflow="content"><span aria-hidden="true">1</span><?php esc_html_e( 'Edit', 'ashbi-mega-menu' ); ?></button>
-			<button type="button" data-abmm-workflow="help"><span aria-hidden="true">2</span><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></button>
-			<button type="button" data-abmm-workflow="verify"><span aria-hidden="true">3</span><?php esc_html_e( 'Check', 'ashbi-mega-menu' ); ?></button>
+			<button type="button" data-abmm-workflow="content"><span aria-hidden="true">1</span><?php esc_html_e( 'Content', 'ashbi-mega-menu' ); ?></button>
+			<button type="button" data-abmm-workflow="design" data-abmm-builder-section="design"><span aria-hidden="true">2</span><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></button>
+			<button type="button" data-abmm-workflow="help"><span aria-hidden="true">3</span><?php esc_html_e( 'Place', 'ashbi-mega-menu' ); ?></button>
+			<button type="button" data-abmm-workflow="verify"><span aria-hidden="true">4</span><?php esc_html_e( 'Check', 'ashbi-mega-menu' ); ?></button>
 		</nav>
 		<div class="abmm-builder-topbar__actions">
 			<span class="abmm-save-status is-visible" role="status" aria-live="polite"></span>
@@ -113,59 +114,12 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 
 		<aside class="abmm-builder__sidebar" id="abmm-builder-sidebar" aria-label="<?php esc_attr_e( 'Menu settings', 'ashbi-mega-menu' ); ?>">
 			<div class="abmm-builder-sidebar__mobile-head">
-				<strong><?php esc_html_e( 'Edit menu', 'ashbi-mega-menu' ); ?></strong>
+				<strong><?php esc_html_e( 'Content', 'ashbi-mega-menu' ); ?></strong>
 				<button type="button" class="abmm-icon-button abmm-builder-panel-close" title="<?php esc_attr_e( 'Close', 'ashbi-mega-menu' ); ?>">
 					<span class="dashicons dashicons-no-alt" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Close', 'ashbi-mega-menu' ); ?></span>
 				</button>
 			</div>
-			<nav class="abmm-builder-sections" role="tablist" aria-label="<?php esc_attr_e( 'Editor sections', 'ashbi-mega-menu' ); ?>">
-				<button type="button" class="is-active" role="tab" id="abmm-section-tab-content" data-abmm-builder-section="content" aria-controls="abmm-section-panel-content" aria-selected="true" tabindex="0"><?php esc_html_e( 'Content', 'ashbi-mega-menu' ); ?></button>
-				<button type="button" role="tab" id="abmm-section-tab-design" data-abmm-builder-section="design" aria-controls="abmm-section-panel-design" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></button>
-				<button type="button" role="tab" id="abmm-section-tab-settings" data-abmm-builder-section="settings" aria-controls="abmm-section-panel-settings" aria-selected="false" tabindex="-1"><?php esc_html_e( 'Settings', 'ashbi-mega-menu' ); ?></button>
-			</nav>
-			<div class="abmm-builder-section-group" id="abmm-section-panel-settings" data-abmm-builder-section-panel="settings" role="tabpanel" aria-labelledby="abmm-section-tab-settings" hidden>
-			<section class="abmm-builder-panel">
-				<h2><?php esc_html_e( 'Mobile navigation', 'ashbi-mega-menu' ); ?></h2>
-				<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
-				<p class="description"><?php esc_html_e( 'Adds search, full-width rows and a Back label to the phone menu.', 'ashbi-mega-menu' ); ?></p>
-			</section>
-			<section class="abmm-builder-panel abmm-brand-panel">
-				<h2><?php esc_html_e( 'Logo', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Show your logo or site name at the start of the menu bar.', 'ashbi-mega-menu' ); ?></p>
-				<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Show logo', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-brand-show" <?php checked( ! empty( $menu['brand']['show'] ) ); ?> /></label>
-				<div class="abmm-optional-fields abmm-brand-fields">
-					<label class="abmm-field"><span><?php esc_html_e( 'Site title', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-title" value="<?php echo esc_attr( $menu['brand']['title'] ); ?>" /></label>
-					<label class="abmm-field"><span><?php esc_html_e( 'Brand URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-url" value="<?php echo esc_attr( $menu['brand']['url'] ); ?>" /></label>
-					<?php
-					$abmm_logo_fields = array(
-						'abmm-brand-logo-url'      => array( __( 'Logo image URL', 'ashbi-mega-menu' ), $menu['brand']['logo_url'], 'https://…' ),
-						'abmm-brand-logo-dark-url' => array( __( 'Dark-preset logo URL', 'ashbi-mega-menu' ), $menu['brand']['logo_dark_url'], __( 'Optional alternate logo', 'ashbi-mega-menu' ) ),
-					);
-					foreach ( $abmm_logo_fields as $abmm_field_id => $abmm_field ) :
-						?>
-					<div class="abmm-field">
-						<label for="<?php echo esc_attr( $abmm_field_id ); ?>"><?php echo esc_html( $abmm_field[0] ); ?></label>
-						<div class="abmm-wp-link">
-							<input type="url" id="<?php echo esc_attr( $abmm_field_id ); ?>" class="abmm-url-field" value="<?php echo esc_attr( $abmm_field[1] ); ?>" placeholder="<?php echo esc_attr( $abmm_field[2] ); ?>" />
-							<button type="button" class="button abmm-choose-logo" data-abmm-target="#<?php echo esc_attr( $abmm_field_id ); ?>" title="<?php esc_attr_e( 'Choose from the Media Library', 'ashbi-mega-menu' ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: field name, e.g. Logo image URL. */ __( 'Choose an image for %s', 'ashbi-mega-menu' ), $abmm_field[0] ) ); ?>">
-								<span class="dashicons dashicons-format-image" aria-hidden="true"></span>
-							</button>
-						</div>
-					</div>
-					<?php endforeach; ?>
-					<label class="abmm-field"><span><?php esc_html_e( 'Logo alternative text', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-alt" aria-describedby="abmm-logo-alt-warning" value="<?php echo esc_attr( $menu['brand']['alt'] ); ?>" /></label>
-					<p class="description is-warning" id="abmm-logo-alt-warning" hidden><?php esc_html_e( 'Add alternative text or a site title. Without either, screen readers announce the logo link with no name.', 'ashbi-mega-menu' ); ?></p>
-					<label class="abmm-field"><span><?php esc_html_e( 'Logo height (px)', 'ashbi-mega-menu' ); ?></span><input type="number" id="abmm-brand-logo-height" min="16" max="80" value="<?php echo esc_attr( $menu['brand']['logo_height'] ); ?>" /></label>
-				</div>
-			</section>
-			<?php if ( abmm_contextual_navigation_enabled() ) : ?><section class="abmm-builder-panel abmm-product-navigation-panel">
-				<h2><?php esc_html_e( 'Product Navigation', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Show extra links on specific sections of your site, such as a product or department.', 'ashbi-mega-menu' ); ?></p>
-				<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Manage product navigation', 'ashbi-mega-menu' ); ?></a></p>
-			</section><?php endif; ?>
-			</div>
-
-			<div class="abmm-builder-section-group" id="abmm-section-panel-content" data-abmm-builder-section-panel="content" role="tabpanel" aria-labelledby="abmm-section-tab-content">
+			<div class="abmm-builder-section-group" id="abmm-section-panel-content" data-abmm-builder-section-panel="content" role="region" aria-label="<?php esc_attr_e( 'Content', 'ashbi-mega-menu' ); ?>">
 			<?php if ( ! empty( $menu['starter_source'] ) ) : ?>
 				<section class="abmm-builder-panel abmm-sample-warning">
 					<h2><?php esc_html_e( 'This is a sample', 'ashbi-mega-menu' ); ?></h2>
@@ -218,14 +172,45 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				</div>
 			</section>
 
-			<section class="abmm-builder-panel abmm-readiness-panel" id="abmm-readiness-panel" aria-labelledby="abmm-readiness-title">
-				<h2 id="abmm-readiness-title"><?php esc_html_e( 'Checklist', 'ashbi-mega-menu' ); ?></h2>
-				<p class="abmm-readiness-summary" role="status" aria-live="polite"></p>
-				<ul class="abmm-readiness-issues"></ul>
+			<section class="abmm-builder-panel abmm-brand-panel">
+				<h2><?php esc_html_e( 'Logo', 'ashbi-mega-menu' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Show your logo or site name at the start of the menu bar.', 'ashbi-mega-menu' ); ?></p>
+				<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Show logo', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-brand-show" <?php checked( ! empty( $menu['brand']['show'] ) ); ?> /></label>
+				<div class="abmm-optional-fields abmm-brand-fields">
+					<label class="abmm-field"><span><?php esc_html_e( 'Site title', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-title" value="<?php echo esc_attr( $menu['brand']['title'] ); ?>" /></label>
+					<?php
+					$abmm_logo_field = static function ( $abmm_id, $abmm_label, $abmm_value, $abmm_placeholder ) {
+						?>
+					<div class="abmm-field">
+						<label for="<?php echo esc_attr( $abmm_id ); ?>"><?php echo esc_html( $abmm_label ); ?></label>
+						<div class="abmm-wp-link">
+							<input type="url" id="<?php echo esc_attr( $abmm_id ); ?>" class="abmm-url-field" value="<?php echo esc_attr( $abmm_value ); ?>" placeholder="<?php echo esc_attr( $abmm_placeholder ); ?>" />
+							<button type="button" class="button abmm-choose-logo" data-abmm-target="#<?php echo esc_attr( $abmm_id ); ?>" title="<?php esc_attr_e( 'Choose from the Media Library', 'ashbi-mega-menu' ); ?>" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: field name, e.g. Logo image URL. */ __( 'Choose an image for %s', 'ashbi-mega-menu' ), $abmm_label ) ); ?>">
+								<span class="dashicons dashicons-format-image" aria-hidden="true"></span>
+							</button>
+						</div>
+					</div>
+						<?php
+					};
+					$abmm_logo_field( 'abmm-brand-logo-url', __( 'Logo image URL', 'ashbi-mega-menu' ), $menu['brand']['logo_url'], 'https://…' );
+					?>
+					<label class="abmm-field"><span><?php esc_html_e( 'Logo alternative text', 'ashbi-mega-menu' ); ?></span><input type="text" id="abmm-brand-alt" aria-describedby="abmm-logo-alt-warning" value="<?php echo esc_attr( $menu['brand']['alt'] ); ?>" /></label>
+					<p class="description is-warning" id="abmm-logo-alt-warning" hidden><?php esc_html_e( 'Add alternative text or a site title. Without either, screen readers announce the logo link with no name.', 'ashbi-mega-menu' ); ?></p>
+					<?php
+					// Opens by itself when it holds a value, so nothing active stays out of sight.
+					$abmm_brand_more_open = '' !== trim( (string) $menu['brand']['logo_dark_url'] ) || 40 !== (int) $menu['brand']['logo_height'] || untrailingslashit( (string) $menu['brand']['url'] ) !== untrailingslashit( home_url( '/' ) );
+					?>
+					<details class="abmm-design-more abmm-disclosure abmm-brand-more"<?php echo $abmm_brand_more_open ? ' open' : ''; ?>>
+						<summary><?php esc_html_e( 'More logo options', 'ashbi-mega-menu' ); ?></summary>
+						<label class="abmm-field"><span><?php esc_html_e( 'Brand URL', 'ashbi-mega-menu' ); ?></span><input type="url" id="abmm-brand-url" value="<?php echo esc_attr( $menu['brand']['url'] ); ?>" /></label>
+						<?php $abmm_logo_field( 'abmm-brand-logo-dark-url', __( 'Dark-preset logo URL', 'ashbi-mega-menu' ), $menu['brand']['logo_dark_url'], __( 'Optional alternate logo', 'ashbi-mega-menu' ) ); ?>
+						<label class="abmm-field"><span><?php esc_html_e( 'Logo height (px)', 'ashbi-mega-menu' ); ?></span><input type="number" id="abmm-brand-logo-height" min="16" max="80" value="<?php echo esc_attr( $menu['brand']['logo_height'] ); ?>" /></label>
+					</details>
+				</div>
 			</section>
 			</div>
 
-			<div class="abmm-builder-section-group" id="abmm-section-panel-design" data-abmm-builder-section-panel="design" role="tabpanel" aria-labelledby="abmm-section-tab-design" hidden>
+			<div class="abmm-builder-section-group" id="abmm-section-panel-design" data-abmm-builder-section-panel="design" role="region" aria-label="<?php esc_attr_e( 'Design', 'ashbi-mega-menu' ); ?>" hidden>
 			<section class="abmm-builder-panel abmm-design-panel">
 				<h2><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></h2>
 				<p class="description"><?php esc_html_e( 'Pick a preset, then fine-tune it. The preview updates as you go.', 'ashbi-mega-menu' ); ?></p>
@@ -560,26 +545,77 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					<button type="button" class="button-link abmm-style-reset" data-abmm-style-reset="height"><?php esc_html_e( 'Reset height to default', 'ashbi-mega-menu' ); ?></button>
 				</details>
 			</section>
+
+			<section class="abmm-builder-panel">
+				<h2><?php esc_html_e( 'Mobile navigation', 'ashbi-mega-menu' ); ?></h2>
+				<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
+				<p class="description"><?php esc_html_e( 'Adds search, full-width rows and a Back label to the phone menu.', 'ashbi-mega-menu' ); ?></p>
+			</section>
+			<?php if ( abmm_contextual_navigation_enabled() ) : ?><section class="abmm-builder-panel abmm-product-navigation-panel">
+				<h2><?php esc_html_e( 'Product Navigation', 'ashbi-mega-menu' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'Show extra links on specific sections of your site, such as a product or department.', 'ashbi-mega-menu' ); ?></p>
+				<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) ); ?>"><?php esc_html_e( 'Manage product navigation', 'ashbi-mega-menu' ); ?></a></p>
+			</section><?php endif; ?>
 			</div>
 
 			<div class="abmm-builder-section-group abmm-builder-section-group--place" id="abmm-section-panel-help" data-abmm-builder-section-panel="help" role="region" aria-labelledby="abmm-placement-title" hidden>
-			<section class="abmm-builder-panel abmm-placement-panel" id="placement">
-				<h2 id="abmm-placement-title"><?php esc_html_e( 'Place this menu', 'ashbi-mega-menu' ); ?></h2>
-				<p class="abmm-placement-save-hint" role="status"></p>
+			<?php
+			$abmm_place_method = $placement_recommendation['method'] ?? 'shortcode';
+			$abmm_place_others = array(
+				'block'     => array( __( 'Block theme', 'ashbi-mega-menu' ), __( 'In Appearance → Editor, add the Ashbi Mega Menu block to your Header and pick this menu.', 'ashbi-mega-menu' ) ),
+				'widget'    => array( __( 'Classic theme', 'ashbi-mega-menu' ), ABMM_Admin::uses_block_widgets() ? __( 'In Appearance → Widgets, add the Ashbi Mega Menu block to a header area, or paste the shortcode.', 'ashbi-mega-menu' ) : __( 'Add the "Ashbi Mega Menu (classic widget)" widget to a header area, or paste the shortcode.', 'ashbi-mega-menu' ) ),
+				'shortcode' => array( __( 'Page builder', 'ashbi-mega-menu' ), __( 'Paste the shortcode into a shortcode element in a full-width section.', 'ashbi-mega-menu' ) ),
+			);
+			unset( $abmm_place_others[ $abmm_place_method ] );
+			$abmm_shortcode_field = static function () use ( $edit_id ) {
+				?>
 				<code class="abmm-shortcode-block">[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]</code>
 				<p><button type="button" class="button abmm-copy-placement" data-shortcode='[ashbi_mega_menu id="<?php echo esc_attr( $edit_id ); ?>"]'><?php esc_html_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?></button></p>
-				<ul class="abmm-place-options">
-					<li<?php echo 'block' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Block theme', 'ashbi-mega-menu' ); ?></strong><?php if ( 'block' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'In Appearance → Editor, add the Ashbi Mega Menu block to your Header and pick this menu.', 'ashbi-mega-menu' ); ?></li>
-					<li<?php echo 'widget' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Classic theme', 'ashbi-mega-menu' ); ?></strong><?php if ( 'widget' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php ABMM_Admin::uses_block_widgets() ? esc_html_e( 'In Appearance → Widgets, add the Ashbi Mega Menu block to a header area, or paste the shortcode.', 'ashbi-mega-menu' ) : esc_html_e( 'Add the "Ashbi Mega Menu (classic widget)" widget to a header area, or paste the shortcode.', 'ashbi-mega-menu' ); ?></li>
-					<li<?php echo 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ? ' class="is-recommended"' : ''; ?>><strong><?php esc_html_e( 'Page builder', 'ashbi-mega-menu' ); ?></strong><?php if ( 'shortcode' === ( $placement_recommendation['method'] ?? '' ) ) : ?> <span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span><?php endif; ?> <?php esc_html_e( 'Paste the shortcode into a shortcode element in a full-width section.', 'ashbi-mega-menu' ); ?></li>
-				</ul>
+				<?php
+			};
+			?>
+			<section class="abmm-builder-panel abmm-placement-panel" id="placement">
+				<h2 id="abmm-placement-title"><?php esc_html_e( 'Place this menu', 'ashbi-mega-menu' ); ?></h2>
+				<p class="abmm-placement-save-hint" role="status" hidden></p>
+				<div class="abmm-place-recommended">
+					<span class="abmm-badge abmm-badge--recommended"><?php esc_html_e( 'Recommended for your theme', 'ashbi-mega-menu' ); ?></span>
+					<strong><?php echo esc_html( $placement_recommendation['label'] ?? '' ); ?></strong>
+					<p><?php echo esc_html( $placement_recommendation['steps'] ?? '' ); ?></p>
+					<?php
+					if ( 'shortcode' === $abmm_place_method ) {
+						$abmm_shortcode_field();
+					}
+					?>
+				</div>
 				<p class="description abmm-place-width"><?php esc_html_e( 'Give the menu the full width of the page. In a narrow column or sidebar it shows the phone menu, even on a wide screen.', 'ashbi-mega-menu' ); ?></p>
 				<p class="description abmm-place-rollback"><?php esc_html_e( 'Keep your theme\'s menu while you test. When the new menu works, remove the old one from the header so there is only one. To roll back, remove the Ashbi block, widget or shortcode: this plugin never changes your theme\'s menu.', 'ashbi-mega-menu' ); ?></p>
-				<details class="abmm-design-more abmm-disclosure"><summary><?php esc_html_e( 'For developers: PHP', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Add this to your child theme header.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
+				<details class="abmm-design-more abmm-disclosure abmm-place-others">
+					<summary><?php esc_html_e( 'Other ways to place it', 'ashbi-mega-menu' ); ?></summary>
+					<ul class="abmm-place-options">
+						<?php foreach ( $abmm_place_others as $abmm_place_other ) : ?>
+							<li><strong><?php echo esc_html( $abmm_place_other[0] ); ?></strong> <?php echo esc_html( $abmm_place_other[1] ); ?></li>
+						<?php endforeach; ?>
+					</ul>
+					<?php
+					if ( 'shortcode' !== $abmm_place_method ) {
+						$abmm_shortcode_field();
+					}
+					?>
+					<details class="abmm-design-more abmm-disclosure"><summary><?php esc_html_e( 'For developers: PHP', 'ashbi-mega-menu' ); ?></summary><p><?php esc_html_e( 'Add this to your child theme header.', 'ashbi-mega-menu' ); ?></p><code class="abmm-shortcode-block">&lt;?php if ( function_exists( 'abmm_render_menu' ) ) { abmm_render_menu( '<?php echo esc_html( $edit_id ); ?>' ); } ?&gt;</code></details>
+				</details>
+			</section>
+			</div>
+
+			<div class="abmm-builder-section-group abmm-builder-section-group--check" id="abmm-section-panel-verify" data-abmm-builder-section-panel="verify" role="region" aria-label="<?php esc_attr_e( 'Check', 'ashbi-mega-menu' ); ?>" hidden>
+			<section class="abmm-builder-panel abmm-readiness-panel" id="abmm-readiness-panel" tabindex="-1" aria-labelledby="abmm-readiness-title">
+				<h2 id="abmm-readiness-title"><?php esc_html_e( 'Checklist', 'ashbi-mega-menu' ); ?></h2>
+				<p class="abmm-readiness-summary" role="status" aria-live="polite"></p>
+				<ul class="abmm-readiness-issues"></ul>
 			</section>
 
 			<section class="abmm-builder-panel abmm-verification-panel" id="abmm-verification-panel" tabindex="-1" aria-labelledby="abmm-verification-title">
 				<h2 id="abmm-verification-title"><?php esc_html_e( 'Check it on your site', 'ashbi-mega-menu' ); ?></h2>
+				<p class="description abmm-placement-state"><?php echo esc_html( $abmm_is_placed ? __( 'Found on your site. Every save updates it there right away.', 'ashbi-mega-menu' ) : __( 'Not found in your pages, widgets or page builder content. Placements in theme templates or PHP cannot be detected.', 'ashbi-mega-menu' ) ); ?></p>
 				<ul class="abmm-checklist"><li><?php esc_html_e( 'Every link goes to the right page', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Dropdowns open with a mouse and the keyboard', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'The phone menu opens, goes back and closes', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Your theme\'s old menu is removed, so there is only one', 'ashbi-mega-menu' ); ?></li></ul>
 				<a class="button" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View site', 'ashbi-mega-menu' ); ?></a>
 			</section>

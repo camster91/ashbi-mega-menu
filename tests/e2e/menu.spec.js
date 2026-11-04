@@ -104,9 +104,11 @@ test.describe('menu editor', () => {
 		const firstLabel = page.locator('#abmm-nav-items .abmm-nav-label').first();
 		await expect(firstLabel).toBeVisible();
 
-		await page.locator('[data-abmm-builder-section="design"]').click();
-		await expect(page.locator('[data-abmm-builder-section="design"]')).toHaveAttribute('aria-selected', 'true');
-		await page.locator('[data-abmm-builder-section="content"]').click();
+		await page.locator('[data-abmm-workflow="design"]').click();
+		await expect(page.locator('[data-abmm-workflow="design"]')).toHaveAttribute('aria-current', 'step');
+		await expect(page.locator('#abmm-section-panel-design')).toBeVisible();
+		await page.locator('[data-abmm-workflow="content"]').click();
+		await expect(page.locator('#abmm-section-panel-design')).toBeHidden();
 
 		const label = `Home ${browserName}`;
 		await firstLabel.fill(label);
