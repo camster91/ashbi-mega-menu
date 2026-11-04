@@ -54,7 +54,7 @@ To reverse placement, remove the Ashbi block and restore the original Navigation
 
 ### Classic themes with a header widget area
 
-Open **Appearance → Widgets** and add **Ashbi Mega Menu** to the theme's actual header widget area, then select the menu. A footer or sidebar widget area will place navigation there, not in the header. Not every theme supplies a header widget area. Test placement before disabling the theme's navigation through its own settings.
+Open **Appearance → Widgets** and add **Ashbi Mega Menu (classic widget)** to the theme's actual header widget area, then select the menu. A footer or sidebar widget area will place navigation there, not in the header. Not every theme supplies a header widget area. Test placement before disabling the theme's navigation through its own settings.
 
 To reverse placement, remove the widget and restore the theme's original navigation setting.
 

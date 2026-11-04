@@ -287,6 +287,18 @@ try { $migration->handle_takeover(); verify_migration( false, 'unreachable' ); }
 $_POST = array( '_wpnonce' => 'valid' );
 try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( ! ABMM_EMM_Migration::takeover_enabled(), 'The takeover can be turned off again.' ); }
 
+// With Easy Mega Menu inactive and the takeover off, its shortcode would print as text: warn administrators.
+class ABMM_Test_Screen { public $id; public function __construct( $id ) { $this->id = $id; } }
+function get_current_screen() { return new ABMM_Test_Screen( $GLOBALS['abmm_screen'] ); }
+$notice = function ( $screen ) use ( $migration ) { $GLOBALS['abmm_screen'] = $screen; ob_start(); $migration->unanswered_shortcode_notice(); return ob_get_clean(); };
+$GLOBALS['abmm_can'] = true;
+unset( $GLOBALS['abmm_shortcodes']['easy_mega_menu'] ); // Registered by the takeover checks above.
+verify_migration( ! ABMM_EMM_Migration::takeover_enabled() && false !== strpos( $notice( 'dashboard' ), 'show the shortcode as text' ), 'The dashboard warns that [easy_mega_menu] is unanswered.' );
+verify_migration( '' === $notice( 'edit-post' ) && '' === $notice( 'mega-menu_page_' . ABMM_EMM_Migration::PAGE_SLUG ), 'Other screens and the import screen stay quiet.' );
+$GLOBALS['abmm_can'] = false;
+verify_migration( '' === $notice( 'dashboard' ), 'Only administrators see the warning.' );
+$GLOBALS['abmm_can'] = true;
+
 // While Easy Mega Menu still runs a site with imported menus, Ashbi adds no body classes.
 define( 'EMM_VERSION', '1.6.76' );
 verify_migration( array( 'page' ) === ABMM_Product_Branding::instance()->body_class( array( 'page' ) ) && array( 'page' ) === ABMM_Classic::instance()->body_class( array( 'page' ) ), 'No Ashbi body classes while Easy Mega Menu is active.' );

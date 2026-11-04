@@ -174,7 +174,7 @@ class ABMM_Admin {
 					/* translators: %1$s: menu title. */
 					'archiveConfirmTitle' => __( 'Archive “%1$s”?', 'ashbi-mega-menu' ),
 					/* translators: 1: number of block placements, 2: number of widget placements, 3: number of shortcodes in pages. */
-					'archivePlacements' => __( 'Used in: %1$d block(s), %2$d widget(s), %3$d shortcode(s).', 'ashbi-mega-menu' ),
+					'archivePlacements' => __( 'Placements: blocks %1$d, widgets %2$d, shortcodes %3$d.', 'ashbi-mega-menu' ),
 					'archiveConfirm'  => __( 'Archive and keep recoverable', 'ashbi-mega-menu' ),
 					'archiveSuccess'  => __( 'Menu archived. It can be restored below.', 'ashbi-mega-menu' ),
 					'restoreSuccess'  => __( 'Menu restored with its original ID.', 'ashbi-mega-menu' ),
@@ -241,7 +241,7 @@ class ABMM_Admin {
 					'backupLoading'   => __( 'Loading recovery snapshots…', 'ashbi-mega-menu' ),
 					'backupLoadError' => __( 'Snapshots could not be loaded.', 'ashbi-mega-menu' ),
 					/* translators: 1: snapshot date, 2: number of menus. */
-					'backupSummary'   => __( '%1$s — %2$s menu(s)', 'ashbi-mega-menu' ),
+					'backupSummary'   => __( '%1$s — menus: %2$s', 'ashbi-mega-menu' ),
 					'backupExport'    => __( 'Export snapshot', 'ashbi-mega-menu' ),
 					'backupRestore'   => __( 'Restore snapshot', 'ashbi-mega-menu' ),
 					'backupGuidance'  => __( 'Export a snapshot before restoring. Restore replaces every current menu.', 'ashbi-mega-menu' ),
@@ -591,7 +591,7 @@ class ABMM_Admin {
 			return array(
 				'method' => 'widget',
 				'label'  => __( 'Widget', 'ashbi-mega-menu' ),
-				'steps'  => __( 'Your theme has widget areas. In Appearance → Widgets, add the Ashbi Mega Menu widget to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme.', 'ashbi-mega-menu' ),
+				'steps'  => __( 'Your theme has widget areas. In Appearance → Widgets, add the "Ashbi Mega Menu (classic widget)" widget to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme.', 'ashbi-mega-menu' ),
 			);
 		}
 		return array(

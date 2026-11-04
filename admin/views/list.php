@@ -30,7 +30,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php';
 	?>
 
-	<div class="abmm-list-status" id="abmm-list-status" role="status" aria-live="polite" tabindex="-1"></div>
+	<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag set by the nonce-checked save redirect. ?>
+	<?php $abmm_modules_saved = ! empty( $_GET['modules-updated'] ); ?>
+	<div class="abmm-list-status<?php echo $abmm_modules_saved ? ' is-visible' : ''; ?>" id="abmm-list-status" role="status" aria-live="polite" tabindex="-1"><?php echo $abmm_modules_saved ? esc_html__( 'Advanced options saved.', 'ashbi-mega-menu' ) : ''; ?></div>
 
 	<?php if ( ! empty( $menus ) && ! empty( $setup_guide ) && empty( $setup_guide['dismissed'] ) ) : ?>
 		<?php
@@ -444,7 +446,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</div>
 					<button type="submit" class="button button-secondary">
 						<span class="dashicons dashicons-upload" style="margin-top:3px"></span>
-						<?php esc_html_e( 'Import Menus', 'ashbi-mega-menu' ); ?>
+						<?php esc_html_e( 'Import menus', 'ashbi-mega-menu' ); ?>
 					</button>
 					<span class="abmm-import-status" id="abmm-import-status" aria-live="polite"></span>
 					<div id="abmm-import-preview" class="abmm-import-preview" hidden aria-live="polite"></div>
@@ -510,10 +512,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<?php endif; ?>
 							<?php if ( $abmm_block_navigations ) : ?>
 								<optgroup label="<?php esc_attr_e( 'Site Editor navigation', 'ashbi-mega-menu' ); ?>">
-									<?php foreach ( $abmm_block_navigations as $abmm_navigation ) : ?>
-										<option value="<?php echo esc_attr( 'navigation:' . $abmm_navigation->ID ); ?>">
-											<?php echo esc_html( '' !== trim( $abmm_navigation->post_title ) ? $abmm_navigation->post_title : __( 'Navigation', 'ashbi-mega-menu' ) ); ?>
-										</option>
+									<?php
+									$abmm_navigation_label  = static function ( $navigation ) {
+										return '' !== trim( $navigation->post_title ) ? $navigation->post_title : __( 'Navigation', 'ashbi-mega-menu' );
+									};
+									$abmm_navigation_labels = array_count_values( array_map( $abmm_navigation_label, $abmm_block_navigations ) );
+									foreach ( $abmm_block_navigations as $abmm_navigation ) :
+										$abmm_label = $abmm_navigation_label( $abmm_navigation );
+										if ( $abmm_navigation_labels[ $abmm_label ] > 1 ) {
+											// Several navigations share a name: the ID tells them apart.
+											/* translators: 1: Site Editor navigation name, 2: its ID. */
+											$abmm_label = sprintf( __( '%1$s (ID %2$d)', 'ashbi-mega-menu' ), $abmm_label, $abmm_navigation->ID );
+										}
+										?>
+										<option value="<?php echo esc_attr( 'navigation:' . $abmm_navigation->ID ); ?>"><?php echo esc_html( $abmm_label ); ?></option>
 									<?php endforeach; ?>
 								</optgroup>
 							<?php endif; ?>

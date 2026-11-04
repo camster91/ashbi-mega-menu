@@ -22,7 +22,9 @@ class ABMM_Widget extends WP_Widget {
 	public function __construct() {
 		parent::__construct(
 			'abmm_widget',
-			__( 'Ashbi Mega Menu', 'ashbi-mega-menu' ),
+			// Named apart from the Ashbi Mega Menu block and Elementor widget, which
+			// share search results with it in the block inserter and Elementor.
+			__( 'Ashbi Mega Menu (classic widget)', 'ashbi-mega-menu' ),
 			array(
 				'description' => __( 'Display a mega menu in any widget area.', 'ashbi-mega-menu' ),
 				'classname'   => 'abmm-widget',
@@ -140,3 +142,16 @@ function abmm_register_widget() {
 	register_widget( 'ABMM_Widget' );
 }
 add_action( 'widgets_init', 'abmm_register_widget' );
+
+/**
+ * The block does the same job in the block-based widget editor, so the classic
+ * widget is not offered there. Widgets already placed keep working.
+ *
+ * @param string[] $widget_types Widget IDs hidden from the Legacy Widget block.
+ * @return string[]
+ */
+function abmm_hide_legacy_widget( $widget_types ) {
+	$widget_types[] = 'abmm_widget';
+	return $widget_types;
+}
+add_filter( 'widget_types_to_hide_from_legacy_widget_block', 'abmm_hide_legacy_widget' );

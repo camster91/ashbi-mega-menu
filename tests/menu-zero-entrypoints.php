@@ -17,6 +17,7 @@ function wp_send_json_error($data, $status=200) { throw new ABMM_Entrypoint_Resp
 function wp_send_json_success($data, $status=200) { throw new ABMM_Entrypoint_Response(true, $data); }
 require __DIR__ . '/../includes/class-abmm-shortcode.php';
 require __DIR__ . '/../includes/class-abmm-block.php';
+if ( ! function_exists( 'add_filter' ) ) { function add_filter() {} }
 require __DIR__ . '/../includes/class-abmm-widget.php';
 require __DIR__ . '/../includes/class-abmm-admin.php';
 $database_options[ABMM_OPTION_KEY]=array('first'=>array('title'=>'First','items'=>array()),0=>array('title'=>'Zero','items'=>array()));

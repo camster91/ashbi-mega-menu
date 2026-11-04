@@ -881,6 +881,23 @@ class ABMM_Data {
 		} );
 	}
 
+	/**
+	 * A menu title no saved menu uses yet: repeated copies are numbered so the
+	 * dashboard, block and widget lists can tell them apart.
+	 *
+	 * @param string   $title Wanted title.
+	 * @param string[] $taken Titles about to be saved alongside, such as other menus in one import.
+	 * @return string
+	 */
+	public function unique_title( $title, $taken = array() ) {
+		$titles = array_merge( array_column( $this->get_all(), 'title' ), $taken );
+		$unique = $title;
+		for ( $n = 2; in_array( $unique, $titles, true ); $n++ ) {
+			$unique = $title . ' ' . $n;
+		}
+		return $unique;
+	}
+
 	private function duplicate_unlocked( $id ) {
 		$menu = $this->get( $id );
 		if ( null === $menu ) {
@@ -888,13 +905,7 @@ class ABMM_Data {
 		}
 		/* translators: %s: Original menu title. */
 		$title = sprintf( __( 'Copy of %s', 'ashbi-mega-menu' ), $menu['title'] );
-		// Number repeated copies so the dashboard, block and widget lists can tell them apart.
-		$titles = array_column( $this->get_all(), 'title' );
-		$unique = $title;
-		for ( $n = 2; in_array( $unique, $titles, true ); $n++ ) {
-			$unique = $title . ' ' . $n;
-		}
-		$copy   = $this->duplicate_menu_data( $menu, $unique );
+		$copy   = $this->duplicate_menu_data( $menu, $this->unique_title( $title ) );
 		$new_id = $this->unique_menu_id( $id . '-copy' );
 		$saved = $this->save( $new_id, $copy );
 		if ( is_wp_error( $saved ) ) { return $saved; }

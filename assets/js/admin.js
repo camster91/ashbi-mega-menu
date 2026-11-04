@@ -1293,12 +1293,10 @@
 		var $list = $('<ul class="abmm-import-preview__list" />').appendTo($preview);
 		(preview.changes || []).forEach(function (change) {
 			var labels = { create: __('Create', 'ashbi-mega-menu'), update: __('Update', 'ashbi-mega-menu'), create_copy: __('Create independent copy', 'ashbi-mega-menu') };
-			/* translators: 1: import action, 2: menu title, 3: number of menu items. */
-			$('<li />').text(sprintf(__('%1$s: %2$s (%3$s items)', 'ashbi-mega-menu'), labels[change.action] || change.action, change.title, change.item_count)).appendTo($list);
+			$('<li />').text(/* translators: 1: import action, 2: menu title, 3: number of menu items. */ sprintf(_n('%1$s: %2$s (%3$d item)', '%1$s: %2$s (%3$d items)', Number(change.item_count) || 0, 'ashbi-mega-menu'), labels[change.action] || change.action, change.title, Number(change.item_count) || 0)).appendTo($list);
 		});
 		if (preview.remove_count) {
-			/* translators: %s: number of menus. */
-			$('<p class="description is-warning" />').text(sprintf(__('%s existing menu(s) will be removed by Replace mode.', 'ashbi-mega-menu'), preview.remove_count)).appendTo($preview);
+			$('<p class="description is-warning" />').text(/* translators: %d: number of menus. */ sprintf(_n('Replace mode will remove %d existing menu.', 'Replace mode will remove %d existing menus.', Number(preview.remove_count) || 0, 'ashbi-mega-menu'), Number(preview.remove_count) || 0)).appendTo($preview);
 		}
 		var $actions = $('<div class="abmm-import-preview__actions" />').appendTo($preview);
 		$('<button type="button" class="button button-primary" />').text(S.importConfirm).on('click', onConfirm).appendTo($actions);
@@ -1326,7 +1324,7 @@
 					$list.empty();
 					(res.data.backups || []).forEach(function (backup) {
 						var $row = $('<div class="abmm-backup-row" />').attr('data-backup-id', backup.id);
-						$('<strong />').text((S.backupSummary || '%1$s — %2$s menu(s)').replace('%1$s', String(backup.created_at)).replace('%2$s', String(backup.menu_count))).appendTo($row);
+						$('<strong />').text((S.backupSummary || '%1$s — menus: %2$s').replace('%1$s', String(backup.created_at)).replace('%2$s', String(backup.menu_count))).appendTo($row);
 						$('<button type="button" class="button abmm-export-backup" />').text(S.backupExport || 'Export snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$('<button type="button" class="button abmm-restore-backup" />').text(S.backupRestore || 'Restore snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$row.appendTo($list);

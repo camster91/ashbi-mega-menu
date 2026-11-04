@@ -450,6 +450,7 @@ class ABMM_Import_Export {
 				$title       = sprintf(
 /* translators: %s: Original menu title. */
 __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] ?? $original_id ) );
+				$title       = ABMM_Data::instance()->unique_title( $title, array_column( $prepared, 'title' ) );
 				$menu_data   = ABMM_Data::instance()->duplicate_menu_data( $menu_data, $title );
 			}
 			$prepared[ $id ] = ABMM_Data::instance()->sanitize_menu( $menu_data );
