@@ -507,7 +507,9 @@
 		if (!$button.length) return;
 		var saved = state.saveState === 'saved';
 		var saving = state.saveState === 'saving';
-		var label = saving ? __('Saving…', 'ashbi-mega-menu') : (saved ? __('Saved', 'ashbi-mega-menu') : __('Save changes', 'ashbi-mega-menu'));
+		// A placed menu goes live on save, so its button says so.
+		var placed = String($('#abmm-builder').attr('data-menu-placed')) === '1';
+		var label = saving ? __('Saving…', 'ashbi-mega-menu') : (saved ? __('Saved', 'ashbi-mega-menu') : (placed ? __('Save and update site', 'ashbi-mega-menu') : __('Save changes', 'ashbi-mega-menu')));
 		// Update the children in place: rebuilding them between mousedown and
 		// mouseup (a field's blur changes the save state) would drop the click.
 		var $icon = $button.children('.dashicons');
@@ -556,8 +558,10 @@
 				menu: getMenu(),
 				updated: Date.now(),
 			}));
+			state.draftStoreFailed = false;
 		} catch (error) {
 			// Storage can be unavailable in private or locked-down browser contexts.
+			state.draftStoreFailed = true;
 		}
 	}
 
@@ -584,6 +588,8 @@
 		var loadedRevision = state.serverRevision;
 		var conflict = state.draftConflict || draft.revision !== loadedRevision;
 		$('#abmm-draft-recovery').prop('hidden', false);
+		/* translators: %s: date and time the draft was last changed. */
+		$('.abmm-draft-recovery__age').text(draft.updated ? sprintf(__('Unsaved draft from %s.', 'ashbi-mega-menu'), new Date(draft.updated).toLocaleString()) : '');
 		$('.abmm-draft-recovery__message').text(
 			conflict
 				? S.draftStale
@@ -604,17 +610,40 @@
 			var local = readLocalDraft();
 			if (local && local.menu) downloadMenuJson(state.menuId + '-local-draft', JSON.stringify(local.menu, null, 2));
 		});
-		$('.abmm-reload-server').off('click').on('click', function () {
-			persistLocalDraft(); state.trackingChanges = false; window.location.reload();
-		});
 		$('.abmm-discard-draft').off('click').on('click', function () {
 			removeLocalDraft();
-			if (state.draftConflict) { state.menu = JSON.parse(state.savedSnapshot); populateFormFromMenu(); renderNavItems(); renderPreview(); }
-			state.draftConflict = false;
+			function finish() {
+				state.draftConflict = false;
+				$('.abmm-save-menu').prop('disabled', false);
+				$('#abmm-draft-recovery').prop('hidden', true);
+				$('#abmm-menu-title').trigger('focus');
+			}
+			if (state.draftConflict) {
+				state.menu = JSON.parse(state.savedSnapshot);
+				populateFormFromMenu(); renderNavItems(); renderPreview();
+			}
 			state.serverRevision = loadedRevision;
-			$('.abmm-save-menu').prop('disabled', false);
-			$('#abmm-draft-recovery').prop('hidden', true);
-			$('#abmm-menu-title').trigger('focus');
+			if (!state.saveConflict) {
+				finish();
+				return;
+			}
+			// After a save conflict the copy this page loaded is out of date too:
+			// saving it would conflict again, so continue from the latest saved version.
+			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_get_menu', nonce: abmmAdmin.nonce, menu_id: state.menuId }).done(function (res) {
+				if (!res || !res.success || !res.data || !validateBuilderMenu(res.data.menu)) {
+					setStatus(responseMessage(res, S.loadMalformed), true);
+					return;
+				}
+				state.menu = res.data.menu;
+				state.serverRevision = res.data.revision || state.serverRevision;
+				populateFormFromMenu(); renderNavItems(); syncSettingsFromForm();
+				state.savedSnapshot = JSON.stringify(getMenu());
+				state.saveConflict = false;
+				renderPreview();
+				finish();
+			}).fail(function (xhr) {
+				setStatus(requestErrorMessage(xhr, S.loadMalformed), true);
+			});
 		});
 	}
 
@@ -640,12 +669,7 @@
 				return;
 			}
 			var usableBefore = usable;
-			(item.links || []).forEach(function (link) { if (usableLink(link)) usable++; });
-			(item.categories || []).forEach(function (cat) {
-				(cat.groups || []).forEach(function (group) {
-					(group.links || []).forEach(function (link) { if (usableLink(link)) usable++; });
-				});
-			});
+			activeLinkEntries(item, index).forEach(function (entry) { if (usableLink(entry.link)) usable++; });
 			if (usable === usableBefore) {
 				issues.push({ field: 'abmm-nav-items', item: index, message: S.checkMega.replace('%s', label || S.thisMega) });
 			}
@@ -657,6 +681,14 @@
 		if (menu.cta && menu.cta.show && !usableLink(menu.cta)) {
 			issues.push({ field: 'abmm-cta-url', message: S.checkCta });
 		}
+		menuLinkEntries(menu).forEach(function (entry) {
+			if (entry.kind === 'cta') return;
+			var url = String(entry.link.url || '').trim();
+			if (!url || url === '#') {
+				/* translators: %s: link label. */
+				issues.push($.extend(issuePath(entry), { message: sprintf(__('Add a link for "%s", or remove it. It goes nowhere yet.', 'ashbi-mega-menu'), String(entry.link.label || '').trim() || S.untitled) }));
+			}
+		});
 		(menu.items || []).forEach(function (item, index) {
 			var card = item.featured || {};
 			// The card hides its link text when there is no link, so the text would silently vanish.
@@ -680,14 +712,14 @@
 				issues.push({ field: 'abmm-brand-logo-url', message: S.checkLogo || 'Check the logo image link. It does not look like a web address.' });
 			}
 		}
-		var samples = menuLinks(menu).filter(function (link) { return /#abmm-sample$/.test(String(link.url || '').trim()); }).length;
-		if (samples) {
+		var samples = menuLinkEntries(menu).filter(function (entry) { return /#abmm-sample$/.test(String(entry.link.url || '').trim()); });
+		if (samples.length) {
 			/* translators: %d: number of template links. */
-			issues.push({ field: 'abmm-nav-items', message: sprintf(_n('Replace %d sample link with your own page.', 'Replace %d sample links with your own pages.', samples, 'ashbi-mega-menu'), samples) });
+			issues.push($.extend(issuePath(samples[0]), { message: sprintf(_n('Replace %d sample link with your own page.', 'Replace %d sample links with your own pages.', samples.length, 'ashbi-mega-menu'), samples.length) }));
 		}
-		menuLinks(menu).forEach(function (link) {
-			if (looksLikeBrokenUrl(link.url)) {
-				issues.push({ field: 'abmm-nav-items', message: (S.checkUrl || 'Check the link for "%s". It does not look like a web address.').replace('%s', String(link.label || '')) });
+		menuLinkEntries(menu).forEach(function (entry) {
+			if (looksLikeBrokenUrl(entry.link.url)) {
+				issues.push($.extend(issuePath(entry), { message: (S.checkUrl || 'Check the link for "%s". It does not look like a web address.').replace('%s', String(entry.link.label || '')) }));
 			}
 		});
 		return { ready: !issues.length, issues: issues };
@@ -696,19 +728,43 @@
 	// Keep in sync with ABMM_Data::MAX_BAR_LABEL_LENGTH.
 	var MAX_BAR_LABEL_LENGTH = 40;
 
-	function menuLinks(menu) {
-		var links = [];
-		(menu.items || []).forEach(function (item) {
-			if (item.type !== 'mega') { links.push(item); return; }
-			(item.links || []).forEach(function (link) { links.push(link); });
-			(item.categories || []).forEach(function (cat) {
-				(cat.groups || []).forEach(function (group) {
-					(group.links || []).forEach(function (link) { links.push(link); });
+	// The links a mega item's chosen layout shows, with where each one lives. A
+	// layout switch keeps the other layout's links stored, but visitors never see them.
+	// Keep in sync with ABMM_Data::active_item_links().
+	function activeLinkEntries(item, itemIndex) {
+		var entries = [];
+		if (item.mega_style === 'features') {
+			(item.links || []).forEach(function (link, linkIndex) {
+				entries.push({ kind: 'feature', link: link, item: itemIndex, linkIndex: linkIndex });
+			});
+			return entries;
+		}
+		(item.categories || []).forEach(function (cat, catIndex) {
+			(cat.groups || []).forEach(function (group, groupIndex) {
+				(group.links || []).forEach(function (link, linkIndex) {
+					entries.push({ kind: 'group', link: link, item: itemIndex, cat: catIndex, group: groupIndex, linkIndex: linkIndex });
 				});
 			});
 		});
-		if (menu.cta && menu.cta.show) links.push(menu.cta);
-		return links;
+		return entries;
+	}
+
+	function menuLinkEntries(menu) {
+		var entries = [];
+		(menu.items || []).forEach(function (item, itemIndex) {
+			if (item.type !== 'mega') { entries.push({ kind: 'top', link: item, item: itemIndex }); return; }
+			entries = entries.concat(activeLinkEntries(item, itemIndex));
+		});
+		if (menu.cta && menu.cta.show) entries.push({ kind: 'cta', link: menu.cta });
+		return entries;
+	}
+
+	function issuePath(entry) {
+		var issue = { field: entry.kind === 'cta' ? 'abmm-cta-url' : 'abmm-nav-items', kind: entry.kind };
+		['item', 'cat', 'group', 'linkIndex'].forEach(function (key) {
+			if (typeof entry[key] === 'number') issue[key] = entry[key];
+		});
+		return issue;
 	}
 
 	// Plain text such as "about" is saved as http://about; flag it before it ships.
@@ -737,8 +793,16 @@
 			.toggleClass('is-ready', result.ready);
 		result.issues.forEach(function (issue) {
 			$('<li><button type="button" class="button-link"></button></li>')
-				.find('button').text(issue.message).attr('data-field', issue.field).attr('data-item', typeof issue.item === 'number' ? issue.item : null).end()
+				.find('button').text(issue.message).attr('data-field', issue.field).attr('data-item', typeof issue.item === 'number' ? issue.item : null).data('issue', issue).end()
 				.appendTo($list);
+		});
+		// The checklist lives on the Content tab: keep its count visible from the others.
+		$('[data-abmm-builder-section="content"], [data-abmm-workflow="content"]').each(function () {
+			var $count = $(this).children('.abmm-issue-count');
+			if (result.ready) { $count.remove(); return; }
+			if (!$count.length) $count = $('<span class="abmm-issue-count" />').appendTo(this);
+			/* translators: %d: number of checklist items still to fix. */
+			$count.text(result.issues.length).attr('title', sprintf(_n('%d checklist item to fix', '%d checklist items to fix', result.issues.length, 'ashbi-mega-menu'), result.issues.length));
 		});
 		// The shortcode is always available; a draft only gets a reminder.
 		$('.abmm-placement-panel').toggleClass('is-draft', !result.ready);
@@ -868,6 +932,7 @@
 			$('.abmm-classic-notice').prop('hidden', $renderMode.val() !== 'emm-classic');
 		}
 		$('#abmm-classic-phone-scroll-fix').prop('checked', !!s.classic_phone_scroll_fix);
+		$('#abmm-classic-toggle-label').val(s.classic_toggle_label || '');
 	}
 
 	function syncSettingsFromForm() {
@@ -945,9 +1010,17 @@
 		if (Object.keys(style).length) m.settings.style = style;
 		if (renderMode === 'emm-classic') {
 			m.settings.render_mode = renderMode;
+		} else if ($renderMode.length || previous.classic_origin) {
+			// The Site look control can switch this menu back, so keep its Classic options.
+			m.settings.classic_origin = true;
+		}
+		if (m.settings.render_mode || m.settings.classic_origin) {
 			if (previous.classic_edge_bleed) m.settings.classic_edge_bleed = previous.classic_edge_bleed;
 			var $phoneFix = $('#abmm-classic-phone-scroll-fix');
 			if ($phoneFix.length ? $phoneFix.is(':checked') : previous.classic_phone_scroll_fix) m.settings.classic_phone_scroll_fix = true;
+			var $toggleLabel = $('#abmm-classic-toggle-label');
+			var toggleLabel = String($toggleLabel.length ? $toggleLabel.val() : (previous.classic_toggle_label || '')).trim();
+			if (toggleLabel) m.settings.classic_toggle_label = toggleLabel;
 		}
 	}
 
@@ -965,8 +1038,8 @@
 
 	function syncOptionalFeatureFields() {
 		[
-			{ toggle: '#abmm-brand-show', panel: '#abmm-brand-show', label: __('Brand Identity', 'ashbi-mega-menu') },
-			{ toggle: '#abmm-cta-show', panel: '#abmm-cta-show', label: __('Call-to-Action Button', 'ashbi-mega-menu') },
+			{ toggle: '#abmm-brand-show', panel: '#abmm-brand-show', label: __('Logo', 'ashbi-mega-menu') },
+			{ toggle: '#abmm-cta-show', panel: '#abmm-cta-show', label: __('Button', 'ashbi-mega-menu') },
 		].forEach(function (entry) {
 			var $toggle = $(entry.toggle);
 			var $panel = $toggle.closest('.abmm-builder-panel');
@@ -1032,11 +1105,69 @@
 		var $card = $('.abmm-preset-card--custom');
 		if (!$card.length) return;
 		var custom = s.preset === 'custom';
-		$card.toggleClass('is-empty', !custom);
-		var colors = [s.header_bg, s.sidebar_bg, s.accent];
+		// Colors a preset replaced stay one click away until the page reloads.
+		var kept = custom ? s : state.customColors;
+		$card.toggleClass('is-empty', !kept).prop('disabled', !kept);
+		var colors = kept ? [kept.header_bg, kept.sidebar_bg, kept.accent] : [];
 		$card.find('.abmm-preset-card__swatches span:not(.abmm-preset-card__empty)').each(function (index) {
-			this.style.background = custom ? previewColorValue(colors[index], '') : '';
+			this.style.background = kept ? previewColorValue(colors[index], '') : '';
 		});
+	}
+
+	function currentPresetValues() {
+		var s = getMenu().settings || {};
+		var values = {};
+		['sidebar_bg', 'active_bg', 'panel_bg', 'header_bg', 'accent', 'text_color', 'nav_link_color', 'nav_hover_color', 'muted_color', 'border_color', 'cta_text', 'shadow', 'border_radius'].forEach(function (key) {
+			values[key] = s[key];
+		});
+		return values;
+	}
+
+	// WCAG relative luminance of a #rgb or #rrggbb color; null for anything else.
+	function colorLuminance(value) {
+		var hex = String(value || '').trim().replace(/^#/, '');
+		if (/^[0-9a-f]{3}$/i.test(hex)) hex = hex.replace(/./g, '$&$&');
+		if (!/^[0-9a-f]{6}$/i.test(hex)) return null;
+		var channels = [0, 2, 4].map(function (start) {
+			var c = parseInt(hex.substr(start, 2), 16) / 255;
+			return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+		});
+		return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+	}
+
+	function contrastRatio(a, b) {
+		var la = colorLuminance(a);
+		var lb = colorLuminance(b);
+		if (la === null || lb === null) return null;
+		return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+	}
+
+	// A hint, not a checklist item: colors are the owner's call, and CSS can differ on the site.
+	function renderDesignWarnings() {
+		var s = getMenu().settings || {};
+		var pairs = [
+			[__('Button text on the button', 'ashbi-mega-menu'), s.cta_text, s.accent],
+			[__('Panel text on the panel', 'ashbi-mega-menu'), s.text_color, s.panel_bg],
+			[__('Descriptions on the panel', 'ashbi-mega-menu'), s.muted_color, s.panel_bg],
+			[__('Descriptions on the category bar', 'ashbi-mega-menu'), s.muted_color, s.sidebar_bg],
+			[__('Category text on the category bar', 'ashbi-mega-menu'), s.text_color, s.sidebar_bg],
+			[__('Active category text', 'ashbi-mega-menu'), s.text_color, s.active_bg],
+		];
+		if (!s.header_transparent) pairs.push([__('Menu links on the header', 'ashbi-mega-menu'), s.nav_link_color, s.header_bg]);
+		var $warning = $('#abmm-contrast-warning');
+		var $list = $warning.find('ul').empty();
+		pairs.forEach(function (pair) {
+			var ratio = contrastRatio(pair[1], pair[2]);
+			if (ratio !== null && ratio < 4.5) {
+				/* translators: 1: what is being checked, 2: its contrast ratio, such as 3.2. */
+				$('<li />').text(sprintf(__('%1$s: contrast %2$s:1, aim for at least 4.5:1', 'ashbi-mega-menu'), pair[0], ratio.toFixed(1))).appendTo($list);
+			}
+		});
+		$warning.prop('hidden', !$list.children().length);
+		var brand = getMenu().brand || {};
+		$('#abmm-logo-alt-warning').prop('hidden', !(brand.show && String(brand.logo_url || brand.logo_dark_url || '').trim() && !String(brand.alt || '').trim() && !String(brand.title || '').trim()));
+		var classicLook = String(s.render_mode || '') === 'emm-classic' && state.previewViewport === 'desktop';
+		$('.abmm-classic-preview-note').prop('hidden', !classicLook);
 	}
 
 	function previewColorValue(value, fallback) {
@@ -1242,7 +1373,16 @@
 		$('<button type="button" class="button-link abmm-status-undo" />').text(__('Undo', 'ashbi-mega-menu')).on('click', function () {
 			clearTimeout(state.statusTimer); onUndo(); markDirtyState();
 		}).appendTo($el);
-		state.statusTimer = setTimeout(renderSaveState, 6000);
+		// No timer: it stays until the next edit replaces it, however long that takes.
+	}
+
+	// A removed row takes keyboard focus with it, so hand focus to its neighbour.
+	function focusAfterRemove($rows, index, selector, $fallback) {
+		var usable = function () { return !$(this).closest('[hidden]').length; };
+		var $row = $rows.eq(Math.min(index, $rows.length - 1));
+		var $target = $rows.length ? $row.find(selector).filter(usable).first() : $();
+		if (!$target.length && $rows.length) $target = $row.find('button').filter(usable).first();
+		($target.length ? $target : $fallback).trigger('focus');
 	}
 
 	function responseMessage(response, fallback) {
@@ -1279,9 +1419,11 @@
 
 	function setImportStatus(msg, isError) {
 		var $el = $('#abmm-import-status');
+		clearTimeout(state.importStatusTimer);
 		$el.text(msg).toggleClass('is-error', !!isError).addClass('is-visible');
-		if (msg) {
-			setTimeout(function () {
+		// An error stays until the next import attempt, so it can be read and acted on.
+		if (msg && !isError) {
+			state.importStatusTimer = setTimeout(function () {
 				$el.removeClass('is-visible');
 			}, 4000);
 		}
@@ -1314,6 +1456,10 @@
 		function status(message, error) {
 			$status.text(message).attr('role', error ? 'alert' : 'status');
 		}
+		// The list loads the first time the panel opens; the button refreshes it.
+		$('#abmm-backup-panel').one('toggle', function () {
+			if (this.open) $('.abmm-load-backups').trigger('click');
+		});
 		$('.abmm-load-backups').on('click', function () {
 			var $button = $(this).prop('disabled', true);
 			status(S.backupLoading || 'Loading recovery snapshots…', false);
@@ -1739,15 +1885,19 @@
 					var refs = res.data || {};
 					// Callback replacements preserve literal $ tokens in menu titles.
 					var confirmTitle = S.archiveConfirmTitle.replace(/%1\$s/g, function () { return title; });
-					var placements = S.archivePlacements.replace(/%([123])\$d/g, function (_, position) {
-						return position === '1' ? (refs.blocks || 0) : (position === '2' ? (refs.widgets || 0) : (refs.shortcodes || 0));
+					var placements = S.archivePlacements.replace(/%([1234])\$d/g, function (_, position) {
+						return refs[{ 1: 'blocks', 2: 'widgets', 3: 'shortcodes', 4: 'other' }[position]] || 0;
 					});
+					var known = Number(refs.known) || 0;
+					/* translators: %d: number of known placements. */
+					var consequence = known ? sprintf(_n('This menu will disappear from %d place on your site, with no error shown.', 'This menu will disappear from %d places on your site, with no error shown.', known, 'ashbi-mega-menu'), known) : '';
 					var $confirm = $(
-						'<div class="abmm-archive-confirm" role="alert">' +
+						'<div class="abmm-archive-confirm' + (known ? ' is-danger' : '') + '" role="alert">' +
 						'<strong>' + esc(confirmTitle) + '</strong>' +
+						(consequence ? '<p class="abmm-archive-confirm__consequence">' + esc(consequence) + '</p>' : '') +
 						'<p>' + esc(placements) + '</p>' +
 						'<p>' + esc(refs.warning || '') + '</p>' +
-						'<button type="button" class="button button-primary abmm-confirm-archive">' + esc(S.archiveConfirm) + '</button> ' +
+						'<button type="button" class="button ' + (known ? 'abmm-button-danger' : 'button-primary') + ' abmm-confirm-archive">' + esc(S.archiveConfirm) + '</button> ' +
 						'<button type="button" class="button abmm-cancel-archive">' + esc(S.cancel) + '</button>' +
 						'</div>'
 					);
@@ -1761,6 +1911,51 @@
 			}).fail(function (xhr) {
 				$button.prop('disabled', false).text(S.archiveMenu).trigger('focus');
 				setListStatus(requestErrorMessage(xhr, S.deleteError), true, true);
+			});
+		});
+
+		$('.abmm-menu-versions').on('click', function () {
+			var $button = $(this);
+			var $card = $button.closest('.abmm-menu-card');
+			var id = $button.data('menu-id');
+			$card.find('.abmm-version-panel').remove();
+			var $panel = $('<div class="abmm-archive-confirm abmm-version-panel" role="group" tabindex="-1" />').attr('aria-label', __('Saved versions', 'ashbi-mega-menu')).appendTo($card);
+			$('<strong />').text(__('Saved versions', 'ashbi-mega-menu')).appendTo($panel);
+			var $note = $('<p role="status" />').text(__('Loading…', 'ashbi-mega-menu')).appendTo($panel);
+			var $rows = $('<ul class="abmm-version-list" />').appendTo($panel);
+			$('<button type="button" class="button abmm-close-versions" />').text(S.cancel).on('click', function () {
+				$panel.remove();
+				$card.find('.abmm-card-menu__toggle').trigger('focus');
+			}).appendTo($panel);
+			$panel.trigger('focus');
+			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_menu_versions', nonce: abmmAdmin.nonce, menu_id: id }).done(function (res) {
+				if (!res || !res.success || !res.data) { $note.text(responseMessage(res, __('Saved versions could not be loaded.', 'ashbi-mega-menu'))); return; }
+				var versions = res.data.versions || [];
+				$note.text(versions.length
+					? __('Restoring replaces this menu on your site right away. The current version is kept, so you can change your mind.', 'ashbi-mega-menu')
+					: __('No saved versions yet. One is kept the next time you save a change.', 'ashbi-mega-menu'));
+				versions.forEach(function (version) {
+					var $row = $('<li />').appendTo($rows);
+					/* translators: 1: date and time, 2: number of menu items. */
+					$('<span />').text(sprintf(_n('%1$s, %2$d menu item', '%1$s, %2$d menu items', Number(version.items) || 0, 'ashbi-mega-menu'), version.saved_label, Number(version.items) || 0)).appendTo($row);
+					$('<button type="button" class="button button-small abmm-restore-version" />').text(__('Restore', 'ashbi-mega-menu')).on('click', function () {
+						var $restore = $(this).prop('disabled', true);
+						$.post(abmmAdmin.ajaxUrl, { action: 'abmm_restore_menu_version', nonce: abmmAdmin.nonce, menu_id: id, version_id: version.id, base_revision: res.data.revision }).done(function (restored) {
+							if (restored && restored.success) {
+								setListStatus(responseMessage(restored, ''), false, false);
+								window.location.reload();
+								return;
+							}
+							$restore.prop('disabled', false);
+							$note.text(responseMessage(restored, __('The saved version could not be restored. Nothing was changed.', 'ashbi-mega-menu')));
+						}).fail(function (xhr) {
+							$restore.prop('disabled', false);
+							$note.text(requestErrorMessage(xhr, __('The saved version could not be restored. Nothing was changed.', 'ashbi-mega-menu')));
+						});
+					}).appendTo($row);
+				});
+			}).fail(function (xhr) {
+				$note.text(requestErrorMessage(xhr, __('Saved versions could not be loaded.', 'ashbi-mega-menu')));
 			});
 		});
 
@@ -1815,10 +2010,17 @@
 			});
 		});
 
-		$('.abmm-permanent-delete').on('click', function () {
+		$('.abmm-permanent-delete').on('click', function (event) {
 			var $button = $(this);
+			// The second click of a double-click is not a decision.
+			if (event.originalEvent && event.originalEvent.detail > 1) return;
 			if (!$button.data('confirmed')) {
+				var label = $button.text();
 				$button.data('confirmed', true).text(__('Click again to permanently delete', 'ashbi-mega-menu'));
+				setTimeout(function () {
+					if ($button.prop('disabled')) return;
+					$button.data('confirmed', false).text(label);
+				}, 5000);
 				return;
 			}
 			$button.prop('disabled', true);
@@ -2190,14 +2392,30 @@
 			event.preventDefault();
 			persistLocalDraft();
 			state.pendingExitUrl = $(this).attr('href');
-			openBuilderModal('#abmm-exit-dialog', this, '.abmm-stay-builder');
+			if (state.draftStoreFailed) {
+				$('#abmm-exit-dialog-description').text(__('This browser could not keep a recovery draft, so leaving now loses these changes. Save them first.', 'ashbi-mega-menu'));
+			}
+			openBuilderModal('#abmm-exit-dialog', this, '.abmm-save-and-leave');
 		});
 		$('.abmm-stay-builder, .abmm-exit-dialog__backdrop').on('click', function () {
 			closeBuilderModal('#abmm-exit-dialog');
 		});
 		$('.abmm-leave-builder').on('click', function () {
 			persistLocalDraft();
+			state.allowExit = true;
 			window.location = state.pendingExitUrl || $('.abmm-back').attr('href');
+		});
+		$('.abmm-save-and-leave').on('click', function () {
+			closeBuilderModal('#abmm-exit-dialog');
+			state.exitAfterSave = true;
+			saveMenu();
+		});
+		// Every other way out: admin menu links, Back, closing the tab.
+		window.addEventListener('beforeunload', function (event) {
+			if (state.allowExit || !hasUnsavedChanges()) return;
+			persistLocalDraft();
+			event.preventDefault();
+			event.returnValue = '';
 		});
 		window.addEventListener('pagehide', persistLocalDraft);
 	}
@@ -2492,6 +2710,10 @@
 			'#abmm-show-cat-desc',
 			'#abmm-render-mode',
 			'#abmm-classic-phone-scroll-fix',
+			'#abmm-classic-toggle-label',
+			'#abmm-mobile-enhancements',
+			'#abmm-header-transparent',
+			'#abmm-header-z-index',
 		].join(', ');
 
 		// Fonts and dropdown height.
@@ -2543,7 +2765,18 @@
 			} catch (err) {
 				values = null;
 			}
+			if (key === 'custom') {
+				if (state.customColors) applyPreset('custom', state.customColors);
+				return;
+			}
+			var replaced = $('#abmm-preset').val() === 'custom' ? currentPresetValues() : null;
+			if (replaced) state.customColors = replaced;
 			applyPreset(key, values);
+			if (replaced) {
+				setUndoStatus(__('Preset applied. Your custom colors were replaced; the Custom card brings them back.', 'ashbi-mega-menu'), function () {
+					applyPreset('custom', replaced);
+				});
+			}
 		});
 
 		renderNavItems();
@@ -2551,6 +2784,8 @@
 		syncIconInheritField();
 		syncOptionalFeatureFields();
 		syncStyleFields();
+		// A menu switched to the Ashbi look still shows Site look, but not the Classic options.
+		if ($('#abmm-render-mode').length) $('.abmm-classic-notice').prop('hidden', $('#abmm-render-mode').val() !== 'emm-classic');
 		renderPreview();
 		captureSavedState();
 		renderReadiness();
@@ -2568,6 +2803,10 @@
 
 		$('.abmm-readiness-issues').on('click', 'button', function () {
 			var field = document.getElementById($(this).data('field'));
+			// The field may sit on another tab; a hidden field cannot take focus.
+			var section = field ? $(field).closest('[data-abmm-builder-section-panel]').data('abmm-builder-section-panel') : '';
+			if (section && section !== state.builderSection) setBuilderSection(String(section));
+			if (openIssueTarget($(this).data('issue'), this)) return;
 			// An issue inside one dropdown opens that dropdown's content editor,
 			// then goes to the field to fix when the editor has one.
 			var itemIndex = parseInt($(this).attr('data-item'), 10);
@@ -2586,10 +2825,41 @@
 				return;
 			}
 			if (field) {
-				field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				if (field.scrollIntoView) field.scrollIntoView({ behavior: 'smooth', block: 'center' });
 				field.focus();
 			}
 		});
+	}
+
+	// Goes to the exact row a checklist issue is about. False when it has no row.
+	function openIssueTarget(issue, opener) {
+		if (!issue || typeof issue.item !== 'number' || !issue.kind) return false;
+		var item = getMenu().items[issue.item];
+		if (!item) return false;
+		function focusField($target) {
+			if (!$target.length) return;
+			if ($target[0].scrollIntoView) $target[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			$target.trigger('focus');
+		}
+		if (issue.kind === 'top') {
+			if (state.editingItemIndex >= 0) closeMegaEditor();
+			var $navRow = $('#abmm-nav-items .abmm-nav-item-row').eq(issue.item);
+			expandNavRow($navRow, true);
+			focusField($navRow.find('.abmm-nav-url'));
+			return true;
+		}
+		if (state.editingItemIndex !== issue.item) {
+			if (state.editingItemIndex >= 0) closeMegaEditor();
+			openMegaEditor(issue.item, opener);
+		}
+		if (issue.kind === 'group') selectCategory(issue.cat);
+		setTimeout(function () {
+			var $row = issue.kind === 'group'
+				? $('#abmm-cat-detail .abmm-group-block').eq(issue.group).find('.abmm-link-row').eq(issue.linkIndex)
+				: $('#abmm-features-link-list .abmm-link-row').eq(issue.linkIndex);
+			focusField($row.find('.abmm-link-url'));
+		}, 250);
+		return true;
 	}
 
 	function bindBuilderEvents() {
@@ -2688,6 +2958,7 @@
 			var index = items.findIndex(function (it) { return it.id === id; }); if (index < 0) return;
 			var removed = items.splice(index, 1)[0]; if (state.editingItemIndex >= 0) closeMegaEditor();
 			renderNavItems(); renderPreview();
+			focusAfterRemove($('#abmm-nav-items .abmm-nav-item-row'), index, '.abmm-remove-nav', $('.abmm-add-nav-item'));
 			setUndoStatus(__('Navigation item removed.', 'ashbi-mega-menu'), function () { getMenu().items.splice(index, 0, removed); renderNavItems(); renderPreview(); setStatus(__('Navigation item restored.', 'ashbi-mega-menu'), false); });
 		});
 
@@ -2768,6 +3039,14 @@
 			var item = getMenu().items[state.editingItemIndex];
 			if (!item) return;
 			item.mega_style = $(this).data('style');
+			var hidden = 0;
+			if (item.mega_style === 'features') {
+				(item.categories || []).forEach(function (cat) {
+					(cat.groups || []).forEach(function (group) { hidden += (group.links || []).length; });
+				});
+			} else {
+				hidden = (item.links || []).length;
+			}
 			if (item.mega_style === 'features' && (!item.columns || item.columns === 3)) {
 				item.columns = 2;
 			}
@@ -2776,6 +3055,10 @@
 			}
 			syncMegaEditorUI();
 			renderPreview();
+			if (hidden) {
+				/* translators: %d: number of links. */
+				setStatus(sprintf(_n('%d link from the other layout is hidden but kept. Switch back to see it.', '%d links from the other layout are hidden but kept. Switch back to see them.', hidden, 'ashbi-mega-menu'), hidden), false);
+			}
 		});
 
 		$('#abmm-mega-item-columns').on('change', function () {
@@ -2807,12 +3090,14 @@
 			});
 			renderFeaturesLinkList();
 			renderPreview();
+			$('#abmm-features-link-list .abmm-link-row').last().find('.abmm-link-label').trigger('focus').select();
 		});
 
 		$('#abmm-features-link-list').on('click', '.abmm-remove-link', function () {
 			var item = getMenu().items[state.editingItemIndex], id = $(this).closest('.abmm-link-row').data('id');
 			var index = (item.links || []).findIndex(function (link) { return link.id === id; }); if (index < 0) return;
 			var removed = item.links.splice(index, 1)[0]; renderFeaturesLinkList(); renderPreview();
+			focusAfterRemove($('#abmm-features-link-list .abmm-link-row'), index, '.abmm-remove-link', $('.abmm-add-feature-link'));
 			setUndoStatus(__('Feature link removed.', 'ashbi-mega-menu'), function () { item.links.splice(index, 0, removed); renderFeaturesLinkList(); renderPreview(); setStatus(__('Feature link restored.', 'ashbi-mega-menu'), false); });
 		});
 
@@ -2876,6 +3161,7 @@
 			e.stopPropagation(); var item = getMenu().items[state.editingItemIndex], idx = $(this).closest('.abmm-cat-row').index();
 			if (!item || !item.categories || !item.categories[idx]) return;
 			var removed = item.categories.splice(idx, 1)[0]; state.editingCatIndex = -1; renderCatList(); showCatPlaceholder(); renderPreview();
+			focusAfterRemove($('#abmm-cat-list .abmm-cat-row'), idx, '.abmm-remove-cat', $('.abmm-add-category'));
 			setUndoStatus(__('Category removed.', 'ashbi-mega-menu'), function () { item.categories.splice(idx, 0, removed); renderCatList(); renderCatDetail(); renderPreview(); setStatus(__('Category restored.', 'ashbi-mega-menu'), false); });
 		});
 
@@ -2941,7 +3227,7 @@
 				esc(style[key] || settings[key] || fallback) + '" /></label>';
 		}
 		return (
-			colorField('icon_color', __('Colour', 'ashbi-mega-menu'), '#2271b1') +
+			colorField('icon_color', __('Color', 'ashbi-mega-menu'), '#2271b1') +
 			colorField('icon_hover_color', __('Hover', 'ashbi-mega-menu'), '#1a73e8') +
 			colorField('icon_active_color', __('Active', 'ashbi-mega-menu'), '#1a73e8') +
 			colorField('icon_background', __('Background', 'ashbi-mega-menu'), '#ffffff') +
@@ -3643,6 +3929,7 @@
 			var gid = $(this).closest('.abmm-group-block').data('id');
 			var index = cat.groups.findIndex(function (g) { return g.id === gid; }); if (index < 0) return;
 			var removed = cat.groups.splice(index, 1)[0]; renderCatDetail(); renderPreview();
+			focusAfterRemove($('#abmm-cat-detail .abmm-group-block'), index, '.abmm-remove-group', $('#abmm-cat-detail .abmm-add-group'));
 			setUndoStatus(__('Column removed.', 'ashbi-mega-menu'), function () { cat.groups.splice(index, 0, removed); renderCatDetail(); renderPreview(); setStatus(__('Column restored.', 'ashbi-mega-menu'), false); });
 		});
 
@@ -3702,6 +3989,7 @@
 			});
 			renderCatDetail();
 			renderPreview();
+			$('#abmm-cat-detail .abmm-group-block').filter(function () { return String($(this).data('id')) === String(gid); }).find('.abmm-link-row').last().find('.abmm-link-label').trigger('focus').select();
 		});
 
 		$detail.on('click.abmmCatDetail', '.abmm-remove-link', function () {
@@ -3715,6 +4003,8 @@
 			if (!group) return;
 			var index = (group.links || []).findIndex(function (l) { return l.id === lid; }); if (index < 0) return;
 			var removed = group.links.splice(index, 1)[0]; renderCatDetail(); renderPreview();
+			var $sameBlock = $('#abmm-cat-detail .abmm-group-block').filter(function () { return String($(this).data('id')) === String(gid); });
+			focusAfterRemove($sameBlock.find('.abmm-link-row'), index, '.abmm-remove-link', $sameBlock.find('.abmm-add-group-link'));
 			setUndoStatus(__('Link removed.', 'ashbi-mega-menu'), function () { group.links.splice(index, 0, removed); renderCatDetail(); renderPreview(); setStatus(__('Link restored.', 'ashbi-mega-menu'), false); });
 		});
 
@@ -4393,6 +4683,7 @@
 		if (renderDeviceFrame()) {
 			refreshNavSummaries();
 			renderReadiness();
+			renderDesignWarnings();
 			markDirtyState();
 			return;
 		}
@@ -4610,6 +4901,12 @@
 						var selector = state.previewDrill === 'links' ? '.abmm-mega__panel a, .abmm-mega__grid a' : '.abmm-mega__cat';
 						$('#abmm-preview').find(selector).filter(':visible').first().trigger('focus');
 					}, 0);
+				} else {
+					// The render replaces the button that had focus: give it back to the new one.
+					var openedIndex = state.previewItemIndex;
+					setTimeout(function () {
+						$('#abmm-preview [data-abmm-preview-item="' + openedIndex + '"] > .abmm-nav__link').first().trigger('focus');
+					}, 0);
 				}
 			})
 			.on('click.abmmpreview mouseenter.abmmpreview', '.abmm-mega__cat', function (event) {
@@ -4633,6 +4930,7 @@
 		});
 		refreshNavSummaries();
 		renderReadiness();
+		renderDesignWarnings();
 		markDirtyState();
 	}
 
@@ -4942,7 +5240,10 @@
 	}
 
 	function saveMenu() {
-		if (state.loadFailed || state.isSaving || state.draftConflict) return;
+		if (state.loadFailed || state.isSaving || state.draftConflict) {
+			state.exitAfterSave = false;
+			return;
+		}
 		syncSettingsFromForm();
 		var payload = JSON.stringify(getMenu());
 		var saveSucceeded = false;
@@ -4972,6 +5273,7 @@
 				if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.conflict) {
 					message = S.conflictError;
 					state.draftConflict = true;
+					state.saveConflict = true;
 					persistLocalDraft(); checkLocalDraft();
 				}
 				updateSaveState('failed', message);
@@ -4985,7 +5287,10 @@
 					if (hasUnsavedChanges()) persistLocalDraft();
 					else removeLocalDraft();
 					renderReadiness();
+					if (state.exitAfterSave && state.pendingExitUrl) window.location = state.pendingExitUrl;
 				}
+				// A failed save stays here, with its error and Retry showing.
+				state.exitAfterSave = false;
 			});
 	}
 

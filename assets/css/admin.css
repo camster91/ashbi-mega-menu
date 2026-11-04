@@ -3281,3 +3281,96 @@ body.abmm-builder-sheet-open {
 	color: #50575e;
 	text-align: center;
 }
+
+/* Menu card statuses: where the menu is, and whether its checklist needs work. */
+.abmm-menu-card__statuses {
+	display: inline-flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.abmm-menu-card__statuses .abmm-status--draft {
+	cursor: default;
+}
+
+.abmm-issue-count {
+	display: inline-block;
+	min-width: 1.5em;
+	margin-inline-start: 0.4em;
+	padding: 0 0.35em;
+	border-radius: 999px;
+	background: #fff3df;
+	color: #8a4b00;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.5em;
+	text-align: center;
+}
+
+.abmm-archive-confirm.is-danger {
+	background: #fcf0f1;
+	border-color: #d63638;
+}
+
+.abmm-archive-confirm__consequence {
+	font-weight: 600;
+	color: #8a2424;
+}
+
+.wp-core-ui .button.abmm-button-danger,
+.button.abmm-button-danger {
+	background: #b32d2e;
+	border-color: #b32d2e;
+	color: #fff;
+}
+
+.wp-core-ui .button.abmm-button-danger:hover,
+.wp-core-ui .button.abmm-button-danger:focus,
+.button.abmm-button-danger:hover,
+.button.abmm-button-danger:focus {
+	background: #8a2424;
+	border-color: #8a2424;
+	color: #fff;
+}
+
+.abmm-version-list {
+	margin: 0.5rem 0 0.75rem;
+}
+
+.abmm-version-list li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	padding: 0.35rem 0;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.abmm-editor-chrome__note {
+	margin: 0;
+	color: #fff;
+	font-size: 12px;
+}
+
+.abmm-contrast-warning ul {
+	margin: 0 0 0.5em 1.25em;
+}
+
+.abmm-draft-recovery__age {
+	font-weight: 600;
+}
+
+/* Keep the preview in view while editing a mega item below it, so the promise
+ * that changes show right away holds. Below the sticky top bar. */
+@media (min-width: 1200px) {
+	.abmm-builder__main:has(> .abmm-mega-editor:not([hidden])) > .abmm-preview-shell {
+		position: sticky;
+		top: 104px;
+		z-index: 5;
+		max-height: 38vh;
+		background: #f0f0f1;
+		box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.35);
+	}
+}

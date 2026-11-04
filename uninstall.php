@@ -31,6 +31,7 @@ $abmm_option_keys = array(
 	'abmm_product_branding',
 	'abmm_plugin_version',
 	'abmm_import_backups',
+	'abmm_menu_versions',
 	'abmm_contextual_navigation_enabled',
 	'widget_abmm_widget',
 	'abmm_collection_lock',

@@ -305,6 +305,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				$abmm_issues_id      = 'abmm-card-issues-' . sanitize_html_class( $id );
 				$abmm_edit_url       = admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) );
 				$abmm_count          = count( $menu['items'] ?? array() );
+				$abmm_placed         = ! empty( $placements[ $id ]['known'] );
 				$abmm_search_title   = function_exists( 'mb_strtolower' ) ? mb_strtolower( $abmm_title ) : strtolower( $abmm_title );
 				--$abmm_order;
 				?>
@@ -318,8 +319,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<div class="abmm-menu-card__body">
 						<div class="abmm-menu-card__head">
 							<h2 class="abmm-menu-card__title"><?php echo esc_html( $abmm_title ); ?></h2>
-							<span class="abmm-status <?php echo $abmm_is_ready ? 'abmm-status--ready' : 'abmm-status--neutral'; ?>"><?php echo esc_html( $abmm_is_ready ? __( 'Ready', 'ashbi-mega-menu' ) : __( 'Draft', 'ashbi-mega-menu' ) ); ?></span>
-						</div>
+							<span class="abmm-menu-card__statuses">
+								<?php if ( $abmm_placed ) : ?>
+									<span class="abmm-status abmm-status--ready" title="<?php esc_attr_e( 'Found on your site. Every save updates it there right away.', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Placed', 'ashbi-mega-menu' ); ?></span>
+								<?php else : ?>
+									<span class="abmm-status abmm-status--neutral" title="<?php esc_attr_e( 'Not found in your pages, widgets or page builder content. Placements in theme templates or PHP cannot be detected.', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'No placement found', 'ashbi-mega-menu' ); ?></span>
+								<?php endif; ?>
+								<?php if ( ! $abmm_is_ready ) : ?>
+									<span class="abmm-status abmm-status--draft"><?php esc_html_e( 'Needs attention', 'ashbi-mega-menu' ); ?></span>
+								<?php endif; ?>
+							</span>
+</div>
 						<p class="abmm-menu-card__meta">
 							<span>
 								<?php
@@ -365,21 +375,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 								</span>
 							<?php endif; ?>
 						</p>
-						<?php if ( $abmm_is_ready ) : ?>
-							<div class="abmm-menu-card__shortcode">
-								<code><?php echo esc_html( $abmm_shortcode ); ?></code>
-								<button type="button" class="button button-small abmm-copy-shortcode" data-shortcode="<?php echo esc_attr( $abmm_shortcode ); ?>" title="<?php esc_attr_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Copy', 'ashbi-mega-menu' ); ?></button>
-							</div>
-						<?php endif; ?>
-					</div>
+						<div class="abmm-menu-card__shortcode">
+							<code><?php echo esc_html( $abmm_shortcode ); ?></code>
+							<button type="button" class="button button-small abmm-copy-shortcode" data-shortcode="<?php echo esc_attr( $abmm_shortcode ); ?>" title="<?php esc_attr_e( 'Copy shortcode', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Copy', 'ashbi-mega-menu' ); ?></button>
+						</div>
+</div>
 					<div class="abmm-menu-card__actions">
 						<a class="button abmm-menu-card__main" href="<?php echo esc_url( $abmm_edit_url ); ?>">
-							<?php echo esc_html( $abmm_is_ready ? __( 'Edit menu', 'ashbi-mega-menu' ) : __( 'Finish setup', 'ashbi-mega-menu' ) ); ?>
+							<?php echo esc_html( $abmm_is_ready || $abmm_placed ? __( 'Edit menu', 'ashbi-mega-menu' ) : __( 'Finish setup', 'ashbi-mega-menu' ) ); ?>
 						</a>
-						<?php if ( $abmm_is_ready ) : ?>
-							<a class="button" href="<?php echo esc_url( $abmm_edit_url . '#placement' ); ?>"><?php esc_html_e( 'Place & verify', 'ashbi-mega-menu' ); ?></a>
-						<?php endif; ?>
-						<div class="abmm-card-menu">
+						<a class="button" href="<?php echo esc_url( $abmm_edit_url . '#placement' ); ?>"><?php esc_html_e( 'Place & verify', 'ashbi-mega-menu' ); ?></a>
+<div class="abmm-card-menu">
 							<button type="button" class="button abmm-card-menu__toggle" aria-haspopup="menu" aria-expanded="false" aria-controls="<?php echo esc_attr( $abmm_actions_id ); ?>">
 								<span class="abmm-card-menu__dots" aria-hidden="true">&#8943;</span>
 								<span class="screen-reader-text">
@@ -392,6 +398,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<div class="abmm-card-menu__list" id="<?php echo esc_attr( $abmm_actions_id ); ?>" role="menu" aria-label="<?php esc_attr_e( 'More actions', 'ashbi-mega-menu' ); ?>" hidden>
 								<button type="button" role="menuitem" tabindex="-1" class="button abmm-export-menu" data-menu-id="<?php echo esc_attr( $id ); ?>" title="<?php esc_attr_e( 'Export as JSON', 'ashbi-mega-menu' ); ?>"><?php esc_html_e( 'Export', 'ashbi-mega-menu' ); ?></button>
 								<button type="button" role="menuitem" tabindex="-1" class="button abmm-duplicate-menu" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Duplicate', 'ashbi-mega-menu' ); ?></button>
+								<button type="button" role="menuitem" tabindex="-1" class="button abmm-menu-versions" data-menu-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Saved versions', 'ashbi-mega-menu' ); ?></button>
 								<button type="button" role="menuitem" tabindex="-1" class="button abmm-delete-menu" data-menu-id="<?php echo esc_attr( $id ); ?>" data-menu-title="<?php echo esc_attr( $abmm_title ); ?>"><?php esc_html_e( 'Archive', 'ashbi-mega-menu' ); ?></button>
 							</div>
 						</div>
@@ -549,7 +556,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<span class="abmm-tool__text"><strong><?php esc_html_e( 'Recovery snapshots', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Undo an import by restoring an automatic backup.', 'ashbi-mega-menu' ); ?></small></span>
 		</summary>
 		<div class="abmm-tool__body">
-		<p class="description"><?php esc_html_e( 'The last five backups are kept. Restoring replaces all current menus, after saving them as a new backup first.', 'ashbi-mega-menu' ); ?></p>
+		<p class="description"><?php esc_html_e( 'The last five backups are kept. Restoring replaces all current menus, after saving them as a new backup first. To roll back one menu, use Saved versions in its card\'s menu.', 'ashbi-mega-menu' ); ?></p>
 		<button type="button" class="button abmm-load-backups"><?php esc_html_e( 'Refresh backups', 'ashbi-mega-menu' ); ?></button>
 		<div id="abmm-backup-status" role="status" aria-live="polite" tabindex="-1"></div>
 		<div id="abmm-backup-list"></div>

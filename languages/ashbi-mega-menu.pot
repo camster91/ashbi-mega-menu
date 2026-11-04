@@ -168,14 +168,6 @@ msgstr ""
 msgid "Restore local draft"
 msgstr ""
 
-#: admin/views/builder.php:96
-msgid "Download local draft"
-msgstr ""
-
-#: admin/views/builder.php:97
-msgid "Reload saved version"
-msgstr ""
-
 #: admin/views/builder.php:98
 msgid "Discard local draft"
 msgstr ""
@@ -379,10 +371,6 @@ msgstr ""
 msgid "Style preset"
 msgstr ""
 
-#: admin/views/builder.php:235
-msgid "Custom styling appears after you edit preset colors."
-msgstr ""
-
 #: admin/views/builder.php:242
 msgid "Custom"
 msgstr ""
@@ -446,22 +434,6 @@ msgstr ""
 msgid "Icon styling"
 msgstr ""
 
-#: admin/views/builder.php:292
-msgid "Inherit menu text colour"
-msgstr ""
-
-#: admin/views/builder.php:296
-msgid "Default icon colour"
-msgstr ""
-
-#: admin/views/builder.php:300
-msgid "Hover / focus colour"
-msgstr ""
-
-#: admin/views/builder.php:304
-msgid "Current / active colour"
-msgstr ""
-
 #: admin/views/builder.php:308
 msgid "Icon size (px)"
 msgstr ""
@@ -470,16 +442,8 @@ msgstr ""
 msgid "Icon background"
 msgstr ""
 
-#: admin/views/builder.php:316
-msgid "Icon border colour"
-msgstr ""
-
 #: admin/views/builder.php:320
 msgid "Icon corner radius (px)"
-msgstr ""
-
-#: admin/views/builder.php:323
-msgid "SVG icons use these colours. Uploaded PNG, JPG and WebP artwork keeps its original pixels while using the shared size, background, border and radius."
 msgstr ""
 
 #: admin/views/builder.php:327
@@ -488,10 +452,6 @@ msgstr ""
 
 #: admin/views/builder.php:329
 msgid "Header background"
-msgstr ""
-
-#: admin/views/builder.php:333
-msgid "Sidebar background"
 msgstr ""
 
 #: admin/views/builder.php:337
@@ -550,10 +510,6 @@ msgstr ""
 msgid "Panel width (px)"
 msgstr ""
 
-#: admin/views/builder.php:387
-msgid "Sidebar width (px)"
-msgstr ""
-
 #: admin/views/builder.php:391
 msgid "Corner radius (px)"
 msgstr ""
@@ -578,10 +534,6 @@ msgstr ""
 
 #: admin/views/builder.php:400
 msgid "Strong"
-msgstr ""
-
-#: admin/views/builder.php:404
-msgid "CTA button shape"
 msgstr ""
 
 #: admin/views/builder.php:406
@@ -802,14 +754,6 @@ msgstr ""
 msgid "Columns"
 msgstr ""
 
-#: admin/views/builder.php:548
-msgid "Category list"
-msgstr ""
-
-#: admin/views/builder.php:551
-msgid "Hide the category list and use the full width for columns"
-msgstr ""
-
 #: admin/views/builder.php:559
 msgid "Categories"
 msgstr ""
@@ -919,18 +863,6 @@ msgstr ""
 
 #: admin/views/builder.php:641
 msgid "Leave with unsaved changes?"
-msgstr ""
-
-#: admin/views/builder.php:642
-msgid "A local recovery draft has been saved in this browser. You can stay and save, or leave and recover it later."
-msgstr ""
-
-#: admin/views/builder.php:643
-msgid "Stay and save"
-msgstr ""
-
-#: admin/views/builder.php:644
-msgid "Leave with recovery draft"
 msgstr ""
 
 #: admin/views/builder.php:652
@@ -1191,10 +1123,6 @@ msgstr ""
 msgid "Ready"
 msgstr ""
 
-#: admin/views/list.php:319
-msgid "Draft"
-msgstr ""
-
 #. translators: %d: number of top-level items
 #: admin/views/list.php:326
 #, php-format
@@ -1389,10 +1317,6 @@ msgstr ""
 msgid "Undo an import by restoring an automatic backup."
 msgstr ""
 
-#: admin/views/list.php:540
-msgid "The last five backups are kept. Restoring replaces all current menus, after saving them as a new backup first."
-msgstr ""
-
 #: admin/views/list.php:541
 msgid "Refresh backups"
 msgstr ""
@@ -1578,10 +1502,6 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-abmm-admin.php:160
-msgid "Click again to delete"
-msgstr ""
-
 #: includes/class-abmm-admin.php:162
 msgid "Add Category"
 msgstr ""
@@ -1745,14 +1665,6 @@ msgstr ""
 msgid "Confirm Import"
 msgstr ""
 
-#: includes/class-abmm-admin.php:214
-msgid "This local draft is based on an older saved version. Download it before continuing. You may restore it for review, but saving is disabled; reload the saved version and reapply the changes you want."
-msgstr ""
-
-#: includes/class-abmm-admin.php:215
-msgid "Restore the unsaved changes saved in this browser, or download them before discarding and continuing with the saved version."
-msgstr ""
-
 #: includes/class-abmm-admin.php:216
 #: includes/class-abmm-data.php:410
 msgid "Add a menu name."
@@ -1787,11 +1699,6 @@ msgstr ""
 #: includes/class-abmm-admin.php:224
 #: includes/class-abmm-data.php:448
 msgid "Add at least one labelled item with a real destination."
-msgstr ""
-
-#: includes/class-abmm-admin.php:225
-#: includes/class-abmm-data.php:450
-msgid "Complete the enabled call-to-action label and destination."
 msgstr ""
 
 #. translators: %s: the start of a menu item label.
@@ -1993,10 +1900,6 @@ msgstr ""
 msgid "Archived menu permanently deleted."
 msgstr ""
 
-#: includes/class-abmm-admin.php:751
-msgid "Menus placed in theme templates, page builders or PHP cannot be detected. Check those before archiving."
-msgstr ""
-
 #: includes/class-abmm-admin.php:811
 msgid "Database create failed."
 msgstr ""
@@ -2053,10 +1956,6 @@ msgid "Replace %d sample link with your own page."
 msgid_plural "Replace %d sample links with your own pages."
 msgstr[0] ""
 msgstr[1] ""
-
-#: includes/class-abmm-data.php:611
-msgid "Classic"
-msgstr ""
 
 #: includes/class-abmm-data.php:629
 msgid "Dark"
@@ -3056,12 +2955,6 @@ msgstr[1] ""
 
 #. translators: %s: product name.
 #: includes/class-abmm-product-profiles.php:365
-#, php-format
-msgid "Delete “%s”? Its pages will go back to showing only the main menu."
-msgstr ""
-
-#. translators: %s: product name.
-#: includes/class-abmm-product-profiles.php:365
 msgid "Delete"
 msgstr ""
 
@@ -3372,14 +3265,6 @@ msgstr ""
 
 #: assets/js/admin.js:684
 msgid "Place and check"
-msgstr ""
-
-#: assets/js/admin.js:853
-msgid "Brand Identity"
-msgstr ""
-
-#: assets/js/admin.js:854
-msgid "Call-to-Action Button"
 msgstr ""
 
 #: assets/js/admin.js:1026
@@ -4108,14 +3993,6 @@ msgstr ""
 msgid "Not copied exactly"
 msgstr ""
 
-#: admin/views/emm-import.php:64
-msgid "An Ashbi menu already uses this ID. It is kept unless you choose to replace it below."
-msgstr ""
-
-#: admin/views/emm-import.php:66
-msgid "Imported before: it will be updated."
-msgstr ""
-
 #: admin/views/emm-import.php:74
 msgid "Nothing, everything matches."
 msgstr ""
@@ -4134,16 +4011,8 @@ msgstr ""
 msgid "Easy Mega Menu's files were not found. The bundled classic styles and generic icons will be used; your own icons may show as a link icon."
 msgstr ""
 
-#: admin/views/emm-import.php:102
-msgid "Replace Ashbi menus that use the same ID"
-msgstr ""
-
 #: admin/views/emm-import.php:104
 msgid "Import menus"
-msgstr ""
-
-#: admin/views/emm-import.php:105
-msgid "A snapshot of your Ashbi menus is saved first."
 msgstr ""
 
 #: admin/views/emm-import.php:109
@@ -4174,10 +4043,6 @@ msgstr ""
 msgid "Easy Mega Menu is not active. Turning this on makes your headers show the imported menus."
 msgstr ""
 
-#: admin/views/emm-import.php:128
-msgid "Save"
-msgstr ""
-
 #: admin/views/builder.php:217
 msgid "Site look"
 msgstr ""
@@ -4188,14 +4053,6 @@ msgstr ""
 
 #: admin/views/builder.php:220
 msgid "Ashbi"
-msgstr ""
-
-#: admin/views/builder.php:222
-msgid "Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Switching to Ashbi changes how the menu looks on your site."
-msgstr ""
-
-#: admin/views/builder.php:225
-msgid "This menu was imported from Easy Mega Menu and keeps its Classic look on your site. The preview here shows its content in Ashbi's style, and colour and size changes below still apply. Check the final look on your site."
 msgstr ""
 
 #. translators: %d: number of menus.
@@ -4503,12 +4360,6 @@ msgid_plural "Replace mode will remove %d existing menus."
 msgstr[0] ""
 msgstr[1] ""
 
-#. translators: 1: number of block placements, 2: number of widget placements, 3: number of shortcodes in pages.
-#: includes/class-abmm-admin.php:177
-#, php-format
-msgid "Placements: blocks %1$d, widgets %2$d, shortcodes %3$d."
-msgstr ""
-
 #. translators: 1: snapshot date, 2: number of menus.
 #: includes/class-abmm-admin.php:244
 #, php-format
@@ -4561,4 +4412,340 @@ msgstr ""
 
 #: admin/views/emm-import.php:120
 msgid "Your pages use these menus, so test each one:"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Saved changes go live wherever this menu is placed."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Download a copy"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Add alternative text or a site title. Without either, screen readers announce the logo link with no name."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Some colors may be hard to read:"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Saving a switch changes how the menu looks on your site right away. You can switch back here at any time."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Phone menu button label"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Optional. Tells two phone menus on one page apart, for example \"Products\". Empty keeps the icon on its own."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "This menu was imported from Easy Mega Menu and keeps its Classic look on your site. The desktop preview shows its content in Ashbi's style; the tablet and phone previews show the Classic look. Color and size changes below still apply. Check the final look on your site."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Your own colors. Available after you edit preset colors."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Inherit menu text color"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Default icon color"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Hover / focus color"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Current / active color"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Icon border color"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "SVG icons use these colors. Uploaded PNG, JPG and WebP artwork keeps its original pixels while using the shared size, background, border and radius."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Category bar background"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Category bar width (px)"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Button shape"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Desktop shows Ashbi's style, not the Classic look. Use tablet or phone to see Classic."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Category bar"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Hide the category bar and use the full width for columns"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Save them now, or leave and recover them later from a draft kept in this browser."
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Save and leave"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Leave, keep draft"
+msgstr ""
+
+#: admin/views/builder.php
+msgid "Keep editing"
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Open your menus"
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Go to Plugins to deactivate Easy Mega Menu after testing"
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "The switch was not turned on. Some placed menus are not imported yet, see step 3."
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Copy %s"
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "An Ashbi menu already uses this ID. It is kept unless you tick this row, which replaces it."
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Your Ashbi copy differs from Easy Mega Menu, usually because you edited it. It is kept unless you tick this row, which replaces your edits."
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Imported before, with no differences."
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Import ticked menus"
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "A snapshot of your Ashbi menus is saved first, and each replaced menu keeps a saved version you can restore from its menu card."
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Your pages place these menus, but they are not imported: %s. Import them first, because with this switch on and Easy Mega Menu inactive those headers show nothing."
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Turn it on anyway, even though those headers will be empty"
+msgstr ""
+
+#: admin/views/emm-import.php
+msgid "Save switch setting"
+msgstr ""
+
+#: admin/views/list.php
+msgid "Found on your site. Every save updates it there right away."
+msgstr ""
+
+#: admin/views/list.php
+msgid "Placed"
+msgstr ""
+
+#: admin/views/list.php
+msgid "Not found in your pages, widgets or page builder content. Placements in theme templates or PHP cannot be detected."
+msgstr ""
+
+#: admin/views/list.php
+msgid "No placement found"
+msgstr ""
+
+#: admin/views/list.php
+msgid "Needs attention"
+msgstr ""
+
+#: admin/views/list.php
+msgid "Saved versions"
+msgstr ""
+
+#: admin/views/list.php
+msgid "The last five backups are kept. Restoring replaces all current menus, after saving them as a new backup first. To roll back one menu, use Saved versions in its card's menu."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Save and update site"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Unsaved draft from %s."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Add a link for \"%s\", or remove it. It goes nowhere yet."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Button text on the button"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Panel text on the panel"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Descriptions on the panel"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Descriptions on the category bar"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Category text on the category bar"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Active category text"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Menu links on the header"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "%1$s: contrast %2$s:1, aim for at least 4.5:1"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Loading…"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Saved versions could not be loaded."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Restoring replaces this menu on your site right away. The current version is kept, so you can change your mind."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "No saved versions yet. One is kept the next time you save a change."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "The saved version could not be restored. Nothing was changed."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "This browser could not keep a recovery draft, so leaving now loses these changes. Save them first."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Preset applied. Your custom colors were replaced; the Custom card brings them back."
+msgstr ""
+
+#: assets/js/admin.js
+msgid "Color"
+msgstr ""
+
+#: assets/js/admin.js
+msgid "%d checklist item to fix"
+msgid_plural "%d checklist items to fix"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/js/admin.js
+msgid "This menu will disappear from %d place on your site, with no error shown."
+msgid_plural "This menu will disappear from %d places on your site, with no error shown."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/js/admin.js
+msgid "%1$s, %2$d menu item"
+msgid_plural "%1$s, %2$d menu items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/js/admin.js
+msgid "%d link from the other layout is hidden but kept. Switch back to see it."
+msgid_plural "%d links from the other layout are hidden but kept. Switch back to see them."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-abmm-admin.php
+msgid "Placements: blocks %1$d, widgets %2$d, shortcodes %3$d, page builders and Easy Mega Menu shortcodes %4$d."
+msgstr ""
+
+#: includes/class-abmm-admin.php
+msgid "This local draft is based on an older saved version. Download a copy before continuing. You can restore it for review, but saving stays off: discard it to load the latest saved version, then reapply the changes you want."
+msgstr ""
+
+#: includes/class-abmm-admin.php
+msgid "Restore these unsaved changes, or discard them and continue with the saved version. If you carry on editing without restoring, your new changes replace this draft."
+msgstr ""
+
+#: includes/class-abmm-admin.php
+msgid "Add a label and a link to the button, or turn the button off."
+msgstr ""
+
+#: includes/class-abmm-admin.php
+msgid "Saved version restored. Your site now shows it wherever this menu is placed."
+msgstr ""
+
+#: includes/class-abmm-admin.php
+msgid "Archived menu permanently deleted. A recovery snapshot was saved first."
+msgstr ""
+
+#: includes/class-abmm-admin.php
+msgid "Menus placed in theme templates or PHP cannot be detected. If this one is placed there, that navigation will disappear without any error. Check them before archiving."
+msgstr ""
+
+#: includes/class-abmm-data.php
+msgid "This saved version is no longer available. Reload the list and try again."
+msgstr ""
+
+#: includes/class-abmm-data.php
+msgid "Clean"
+msgstr ""
+
+#: includes/class-abmm-emm-migration.php
+msgid "Ashbi is answering [easy_mega_menu] shortcodes, but these placed menus were not imported, so their headers are empty: %s."
+msgstr ""
+
+#: includes/class-abmm-import-export.php
+msgid "This archived menu could not be found."
+msgstr ""
+
+#: includes/class-abmm-product-profiles.php
+msgid "Product and its branding deleted."
+msgstr ""
+
+#: includes/class-abmm-product-profiles.php
+msgid "Set up"
+msgstr ""
+
+#: includes/class-abmm-product-profiles.php
+msgid "Its links show on these pages wherever the menu has page product navigation turned on."
+msgstr ""
+
+#: includes/class-abmm-product-profiles.php
+msgid "Delete “%s” and its branding? Its pages will go back to showing only the main menu. This cannot be undone."
 msgstr ""

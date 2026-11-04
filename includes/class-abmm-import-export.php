@@ -532,7 +532,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 	 *
 	 * @return bool|WP_Error
 	 */
-	private function backup_current_menus() {
+	private function backup_current_menus( $extra_menus = array() ) {
 		$backups = get_option( 'abmm_import_backups', array() );
 		if ( ! is_array( $backups ) ) {
 			$backups = array();
@@ -543,13 +543,28 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 			array(
 				'id'         => wp_generate_uuid4(),
 				'created_at' => gmdate( 'c' ),
-				'menus'      => ABMM_Data::instance()->get_all(),
+				'menus'      => array_replace( $extra_menus, ABMM_Data::instance()->get_all() ),
 			)
 		);
 
 		// Keep recent recovery points without growing the options table forever.
 		$backups = array_slice( $backups, 0, 5 );
 		return update_option( 'abmm_import_backups', $backups ) ? true : new WP_Error( 'abmm_backup_failed', __( 'The recovery backup could not be saved. No menus were changed.', 'ashbi-mega-menu' ) );
+	}
+
+	/**
+	 * Recovery point before an archived menu is permanently deleted. It holds the
+	 * current menus plus the archived one, so restoring it brings that menu back.
+	 *
+	 * @param string $id Archived menu ID.
+	 * @return true|WP_Error
+	 */
+	public function backup_before_permanent_delete( $id ) {
+		$entry = ABMM_Data::instance()->get_archived()[ $id ] ?? null;
+		if ( ! is_array( $entry ) || ! is_array( $entry['menu'] ?? null ) ) {
+			return new WP_Error( 'abmm_backup_failed', __( 'This archived menu could not be found.', 'ashbi-mega-menu' ) );
+		}
+		return $this->backup_current_menus( array( $id => $entry['menu'] ) );
 	}
 
 	/**
