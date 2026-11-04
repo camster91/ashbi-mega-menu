@@ -4550,3 +4550,11 @@ msgstr ""
 #: src/blocks/mega-menu/edit.js:64
 msgid "On a product's pages, show that product's links under the menu."
 msgstr ""
+
+#: admin/views/builder.php:561
+msgid "In Appearance → Widgets, add the Ashbi Mega Menu block to a header area, or paste the shortcode."
+msgstr ""
+
+#: includes/class-abmm-admin.php:606
+msgid "Your theme has widget areas. In Appearance → Widgets, add the Ashbi Mega Menu block to a header area if your theme has one. Otherwise paste the shortcode into a page or use the PHP helper in a child theme."
+msgstr ""

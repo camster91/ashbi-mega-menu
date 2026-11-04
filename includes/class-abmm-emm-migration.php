@@ -573,6 +573,29 @@ class ABMM_EMM_Migration {
 	}
 
 	/**
+	 * Whether any post, Elementor layout or widget still contains
+	 * [easy_mega_menu]. Cached for an hour so admin screens stay fast.
+	 *
+	 * @return bool
+	 */
+	private function shortcode_in_content() {
+		$cached = get_transient( 'abmm_emm_shortcode_in_use' );
+		if ( 'yes' === $cached || 'no' === $cached ) {
+			return 'yes' === $cached;
+		}
+		global $wpdb;
+		$like    = '%' . $wpdb->esc_like( 'easy_mega_menu' ) . '%';
+		$skipped = "'trash','auto-draft','inherit'";
+		$found   = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status NOT IN ($skipped) AND post_content LIKE %s LIMIT 1", '%' . $wpdb->esc_like( '[easy_mega_menu' ) . '%' ) )
+			|| $wpdb->get_var( $wpdb->prepare( "SELECT pm.meta_id FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = '_elementor_data' AND p.post_status NOT IN ($skipped) AND pm.meta_value LIKE %s LIMIT 1", $like ) )
+			|| $wpdb->get_var( $wpdb->prepare( "SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE 'widget\_%%' AND option_value LIKE %s LIMIT 1", $like ) );
+		/** Filters whether site content still uses [easy_mega_menu]. */
+		$found = (bool) apply_filters( 'abmm_emm_shortcode_in_use', (bool) $found );
+		set_transient( 'abmm_emm_shortcode_in_use', $found ? 'yes' : 'no', HOUR_IN_SECONDS );
+		return $found;
+	}
+
+	/**
 	 * Warn when Easy Mega Menu is inactive but its menus are still stored and
 	 * nothing answers [easy_mega_menu]: WordPress then prints the shortcode as
 	 * plain text on the site. Shown on the Dashboard, Plugins and this plugin's
@@ -588,7 +611,7 @@ class ABMM_EMM_Migration {
 		if ( false !== strpos( $id, self::PAGE_SLUG ) || ( ! in_array( $id, array( 'dashboard', 'plugins' ), true ) && false === strpos( $id, 'ashbi-mega-menu' ) ) ) {
 			return;
 		}
-		if ( empty( $this->read_source()['menus'] ) ) {
+		if ( empty( $this->read_source()['menus'] ) || ! $this->shortcode_in_content() ) {
 			return;
 		}
 		printf(
