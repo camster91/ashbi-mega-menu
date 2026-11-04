@@ -273,7 +273,7 @@ class ABMM_Product_Profiles {
 			<?php require ABMM_PLUGIN_DIR . 'admin/views/brand-strip.php'; ?>
 			<?php if ( $draft ) : ?><div class="notice notice-error"><p><?php echo esc_html( $draft['error'] ); ?> <?php esc_html_e( 'Your entered values are retained below. Review them against the latest saved profile before retrying.', 'ashbi-mega-menu' ); ?></p></div><?php endif; ?>
 			<?php if ( isset( $_GET['updated'], $_GET['_abmm_notice'] ) && is_string( $_GET['_abmm_notice'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_abmm_notice'] ) ), 'abmm_profile_notice' ) ) : ?>
-				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Product navigation saved.', 'ashbi-mega-menu' ); ?></p></div>
+				<div class="notice notice-success is-dismissible"><p><?php echo esc_html( isset( $_GET['deleted'] ) ? __( 'Product and its branding deleted.', 'ashbi-mega-menu' ) : __( 'Product navigation saved.', 'ashbi-mega-menu' ) ); ?></p></div>
 			<?php endif; ?>
 			<?php if ( $unbranded > 0 ) : ?>
 				<aside class="abmm-callout">
@@ -322,7 +322,7 @@ class ABMM_Product_Profiles {
 							} elseif ( ! $item['root_page_id'] ) {
 								$status = array( 'key' => 'draft', 'label' => __( 'No main page', 'ashbi-mega-menu' ), 'hint' => __( 'Choose a main product page so the pages below it show these links.', 'ashbi-mega-menu' ) );
 							} else {
-								$status = array( 'key' => 'ready', 'label' => __( 'Active', 'ashbi-mega-menu' ), 'hint' => '' );
+								$status = array( 'key' => 'ready', 'label' => __( 'Set up', 'ashbi-mega-menu' ), 'hint' => __( 'Its links show on these pages wherever the menu has page product navigation turned on.', 'ashbi-mega-menu' ) );
 							}
 							?>
 							<li class="abmm-product-card<?php echo $is_selected ? ' is-selected' : ''; ?>">
@@ -364,7 +364,7 @@ class ABMM_Product_Profiles {
 									<div class="abmm-card-menu__list" id="<?php echo esc_attr( $menu_id ); ?>" role="menu" aria-label="<?php esc_attr_e( 'More actions', 'ashbi-mega-menu' ); ?>" hidden>
 										<a role="menuitem" tabindex="-1" class="button abmm-card-menu__item abmm-card-menu__item--edit" href="<?php echo esc_url( $profile_url ); ?>"><?php esc_html_e( 'Edit', 'ashbi-mega-menu' ); ?></a>
 										<a role="menuitem" tabindex="-1" class="button abmm-card-menu__item abmm-card-menu__item--branding" href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu-product-branding&profile=' . rawurlencode( $profile_id ) ) ); ?>"><?php esc_html_e( 'Branding', 'ashbi-mega-menu' ); ?></a>
-										<a role="menuitem" tabindex="-1" class="button abmm-card-menu__item abmm-card-menu__item--delete is-danger" href="<?php echo esc_url( $delete_url ); ?>" data-abmm-confirm="<?php echo esc_attr( sprintf( /* translators: %s: product name. */ __( 'Delete “%s”? Its pages will go back to showing only the main menu.', 'ashbi-mega-menu' ), $item_title ) ); ?>"><?php esc_html_e( 'Delete', 'ashbi-mega-menu' ); ?></a>
+										<a role="menuitem" tabindex="-1" class="button abmm-card-menu__item abmm-card-menu__item--delete is-danger" href="<?php echo esc_url( $delete_url ); ?>" data-abmm-confirm="<?php echo esc_attr( sprintf( /* translators: %s: product name. */ __( 'Delete “%s” and its branding? Its pages will go back to showing only the main menu. This cannot be undone.', 'ashbi-mega-menu' ), $item_title ) ); ?>"><?php esc_html_e( 'Delete', 'ashbi-mega-menu' ); ?></a>
 									</div>
 								</div>
 							</li>
@@ -737,7 +737,7 @@ JS;
 		if ( is_wp_error( $result ) ) {
 			ABMM_Option_Store::recover( 'ashbi-mega-menu-products', $profile_id, $this->get( $profile_id ) ?? array(), $result->get_error_message() );
 		}
-		wp_safe_redirect( admin_url( 'admin.php?page=ashbi-mega-menu-products' ) );
+		wp_safe_redirect( add_query_arg( '_abmm_notice', wp_create_nonce( 'abmm_profile_notice' ), admin_url( 'admin.php?page=ashbi-mega-menu-products&deleted=1&updated=1' ) ) );
 		exit;
 	}
 
