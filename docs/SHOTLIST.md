@@ -32,10 +32,10 @@ These are the screenshots the docs need. Each doc marks its spot with a hidden c
 | `09-dropdown-simple-columns.png` | Dropdown editor on **Simple columns** with links filled in | Layout choice and **Add link** | user-guide |
 | `10-dropdown-categories.png` | Dropdown editor on **Categories + links** with one category selected | Category list and columns | user-guide |
 | `11-featured-card.png` | Dropdown editor with the featured card on, plus the card in the preview | The card's fields | user-guide |
-| `12-more-options.png` | A link's **More options** open | Open in new tab, Relationship and CSS classes | user-guide |
+| `12-more-options.png` | A link's options open, with **More options** expanded | Open in new tab, Relationship and CSS classes | user-guide |
 | `13-button-panel.png` | The **Button** section with **Show button** on | Button text and URL | user-guide |
 | `14-logo-panel.png` | The **Logo** section with **Show logo** on and a logo chosen | Picture button and alternative text | style-your-menu, user-guide |
-| `25-checklist-issue.png` | The checklist showing two issues | An issue you can click | troubleshooting, user-guide |
+| `25-checklist-issue.png` | **Check** with the checklist showing two issues | An issue you can click, and the number on the step | troubleshooting, user-guide |
 | `26-save-status.png` | Top bar on a placed menu with changes not yet saved | **Save and update site** and the status | user-guide |
 
 ## Admin: Design
@@ -74,9 +74,9 @@ These are the screenshots the docs need. Each doc marks its spot with a hidden c
 
 | File | Screen and state | Highlight | Used in |
 | --- | --- | --- | --- |
-| `32-history-versions.png` | History for one menu, with three versions listed | The restore button | undo-and-history |
-| `33-history-snapshots.png` | **Recovery snapshots** open, listing two backups | Date and menu count | undo-and-history |
-| `34-draft-recovery.png` | Editor showing the draft panel | Draft age and the three buttons | undo-and-history |
+| `32-history-versions.png` | **History**, under **One menu**, with three versions listed | The restore button | undo-and-history |
+| `33-history-backups.png` | **History**, under **All menus**, listing two backups | Date and menu count | undo-and-history |
+| `34-unsaved-changes.png` | Editor showing the panel for unsaved changes | When they were made, and the three buttons | undo-and-history |
 | `35-exit-dialog.png` | The dialog for leaving with unsaved changes | The three choices | undo-and-history |
 | `36-archive-dialog.png` | The archive message for a placed menu | The place count | undo-and-history |
 | `37-archived-list.png` | The **Archived menus** list with one menu | **Restore** | undo-and-history |
@@ -94,5 +94,3 @@ These are the screenshots the docs need. Each doc marks its spot with a hidden c
 | `45-coverage.png` | **Navigation Coverage** with three pages, one of each **Why** | The **Why** column | user-guide |
 
 Total: 46 screenshots.
-
-<!-- TODO: the admin labels here follow the simplification plan. Check each one against the final build before taking the picture. -->

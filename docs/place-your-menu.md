@@ -90,7 +90,7 @@ A shortcode is a short piece of text. WordPress swaps it for your menu when the 
 [ashbi_mega_menu id="your_menu_id"]
 ```
 
-1. Click **Copy shortcode** on the **Place** step. You can also click **Copy** on the menu's card.
+1. Click **Copy shortcode** on the **Place** step. If you don't see it, open **Other ways to place it**. You can also click **Shortcode** on the menu's card, then **Copy**.
 2. Paste it into a shortcode block or element in a full-width section.
 
 <!-- screenshot: 22-shortcode-block.png -->
@@ -103,8 +103,8 @@ Use your menu's own code. The ID in the example above will not work on your site
 
 This is optional. It only applies if you use [Product Navigation](user-guide.md#product-navigation).
 
-- In the block or widget, turn on **Use page product navigation**.
-- In Elementor, turn on **Product navigation on product pages**.
+- In the block or widget, turn on **Show Product Navigation on product pages**.
+- In Elementor, turn on **Show Product Navigation on product pages**.
 - For a shortcode, add `context="page"`:
 
 ```text
@@ -131,6 +131,8 @@ Each menu's card shows one of two labels:
 
 - **Placed** means the plugin found the menu in a page, widget or page builder.
 - **No placement found** means it did not find one.
+
+The status beside the save button says the same thing: **Live where placed** or **No placement found**.
 
 The plugin can't see inside theme files. So a menu added with PHP or in a theme template can show **No placement found** and still be live. If you are not sure, look at your site.
 

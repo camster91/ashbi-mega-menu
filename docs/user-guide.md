@@ -50,12 +50,12 @@ Each menu has a card. A card can show these labels:
 - **Sample:** this menu started from the template. Replace its words and links.
 - **Empty menu:** this menu has no items yet.
 
-A card also shows the shortcode, with a **Copy** button.
+Click **Shortcode** on a card to see its shortcode and a **Copy** button.
 
 Card buttons:
 
 - **Edit menu** opens the editor. On an unfinished menu, it says **Finish setup**.
-- **Place & verify** opens the **Place** step.
+- **Place** opens the **Place** step.
 - **⋯** opens more actions, shown below.
 
 <!-- screenshot: 05-card-more-menu.png -->
@@ -73,8 +73,8 @@ With more than six menus, you also get a search box, a sort list and a choice of
 
 - **Import and export:** move menus between sites, or keep a backup file. See [Undo mistakes](undo-and-history.md#import-a-file).
 - **Import from WordPress menu:** start from a menu you already built. See [Start from a WordPress menu](#start-from-a-wordpress-menu).
-- **Recovery snapshots:** restore an automatic backup of all menus. See [Undo mistakes](undo-and-history.md#recovery-snapshots).
-- **Advanced options:** turn on navigation for separate parts of your site. See [Product navigation](#product-navigation).
+- **History:** go back to an earlier version of one menu, or restore a backup of all menus. See [Undo mistakes](undo-and-history.md).
+- **Product Navigation:** turn on extra links for separate parts of your site. See [Product Navigation](#product-navigation).
 
 ## Create a menu
 
@@ -115,10 +115,10 @@ At the top you will also find:
 
 - **The menu name.** Click it to rename the menu. Only you see this name.
 - **Undo and Redo.** See [Undo mistakes](undo-and-history.md).
-- **⋯.** Opens more actions, such as **Export as JSON**.
+- **⋯.** Opens more actions, such as **History** and **Export as JSON**.
 - **The save button.** It says **Save changes**. On a placed menu it says **Save and update site**.
 
-Next to it, a status tells you whether your changes are saved. Press **Ctrl+S** or **Cmd+S** to save with your keyboard.
+Next to it, a status tells you whether your changes are saved. Once they are, it also says **Live where placed** or **No placement found**. Press **Ctrl+S** or **Cmd+S** to save with your keyboard.
 
 <!-- screenshot: 26-save-status.png -->
 
@@ -153,7 +153,7 @@ Click **Edit content** on a dropdown. Then choose a layout.
 
 <!-- screenshot: 09-dropdown-simple-columns.png -->
 
-- **Columns.** How many columns to use. Default: 3.
+- **Columns.** How many columns to use. Default: 2 for a new dropdown.
 - **Add link.** Adds a link to the panel.
 
 **Categories + links** is for large menus. A list of categories sits on one side. Pointing at one shows its links.
@@ -168,7 +168,7 @@ Use it when you have many links that fall into clear groups. Each category has:
 - **Panel title.** An optional heading above the category's links. You can also make it a link, such as "See all".
 - **Columns.** Click **Add column** to group links. Each column can have a heading, and that heading can be a link. Drag a link to move it to another column.
 
-**Hide the category bar** removes the list of categories and uses the full width for columns.
+Under **More options**, **Hide the category bar** removes the list of categories and uses the full width for columns. It only shows when it can apply.
 
 ### Links in a dropdown
 
@@ -179,13 +179,16 @@ Each link can have:
 - **Description.** A short line under the label. Optional.
 - **Link.** Click the link chip to set the address.
 
-### More options
+### Link options
 
-**More options** holds settings most people never need. You'll find them on links, on the button and on the logo.
+Click the gear next to a link to see its options.
 
 <!-- screenshot: 12-more-options.png -->
 
 - **Open in new tab.** Opens the link in a new tab. Use it for links to other sites. Screen readers will say that it opens a new tab. Default: off.
+
+Most people never need the next two, so they sit under **More options**. If one has a value, **More options** opens by itself. The button shows them without that step.
+
 - **Relationship.** Tells search engines about a link. For example, type `nofollow sponsored` for a paid link. Default: empty.
 - **CSS classes.** Extra names for styling with your own code. Leave this empty unless a developer asks you to fill it in. Default: empty.
 
@@ -196,7 +199,7 @@ Click a row's icon spot to open the icon window.
 - **Search icons.** Type a word to find an icon.
 - **Upload custom icon.** Use your own picture.
 - **Clear icon.** Removes the icon.
-- **Icon style for this item.** Changes this one icon only. Use **Reset to menu style** to undo it.
+- **More options, then Icon style for this item.** Changes this one icon only. Use **Reset to menu style** to undo it.
 
 ### Featured card
 
@@ -233,15 +236,7 @@ Show your logo or site name at the start of the menu bar.
 - **Logo image URL.** Click the picture button to choose from your Media Library.
 - **Logo alternative text.** Words that screen readers read out. You will see a warning if you leave this and the site title empty.
 
-More logo settings are in [Style your menu](style-your-menu.md#logo-details).
-
-### Checklist
-
-The checklist looks for things to fix, such as links that go nowhere. Click an item to jump to the problem.
-
-<!-- screenshot: 25-checklist-issue.png -->
-
-It doesn't test your links, your theme or how easy the menu is to use. The full list is in [Fix a problem](troubleshooting.md#my-menu-card-says-needs-attention).
+Click **More logo options** for the rest. See [Style your menu](style-your-menu.md#logo-details).
 
 ## The preview
 
@@ -257,7 +252,7 @@ Click **Desktop**, **Tablet** or **Mobile** above it to change the size.
 
 These help on a large menu. Each device remembers its own zoom in your browser.
 
-- **Fit** fits the menu to the space. **100%** shows it at full size.
+- **Fit** fits the menu to the space. Press **Ctrl+1** or **Cmd+1** to see it at full size.
 - To move around, drag an empty spot or scroll with two fingers.
 - To zoom, hold **Ctrl** or **Cmd** and scroll, or pinch.
 
@@ -275,6 +270,14 @@ See [Place your menu](place-your-menu.md).
 
 <!-- screenshot: 24-check-step.png -->
 
+### Checklist
+
+The checklist is on the **Check** step. A small number on that step shows how many things it found. It looks for things to fix, such as links that go nowhere. Click an item to jump to the problem.
+
+<!-- screenshot: 25-checklist-issue.png -->
+
+It doesn't test your links, your theme or how easy the menu is to use. The full list is in [Fix a problem](troubleshooting.md#my-menu-card-says-needs-attention).
+
 ## Phone menus
 
 See [Phone menus](phone-menus.md).
@@ -286,10 +289,10 @@ The menu comes with its own Elementor widget. See [Place your menu](place-your-m
 These Elementor settings are extra to the settings in **Design**:
 
 - **Menu.** Which menu to show.
-- **Product navigation on product pages.** Shows product links. See below.
+- **Show Product Navigation on product pages.** Shows product links. See below.
 - **Style tab.** Sets fonts and colors for the menu bar, category titles, links and descriptions. It also sets the dropdown background and height.
 
-## Product navigation
+## Product Navigation
 
 Most sites don't need this. It's off by default.
 
@@ -297,9 +300,9 @@ Most sites don't need this. It's off by default.
 
 **To turn it on:**
 
-1. Go to **Tools**, then **Advanced options**.
-2. Tick **Contextual navigation for multi-section sites**.
-3. Click **Save modules**.
+1. Go to **Tools**, then **Product Navigation**.
+2. Tick **Turn on Product Navigation**.
+3. Click **Save this setting**.
 
 **To add a product:**
 
@@ -392,5 +395,3 @@ See [Switch from Easy Mega Menu](migrate-from-easy-mega-menu.md).
 - [What has been tested for accessibility](accessibility.md)
 - [Which themes have been tested](compatibility.md)
 - [How to get support](support-policy.md)
-
-<!-- TODO: confirm these with the simplification PRs: "Link" and "Dropdown" as the type names (today "Simple Link" and "Mega Menu"); Simple columns as the default layout (today Categories + links can be the starting layout); where "More options" sits on each row and which controls it holds; whether Hide the category bar and the zoom controls stay. -->

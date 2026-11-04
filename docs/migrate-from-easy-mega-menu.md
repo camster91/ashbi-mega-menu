@@ -36,7 +36,7 @@ Your headers keep working with no edits, because Ashbi now answers Easy Mega Men
 Your existing work is safe:
 
 - A menu row is left **unticked** if an Ashbi menu already uses its ID, or if you edited the Ashbi copy. It stays as it is unless you tick it. Ticking it replaces your edits.
-- A backup of your Ashbi menus is saved before each import. You can restore it from **Recovery snapshots**.
+- A backup of your Ashbi menus is saved before each import. You can restore it from **History**, under **All menus**.
 - Each replaced menu keeps a version in its [History](undo-and-history.md).
 
 You can import again whenever you like. This refreshes what earlier imports made. Things you created yourself in Ashbi are kept unless you choose to replace them. If anything is kept or fails, the screen tells you which and why.
@@ -121,7 +121,7 @@ Developers have more choices. See [Extending the plugin](extending.md#rendering)
 
 ### The preview
 
-The phone and tablet previews show the Classic look. The preview for large screens may not, so check that on your site.
+All the previews show the Classic look, on every screen size. They don't load your theme's styles, so check the final look on your site.
 
 ## Later
 
@@ -130,5 +130,3 @@ Once you're sure, you can edit your menus in Ashbi. You can also move them to As
 Keep Easy Mega Menu installed but inactive until you no longer need to switch back. Deleting it later doesn't affect Classic menus, because their styles and icons were copied.
 
 **Don't uninstall Ashbi Mega Menu to fix a problem.** Uninstalling deletes its menus and settings.
-
-<!-- TODO: confirm with the simplification PR whether the desktop preview shows the Classic look. Today it shows Ashbi's style with a toolbar note; the plan moves it to the real Classic frame. -->

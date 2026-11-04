@@ -47,7 +47,7 @@ apply_filters( 'abmm_menu_html', string $html, string $menu_id, array $menu, arr
 
 Output is not escaped again: escape anything you add. Keep the classes and `data-abmm-*` attributes the front-end script uses.
 
-**Classic menu filters** (since 1.2.5): these only affect menus using the Classic look.
+**Classic menu filters** (since 1.2.5): these only affect menus using the Classic look. Each starts from the value stored on the menu.
 
 ```php
 apply_filters( 'abmm_classic_plain_markup', bool $plain, string $menu_id ); // Use plain elements, not header and heading elements.
@@ -67,7 +67,7 @@ apply_filters( 'abmm_sanitize_menu', array $menu, array $raw );
 
 The plugin drops keys it does not know. An add-on that stores its own data in a menu keeps it under **`extensions.<add-on-slug>`**: read `$raw['extensions'][ $slug ]`, sanitize it, and set `$menu['extensions'][ $slug ]`. The plugin never reads that data, exports and imports it with the menu, and removes it if no add-on keeps it. A filter cannot change the type of a core key or add other top-level keys; a non-array return is ignored.
 
-**`abmm_menu_readiness_issues`** (filter): add checks to the readiness used by the dashboard's Ready badge.
+**`abmm_menu_readiness_issues`** (filter): add checks to the readiness behind the dashboard's Needs attention label.
 
 ```php
 apply_filters( 'abmm_menu_readiness_issues', array $issues, array $menu );
@@ -76,7 +76,7 @@ apply_filters( 'abmm_menu_readiness_issues', array $issues, array $menu );
 
 Issues are sanitized; malformed ones are dropped. The editor's live checklist runs in the browser and does not call this filter.
 
-**`abmm_product_profile_id`** (filter, since 1.0.0): choose the product profile for a page when contextual navigation is on.
+**`abmm_product_profile_id`** (filter, since 1.0.0): choose the product profile for a page when Product Navigation is on.
 
 ```php
 apply_filters( 'abmm_product_profile_id', string $profile_id, int $post_id, string $source );

@@ -51,15 +51,15 @@ This option adds three things to the phone menu:
 
 <!-- screenshot: 30-phone-enhanced.png -->
 
-To turn it on, click **Design**, open **Advanced settings** and turn on **Enhanced mobile menu**. Then save.
+To turn it on, click **Design** and open **Advanced settings**. Then open **Mobile navigation** and turn on **Enhanced mobile menu**. Save when you are done.
 
-Use it if your menu has many links. The default for existing menus is off.
+Use it if your menu has many links. It is off by default.
 
 ### Phone menu button label
 
 This is for menus imported from Easy Mega Menu. It is useful when a page shows two menus, because a phone then shows two menu buttons that look the same.
 
-Type a short word such as "Products" in **Phone menu button label**. Visitors will see it next to the button. Screen readers will read it out too.
+Open **Advanced settings**, then **Mobile navigation**. Type a short word such as "Products" in **Phone menu button label**. Visitors will see it next to the button. Screen readers will read it out too.
 
 <!-- screenshot: 31-phone-label.png -->
 
@@ -86,5 +86,3 @@ Before you remove your old menu, try these on a real phone:
 - The page behind doesn't move while the drawer is open.
 
 If you have a problem, see [Fix a problem](troubleshooting.md).
-
-<!-- TODO: confirm with the simplification PR whether Enhanced mobile menu stays a setting under Advanced settings, and whether new menus turn it on by default. -->

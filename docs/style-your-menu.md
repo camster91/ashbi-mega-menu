@@ -24,7 +24,7 @@ You can also pick where the links sit in the bar. Use **Nav link alignment** to 
 
 ## Match your site's font
 
-Your menu uses its own font unless you change it. To match the rest of your site:
+New menus use your site's font. An older menu may still use its own font. To match the rest of your site:
 
 1. Open **Advanced settings**, then **Fonts**.
 2. Set **Font** to **Same as my site**.
@@ -99,7 +99,7 @@ To change one icon only, click that icon. Then use **Icon style for this item**.
 - **Panel width.** Used when full width is off. From 640 to 1400 pixels. Default: 1000.
 - **Category bar width.** How wide the list of categories is. From 180 to 420 pixels. Default: 280.
 - **Category bar position.** Put the categories on the left, on the right or along the top. Default: left.
-- **Default grid columns.** How many columns a new dropdown starts with. Each dropdown can change this. Default: 3.
+- **Default grid columns.** Used by a dropdown that hasn't set its own columns. Each dropdown can change this. Default: 3.
 - **Corner radius.** How round the panel's corners are. From 0 to 24 pixels. Default: 8.
 - **Shadow.** The shadow under the panel. Choose **None**, **Soft**, **Medium** or **Strong**. Default: **Medium**.
 - **Button shape.** Choose **Square**, **Rounded** or **Pill**. Default: **Rounded**.
@@ -111,7 +111,7 @@ To change one icon only, click that icon. Then use **Icon style for this item**.
 
 ### Fonts
 
-- **Font.** Choose **Menu default**, **Same as my site** or **Custom font**. Default: **Menu default**.
+- **Font.** Choose **Menu default**, **Same as my site** or **Custom font**. New menus start on **Same as my site**. Older menus keep **Menu default**.
 - **Custom font names.** Type a list such as `Arial, sans-serif`. Your site must already load the font.
 - **Size and weight.** Set these for the menu bar, category titles, links and descriptions. Weight means how thick the letters are. Leave a size empty to keep the default.
 - **Menu bar letter spacing.** Adds space between letters.
@@ -133,7 +133,18 @@ This changes how tall a panel can be on a computer.
 
 Use **Reset height to default** to clear this group.
 
+### Mobile navigation
+
+- **Enhanced mobile menu.** Adds search, full-width rows and a Back label to the phone menu. Default: off. See [Phone menus](phone-menus.md#enhanced-mobile-menu).
+- **Phone menu button label.** Only for menus from Easy Mega Menu. See [Phone menus](phone-menus.md#phone-menu-button-label).
+
+### Product Navigation
+
+This shows only if you turned the feature on. It has a link to **Manage Product Navigation**. See the [user guide](user-guide.md#product-navigation).
+
 ### Logo details
+
+These are on **Content**, in the **Logo** section. The last three sit under **More logo options**. That section opens by itself if one of them has been changed. A changed dark logo or height also shows in the note on **Design**.
 
 - **Site title.** The words shown if you have no logo image. Default: your site's name.
 - **Brand URL.** Where the logo goes when clicked. Default: your home page.
@@ -145,5 +156,3 @@ Use **Reset height to default** to clear this group.
 Your theme or a page builder can add its own style rules. A rule marked `!important` beats these settings. If a change doesn't show, that may be the reason. Ask whoever built your site to check.
 
 Always check the final look on your site. The preview does not load your theme's styles.
-
-<!-- TODO: confirm with the simplification PR that Logo sits on Content, that Nav link alignment stays outside Advanced settings, and that the summary of changed settings ships with this wording. -->
