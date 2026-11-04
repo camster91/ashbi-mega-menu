@@ -34,6 +34,7 @@ class ABMM_Admin {
 
 	private function __construct() {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
+		add_action( 'save_post', array( $this, 'clear_reference_cache' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 		add_action( 'wp_ajax_abmm_save_menu', array( $this, 'ajax_save_menu' ) );
 		add_action( 'wp_ajax_abmm_delete_menu', array( $this, 'ajax_delete_menu' ) );
@@ -792,6 +793,14 @@ class ABMM_Admin {
 	 * @return array
 	 */
 	private function reference_summary( $menu_id, $fresh = false ) {
+		// Every plugin screen asks about every menu, and each answer searches all
+		// content. Archive asks for fresh counts, and saving a post clears these.
+		$cache = get_transient( 'abmm_menu_reference_summaries' );
+		$cache = is_array( $cache ) ? $cache : array();
+		if ( ! $fresh && isset( $cache[ $menu_id ] ) ) {
+			return $cache[ $menu_id ];
+		}
+
 		$blocks     = 0;
 		$widgets    = 0;
 		$shortcodes = 0;
@@ -845,7 +854,7 @@ class ABMM_Admin {
 			}
 		}
 
-		return array(
+		$summary = array(
 			'blocks'     => $blocks,
 			'widgets'    => $widgets,
 			'shortcodes' => $shortcodes,
@@ -853,6 +862,18 @@ class ABMM_Admin {
 			'known'      => $blocks + $widgets + $shortcodes + $other,
 			'warning'    => __( 'Menus placed in theme templates or PHP cannot be detected. If this one is placed there, that navigation will disappear without any error. Check them before archiving.', 'ashbi-mega-menu' ),
 		);
+		$cache[ $menu_id ] = $summary;
+		set_transient( 'abmm_menu_reference_summaries', $cache, 5 * MINUTE_IN_SECONDS );
+		return $summary;
+	}
+
+	/**
+	 * Forget placement counts when content changes.
+	 *
+	 * @return void
+	 */
+	public function clear_reference_cache() {
+		delete_transient( 'abmm_menu_reference_summaries' );
 	}
 
 	/**

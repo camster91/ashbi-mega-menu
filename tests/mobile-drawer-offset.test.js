@@ -36,6 +36,7 @@ function openDrawerWithBarAt(barBottom) {
 	const header = window.document.querySelector('.abmm-header');
 	header.querySelector('.abmm-nav__toggle').click();
 	const offset = header.style.getPropertyValue('--abmm-mobile-offset');
+	for (const toggle of window.document.querySelectorAll('.abmm-header.is-mobile-open .abmm-nav__toggle')) toggle.click();
 	window.close();
 	return offset;
 }
@@ -133,6 +134,7 @@ assert.equal(openDrawerWithBarAt(760), '0px', 'a bar near the bottom opens the d
 
 	toggle.click();
 	assert.equal(window.document.querySelectorAll('[inert]').length, 0, 'Closing the drawer restores everything.');
+	for (const toggle of window.document.querySelectorAll('.abmm-header.is-mobile-open .abmm-nav__toggle')) toggle.click();
 	window.close();
 }
 
@@ -154,6 +156,7 @@ assert.equal(openDrawerWithBarAt(760), '0px', 'a bar near the bottom opens the d
 	assert.ok(window.document.querySelector('[data-abmm-search] input'), 'The search box is present.');
 	window.document.querySelector('.abmm-nav__toggle').click();
 	assert.equal(window.document.activeElement, window.document.getElementById('home'), 'Focus goes to the first link, not the search box.');
+	for (const toggle of window.document.querySelectorAll('.abmm-header.is-mobile-open .abmm-nav__toggle')) toggle.click();
 	window.close();
 }
 

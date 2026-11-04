@@ -4410,7 +4410,8 @@
 		var inlineCss = menuAssets && menuAssets.inlineCss ? '<style>' + String(menuAssets.inlineCss).replace(/<\//g, '<\\/') + '</style>' : '';
 		var lang = document.documentElement.getAttribute('lang') || 'en';
 		return '<!doctype html><html lang="' + esc(lang) + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
-			'<link rel="stylesheet" href="' + esc(assets.css) + '">' + inlineCss +
+			'<link rel="stylesheet" href="' + esc(assets.css) + '">' +
+			(assets.fixesCss ? '<link rel="stylesheet" href="' + esc(assets.fixesCss) + '">' : '') + inlineCss +
 			'<style>html,body{margin:0;background:#fff}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#1e1e1e}' +
 			'.abmm-preview-doc__page{padding:28px 20px;display:grid;gap:14px}.abmm-preview-doc__page span{display:block;height:12px;border-radius:6px;background:#eef1f6}' +
 			'.abmm-preview-doc__page .is-title{height:26px;width:72%}.abmm-preview-doc__page .is-short{width:46%}' +
