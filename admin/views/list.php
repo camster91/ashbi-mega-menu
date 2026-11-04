@@ -60,7 +60,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<li class="<?php echo $abmm_guide_steps['edit'] ? 'is-done' : ''; ?><?php echo 'edit' === $abmm_guide_next ? ' is-next' : ''; ?>">
 					<span class="abmm-setup-guide__status"><?php echo $abmm_guide_steps['edit'] ? esc_html__( 'Done:', 'ashbi-mega-menu' ) : esc_html__( 'To do:', 'ashbi-mega-menu' ); ?></span>
 					<strong><?php esc_html_e( 'Add your links and save', 'ashbi-mega-menu' ); ?></strong>
-					<p><?php esc_html_e( 'Replace any sample links with your own pages and clear the checklist in the editor. Done when a menu shows Ready.', 'ashbi-mega-menu' ); ?></p>
+					<p><?php esc_html_e( 'Replace any sample links with your own pages and clear the checklist in the editor. Done when a menu no longer shows Needs attention.', 'ashbi-mega-menu' ); ?></p>
 					<?php if ( ! $abmm_guide_steps['edit'] ) : ?><a class="button" href="<?php echo esc_url( $abmm_guide_edit ); ?>"><?php esc_html_e( 'Edit menu', 'ashbi-mega-menu' ); ?></a><?php endif; ?>
 				</li>
 				<li class="<?php echo $abmm_guide_steps['place'] ? 'is-done' : ''; ?><?php echo 'place' === $abmm_guide_next ? ' is-next' : ''; ?>">

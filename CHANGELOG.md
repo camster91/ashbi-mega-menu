@@ -8,6 +8,7 @@ Fixes from a UX and accessibility audit.
 - **Classic menus**: tapping a link closes the drawer, every link in a long phone submenu can be reached, a click after hover keeps the panel open, and panels close when focus leaves. Fixes ship in a new stylesheet, `emm-fixes.css`, so imported sites get them without importing again. New filters: `abmm_classic_plain_markup` and `abmm_classic_bar_padding`.
 - **Native menus**: panels fit the active category, long first categories start collapsed on phones, opening the drawer no longer focuses search, and colour contrast is fixed in the built-in presets.
 - **Editor**: menu cards show whether a menu is placed and whether it needs attention, and every control now marks the menu as changed. Each menu keeps up to 10 saved versions. Archive counts page builder and takeover placements, and permanent delete takes a snapshot. The Easy Mega Menu import lets you choose menus and warns before overwriting edits. Leaving with unsaved changes now warns on every route. New setting: a label for a Classic menu's phone button.
+- **Saving**: a save with no edits no longer clears a logo's link target, rel and class, and the plugin's own Elementor widget now counts as a placement when archiving.
 
 ## 1.2.4
 

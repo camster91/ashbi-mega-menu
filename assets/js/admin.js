@@ -788,8 +788,20 @@
 		if (!state.menu) return;
 		var result = menuReadiness(getMenu());
 		var $list = $('.abmm-readiness-issues').empty();
+		var placed = String($('#abmm-builder').attr('data-menu-placed')) === '1';
+		var count = result.issues.length;
+		var summary;
+		if (result.ready) {
+			summary = placed ? __('No problems found.', 'ashbi-mega-menu') : S.checkPassed;
+		} else if (placed) {
+			/* translators: %d: number of checklist items still to fix. */
+			summary = sprintf(_n('%d thing to fix on this menu.', '%d things to fix on this menu.', count, 'ashbi-mega-menu'), count);
+		} else {
+			/* translators: %d: number of checklist items still to fix. */
+			summary = sprintf(_n('%d thing to fix before you place this menu.', '%d things to fix before you place this menu.', count, 'ashbi-mega-menu'), count);
+		}
 		$('.abmm-readiness-summary')
-			.text(result.ready ? S.checkPassed : /* translators: %d: number of checklist items still to fix. */ sprintf(_n('%d thing to fix before you place this menu.', '%d things to fix before you place this menu.', result.issues.length, 'ashbi-mega-menu'), result.issues.length))
+			.text(summary)
 			.toggleClass('is-ready', result.ready);
 		result.issues.forEach(function (issue) {
 			$('<li><button type="button" class="button-link"></button></li>')
@@ -931,10 +943,7 @@
 			$renderMode.val(s.render_mode === 'emm-classic' ? 'emm-classic' : '');
 			$('.abmm-classic-notice').prop('hidden', $renderMode.val() !== 'emm-classic');
 		}
-		$('#abmm-classic-phone-scroll-fix').prop('checked', !!s.classic_phone_scroll_fix);
 		$('#abmm-classic-toggle-label').val(s.classic_toggle_label || '');
-		$('#abmm-classic-bar-padding').val(s.classic_bar_padding || '');
-		$('#abmm-classic-plain-markup').prop('checked', !!s.classic_plain_markup);
 	}
 
 	function syncSettingsFromForm() {
@@ -953,6 +962,7 @@
 			rel: $('#abmm-cta-rel').val() || '',
 			class: $('#abmm-cta-class').val() || '',
 		};
+		var previousBrand = m.brand || {};
 		m.brand = {
 			show: $('#abmm-brand-show').is(':checked'),
 			title: $('#abmm-brand-title').val() || '',
@@ -961,9 +971,10 @@
 			logo_dark_url: $('#abmm-brand-logo-dark-url').val() || '',
 			alt: $('#abmm-brand-alt').val() || '',
 			logo_height: parseInt($('#abmm-brand-logo-height').val(), 10) || 40,
-			target: '',
-			rel: '',
-			class: '',
+			// No controls for these: keep imported values so a save changes nothing.
+			target: previousBrand.target || '',
+			rel: previousBrand.rel || '',
+			class: previousBrand.class || '',
 		};
 		// Product profiles live in their own screen so a shared menu never needs
 		// copied product fields. Preserve legacy static context data on older
@@ -1018,16 +1029,13 @@
 		}
 		if (m.settings.render_mode || m.settings.classic_origin) {
 			if (previous.classic_edge_bleed) m.settings.classic_edge_bleed = previous.classic_edge_bleed;
-			var $phoneFix = $('#abmm-classic-phone-scroll-fix');
-			if ($phoneFix.length ? $phoneFix.is(':checked') : previous.classic_phone_scroll_fix) m.settings.classic_phone_scroll_fix = true;
+			// No controls for these: a stored value stays as it is.
+			if (previous.classic_phone_scroll_fix) m.settings.classic_phone_scroll_fix = true;
+			if (previous.classic_bar_padding) m.settings.classic_bar_padding = previous.classic_bar_padding;
+			if (previous.classic_plain_markup) m.settings.classic_plain_markup = true;
 			var $toggleLabel = $('#abmm-classic-toggle-label');
 			var toggleLabel = String($toggleLabel.length ? $toggleLabel.val() : (previous.classic_toggle_label || '')).trim();
 			if (toggleLabel) m.settings.classic_toggle_label = toggleLabel;
-			var $barPadding = $('#abmm-classic-bar-padding');
-			var barPadding = String($barPadding.length ? $barPadding.val() : (previous.classic_bar_padding || '')).trim();
-			if (barPadding) m.settings.classic_bar_padding = barPadding;
-			var $plainMarkup = $('#abmm-classic-plain-markup');
-			if ($plainMarkup.length ? $plainMarkup.is(':checked') : previous.classic_plain_markup) m.settings.classic_plain_markup = true;
 		}
 	}
 
@@ -2716,10 +2724,7 @@
 			'#abmm-uppercase-cats',
 			'#abmm-show-cat-desc',
 			'#abmm-render-mode',
-			'#abmm-classic-phone-scroll-fix',
 			'#abmm-classic-toggle-label',
-			'#abmm-classic-bar-padding',
-			'#abmm-classic-plain-markup',
 			'#abmm-mobile-enhancements',
 			'#abmm-header-transparent',
 			'#abmm-header-z-index',

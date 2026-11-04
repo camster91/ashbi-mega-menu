@@ -455,6 +455,10 @@
 	margin-bottom: 0.85rem;
 }
 
+.abmm-field[hidden] {
+	display: none;
+}
+
 .abmm-field span {
 	font-size: 12px;
 	font-weight: 600;
@@ -3282,11 +3286,25 @@ body.abmm-builder-sheet-open {
 	text-align: center;
 }
 
-/* Menu card statuses: where the menu is, and whether its checklist needs work. */
+/* Menu card statuses: where the menu is, and whether its checklist needs work.
+ * The title keeps the full line and the badges wrap below it. */
+.abmm-dashboard .abmm-menu-card__head {
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.abmm-dashboard .abmm-menu-card__head .abmm-menu-card__title {
+	flex: 1 1 100%;
+	overflow: visible;
+	text-overflow: clip;
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
 .abmm-menu-card__statuses {
 	display: inline-flex;
 	flex-wrap: wrap;
-	justify-content: flex-end;
+	justify-content: flex-start;
 	gap: 6px;
 }
 

@@ -667,6 +667,66 @@ class ABMM_EMM_Migration {
 	}
 
 	/**
+	 * Whether the plugin's Elementor widget places one menu. Cached for an hour
+	 * with the other searches, so a page of cards runs the search once.
+	 *
+	 * @param string $id    Menu ID.
+	 * @param bool   $fresh Search again instead of using the cache.
+	 * @return bool
+	 */
+	public function elementor_widget_uses_menu( $id, $fresh = false ) {
+		global $wpdb;
+		if ( ! isset( $wpdb ) ) {
+			return false;
+		}
+		$cache = get_transient( 'abmm_emm_menus_in_use' );
+		$cache = is_array( $cache ) ? $cache : array();
+		if ( $fresh || ! isset( $cache['elementor_widget_ids'] ) || ! is_array( $cache['elementor_widget_ids'] ) ) {
+			$like = '%' . $wpdb->esc_like( '"widgetType":"ashbi-mega-menu"' ) . '%';
+			// One-off search of page builder data, as in shortcode_in_content().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$rows = $wpdb->get_col( $wpdb->prepare( "SELECT pm.meta_value FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND p.post_status NOT IN ( %s, %s, %s ) AND pm.meta_value LIKE %s", '_elementor_data', 'trash', 'auto-draft', 'inherit', $like ) );
+			$ids  = array();
+			foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+				$elements = json_decode( (string) $row, true );
+				if ( is_array( $elements ) ) {
+					$this->collect_elementor_widget_menus( $elements, $ids );
+				}
+			}
+			$cache['elementor_widget_ids'] = array_map( 'strval', array_keys( $ids ) );
+			set_transient( 'abmm_emm_menus_in_use', $cache, HOUR_IN_SECONDS );
+		}
+		return in_array( (string) $id, $cache['elementor_widget_ids'], true );
+	}
+
+	/**
+	 * Add the menus that Elementor widgets in this element tree show. Elementor
+	 * leaves out a setting at its default, which for this widget is the first menu.
+	 *
+	 * @param array $elements Elementor elements.
+	 * @param array $ids      Found menu IDs, as keys.
+	 */
+	private function collect_elementor_widget_menus( $elements, &$ids ) {
+		foreach ( $elements as $element ) {
+			if ( ! is_array( $element ) ) {
+				continue;
+			}
+			if ( 'ashbi-mega-menu' === ( $element['widgetType'] ?? '' ) ) {
+				$id = $element['settings']['menu_id'] ?? '';
+				if ( ! is_scalar( $id ) || '' === (string) $id ) {
+					$id = (string) array_key_first( ABMM_Data::instance()->get_all() );
+				}
+				if ( '' !== (string) $id ) {
+					$ids[ (string) $id ] = true;
+				}
+			}
+			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
+				$this->collect_elementor_widget_menus( $element['elements'], $ids );
+			}
+		}
+	}
+
+	/**
 	 * Easy Mega Menu menus that site content places but Ashbi has not imported.
 	 * With the takeover on, those headers would render empty.
 	 *

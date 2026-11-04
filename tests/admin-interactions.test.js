@@ -488,8 +488,8 @@ async function auditRegressions(){
  f.close();
 
  // Switching a Classic menu to Ashbi keeps what switching back needs.
- const classic='<select id="abmm-render-mode"><option value="emm-classic">Classic</option><option value="">Ashbi</option></select><input type="checkbox" id="abmm-classic-phone-scroll-fix" checked><input id="abmm-classic-toggle-label" value="Products"><input id="abmm-classic-bar-padding" value="8px 16px"><input type="checkbox" id="abmm-classic-plain-markup" checked>';
- f=await fixture(false,false,null,'demo',{...menu,settings:{render_mode:'emm-classic',classic_edge_bleed:8,classic_phone_scroll_fix:true,classic_toggle_label:'Products'}},classic); $=f.$;
+ const classic='<select id="abmm-render-mode"><option value="emm-classic">Classic</option><option value="">Ashbi</option></select><input id="abmm-classic-toggle-label" value="Products">';
+ f=await fixture(false,false,null,'demo',{...menu,settings:{render_mode:'emm-classic',classic_edge_bleed:8,classic_phone_scroll_fix:true,classic_toggle_label:'Products',classic_bar_padding:'8px 16px',classic_plain_markup:true}},classic); $=f.$;
  assert.equal($('#abmm-classic-toggle-label').val(),'Products');
  $('#abmm-render-mode').val('').trigger('change'); $('.abmm-save-menu').trigger('click');
  let saved=payload(f.requests[f.requests.length-1]).settings;
@@ -561,6 +561,58 @@ async function auditRegressions(){
  $('#abmm-backup-panel').trigger('toggle');
  assert.equal(f.requests[0].data.action,'abmm_list_backups');
  f.close();
+ // The checklist speaks to a menu that is already on the site.
+ f=await fixture(false,false,null,'demo',{...menu,items:[{id:'home',label:'Home',type:'link',url:'#'}]}); $=f.$;
+ assert.match($('.abmm-readiness-summary').text(),/before you place this menu/,'an unplaced menu is told to fix things before placing it');
+ f.close();
+ {
+  const placed=new JSDOM('<body><div id="abmm-builder" data-menu-id="demo" data-menu-revision="r" data-menu-placed="1"><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></div><script id="abmm-menu-data" type="application/json">'+JSON.stringify({...menu,items:[{id:'home',label:'Home',type:'link',url:'#'}]})+'</script></body>',{url:'http://localhost/',runScripts:'outside-only'});
+  const w=placed.window; const jq=require('jquery')(w); w.jQuery=jq; w.matchMedia=()=>({matches:false}); jq.fn.wpColorPicker=jq.fn.sortable=function(){return this;};
+  w.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({},{get:(_,key)=>String(key)}),icons:[]}; jq.post=()=>jq.Deferred().promise();
+  w.eval(source); w.document.dispatchEvent(new w.Event('DOMContentLoaded')); await wait(20);
+  assert.match(jq('.abmm-readiness-summary').text(),/to fix on this menu\.$/,'a placed menu is not told to place it');
+  w.close();
+ }
+
+ // A save with no edits changes nothing, using the real editor form.
+ const editorForm=fs.readFileSync('admin/views/builder.php','utf8').replace(/<\?php[\s\S]*?\?>/g,'');
+ const defaults={preset:'classic',mobile_enhancements:true,presentation:'stacked',layout:'sidebar-right',sidebar_bg:'#f0f0f5',active_bg:'#ffffff',panel_bg:'#ffffff',header_bg:'#ffffff',header_transparent:true,header_z_index:2000,accent:'#1a73e8',text_color:'#2c2c2c',nav_link_color:'#2c2c2c',nav_hover_color:'#1a73e8',muted_color:'#6b6b6b',border_color:'#e5e5ea',cta_text:'#ffffff',icon_inherit_text:false,icon_color:'#2c2c2c',icon_hover_color:'#1a73e8',icon_active_color:'#1a73e8',icon_size:24,icon_background:'',icon_border_color:'',icon_radius:4,grid_columns:4,panel_width:900,full_width:false,sidebar_width:300,border_radius:6,shadow:'large',nav_align:'left',cta_style:'square',uppercase_cats:true,show_cat_desc:false,panel_title_align:'left',style:{panel_height_mode:'fixed',panel_height:600,font_family_mode:'inherit'}};
+ const stored={title:'Main',items:[{id:'home',label:'Home',type:'link',url:'/',target:'_blank',rel:'nofollow',class:'x'},{id:'prod',label:'Products',type:'mega',url:'',columns:2,categories:[{id:'c1',title:'One',groups:[{id:'g1',title:'',links:[{id:'l1',label:'A',url:'/a'}]}]}]}],cta:{show:true,label:'Go',url:'/go',target:'_blank',rel:'nofollow',class:'cta'},brand:{show:true,title:'Brand',url:'/',logo_url:'/l.png',logo_dark_url:'/d.png',alt:'Brand',logo_height:48,target:'_blank',rel:'noopener',class:'site-logo'},context:{label:'Old'}};
+ const roundTrip=async(settings,classic)=>{
+  const data={...stored,settings};
+  const dom=new JSDOM('<body>'+editorForm+'</body>',{url:'http://localhost/',runScripts:'outside-only'});
+  const w=dom.window; const jq=require('jquery')(w); w.jQuery=jq; w.matchMedia=()=>({matches:false});
+  jq.expr.pseudos.visible=el=>!el.hidden&&!el.closest('[hidden]'); jq.fn.wpColorPicker=jq.fn.sortable=function(){return this;};
+  jq('#abmm-builder').attr({'data-menu-id':'demo','data-menu-revision':'r','data-menu-placed':'1'});
+  // PHP prints the stored values into the form. It is stripped here, so a restored draft fills the form instead.
+  jq('#abmm-menu-data').text(JSON.stringify({...data,title:'Before the draft'}));
+  w.localStorage.setItem('abmmDraft:demo',JSON.stringify({revision:'r',updated:Date.now(),menu:data}));
+  // The PHP that prints Classic controls and option lists is gone: match what it would print.
+  if(!classic){ jq('#abmm-render-mode').closest('label').remove(); jq('.abmm-classic-notice').remove(); }
+  ['abmm-brand-logo-url','abmm-brand-logo-dark-url'].forEach(id=>{ if(!jq('#'+id).length) jq('#abmm-builder').append(jq('<input>').attr('id',id)); });
+  const sel=(id,v)=>{const el=jq(id); if(el.is('select')&&!el.find('option').filter((_,o)=>o.value===String(v)).length) el.append(jq('<option>').val(String(v)));};
+  sel('#abmm-layout',settings.layout); sel('#abmm-nav-align',settings.nav_align); sel('#abmm-grid-cols',settings.grid_columns); sel('#abmm-shadow',settings.shadow); sel('#abmm-cta-style',settings.cta_style); sel('#abmm-panel-title-align',settings.panel_title_align);
+  w.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({},{get:(_,key)=>String(key)}),icons:[]};
+  const posts=[]; jq.post=(_,body)=>{posts.push(body);return jq.Deferred().promise();};
+  w.eval(source); w.document.dispatchEvent(new w.Event('DOMContentLoaded')); await wait(30);
+  jq('.abmm-restore-draft').trigger('click');
+  jq('.abmm-save-menu').first().trigger('click');
+  const body=posts.filter(p=>p.action==='abmm_save_menu').pop();
+  assert.ok(body,'the editor posts a save');
+  const sent=JSON.parse(body.menu_data);
+  w.close();
+  return sent;
+ };
+ const sorted=v=>Array.isArray(v)?v.map(sorted):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,sorted(v[k])])):v;
+ let sent=await roundTrip(defaults,false);
+ assert.deepEqual(sorted(sent),sorted({...stored,settings:defaults}),'a native menu saves unchanged');
+ const classicSettings={...defaults,render_mode:'emm-classic',classic_edge_bleed:8,classic_phone_scroll_fix:true,classic_toggle_label:'Products',classic_bar_padding:'8px 16px',classic_plain_markup:true};
+ sent=await roundTrip(classicSettings,true);
+ assert.deepEqual(sorted(sent),sorted({...stored,settings:classicSettings}),'a Classic menu saves unchanged, keeping settings with no control');
+
+ // Controls that were taken out of the editor stay out.
+ for(const id of ['abmm-classic-phone-scroll-fix','abmm-classic-bar-padding','abmm-classic-plain-markup']) assert.ok(!editorForm.includes(id),id+' is not offered in the editor');
+
  // Import errors stay until the next attempt.
  assert.ok(/if \(msg && !isError\) \{\s+state\.importStatusTimer/.test(source),'import errors do not time out');
 }
