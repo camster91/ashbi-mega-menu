@@ -108,7 +108,7 @@ Deleting removes all its menus, archived menus, saved versions, products, brandi
 * A simpler editor. Four steps replace the tabs: Content, Design, Place and Check. Presets come first, and everything else sits in one closed Advanced settings section that names what you changed.
 * New dropdowns start on Simple columns, History brings saved versions and backups together, and a short optional guide helps new users.
 * The Classic desktop preview now shows the real Classic look.
-* Admin changes only. Visitors see no change.
+* Visitors get one fix: rotating a phone with the drawer open no longer leaves the page stuck on sticky headers.
 
 = 1.2.5 =
 * Visitors: easier hover and tap behaviour in both menu styles, phone drawers that close on link taps and reach every link, and keyboard, high-contrast and screen-reader fixes.

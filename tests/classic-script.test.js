@@ -367,6 +367,17 @@ for (const file of ['emm-frontend.js', 'emm-frontend.css', 'emm-fixes.css', 'emm
 	ctx.window.document.body.classList.add('after-close');
 	await settle();
 	assert.ok(!ctx.header.classList.contains('is-mobile-open'), 'The watcher stops once the drawer is closed.');
+
+	// A clone of the open header, such as Elementor's sticky spacer, isn't open.
+	ctx = open();
+	const clone = ctx.header.cloneNode(true);
+	ctx.header.parentNode.appendChild(clone);
+	await settle();
+	assert.ok(!clone.classList.contains('is-mobile-open'), 'A clone of an open header starts closed.');
+	assert.equal(clone.querySelector('.'+ctx.toggle.className.split(' ')[0]).getAttribute('aria-expanded'), 'false', 'A cloned button reads as closed.');
+	assert.ok(ctx.header.classList.contains('is-mobile-open'), 'The real drawer stays open.');
+	ctx.toggle.click();
+	released(ctx, 'Closed with a clone on the page');
 })().catch((error) => { console.error(error); process.exit(1); });
 
 console.log('Classic script: single binding, open/close, measurable phone header, hover and rail timing, drawer links, inert page, labels, ids, bleed config and clean bundled assets passed.');

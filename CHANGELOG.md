@@ -2,7 +2,7 @@
 
 ## 1.2.6
 
-A simpler editor. This release changes the admin only: visitors see no change, and stored menus are not changed.
+A simpler editor. Stored menus are not changed. Visitors see one fix: rotating a phone with the drawer open could leave the page unable to scroll, with no menu button, on themes whose sticky header clones the menu. New menus also start with your site's font.
 
 - **One path**: a row of steps (Content, Design, Place, Check) replaces the tabs. After saving, the status says **Live where placed** or **No placement found**. The checklist moved to Check.
 - **Design**: presets first, with everything else in one closed **Advanced settings** section. A note names each setting in use and jumps to it, so nothing is hidden and active. Mobile navigation and Product Navigation moved there too. Bar padding and plain markup stay as stored values and filters, not editor fields.

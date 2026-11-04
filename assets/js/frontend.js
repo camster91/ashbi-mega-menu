@@ -1302,6 +1302,13 @@
 			});
 		}
 
+		// A clone of an open header, such as Elementor's sticky spacer, copies the
+		// open state. Nobody can close it, and it would keep the page locked.
+		if (header.classList.contains('is-mobile-open')) {
+			header.style.removeProperty('min-width');
+			setDrawerOpen(header, false, false);
+		}
+
 		updateMobileGeometry(header);
 		updateOverflowRisk(header);
 		if (document.fonts && document.fonts.ready) {
