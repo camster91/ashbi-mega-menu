@@ -93,6 +93,10 @@ $plain = $data->sanitize_menu( $base );
 verify_style( ! isset( $plain['settings']['style'] ), 'A menu without style settings stores no style group.' );
 $empty = $data->sanitize_menu( array_merge( $base, array( 'settings' => array( 'style' => array( 'panel_height' => '520', 'font_family' => 'Ignored', 'top_font_size' => '', 'top_font_weight' => 'heavy' ) ) ) ) );
 verify_style( ! isset( $empty['settings']['style'] ), 'Values that do nothing on their own (a height without a mode, a font without "custom") are not stored.' );
+// New menus start in the site's font; existing menus do not pick that up from the defaults.
+verify_style( ! isset( ABMM_Data::default_settings()['style'] ), 'Defaults never add a style group to an existing menu.' );
+$fresh = $data->sanitize_menu( array_merge( $base, array( 'settings' => ABMM_Data::new_menu_settings() ) ) );
+verify_style( 'inherit' === ( $fresh['settings']['style']['font_family_mode'] ?? '' ), 'A new menu uses the site font.' );
 $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ] = array( 'main' => $plain );
 $before = ABMM_Frontend::instance()->render( 'main' );
 ABMM_Frontend::instance()->register_assets();

@@ -1175,6 +1175,7 @@
 		$('#abmm-logo-alt-warning').prop('hidden', !(brand.show && String(brand.logo_url || brand.logo_dark_url || '').trim() && !String(brand.alt || '').trim() && !String(brand.title || '').trim()));
 		var classicLook = String(s.render_mode || '') === 'emm-classic' && state.previewViewport === 'desktop';
 		$('.abmm-classic-preview-note').prop('hidden', !classicLook);
+		if (window.ABMMAdvanced) window.ABMMAdvanced.refresh(getMenu());
 	}
 
 	function previewColorValue(value, fallback) {
@@ -2815,6 +2816,8 @@
 			// The field may sit on another tab; a hidden field cannot take focus.
 			var section = field ? $(field).closest('[data-abmm-builder-section-panel]').data('abmm-builder-section-panel') : '';
 			if (section && section !== state.builderSection) setBuilderSection(String(section));
+			// It may also sit in a closed section, such as Advanced settings.
+			$(field).parents('details').prop('open', true);
 			if (openIssueTarget($(this).data('issue'), this)) return;
 			// An issue inside one dropdown opens that dropdown's content editor,
 			// then goes to the field to fix when the editor has one.

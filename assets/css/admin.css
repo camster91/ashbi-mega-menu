@@ -3374,3 +3374,46 @@ body.abmm-builder-sheet-open {
 		box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.35);
 	}
 }
+
+/* Advanced settings: one closed section, with what it changes named outside it. */
+.abmm-wrap .abmm-advanced-summary__count {
+	margin: 0.75rem 0 0.25rem;
+	font-weight: 600;
+}
+
+.abmm-wrap .abmm-advanced-summary__count:empty {
+	margin: 0;
+}
+
+.abmm-wrap .abmm-advanced-summary__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 0.75rem;
+	margin: 0 0 0.5rem;
+	padding: 0;
+	list-style: none;
+}
+
+.abmm-wrap .abmm-advanced-summary__list[hidden] {
+	display: none;
+}
+
+.abmm-wrap .abmm-advanced-summary__list li {
+	margin: 0;
+}
+
+.abmm-wrap .abmm-advanced__count {
+	margin-inline: auto 0.5rem;
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+.abmm-wrap .abmm-classic-unused[hidden] {
+	display: none;
+}
+
+/* The groups sit one level in, so the section's heading reads as their parent. */
+.abmm-wrap .abmm-advanced > .abmm-design-more {
+	margin-inline-start: 0.5rem;
+}

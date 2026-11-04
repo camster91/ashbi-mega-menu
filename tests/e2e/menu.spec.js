@@ -123,6 +123,32 @@ test.describe('menu editor', () => {
 		await expect(page.locator('.abmm-header .abmm-nav__list').first()).toContainText(label);
 		expect(errors).toEqual([]);
 	});
+
+	test('keeps advanced settings closed and names the ones in use', async ({ page, browserName }) => {
+		await page.goto(pagePath(browserName));
+		const menuId = await page.locator('.abmm-header').first().getAttribute('data-abmm-id');
+		const errors = watchErrors(page);
+		await page.goto(`/wp-admin/admin.php?page=ashbi-mega-menu&edit=${encodeURIComponent(menuId)}`);
+		await page.locator('[data-abmm-builder-section="design"]').click();
+
+		const title = page.locator('#abmm-advanced-settings > summary');
+		const shadow = page.locator('#abmm-shadow');
+		await expect(title).toBeVisible();
+		await expect(shadow).toBeHidden();
+
+		await title.click();
+		await page.locator('[data-abmm-advanced-group="layout"] > summary').click();
+		await shadow.selectOption((await shadow.inputValue()) === 'none' ? 'strong' : 'none');
+		const name = page.locator('#abmm-advanced-summary [data-abmm-advanced-key="shadow"]');
+		await expect(name).toHaveText('Shadow');
+		await expect(page.locator('[data-abmm-advanced-group="layout"] .abmm-advanced__count')).toBeVisible();
+
+		await title.click();
+		await expect(shadow).toBeHidden();
+		await name.click();
+		await expect(shadow).toBeFocused();
+		expect(errors).toEqual([]);
+	});
 });
 
 test.describe('editor canvas', () => {

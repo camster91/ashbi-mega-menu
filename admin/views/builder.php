@@ -228,10 +228,11 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 			<div class="abmm-builder-section-group" id="abmm-section-panel-design" data-abmm-builder-section-panel="design" role="tabpanel" aria-labelledby="abmm-section-tab-design" hidden>
 			<section class="abmm-builder-panel abmm-design-panel">
 				<h2><?php esc_html_e( 'Design', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Pick a preset, then fine-tune it. The preview updates as you go.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Pick a preset. The preview updates as you go.', 'ashbi-mega-menu' ); ?></p>
 			<div class="notice notice-warning inline abmm-contrast-warning" id="abmm-contrast-warning" role="status" hidden>
 				<p><?php esc_html_e( 'Some colors may be hard to read:', 'ashbi-mega-menu' ); ?></p>
 				<ul class="ul-disc"></ul>
+				<p><button type="button" class="button-link" data-abmm-advanced-open="colors"><?php esc_html_e( 'Change the colors', 'ashbi-mega-menu' ); ?></button></p>
 			</div>
 
 				<?php
@@ -314,16 +315,6 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				</div>
 
 				<label class="abmm-field">
-					<span><?php esc_html_e( 'Category bar position', 'ashbi-mega-menu' ); ?></span>
-					<select id="abmm-layout">
-						<option value="sidebar-left" <?php selected( $abmm_settings['layout'], 'sidebar-left' ); ?>><?php esc_html_e( 'Category bar on the left', 'ashbi-mega-menu' ); ?></option>
-						<option value="sidebar-right" <?php selected( $abmm_settings['layout'], 'sidebar-right' ); ?>><?php esc_html_e( 'Right', 'ashbi-mega-menu' ); ?></option>
-						<option value="stacked" <?php selected( $abmm_settings['layout'], 'stacked' ); ?>><?php esc_html_e( 'Top (horizontal tabs)', 'ashbi-mega-menu' ); ?></option>
-					</select>
-					<span class="description"><?php esc_html_e( 'Only applies to mega menus that use categories.', 'ashbi-mega-menu' ); ?></span>
-				</label>
-
-				<label class="abmm-field">
 					<span><?php esc_html_e( 'Nav link alignment', 'ashbi-mega-menu' ); ?></span>
 					<select id="abmm-nav-align">
 						<option value="left" <?php selected( $abmm_settings['nav_align'], 'left' ); ?>><?php esc_html_e( 'Left', 'ashbi-mega-menu' ); ?></option>
@@ -332,17 +323,16 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					</select>
 				</label>
 
-				<label class="abmm-field">
-					<span><?php esc_html_e( 'Default grid columns', 'ashbi-mega-menu' ); ?></span>
-					<select id="abmm-grid-cols">
-						<?php for ( $abmm_i = 1; $abmm_i <= 4; $abmm_i++ ) : ?>
-							<option value="<?php echo (int) $abmm_i; ?>" <?php selected( (int) $abmm_settings['grid_columns'], $abmm_i ); ?>><?php echo (int) $abmm_i; ?></option>
-						<?php endfor; ?>
-					</select>
-					<span class="description"><?php esc_html_e( 'Each mega menu can change this in its own layout settings.', 'ashbi-mega-menu' ); ?></span>
-				</label>
+				<div class="abmm-advanced-summary" id="abmm-advanced-summary">
+					<p class="abmm-advanced-summary__count" role="status"></p>
+					<ul class="abmm-advanced-summary__list" hidden></ul>
+				</div>
 
-				<details class="abmm-design-more">
+				<details class="abmm-design-more abmm-advanced" id="abmm-advanced-settings" data-abmm-baselines="<?php echo esc_attr( wp_json_encode( array( 'native' => ABMM_Data::default_settings(), 'classic' => ABMM_Classic::default_settings() ) ) ); ?>">
+				<summary><?php esc_html_e( 'Advanced settings', 'ashbi-mega-menu' ); ?></summary>
+				<p class="description"><?php esc_html_e( 'Optional. Most menus do not need these.', 'ashbi-mega-menu' ); ?></p>
+
+				<details class="abmm-design-more" data-abmm-advanced-group="top-colors">
 					<summary><?php esc_html_e( 'Top menu item colors', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Menu link color', 'ashbi-mega-menu' ); ?></span>
@@ -354,7 +344,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					</label>
 				</details>
 
-				<details class="abmm-design-more">
+				<details class="abmm-design-more" data-abmm-advanced-group="icons">
 					<summary><?php esc_html_e( 'Icon styling', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field abmm-field--toggle">
 						<span><?php esc_html_e( 'Inherit menu text color', 'ashbi-mega-menu' ); ?></span>
@@ -391,7 +381,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					<p class="description"><?php esc_html_e( 'SVG icons use these colors. Uploaded PNG, JPG and WebP artwork keeps its original pixels while using the shared size, background, border and radius.', 'ashbi-mega-menu' ); ?></p>
 				</details>
 
-				<details class="abmm-design-more">
+				<details class="abmm-design-more" data-abmm-advanced-group="colors">
 					<summary><?php esc_html_e( 'Panel & brand colors', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Header background', 'ashbi-mega-menu' ); ?></span>
@@ -431,8 +421,26 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					</label>
 				</details>
 
-				<details class="abmm-design-more">
+				<details class="abmm-design-more" data-abmm-advanced-group="layout">
 					<summary><?php esc_html_e( 'Layout & style', 'ashbi-mega-menu' ); ?></summary>
+					<label class="abmm-field">
+						<span><?php esc_html_e( 'Category bar position', 'ashbi-mega-menu' ); ?></span>
+						<select id="abmm-layout">
+							<option value="sidebar-left" <?php selected( $abmm_settings['layout'], 'sidebar-left' ); ?>><?php esc_html_e( 'Category bar on the left', 'ashbi-mega-menu' ); ?></option>
+							<option value="sidebar-right" <?php selected( $abmm_settings['layout'], 'sidebar-right' ); ?>><?php esc_html_e( 'Right', 'ashbi-mega-menu' ); ?></option>
+							<option value="stacked" <?php selected( $abmm_settings['layout'], 'stacked' ); ?>><?php esc_html_e( 'Top (horizontal tabs)', 'ashbi-mega-menu' ); ?></option>
+						</select>
+						<span class="description"><?php esc_html_e( 'Only applies to mega menus that use categories.', 'ashbi-mega-menu' ); ?></span>
+					</label>
+					<label class="abmm-field">
+						<span><?php esc_html_e( 'Default grid columns', 'ashbi-mega-menu' ); ?></span>
+						<select id="abmm-grid-cols">
+							<?php for ( $abmm_i = 1; $abmm_i <= 4; $abmm_i++ ) : ?>
+								<option value="<?php echo (int) $abmm_i; ?>" <?php selected( (int) $abmm_settings['grid_columns'], $abmm_i ); ?>><?php echo (int) $abmm_i; ?></option>
+							<?php endfor; ?>
+						</select>
+						<span class="description"><?php esc_html_e( 'Each mega menu can change this in its own layout settings.', 'ashbi-mega-menu' ); ?></span>
+					</label>
 					<label class="abmm-field abmm-field--toggle">
 						<span><?php esc_html_e( 'Full width mega menu', 'ashbi-mega-menu' ); ?></span>
 						<input type="checkbox" id="abmm-full-width" <?php checked( ! empty( $abmm_settings['full_width'] ) ); ?> />
@@ -510,7 +518,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					echo '<label class="abmm-field"><span>' . esc_html( $label ) . '</span><input type="number" min="10" max="40" step="1" placeholder="' . esc_attr__( 'Default', 'ashbi-mega-menu' ) . '" data-abmm-style-key="' . esc_attr( $key ) . '" value="' . esc_attr( (string) ( $abmm_style[ $key ] ?? '' ) ) . '" /></label>';
 				};
 				?>
-				<details class="abmm-design-more" data-abmm-style-group="fonts">
+				<details class="abmm-design-more" data-abmm-style-group="fonts" data-abmm-advanced-group="fonts">
 					<summary><?php esc_html_e( 'Fonts', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Font', 'ashbi-mega-menu' ); ?></span>
@@ -556,7 +564,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					<button type="button" class="button-link abmm-style-reset" data-abmm-style-reset="fonts"><?php esc_html_e( 'Reset fonts to default', 'ashbi-mega-menu' ); ?></button>
 				</details>
 
-				<details class="abmm-design-more" data-abmm-style-group="height">
+				<details class="abmm-design-more" data-abmm-style-group="height" data-abmm-advanced-group="height">
 					<summary><?php esc_html_e( 'Dropdown height', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field">
 						<span><?php esc_html_e( 'Height of the open dropdown (desktop)', 'ashbi-mega-menu' ); ?></span>
@@ -573,6 +581,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 						<input type="number" min="200" max="1200" step="10" data-abmm-style-key="panel_height" value="<?php echo esc_attr( (string) ( $abmm_style['panel_height'] ?? 520 ) ); ?>" />
 					</label>
 					<button type="button" class="button-link abmm-style-reset" data-abmm-style-reset="height"><?php esc_html_e( 'Reset height to default', 'ashbi-mega-menu' ); ?></button>
+				</details>
 				</details>
 			</section>
 			</div>

@@ -111,13 +111,15 @@ class ABMM_Admin {
 		wp_localize_script( 'abmm-menu-search-preview', 'abmmRuntime', array( 'adminPreview' => true, 'searchStrings' => abmm_menu_search_strings() ) );
 
 		wp_enqueue_script( 'abmm-preview-canvas', ABMM_PLUGIN_URL . 'assets/js/preview-canvas.js', array(), ABMM_VERSION, true );
+		wp_enqueue_script( 'abmm-admin-advanced', ABMM_PLUGIN_URL . 'assets/js/admin-advanced.js', array( 'wp-i18n' ), ABMM_VERSION, true );
 		wp_enqueue_script(
 			'abmm-admin',
 			ABMM_PLUGIN_URL . 'assets/js/admin.js',
-			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview', 'abmm-preview-canvas' ),
+			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview', 'abmm-preview-canvas', 'abmm-admin-advanced' ),
 			ABMM_VERSION,
 			true
 		);
+		wp_set_script_translations( 'abmm-admin-advanced', 'ashbi-mega-menu', ABMM_PLUGIN_DIR . 'languages' );
 		wp_set_script_translations( 'abmm-admin', 'ashbi-mega-menu', ABMM_PLUGIN_DIR . 'languages' );
 
 		$icons = ABMM_Icons::instance();
