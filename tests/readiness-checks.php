@@ -162,33 +162,4 @@ check( false !== strpos( $messages, 'Add a link for "Text flag"' ), 'Only a real
 check( false !== strpos( $messages, 'Check the link for "Typed"' ), 'A real address is still checked, whatever the flag says' );
 check( false !== strpos( $messages, 'real destination to Empty panel' ), 'A dropdown still needs one real link' );
 
-$clean = $checker->sanitize_menu(
-	array(
-		'title' => 'Main',
-		'items' => array(
-			array( 'id' => 'a', 'type' => 'link', 'label' => 'Soon', 'url' => '#', 'no_link' => true ),
-			array( 'id' => 'b', 'type' => 'link', 'label' => 'Text', 'url' => '#', 'no_link' => 'true' ),
-			array( 'id' => 'c', 'type' => 'link', 'label' => 'One', 'url' => '#', 'no_link' => 1 ),
-			array( 'id' => 'd', 'type' => 'link', 'label' => 'Off', 'url' => '#', 'no_link' => false ),
-			array( 'id' => 'e', 'type' => 'link', 'label' => 'Plain', 'url' => '/plain' ),
-			array(
-				'id'         => 'f',
-				'type'       => 'mega',
-				'label'      => 'Panel',
-				'mega_style' => 'features',
-				'links'      => array(
-					array( 'id' => 'g', 'label' => 'Coming', 'url' => '#', 'no_link' => true ),
-					array( 'id' => 'h', 'label' => 'Text', 'url' => '#', 'no_link' => 'on' ),
-				),
-			),
-		),
-	)
-);
-check( true === $clean['items'][0]['no_link'], 'The sanitizer keeps a real true on a top link' );
-foreach ( array( 1, 2, 3, 4 ) as $position ) {
-	check( ! array_key_exists( 'no_link', $clean['items'][ $position ] ), 'The sanitizer drops anything else, and stores nothing when off' );
-}
-check( true === $clean['items'][5]['links'][0]['no_link'], 'The sanitizer keeps a real true on a dropdown link' );
-check( ! array_key_exists( 'no_link', $clean['items'][5]['links'][1] ), 'The sanitizer drops text on a dropdown link' );
-
 echo "Readiness flags plain-text links and long labels.\n";

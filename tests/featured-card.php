@@ -208,4 +208,34 @@ $logo_html = function ( $url ) use ( $data ) {
 verify_featured( false !== strpos( $logo_html( 'https://example.test/' ), 'alt="Example Site"' ), 'A linked logo with no alt text is named after the site.' );
 verify_featured( false !== strpos( $logo_html( '' ), 'alt=""' ), 'An unlinked logo with no alt text stays decorative.' );
 
+// No link on purpose: only a real true is stored, and only when on.
+$clean = $data->sanitize_menu(
+	array(
+		'title' => 'Main',
+		'items' => array(
+			array( 'id' => 'a', 'type' => 'link', 'label' => 'Soon', 'url' => '#', 'no_link' => true ),
+			array( 'id' => 'b', 'type' => 'link', 'label' => 'Text', 'url' => '#', 'no_link' => 'true' ),
+			array( 'id' => 'c', 'type' => 'link', 'label' => 'One', 'url' => '#', 'no_link' => 1 ),
+			array( 'id' => 'd', 'type' => 'link', 'label' => 'Off', 'url' => '#', 'no_link' => false ),
+			array( 'id' => 'e', 'type' => 'link', 'label' => 'Plain', 'url' => '/plain' ),
+			array(
+				'id'         => 'f',
+				'type'       => 'mega',
+				'label'      => 'Panel',
+				'mega_style' => 'features',
+				'links'      => array(
+					array( 'id' => 'g', 'label' => 'Coming', 'url' => '#', 'no_link' => true ),
+					array( 'id' => 'h', 'label' => 'Text', 'url' => '#', 'no_link' => 'on' ),
+				),
+			),
+		),
+	)
+);
+verify_featured( true === $clean['items'][0]['no_link'], 'The sanitizer keeps a real true on a top link' );
+foreach ( array( 1, 2, 3, 4 ) as $position ) {
+	verify_featured( ! array_key_exists( 'no_link', $clean['items'][ $position ] ), 'The sanitizer drops anything else, and stores nothing when off' );
+}
+verify_featured( true === $clean['items'][5]['links'][0]['no_link'], 'The sanitizer keeps a real true on a dropdown link' );
+verify_featured( ! array_key_exists( 'no_link', $clean['items'][5]['links'][1] ), 'The sanitizer drops text on a dropdown link' );
+
 echo "Featured card sanitising and rendering checks passed.\n";
