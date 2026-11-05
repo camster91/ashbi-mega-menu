@@ -81,10 +81,10 @@ function changes(p) {
 			assert.equal(p.isOpen(), true, `${style.name}: the kept tap opens the menu.`);
 			assert.equal(p.toggle.getAttribute('aria-expanded'), 'true', `${style.name}: the button reads as open.`);
 			assert.equal(count(), 1, `${style.name}: it changes state once, so it does not open and close.`);
-			assert.equal(p.header.__abmmEarlyTap, null, `${style.name}: the tap is used up.`);
+			assert.equal(p.window.document.__abmmEarlyTap, null, `${style.name}: the tap is used up.`);
 			p.toggle.click();
 			assert.equal(p.isOpen(), false, `${style.name}: the next tap closes it.`);
-			assert.equal(p.header.__abmmEarlyTap, null, `${style.name}: later taps are not kept.`);
+			assert.equal(p.window.document.__abmmEarlyTap, null, `${style.name}: later taps are not kept.`);
 		}
 
 		// Several early taps are still one tap.
@@ -118,7 +118,7 @@ function changes(p) {
 			}
 			p.toggle.click();
 			assert.equal(p.isOpen(), true, `${style.name} (${order}): one tap opens.`);
-			assert.equal(p.header.__abmmEarlyTap, undefined, `${style.name} (${order}): the tap is not kept.`);
+			assert.equal(p.window.document.__abmmEarlyTap, undefined, `${style.name} (${order}): the tap is not kept.`);
 			p.toggle.click();
 			assert.equal(p.isOpen(), false, `${style.name} (${order}): the next tap closes.`);
 		}
@@ -130,7 +130,7 @@ function changes(p) {
 			p.toggle.click();
 			p.runMenu();
 			assert.equal(p.isOpen(), false, `${style.name}: a kept tap is dropped on a wide layout.`);
-			assert.equal(p.header.__abmmEarlyTap, null, `${style.name}: and it is used up.`);
+			assert.equal(p.window.document.__abmmEarlyTap, null, `${style.name}: and it is used up.`);
 		}
 
 		// A clone made after the tap doesn't replay it.
@@ -146,12 +146,80 @@ function changes(p) {
 			assert.equal(clone.classList.contains('is-mobile-open'), false, `${style.name}: its clone does not.`);
 		}
 
+		// A tap that landed on a hidden sticky clone opens the real header, not the clone.
+		for (const order of ['clone set up last', 'clone set up first']) {
+			const p = page(style);
+			p.runHead();
+			const wrap = p.window.document.createElement('div');
+			wrap.className = 'elementor-sticky__spacer';
+			const clone = p.header.cloneNode(true);
+			wrap.appendChild(clone);
+			if ('clone set up last' === order) {
+				p.header.parentNode.appendChild(wrap);
+			} else {
+				p.header.parentNode.insertBefore(wrap, p.header);
+			}
+			clone.querySelector(style.toggle).click();
+			p.runMenu();
+			await settle();
+			assert.equal(p.isOpen(), true, `${style.name} (${order}): the real header opens.`);
+			assert.equal(clone.classList.contains('is-mobile-open'), false, `${style.name} (${order}): the clone stays closed.`);
+			assert.equal(p.window.document.__abmmEarlyTap, null, `${style.name} (${order}): the tap is used up.`);
+		}
+
+		// A clone that appears once the real header is set up still hands its tap over.
+		{
+			const p = page(style);
+			p.runMenu();
+			p.runHead();
+			const wrap = p.window.document.createElement('div');
+			wrap.className = 'elementor-sticky__spacer';
+			const clone = p.header.cloneNode(true);
+			wrap.appendChild(clone);
+			p.header.parentNode.appendChild(wrap);
+			clone.querySelector(style.toggle).click();
+			await settle();
+			await settle();
+			assert.equal(p.isOpen(), true, `${style.name}: a tap on a new clone opens the real header.`);
+			assert.equal(clone.classList.contains('is-mobile-open'), false, `${style.name}: and not the clone.`);
+		}
+
+		// The header was rebuilt between the tap and the menu script.
+		{
+			const p = page(style);
+			p.runHead();
+			p.toggle.click();
+			const parent = p.header.parentNode;
+			parent.innerHTML = parent.innerHTML;
+			p.runMenu();
+			await settle();
+			const rebuilt = p.window.document.querySelector(style.header);
+			assert.notEqual(rebuilt, p.header, `${style.name}: the fixture really rebuilt the header.`);
+			assert.equal(rebuilt.classList.contains('is-mobile-open'), true, `${style.name}: the rebuilt header opens.`);
+			assert.equal(p.window.document.__abmmEarlyTap, null, `${style.name}: the tap is used up.`);
+		}
+
+		// A kept tap for a menu no longer on the page opens nothing else.
+		{
+			const p = page(style);
+			p.runHead();
+			p.toggle.click();
+			p.header.remove();
+			const other = p.header.cloneNode(true);
+			other.setAttribute('data-emm-id', 'other_menu');
+			other.setAttribute('data-abmm-instance', 'other-menu');
+			p.window.document.body.appendChild(other);
+			p.runMenu();
+			await settle();
+			assert.equal(other.classList.contains('is-mobile-open'), false, `${style.name}: a different menu stays closed.`);
+		}
+
 		// A click elsewhere in the page is not kept.
 		{
 			const p = page(style);
 			p.runHead();
 			p.window.document.body.click();
-			assert.equal(p.header.__abmmEarlyTap, undefined, `${style.name}: other clicks are ignored.`);
+			assert.equal(p.window.document.__abmmEarlyTap, undefined, `${style.name}: other clicks are ignored.`);
 		}
 	}
 	console.log('Early taps on the phone menu button are kept and replayed once, in both menu styles.');
