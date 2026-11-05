@@ -17,6 +17,8 @@ foreach ( range( 1, $site_count ) as $site_id ) {
   'abmm_contextual_navigation_enabled' => '1', 'widget_abmm_widget' => array( 2 => array( 'menu_id' => 'private' ) ),
   '_transient_abmm_product_draft_random' => 'private draft',
   '_transient_timeout_abmm_product_draft_random' => 123,
+  '_transient_abmm_menu_reference_summaries' => array( 'private' => array() ), '_transient_timeout_abmm_menu_reference_summaries' => 123,
+  '_transient_abmm_emm_menus_in_use' => array( 'private' => 1 ), '_transient_timeout_abmm_emm_menus_in_use' => 123,
   'unrelated' => 'keep', '_transient_other_plugin' => 'keep',
  );
 }
@@ -47,6 +49,7 @@ function switch_to_blog( $id ) {
 }
 function restore_current_blog() { $GLOBALS['current_site'] = array_pop( $GLOBALS['switch_stack'] ); }
 function delete_option( $key ) { unset( $GLOBALS['site_options'][$GLOBALS['current_site']][$key] ); }
+function delete_transient( $key ) { delete_option( '_transient_' . $key ); delete_option( '_transient_timeout_' . $key ); }
 function delete_site_option( $key ) { unset( $GLOBALS['network_options'][$key] ); }
 function delete_metadata( $type, $id, $key, $value, $all ) { unset( $GLOBALS['user_metadata'][$key] ); }
 class ABMM_Uninstall_Test_DB {

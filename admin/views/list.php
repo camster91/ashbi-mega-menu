@@ -442,10 +442,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<label class="abmm-field">
 							<span><?php esc_html_e( 'Import mode', 'ashbi-mega-menu' ); ?></span>
 							<select id="abmm-import-mode" name="mode">
-								<option value="merge"><?php esc_html_e( 'Merge — add new menus, update existing', 'ashbi-mega-menu' ); ?></option>
-								<option value="replace"><?php esc_html_e( 'Replace — clear all menus first', 'ashbi-mega-menu' ); ?></option>
-								<option value="copy"><?php esc_html_e( 'Copy — always create independent menus', 'ashbi-mega-menu' ); ?></option>
+								<option value="merge"><?php esc_html_e( 'Merge: add new menus and update menus with the same ID', 'ashbi-mega-menu' ); ?></option>
+								<option value="replace"><?php esc_html_e( 'Replace: remove all your menus, then add these', 'ashbi-mega-menu' ); ?></option>
+								<option value="copy"><?php esc_html_e( 'Copy: add these as new menus and change nothing else', 'ashbi-mega-menu' ); ?></option>
 							</select>
+							<span class="description"><?php esc_html_e( 'Copy is the safest. Merge and Replace can change menus that are live on your site.', 'ashbi-mega-menu' ); ?></span>
 						</label>
 						<label class="abmm-field">
 							<span><?php esc_html_e( 'JSON file', 'ashbi-mega-menu' ); ?></span>
@@ -567,7 +568,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			?>
 			<div class="abmm-history-section">
 				<h3 id="abmm-history-title" tabindex="-1"><?php esc_html_e( 'One menu', 'ashbi-mega-menu' ); ?></h3>
-				<p class="description"><?php esc_html_e( 'Each save keeps a version of the menu. Going back changes only that menu.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Saving keeps earlier versions of the menu, up to 10. When you save many times in a few minutes, it keeps the one from before you started and the most recent one. Going back changes only that menu.', 'ashbi-mega-menu' ); ?></p>
 				<label class="abmm-field abmm-history-menu-field">
 					<span><?php esc_html_e( 'Menu', 'ashbi-mega-menu' ); ?></span>
 					<select id="abmm-history-menu">

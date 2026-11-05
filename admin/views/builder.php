@@ -554,7 +554,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				<details class="abmm-design-more" data-abmm-advanced-group="mobile">
 					<summary><?php esc_html_e( 'Mobile navigation', 'ashbi-mega-menu' ); ?></summary>
 					<label class="abmm-field abmm-field--toggle"><span><?php esc_html_e( 'Enhanced mobile menu', 'ashbi-mega-menu' ); ?></span><input type="checkbox" id="abmm-mobile-enhancements" <?php checked( ! empty( $menu['settings']['mobile_enhancements'] ) ); ?> /></label>
-					<p class="description"><?php esc_html_e( 'Adds search, full-width rows and a Back label to the phone menu.', 'ashbi-mega-menu' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Adds a search box, rows that fill the screen and a Back button with a label to the phone menu. Off keeps the phone menu plain.', 'ashbi-mega-menu' ); ?></p>
 					<?php if ( $abmm_classic_origin ) : ?>
 					<label class="abmm-field abmm-classic-notice">
 						<span><?php esc_html_e( 'Phone menu button label', 'ashbi-mega-menu' ); ?></span>

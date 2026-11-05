@@ -68,7 +68,6 @@ $abmm_missing        = $this->placed_but_not_imported();
 				<tr>
 					<th scope="col"><?php esc_html_e( 'Copy', 'ashbi-mega-menu' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Menu', 'ashbi-mega-menu' ); ?></th>
-<th scope="col"><?php esc_html_e( 'ID (kept)', 'ashbi-mega-menu' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Top items', 'ashbi-mega-menu' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Links', 'ashbi-mega-menu' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Not copied exactly', 'ashbi-mega-menu' ); ?></th>
@@ -92,7 +91,6 @@ $abmm_missing        = $this->placed_but_not_imported();
 								<br /><em><?php esc_html_e( 'Imported before, with no differences.', 'ashbi-mega-menu' ); ?></em>
 							<?php endif; ?>
 						</td>
-						<td><code><?php echo esc_html( $abmm_row['id'] ); ?></code></td>
 						<td><?php echo (int) $abmm_row['items']; ?></td>
 						<td><?php echo (int) $abmm_row['links']; ?></td>
 						<td>
@@ -152,7 +150,7 @@ $abmm_missing        = $this->placed_but_not_imported();
 				<p><?php echo esc_html( sprintf( /* translators: %s: comma-separated menu IDs. */ __( 'Your pages place these menus, but they are not imported: %s. Import them first, because with this switch on and Easy Mega Menu inactive those headers show nothing.', 'ashbi-mega-menu' ), implode( ', ', $abmm_missing ) ) ); ?></p>
 			</div>
 		<?php endif; ?>
-		<p><label><input type="checkbox" name="takeover" value="1" <?php checked( $abmm_takeover ); ?> /> <?php esc_html_e( 'Handle [easy_mega_menu] shortcodes', 'ashbi-mega-menu' ); ?></label></p>
+		<p><label><input type="checkbox" name="takeover" value="1" <?php checked( $abmm_takeover ); ?> /> <?php esc_html_e( 'Use Ashbi Mega Menu in place of Easy Mega Menu', 'ashbi-mega-menu' ); ?></label></p>
 		<?php if ( $abmm_missing ) : ?>
 			<p><label><input type="checkbox" name="confirm_missing" value="1" /> <?php esc_html_e( 'Turn it on anyway, even though those headers will be empty', 'ashbi-mega-menu' ); ?></label></p>
 		<?php endif; ?>

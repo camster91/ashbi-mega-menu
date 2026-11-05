@@ -80,7 +80,11 @@ check( true === $checker->save_if_revision( 'versioned', $second, $revision ), '
 check( $checker->remember_version( 'versioned', $first ), 'A version is kept' );
 check( ! $checker->remember_version( 'versioned', $first ), 'The same version is not kept twice' );
 $other = array( 'title' => 'Other', 'items' => array() );
-check( ! $checker->remember_version( 'versioned', $other ), 'A burst of saves shares one version' );
+check( $checker->remember_version( 'versioned', $other ), 'A burst keeps the good save before a bad one' );
+check( array( 'Other', 'First' ) === array_column( $checker->menu_versions( 'versioned' ), 'title' ), 'The state before the burst stays too' );
+$newest = array( 'title' => 'Newest', 'items' => array() );
+check( $checker->remember_version( 'versioned', $newest ), 'A later save in the burst is kept' );
+check( array( 'Newest', 'First' ) === array_column( $checker->menu_versions( 'versioned' ), 'title' ), 'A burst cannot flush the history: it never holds more than two' );
 for ( $i = 0; $i < ABMM_Data::MAX_VERSIONS + 3; $i++ ) {
 	$checker->remember_version( 'versioned', array( 'title' => "Forced $i", 'items' => array() ), true );
 }

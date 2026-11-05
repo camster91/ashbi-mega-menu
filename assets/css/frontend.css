@@ -1471,6 +1471,11 @@ html.abmm-drawer-open {
 		background: rgba(0, 0, 0, 0.05);
 	}
 
+	/* A tap shows at once, even before the script is ready. */
+	.abmm-nav__toggle:active {
+		opacity: 0.6;
+	}
+
 	.abmm-nav__toggle-box {
 		position: relative;
 		width: 22px;

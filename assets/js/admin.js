@@ -490,6 +490,20 @@
 		return String($('#abmm-builder').attr('data-menu-placed')) === '1';
 	}
 
+	// The count on the page can be out of date. A menu reported as not placed may be
+	// live, so ask again rather than drop the warning on the Save button.
+	function refreshPlacedState() {
+		var $builder = $('#abmm-builder');
+		if (!state.menuId || $builder.attr('data-menu-placed') !== '0') return;
+		$.post(abmmAdmin.ajaxUrl, { action: 'abmm_menu_references', nonce: abmmAdmin.nonce, menu_id: state.menuId }).done(function (res) {
+			if (!res || !res.success || !(Number((res.data || {}).known) > 0)) return;
+			$builder.attr('data-menu-placed', '1');
+			$('.abmm-placement-state').text(__('Found on your site. Every save updates it there right away.', 'ashbi-mega-menu'));
+			renderSaveState();
+			renderReadiness();
+		});
+	}
+
 	function renderSaveState() {
 		var $el = $('.abmm-save-status');
 		if (!$el.length || state.loadFailed) return;
@@ -2724,6 +2738,18 @@
 		initBuilderSections();
 		initSaveShortcut();
 		initHistory();
+		refreshPlacedState();
+		// A stored setting with no control can still be removed, through the normal save.
+		if (window.ABMMAdvanced) {
+			window.ABMMAdvanced.onRemove = function (key) {
+				syncSettingsFromForm();
+				delete getMenu().settings[key];
+				markDirtyState();
+				renderPreview();
+				renderDesignWarnings();
+				setStatus(__('Removed. Save to apply it.', 'ashbi-mega-menu'), false);
+			};
+		}
 		$('.abmm-copy-placement').on('click', function () {
 			var $button = $(this), shortcode = String($button.attr('data-shortcode'));
 			if (navigator.clipboard && navigator.clipboard.writeText) {

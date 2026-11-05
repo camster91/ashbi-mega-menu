@@ -22,7 +22,7 @@ If you restore the wrong version, you can undo that too. Your menu keeps the ver
 | You want to | Use | How far back it goes |
 | --- | --- | --- |
 | Fix what you just did | **Undo** | Your last 100 changes, until you leave the page |
-| Go back to an earlier save of one menu | **History**, under **One menu** | Your last 10 versions of that menu |
+| Go back to an earlier save of one menu | **History**, under **One menu** | Up to 10 versions of that menu. If you save many times in a few minutes, it keeps the one from before you started and the most recent one. |
 | Undo an import or restore all your menus | **History**, under **All menus** | Your last 5 backups |
 | Keep your own copy, or move menus to another site | **Export** | As long as you keep the file |
 | Take a menu off your site for now | **Archive** | Until you delete it |
@@ -71,9 +71,9 @@ Go to **Tools** on the main screen, then **Import and export**. Choose a file an
 
 <!-- screenshot: 38-import-export.png -->
 
-- **Copy** adds new menus and leaves your current menus alone. This is the safest choice.
-- **Merge** adds new menus and updates ones with the same ID. Menus already on your site may change.
-- **Replace** clears all your menus first. Menus not in the file are gone, and those spots on your site may go empty.
+- **Copy** adds these as new menus and changes nothing else. This is the safest choice.
+- **Merge** adds new menus and updates menus with the same ID. Menus already on your site may change.
+- **Replace** removes all your menus, then adds these. Menus not in the file are gone, and those spots on your site may go empty.
 
 A file can be up to 10 MB, with 500 menus at most and 1 MB for each menu.
 

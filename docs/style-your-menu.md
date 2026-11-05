@@ -135,7 +135,7 @@ Use **Reset height to default** to clear this group.
 
 ### Mobile navigation
 
-- **Enhanced mobile menu.** Adds search, full-width rows and a Back label to the phone menu. Default: off. See [Phone menus](phone-menus.md#enhanced-mobile-menu).
+- **Enhanced mobile menu.** Adds a search box, rows that fill the screen and a Back button with a label to the phone menu. Default: off. See [Phone menus](phone-menus.md#enhanced-mobile-menu).
 - **Phone menu button label.** Only for menus from Easy Mega Menu. See [Phone menus](phone-menus.md#phone-menu-button-label).
 
 ### Product Navigation

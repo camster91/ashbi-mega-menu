@@ -822,6 +822,66 @@ async function simplicityRegressions(){
  assert.ok(!/\.abmm-save-status\.is-saved \{position:absolute/.test(brandCss),'the saved state stays in view');
  f.close();
 
+ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ // A cached "not placed" is checked again, so a live menu keeps its warning.
+ {
+  const load=async(placedAttr)=>{
+   const dom=new JSDOM('<body><span class="abmm-save-status"></span><button class="abmm-save-menu">Save</button><p class="abmm-placement-state">Not found</p><div id="abmm-builder" data-menu-id="demo" data-menu-revision="r" data-menu-placed="'+placedAttr+'"><ul class="abmm-readiness-issues"></ul><div class="abmm-readiness-summary"></div></div><script id="abmm-menu-data" type="application/json">'+JSON.stringify(menu)+'</script></body>',{url:'http://localhost/',runScripts:'outside-only'});
+   const w=dom.window; const jq=require('jquery')(w); w.jQuery=jq; w.matchMedia=()=>({matches:false}); jq.fn.wpColorPicker=jq.fn.sortable=function(){return this;};
+   w.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({},{get:(_,key)=>String(key)}),icons:[]};
+   const posts=[]; jq.post=(_,data)=>{const d=jq.Deferred();posts.push({data,d});return d.promise();};
+   w.eval(source); w.document.dispatchEvent(new w.Event('DOMContentLoaded')); await wait(20);
+   return {w,jq,posts};
+  };
+  let p=await load('1');
+  assert.equal(p.posts.length,0,'a menu known to be placed needs no second look');
+  p.w.close();
+  p=await load('0');
+  assert.equal(p.posts.length,1,'a menu reported as not placed is checked again');
+  assert.equal(p.posts[0].data.action,'abmm_menu_references');
+  assert.equal(p.posts[0].data.menu_id,'demo');
+  assert.equal(p.jq('.abmm-save-status__placement').text(),'No placement found');
+  p.posts[0].d.resolve({success:true,data:{known:2}});
+  assert.equal(p.jq('#abmm-builder').attr('data-menu-placed'),'1');
+  assert.equal(p.jq('.abmm-save-status__placement').text(),'Live where placed','the fresh count replaces the stale answer');
+  assert.match(p.jq('.abmm-placement-state').text(),/Found on your site/);
+  p.w.close();
+  p=await load('0');
+  p.posts[0].d.resolve({success:true,data:{known:0}});
+  assert.equal(p.jq('#abmm-builder').attr('data-menu-placed'),'0','a menu that really is not placed stays that way');
+  p.w.close();
+  p=await load('0');
+  p.posts[0].d.reject();
+  assert.equal(p.jq('#abmm-builder').attr('data-menu-placed'),'0','a failed check changes nothing');
+  p.w.close();
+ }
+
+ // A stored setting with no control can be removed through the normal path, and undone.
+ {
+  const stored={...menu,settings:{presentation:'unified',render_mode:'emm-classic',classic_bar_padding:'0',classic_plain_markup:true,classic_edge_bleed:8}};
+  const dom=new JSDOM('<body><span class="abmm-save-status"></span><button class="abmm-save-menu">Save</button><button class="abmm-undo">Undo</button><div id="abmm-builder" data-menu-id="demo" data-menu-revision="r" data-menu-placed="1"><input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div><main class="abmm-builder__main"><div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div id="abmm-preview"></div></div></main></div><script id="abmm-menu-data" type="application/json">'+JSON.stringify(stored)+'</script></body>',{url:'http://localhost/',runScripts:'outside-only'});
+  const w=dom.window; const jq=require('jquery')(w); w.jQuery=jq; w.matchMedia=()=>({matches:false}); jq.fn.wpColorPicker=jq.fn.sortable=function(){return this;};
+  jq.expr.pseudos.visible=el=>!el.hidden&&!el.closest('[hidden]');
+  w.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({},{get:(_,key)=>String(key)}),icons:[]};
+  const posts=[]; jq.post=(_,data)=>{const d=jq.Deferred();posts.push({data,d});return d.promise();};
+  w.ABMMAdvanced={refresh(){}};
+  w.eval(source); w.document.dispatchEvent(new w.Event('DOMContentLoaded')); await wait(30);
+  assert.equal(typeof w.ABMMAdvanced.onRemove,'function','the editor takes Remove requests');
+  w.ABMMAdvanced.onRemove('classic_bar_padding');
+  assert.equal(jq('.abmm-save-status').hasClass('is-dirty'),true,'removing marks the menu as changed');
+  jq('.abmm-save-menu').first().trigger('click');
+  let sent=JSON.parse(posts.filter(p=>p.data.action==='abmm_save_menu').pop().data.menu_data);
+  assert.equal(sent.settings.classic_bar_padding,undefined,'the removed setting is not saved');
+  assert.equal(sent.settings.classic_plain_markup,true,'the others stay');
+  assert.equal(sent.settings.classic_edge_bleed,8,'the others stay');
+  posts.filter(p=>p.data.action==='abmm_save_menu').pop().d.resolve({success:true,data:{revision:'r2'}});
+  jq('.abmm-undo').trigger('click');
+  jq('.abmm-save-menu').first().trigger('click');
+  sent=JSON.parse(posts.filter(p=>p.data.action==='abmm_save_menu').pop().data.menu_data);
+  assert.equal(sent.settings.classic_bar_padding,'0','Undo brings it back');
+  w.close();
+ }
+
  // The dashboard card keeps Place in view and tucks the shortcode behind a reveal.
  const card=listView.slice(listView.indexOf('abmm-menu-card__body'),listView.indexOf('abmm-card-menu__toggle'));
  const reveal=card.slice(card.indexOf('<details class="abmm-menu-card__reveal">'),card.indexOf('</details>'));
