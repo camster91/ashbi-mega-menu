@@ -82,20 +82,45 @@
 	}
 
 	.emm-header .emm-nav__toggle-label {
-		margin-left: 0.4rem;
-		font-size: 14px;
+		flex: 0 1 auto;
+		min-width: 0;
+		overflow: hidden;
+		font-size: 13px;
 		font-weight: 600;
+		line-height: 1.2;
+		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
+	/* Icon and label on one row, whatever a theme sets on buttons. The width cap
+	 * keeps a long label on screen: it truncates instead. */
 	.emm-header .emm-nav__toggle:has(.emm-nav__toggle-label) {
-		width: auto;
-		padding-inline: 0.5rem;
+		display: inline-flex !important;
+		flex: none;
+		align-items: center;
+		gap: 0.3rem;
+		width: auto !important;
+		max-width: clamp(108px, 28vw, 220px);
+		height: 40px !important;
+		min-height: 40px;
+		padding: 0 0.25rem !important;
 	}
 
-	/* The label takes the room the title had, so a logo stands alone. */
-	.emm-header:has(.emm-nav__toggle-label) .emm-nav__brand:has(.emm-nav__brand-logo) .emm-nav__brand-title {
-		display: none;
+	.emm-header .emm-nav__toggle:has(.emm-nav__toggle-label) .emm-nav__toggle-box {
+		flex: 0 0 auto;
+	}
+
+	/* A narrow layout column would push a wider button off the right edge. With
+	 * no logo beside it, the button grows to the left instead. */
+	.emm-header:not(:has(.emm-nav__brand)) .emm-nav__bar:has(.emm-nav__toggle-label) {
+		justify-content: flex-end;
+	}
+
+	/* On a narrow phone the label takes the room the title had, so a logo stands alone. */
+	@media (max-width: 480px) {
+		.emm-header:has(.emm-nav__toggle-label) .emm-nav__brand:has(.emm-nav__brand-logo) .emm-nav__brand-title {
+			display: none;
+		}
 	}
 
 	/* An explicit per-menu padding beats a site override in any load order. */
