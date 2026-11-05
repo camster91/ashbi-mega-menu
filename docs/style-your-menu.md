@@ -95,7 +95,7 @@ To change one icon only, click that icon. Then use **Icon style for this item**.
 
 ### Layout and style
 
-- **Full width mega menu.** The panel fills the width of the page. Turn it off to set your own width. Default: on.
+- **Full width dropdowns.** The panel fills the width of the page. Turn it off to set your own width. Default: on.
 - **Panel width.** Used when full width is off. From 640 to 1400 pixels. Default: 1000.
 - **Category bar width.** How wide the list of categories is. From 180 to 420 pixels. Default: 280.
 - **Category bar position.** Put the categories on the left, on the right or along the top. Default: left.

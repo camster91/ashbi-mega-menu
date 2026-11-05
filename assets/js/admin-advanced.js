@@ -102,6 +102,10 @@
 	// Logo fine-tuning, stored in menu.brand. They only count while the logo shows.
 	SETTINGS['brand.logo_dark_url'] = { tier: 'advanced', field: '#abmm-brand-logo-dark-url', normal: [''] };
 	SETTINGS['brand.logo_height'] = { tier: 'advanced', field: '#abmm-brand-logo-height', normal: ['40'] };
+	// Imported with the menu and still used on the logo link, but with no control.
+	SETTINGS['brand.target'] = { tier: 'advanced', normal: [''] };
+	SETTINGS['brand.rel'] = { tier: 'advanced', normal: [''] };
+	SETTINGS['brand.class'] = { tier: 'advanced', normal: [''] };
 
 	function normalize(value) {
 		if (value === null || value === undefined || value === false) return '';
@@ -138,11 +142,9 @@
 		return !!(context.show || normalize(context.label) || normalize(context.url));
 	}
 
-	/** Keys of the advanced settings that change how this menu looks or works. */
-	function activeKeys(menu, baselines, presets) {
+	function keysDifferingFrom(menu, base) {
 		var settings = menu.settings || {};
 		var classic = settings.render_mode === CLASSIC;
-		var base = baselineFor(settings, baselines, presets);
 		var keys = Object.keys(SETTINGS).filter(function (key) {
 			var entry = SETTINGS[key];
 			if (entry.tier !== 'advanced') return false;
@@ -156,6 +158,23 @@
 		});
 		if (hasLegacyContext(menu)) keys.push('context');
 		return keys;
+	}
+
+	/**
+	 * Keys of the advanced settings that change how this menu looks or works. Editing
+	 * a color turns the preset to Custom, which has no values of its own, so compare
+	 * with the closest preset: one change must not count every color a preset set.
+	 */
+	function activeKeys(menu, baselines, presets) {
+		var settings = menu.settings || {};
+		var known = presets || {};
+		if (known[settings.preset]) return keysDifferingFrom(menu, baselineFor(settings, baselines, known));
+		var closest = keysDifferingFrom(menu, baselineFor({ render_mode: settings.render_mode }, baselines, known));
+		Object.keys(known).forEach(function (name) {
+			var keys = keysDifferingFrom(menu, baselineFor({ render_mode: settings.render_mode, preset: name }, baselines, known));
+			if (keys.length < closest.length) closest = keys;
+		});
+		return closest;
 	}
 
 	function strings() {
@@ -174,6 +193,9 @@
 			classic_edge_bleed: __('Panel edge offset from the import', 'ashbi-mega-menu'),
 			classic_bar_padding: __('Phone menu bar padding', 'ashbi-mega-menu'),
 			classic_plain_markup: __('Plain elements instead of header and headings', 'ashbi-mega-menu'),
+			'brand.target': __('Logo link opens in a new tab', 'ashbi-mega-menu'),
+			'brand.rel': __('Logo link relationship', 'ashbi-mega-menu'),
+			'brand.class': __('Logo link CSS classes', 'ashbi-mega-menu'),
 		};
 		return labels[key] || key;
 	}

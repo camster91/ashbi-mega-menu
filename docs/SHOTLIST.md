@@ -35,7 +35,7 @@ These are the screenshots the docs need. Each doc marks its spot with a hidden c
 | `12-more-options.png` | A link's options open, with **More options** expanded | Open in new tab, Relationship and CSS classes | user-guide |
 | `13-button-panel.png` | The **Button** section with **Show button** on | Button text and URL | user-guide |
 | `14-logo-panel.png` | The **Logo** section with **Show logo** on and a logo chosen | Picture button and alternative text | style-your-menu, user-guide |
-| `25-checklist-issue.png` | **Check** with the checklist showing two issues | An issue you can click, and the number on the step | troubleshooting, user-guide |
+| `25-checklist-issue.png` | **Place** with the checklist showing two issues at the top | An issue you can click, and the number on the step | troubleshooting, user-guide |
 | `26-save-status.png` | Top bar on a placed menu with changes not yet saved | **Save and update site** and the status | user-guide |
 
 ## Admin: Design

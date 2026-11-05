@@ -113,7 +113,7 @@ The editor has four steps along the top. Work through them in order, or jump to 
 
 At the top you will also find:
 
-- **The menu name.** Click it to rename the menu. Only you see this name.
+- **The menu name.** Click it to rename the menu. Visitors do not see it on the page, but screen readers read it out.
 - **Undo and Redo.** See [Undo mistakes](undo-and-history.md).
 - **⋯.** Opens more actions, such as **History** and **Export as JSON**.
 - **The save button.** It says **Save changes**. On a placed menu it says **Save and update site**.
@@ -140,6 +140,7 @@ Click **Add item** to add an item. Each row has these options:
 - **Type.** Choose **Link** or **Dropdown**. Default: **Link**.
 - **URL.** Shown for a **Link**. Click the link button to search your pages, or type an address.
 - **Edit content.** Shown for a **Dropdown**. Opens the dropdown's links.
+- **More options, then Page for this dropdown.** Optional. Most dropdowns leave this empty. If it has a value, **More options** opens by itself. The item shows as the current page there, and people whose browser has scripts turned off get a link to it.
 
 Row buttons let you reorder, duplicate or remove an item. You can also drag the handle on the left.
 
@@ -272,7 +273,7 @@ See [Place your menu](place-your-menu.md).
 
 ### Checklist
 
-The checklist is on the **Check** step. A small number on that step shows how many things it found. It looks for things to fix, such as links that go nowhere. Click an item to jump to the problem.
+The checklist is at the top of the **Place** step, so you can fix things before you place the menu. A small number on that step shows how many things it found. It looks for things to fix, such as links that go nowhere. Click an item to jump to the problem.
 
 <!-- screenshot: 25-checklist-issue.png -->
 

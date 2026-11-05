@@ -3465,3 +3465,21 @@ body.abmm-builder-sheet-open {
 	max-width: 360px;
 	margin: 10px 0;
 }
+
+/* Tools, closed to one line until a menu exists. */
+.abmm-tools__closed > summary {
+	cursor: pointer;
+}
+
+.abmm-tools__closed > summary h2 {
+	display: inline;
+	margin: 0;
+}
+
+.abmm-nav-item-row__more {
+	grid-column: 1 / -1;
+}
+
+.abmm-wrap .abmm-place-open {
+	margin-top: 4px;
+}

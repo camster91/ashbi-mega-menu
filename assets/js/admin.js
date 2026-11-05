@@ -843,8 +843,8 @@
 				.find('button').text(issue.message).attr('data-field', issue.field).attr('data-item', typeof issue.item === 'number' ? issue.item : null).data('issue', issue).end()
 				.appendTo($list);
 		});
-		// The checklist lives on the Check step: keep its count visible from the others.
-		$('[data-abmm-workflow="verify"]').each(function () {
+		// The checklist lives on the Place step: keep its count visible from the others.
+		$('[data-abmm-workflow="help"]').each(function () {
 			var $count = $(this).children('.abmm-issue-count');
 			if (result.ready) { $count.remove(); return; }
 			if (!$count.length) $count = $('<span class="abmm-issue-count" />').appendTo(this);
@@ -882,16 +882,16 @@
 	}
 
 	function initBuilderSections() {
-		// "Place" on the dashboard links straight to the Place step; the card's
-		// "N issues" pill links to the checklist on the Check step.
+		// "Place" on the dashboard links straight to the Place step, and so does the
+		// card's "N issues" pill: the checklist is the first thing on it.
 		var hash = window.location.hash;
 		if (hash === '#placement') state.builderSection = 'help';
-		if (hash === '#abmm-readiness-panel') state.builderSection = 'verify';
+		if (hash === '#abmm-readiness-panel') state.builderSection = 'help';
 		$('[data-abmm-workflow]').on('click', function () {
 			var step = String($(this).attr('data-abmm-workflow') || 'content');
 			setBuilderSection(step);
 			if (builderPanelIsNarrow()) openBuilderPanel(this);
-			if (step === 'verify') $('#abmm-readiness-panel, #abmm-verification-panel').first().trigger('focus');
+			if (step === 'verify') $('#abmm-verification-panel').trigger('focus');
 		});
 		$('[data-abmm-workflow]').on('keydown', function (event) {
 			var keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
@@ -2881,7 +2881,7 @@
 
 		$('.abmm-readiness-issues').on('click', 'button', function () {
 			var field = document.getElementById($(this).data('field'));
-			// The checklist is on the Check step and fixes are on others. A hidden
+			// The checklist is on the Place step and fixes are on others. A hidden
 			// field cannot take focus, so open its step and any disclosure around it.
 			var section = field ? $(field).closest('[data-abmm-builder-section-panel]').data('abmm-builder-section-panel') : '';
 			setBuilderSection(String(section || 'content'));
@@ -3051,8 +3051,12 @@
 			if (!item) return;
 
 			item.label = $row.find('.abmm-nav-label').val();
-			item.url = $row.find('.abmm-nav-url').val();
-			readLinkOptions($row, item);
+			// Only write what the row can show: a rename must not wipe stored link details.
+			var $navUrl = $row.find('.abmm-nav-url');
+			if ($navUrl.length) {
+				item.url = $navUrl.val();
+				readLinkOptions($row, item);
+			}
 			$row.find('.abmm-nav-item-row__title').text(item.label || __('Untitled item', 'ashbi-mega-menu'));
 			$row.find('.abmm-nav-item-row__url').text(navSummaryText(item));
 			$row.find('.abmm-nav-item-row__toggle').attr('aria-label', navToggleLabel(item, $row.index()));
@@ -3162,7 +3166,7 @@
 			if (!item.links) item.links = [];
 			item.links.push({
 				id: uid(),
-				label: __('New Feature', 'ashbi-mega-menu'),
+				label: __('New Link', 'ashbi-mega-menu'),
 				url: '#',
 				icon: 'link',
 				icon_url: '',
@@ -3449,7 +3453,8 @@
 
 	function linkPathText(url) {
 		url = String(url || '').trim();
-		if (!url) return '';
+		// "#" is the placeholder a new link starts with: it goes nowhere yet.
+		if (!url || url === '#') return '';
 		var match = url.match(/^(?:https?:)?\/\/([^\/?#]+)(.*)$/i);
 		if (match) {
 			var host = match[1].toLowerCase();
@@ -3492,6 +3497,26 @@
 			state.expandedNavId = '';
 		}
 		setNavRowExpanded($row, expanded);
+	}
+
+	function navUrlFieldHtml(item, urlId) {
+		return wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false, item).replace('<input type="text" class="', '<input type="text" id="' + urlId + '" class="');
+	}
+
+	// A dropdown can have a page of its own. Few do, so it sits behind "More options",
+	// open when it holds a value: it marks the item as current and is the no-script link.
+	function dropdownPageHtml(item, urlId) {
+		var url = String(item.url || '').trim();
+		var inUse = (url !== '' && url !== '#') || linkHasOptions(item);
+		return (
+			'<details class="abmm-more-options abmm-nav-item-row__more"' + (inUse ? ' open' : '') + '>' +
+			'<summary>' + esc(__('More options', 'ashbi-mega-menu')) + '</summary>' +
+			'<div class="abmm-more-options__fields"><div class="abmm-nav-field">' +
+			'<label for="' + urlId + '">' + esc(__('Page for this dropdown', 'ashbi-mega-menu')) + '</label>' +
+			navUrlFieldHtml(item, urlId) +
+			'<p class="description">' + esc(__('Optional. This item shows as the current page there. People whose browser has scripts turned off get a link to it.', 'ashbi-mega-menu')) + '</p>' +
+			'</div></div></details>'
+		);
 	}
 
 	function renderNavItems() {
@@ -3547,10 +3572,11 @@
 					? '<div class="abmm-nav-field abmm-nav-item-row__meta">' +
 						'<span class="abmm-nav-field__label">' + esc(__('Content', 'ashbi-mega-menu')) + '</span>' +
 						'<button type="button" class="button abmm-edit-mega"><span class="dashicons dashicons-edit" aria-hidden="true"></span>' + esc(__('Edit content', 'ashbi-mega-menu')) + '</button>' +
-						'</div>'
+						'</div>' +
+						dropdownPageHtml(item, urlId)
 					: '<div class="abmm-nav-field">' +
 						'<label for="' + urlId + '">' + esc(__('URL', 'ashbi-mega-menu')) + '</label>' +
-						wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false, item).replace('<input type="text" class="', '<input type="text" id="' + urlId + '" class="') +
+						navUrlFieldHtml(item, urlId) +
 						'</div>') +
 				'</div>' +
 				'</li>'
@@ -5330,6 +5356,7 @@
 					state.savedSnapshot = payload;
 					state.serverRevision = (res.data && res.data.revision) || state.serverRevision;
 					state.trackingChanges = true;
+					if (res.data && res.data.sample === false) $('.abmm-sample-warning').remove();
 					updateSaveState('saved', S.savedState);
 				} else {
 					updateSaveState('failed', responseMessage(res, S.saveError));

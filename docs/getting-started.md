@@ -31,7 +31,7 @@ Your site looks the same as before. Nothing changes for visitors until you place
 - **Use a template** gives you a sample menu to change. Replace every sample word and link.
 - **Start from scratch** gives you an empty menu.
 
-Then type a name at the top of the editor, such as "Main menu". Only you see this name.
+Then type a name at the top of the editor, such as "Main menu". Visitors do not see this name on the page, but screen readers read it out, so keep it clear.
 
 ## Step 3: Add your links
 
@@ -66,7 +66,7 @@ Saving is the only step. There is no separate "publish" button. Once your menu i
 
 1. Click **Place**.
 2. Look for the method marked **Recommended for your theme**.
-3. Follow the steps shown there.
+3. Follow the steps shown there. A button takes you to the right screen when there is one.
 
 The plugin picks the method that suits your theme. If you want more detail, read [how to place your menu](place-your-menu.md).
 

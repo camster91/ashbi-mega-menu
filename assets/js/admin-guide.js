@@ -25,6 +25,10 @@
 		{ id: 'advanced', selectors: ['#abmm-advanced-settings'], where: 'before', doc: 'style-your-menu.md#advanced-settings' },
 	];
 
+	/* The editor's own panel, which is a dialog on narrow screens. The tour walks
+	 * through it, so it never counts as something to stay away from. */
+	var OWN_SHEET = '#abmm-builder-sidebar';
+
 	/* The guide stays away while any of these shows. */
 	var BLOCKERS = [
 		'#abmm-builder-load-error',
@@ -39,6 +43,7 @@
 	var DOCK_WIDTH = 600;
 	var GAP = 10;
 	var EDGE = 12;
+	var SLIDE_MS = 200;
 
 	function readState(win) {
 		try {
@@ -68,7 +73,9 @@
 	function isVisible(win, element) {
 		if (!element || !element.isConnected || element.closest('[hidden]')) return false;
 		var style = win.getComputedStyle(element);
-		if ('none' === style.display || 'hidden' === style.visibility) return false;
+		// The panel slides in, and reads as hidden until the slide has started.
+		var sliding = element.closest(OWN_SHEET + '.is-open');
+		if ('none' === style.display || ('hidden' === style.visibility && !sliding)) return false;
 		var rect = element.getBoundingClientRect();
 		return rect.width > 0 && rect.height > 0;
 	}
@@ -76,7 +83,7 @@
 	function isBlocked(win) {
 		return BLOCKERS.some(function (selector) {
 			return Array.prototype.some.call(win.document.querySelectorAll(selector), function (element) {
-				return isVisible(win, element);
+				return !element.matches(OWN_SHEET) && isVisible(win, element);
 			});
 		});
 	}
@@ -95,13 +102,19 @@
 		}
 	}
 
+	/* The page picker's redirect marks a menu made a moment ago. It has links in it,
+	 * but its owner is just as new, and later visits to the menu don't carry the mark. */
+	function justCreated(win) {
+		return /[?&]abmm_new=1(&|$)/.test(win.location.search);
+	}
+
 	/* Without storage a dismissal can't be remembered, so the tour would nag. */
 	function shouldAutoStart(win) {
 		var doc = win.document;
 		if (!doc.getElementById('abmm-builder') || !storageWorks(win)) return false;
 		var status = readState(win).status;
 		if ('dismissed' === status || 'done' === status) return false;
-		return !hasMenuContent(doc) && !isBlocked(win);
+		return (justCreated(win) || !hasMenuContent(doc)) && !isBlocked(win);
 	}
 
 	/** Below the target, else above, else wherever fits. Narrow screens dock in CSS. */
@@ -241,8 +254,18 @@
 			if (tour.target) tour.target.classList.remove('abmm-guide-target');
 			tour.panel.remove();
 			tour = null;
-			save(status);
+			// No status means the guide stepped aside: nobody chose to dismiss it.
+			if (status) save(status);
 			if (returnFocus) restoreFocus(opener);
+		}
+
+		/* The open panel covers the page and makes it inert, so a step outside it
+		 * can only be shown once the panel has closed. */
+		function closeSheetAround(target) {
+			var sheet = doc.querySelector(OWN_SHEET + '.is-open');
+			if (!sheet || sheet.contains(target)) return;
+			var close = sheet.querySelector('.abmm-builder-panel-close');
+			if (close) close.click();
 		}
 
 		function showStep(index, direction) {
@@ -254,6 +277,7 @@
 				i += direction;
 			}
 			if (!target) return false;
+			closeSheetAround(target);
 			if (tour.target) tour.target.classList.remove('abmm-guide-target');
 			target.classList.add('abmm-guide-target');
 			// When docked along the bottom, centre the target so the panel doesn't cover it.
@@ -273,6 +297,13 @@
 			save('active', steps[i].id);
 			position(tour.panel, target);
 			focusTitle(tour.panel);
+			// Opening or closing the panel moves focus on the next tick. Take it back.
+			var panel = tour.panel;
+			win.setTimeout(function () {
+				if (tour && tour.panel === panel) focusTitle(panel);
+			}, 0);
+			// And the target has only reached its final place once the slide ends.
+			win.setTimeout(schedule, SLIDE_MS);
 			return true;
 		}
 
@@ -418,6 +449,8 @@
 				return;
 			}
 			if ('Tab' !== event.key || !open.panel.contains(event.target)) return;
+			// The open panel keeps Tab inside itself. While in the guide, the guide decides.
+			event.stopPropagation();
 			var stops = Array.prototype.filter.call(open.panel.querySelectorAll('a[href], button'), function (node) {
 				return !node.hidden;
 			});
@@ -434,10 +467,11 @@
 			}
 		}
 
-		/* If a dialog opens during the tour or a hint, the guide steps aside. */
+		/* If a dialog opens during the tour or a hint, the guide steps aside. That is
+		 * not a dismissal, so it can carry on from the same step next time. */
 		function onFocusIn() {
 			if ((tour || hint) && isBlocked(win)) {
-				closeTour('dismissed', false);
+				closeTour(null, false);
 				closeHint(false);
 			}
 		}

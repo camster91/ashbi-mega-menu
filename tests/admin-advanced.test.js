@@ -118,6 +118,9 @@ const active = (settings, extra) => [...activeKeys(menu(settings, extra), baseli
 	assert.deepEqual(active({ preset: 'dark', ...dark, accent: '#FF0000' }), ['accent'], 'One changed color is reported.');
 	assert.deepEqual(active({ preset: 'dark', ...dark, accent: '#5B9FFF' }), [], 'Color case is not a change.');
 	assert.deepEqual(active({ preset: 'custom', accent: '#ff0000' }), ['accent'], 'A custom preset compares with the defaults.');
+	// Editing one color turns the preset to Custom; the other colors it set aren't edits.
+	assert.deepEqual(active({ preset: 'custom', ...dark, accent: '#FF0000' }), ['accent'], 'One edit on a preset counts as one, not every color it set.');
+	assert.deepEqual(active({ preset: 'custom', ...dark }), [], 'A custom menu matching a preset has nothing to report.');
 	assert.deepEqual(active({ layout: 'stacked', uppercase_cats: true, shadow: 'none' }).sort(), ['layout', 'shadow', 'uppercase_cats'], 'Layout and style count too.');
 	assert.deepEqual(active({ nav_align: 'left', preset: 'classic' }), [], 'Always-visible controls are not advanced.');
 }
@@ -252,6 +255,10 @@ const buttonFor = (window, key) => window.document.querySelector(`[data-abmm-adv
 // The logo's fine-tuning is named too, but only while the logo shows.
 {
 	assert.deepEqual(active({}, { brand: { show: true, logo_dark_url: '', logo_height: 40 } }), [], 'Logo defaults are not customisations.');
+	// Stored on an imported logo link with no control: named, never invisible and active.
+	assert.deepEqual(active({}, { brand: { show: true, target: '_blank', rel: 'nofollow', class: 'x' } }), ['brand.target', 'brand.rel', 'brand.class'], 'Stored logo link details are listed.');
+	assert.deepEqual(active({}, { brand: { show: true, target: '', rel: '', class: '' } }), [], 'Empty logo link details are not.');
+	assert.deepEqual(active({}, { brand: { show: false, target: '_blank' } }), [], 'They only count while the logo shows.');
 	assert.deepEqual(active({}, { brand: { show: true, logo_dark_url: 'https://example.test/dark.png', logo_height: 60 } }), ['brand.logo_dark_url', 'brand.logo_height'], 'Changed logo options are reported.');
 	assert.deepEqual(active({}, { brand: { show: false, logo_dark_url: 'https://example.test/dark.png', logo_height: 60 } }), [], 'A hidden logo has nothing active.');
 

@@ -425,7 +425,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php endif; ?>
 
 	<section class="abmm-tools" aria-labelledby="abmm-tools-title">
+	<?php if ( empty( $menus ) ) : // Nothing to import into or back up yet, so a new user sees one closed line. ?>
+	<details class="abmm-tools__closed">
+	<summary><h2 id="abmm-tools-title"><?php esc_html_e( 'Tools', 'ashbi-mega-menu' ); ?></h2></summary>
+	<?php else : ?>
 	<h2 id="abmm-tools-title"><?php esc_html_e( 'Tools', 'ashbi-mega-menu' ); ?></h2>
+	<?php endif; ?>
 	<details class="abmm-tool" id="abmm-transfer-panel">
 		<summary>
 			<span class="abmm-tool__icon dashicons dashicons-migrate" aria-hidden="true"></span>
@@ -603,6 +608,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</form>
 	</details>
 
+	<?php if ( empty( $menus ) ) : ?>
+	</details>
+	<?php endif; ?>
 	</section>
 
 	<div class="abmm-dash-footer">

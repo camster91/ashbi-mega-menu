@@ -538,6 +538,7 @@ class ABMM_Admin {
 				'message'   => 'saved',
 				'revision'  => $store->revision( $saved_menu ),
 				'readiness' => $store->readiness( $saved_menu ),
+				'sample'    => ! empty( $saved_menu['starter_source'] ),
 			)
 		);
 	}
@@ -615,10 +616,12 @@ class ABMM_Admin {
 			wp_send_json_error( array( 'message' => __( 'The first menu could not be created.', 'ashbi-mega-menu' ) ), 500 );
 		}
 		update_user_meta( get_current_user_id(), ABMM_ONBOARDING_META, $choice );
+		// A menu made from pages already has links, so the guide needs telling it is new.
+		$new_mark = 'pages' === $choice ? '&abmm_new=1' : '';
 		wp_send_json_success(
 			array(
 				'id'  => $id,
-				'url' => $id ? admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) ) : admin_url( 'admin.php?page=ashbi-mega-menu' ),
+				'url' => $id ? admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) . $new_mark ) : admin_url( 'admin.php?page=ashbi-mega-menu' ),
 			)
 		);
 	}

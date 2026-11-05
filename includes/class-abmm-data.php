@@ -137,6 +137,10 @@ class ABMM_Data {
 				}
 
 				$sanitized = $this->sanitize_menu( $data );
+				// A sample stops being one once its items change, and never becomes one again.
+				if ( ! empty( $sanitized['starter_source'] ) && ( empty( $current['starter_source'] ) || ( $sanitized['items'] ?? array() ) !== ( $current['items'] ?? array() ) ) ) {
+					$sanitized['starter_source'] = '';
+				}
 				if ( $current === $sanitized ) {
 					return true;
 				}

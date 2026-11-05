@@ -228,9 +228,10 @@ async function backupFixture(strings = {}) {
  assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'Place step opens contextual placement');
  $('[data-abmm-workflow="verify"]').trigger('click');
  assert.equal(f.window.document.activeElement.id,'abmm-verification-panel','Check step moves keyboard focus to real-page checklist');
+ // The checklist comes first on Place, so Check always goes to the real-page list.
  $('#abmm-verification-panel').before('<section id="abmm-readiness-panel" tabindex="-1"></section>');
  $('[data-abmm-workflow="verify"]').trigger('click');
- assert.equal(f.window.document.activeElement.id,'abmm-readiness-panel','the checklist comes first when the menu has one');
+ assert.equal(f.window.document.activeElement.id,'abmm-verification-panel','Check goes to the real-page list even when a checklist exists');
  $('.abmm-copy-placement').trigger('click');
  assert.equal($('.abmm-copy-fallback').val(),'[ashbi_mega_menu id="demo"]','copy fallback selects exact saved-menu shortcode');
  assert.equal(f.window.document.activeElement.className,'abmm-copy-fallback');
@@ -361,16 +362,16 @@ async function backupFixture(strings = {}) {
  assert.match($('.abmm-save-menu').attr('aria-keyshortcuts'),/Control\+S/);
  f.close();
  // Dashboard deep links: "Place" opens the Place step, and the card's
- // "N issues" pill opens the checklist on the Check step.
+ // "N issues" pill opens the checklist at the top of the Place step.
  f=await fixture(false,false,null,'demo',menu,'',"http://localhost/#placement"); $=f.$;
  assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'#placement shows the Place panel');
  assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
  assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step','#placement marks the Place step');
  f.close();
  f=await fixture(false,false,null,'demo',menu,'<section id="abmm-readiness-panel"><h2>Checklist</h2></section>',"http://localhost/#abmm-readiness-panel"); $=f.$;
- assert.equal($('[data-abmm-builder-section-panel="verify"]').prop('hidden'),false,'the checklist link opens the Check step');
+ assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'the checklist link opens the Place step');
  assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
- assert.equal($('[data-abmm-workflow="verify"]').attr('aria-current'),'step');
+ assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step');
  assert.equal(f.window.document.activeElement,$('#abmm-readiness-panel')[0],'focus lands on the checklist');
  f.close();
  console.log('Admin viewport, drawer, keyboard steps, sheet, save/retry, malformed load and explicit backup restore tests passed.');
@@ -382,9 +383,9 @@ async function backupFixture(strings = {}) {
  assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step','#placement marks the Place step');
  f.close();
  f=await fixture(false,false,null,'demo',menu,'<section id="abmm-readiness-panel"><h2>Checklist</h2></section>',"http://localhost/#abmm-readiness-panel"); $=f.$;
- assert.equal($('[data-abmm-builder-section-panel="verify"]').prop('hidden'),false,'the checklist link opens the Check step');
+ assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),false,'the checklist link opens the Place step');
  assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),true);
- assert.equal($('[data-abmm-workflow="verify"]').attr('aria-current'),'step');
+ assert.equal($('[data-abmm-workflow="help"]').attr('aria-current'),'step');
  assert.equal(f.window.document.activeElement,$('#abmm-readiness-panel')[0],'focus lands on the checklist');
  f.close();
  // On a narrow screen a deep link opens the panel it points into.
@@ -439,19 +440,19 @@ async function auditRegressions(){
  assert.ok(issues.some(text=>text.includes('"Empty feature"')),'an empty link in the active layout is flagged');
  assert.ok(!issues.some(text=>/Hidden (dead|broken)/.test(text)),'links in the hidden layout are not flagged');
  assert.ok(issues.includes('checkMega'),'links hidden by the layout do not satisfy a mega item');
- assert.equal($('[data-abmm-workflow="verify"] .abmm-issue-count').text(),String(issues.length),'the Check step shows the issue count');
+ assert.equal($('[data-abmm-workflow="help"] .abmm-issue-count').text(),String(issues.length),'the Place step shows the issue count');
  assert.equal($('[data-abmm-workflow="content"] .abmm-issue-count').length,0,'the count sits on one step only');
  // A link issue opens that row.
  $('.abmm-readiness-issues button').filter((_,b)=>$(b).text().includes('"Dead"')).trigger('click');
  assert.equal(f.window.document.activeElement,$('#abmm-nav-items .abmm-nav-item-row').eq(1).find('.abmm-nav-url')[0],'a top link issue focuses that row\'s URL');
  assert.ok($('#abmm-nav-items .abmm-nav-item-row').eq(1).hasClass('is-expanded'),'the row opens');
- // The checklist is on Check, so an issue switches to the step holding its field.
+ // The checklist is on Place, so an issue switches to the step holding its field.
  $('[data-abmm-builder-section-panel="content"]').append('<input id="abmm-brand-title">');
- $('[data-abmm-workflow="verify"]').trigger('click');
+ $('[data-abmm-workflow="help"]').trigger('click');
  $('.abmm-readiness-issues').append('<li><button type="button" data-field="abmm-brand-title">Logo</button></li>');
  $('.abmm-readiness-issues button[data-field="abmm-brand-title"]').trigger('click');
  assert.equal($('[data-abmm-builder-section-panel="content"]').prop('hidden'),false,'a logo issue opens the Content step');
- assert.equal($('[data-abmm-builder-section-panel="verify"]').prop('hidden'),true);
+ assert.equal($('[data-abmm-builder-section-panel="help"]').prop('hidden'),true);
  assert.equal(f.window.document.activeElement,$('#abmm-brand-title')[0],'and focuses the field');
  // A field in a closed disclosure opens first, or it could not take focus.
  $('[data-abmm-builder-section-panel="design"]').append('<details id="abmm-test-more"><summary>More</summary><input id="abmm-test-hidden"></details>');
@@ -805,7 +806,8 @@ async function simplicityRegressions(){
 
  // Deep links keep their targets, on the steps they name.
  assert.equal(panelOf('placement'),'help');
- assert.equal(panelOf('abmm-readiness-panel'),'verify','the checklist is on Check');
+ assert.equal(panelOf('abmm-readiness-panel'),'help','the checklist is on Place');
+ assert.ok(builderView.indexOf('id="abmm-readiness-panel"')<builderView.indexOf('id="placement"'),'the checklist comes before the ways to place the menu');
  assert.equal(panelOf('abmm-verification-panel'),'verify');
  assert.match(listView,/#placement/);
  assert.match(listView,/#abmm-readiness-panel/);
@@ -816,7 +818,7 @@ async function simplicityRegressions(){
  assert.match(others,/abmm_place_others as/,'the other methods are listed under the disclosure');
  assert.match(others,/For developers: PHP/,'the PHP helper is still there');
  assert.match(builderView,/unset\( \$abmm_place_others\[ \$abmm_place_method \] \)/,'the recommended method is not listed twice');
- assert.equal((builderView.match(/\$abmm_shortcode_field\(\);/g)||[]).length,2,'the shortcode shows with the recommendation or under the others');
+ assert.equal((builderView.match(/\$abmm_shortcode_field\((?: true )?\);/g)||[]).length,2,'the shortcode shows with the recommendation or under the others');
  assert.ok(!/abmm-builder-header__subtitle[^\n]*ashbi_mega_menu/.test(builderView),'the header no longer repeats the shortcode');
  // Small leftovers: nothing extra on the default path, and nothing lost.
  assert.match(listView,/class="button abmm-load-backups" hidden/,'the backup button starts hidden');
@@ -862,5 +864,66 @@ async function simplicityRegressions(){
  assert.ok(card.indexOf('#placement')>card.indexOf('</details>'),'Place stays outside the reveal, on every card');
  assert.ok(!/abmm-how/.test(listView),'one progress list on the dashboard: the setup guide');
  assert.match(listView,/abmm-setup-guide__tips/,'the setup notes are folded, not lost');
- console.log('Stepper-only navigation, moved settings, placement path, publish wording and dashboard reveal passed.');
+
+ // Place ends in a button, not a paragraph, and names the Elementor route.
+ assert.match(builderView,/'block'\s*=> array\( 'site-editor\.php'/,'a block theme gets a button to the Site Editor');
+ assert.match(builderView,/'widget' => array\( 'widgets\.php'/,'a classic theme gets a button to Widgets');
+ assert.match(builderView,/class="button button-primary abmm-place-open"/);
+ assert.match(builderView,/abmm-place-elementor/);
+ assert.match(builderView,/\$abmm_shortcode_field\( true \)/,'where the shortcode is the way, copying it is the main action');
+
+ // With no menus, Tools is one closed line. With menus it stays open as before.
+ assert.match(listView,/empty\( \$menus \)[^\n]*\n\s*<details class="abmm-tools__closed">/);
+ assert.equal((listView.match(/<details class="abmm-tools__closed">/g)||[]).length,1);
+ assert.match(listView,/<\?php if \( empty\( \$menus \) \) : \?>\s*<\/details>\s*<\?php endif; \?>\s*<\/section>/,'the closed section ends with the Tools section');
+ assert.ok(!/abmm-tools__closed[^>]* open/.test(listView),'it starts closed');
+
+ // Words that no longer match the editor are gone.
+ assert.ok(!/Design tab|mega menus? that|Each mega menu|Full width mega menu/.test(builderView));
+
+ // A dropdown keeps its own page through a rename, and shows it under More options.
+ const dropdown={id:'d',label:'Products',type:'mega',url:'/products/',target:'_blank',rel:'nofollow',mega_style:'features',links:[{id:'l',label:'One',url:'/one'}]};
+ const bare={id:'b',label:'Bare',type:'mega',url:'#',mega_style:'features',links:[{id:'m',label:'Two',url:'/two'}]};
+ f=await fixture(false,false,null,'demo',{...menu,items:[dropdown,bare]}); $=f.$;
+ const rowOf=id=>$('#abmm-nav-items .abmm-nav-item-row').filter((_,el)=>$(el).data('id')===id);
+ assert.equal(rowOf('d').find('.abmm-nav-item-row__more').prop('open'),true,'a dropdown with its own page shows it');
+ assert.equal(rowOf('b').find('.abmm-nav-item-row__more').prop('open'),false,'a dropdown without one keeps it tucked away');
+ assert.equal(rowOf('d').find('.abmm-nav-url').val(),'/products/');
+ rowOf('d').find('.abmm-nav-label').val('Renamed').trigger('input');
+ $('.abmm-save-menu').trigger('click');
+ let sent=JSON.parse(f.requests[0].data.menu_data).items[0];
+ assert.equal(sent.label,'Renamed');
+ assert.equal(sent.url,'/products/','renaming a dropdown keeps its page');
+ assert.equal(sent.target,'_blank','and its link options');
+ assert.equal(sent.rel,'nofollow');
+ f.close();
+ // A row that shows no URL field still can't lose the value.
+ f=await fixture(false,false,null,'demo',{...menu,items:[dropdown]}); $=f.$;
+ $('#abmm-nav-items .abmm-nav-url').closest('details').remove();
+ $('#abmm-nav-items .abmm-nav-label').val('Renamed').trigger('input');
+ $('.abmm-save-menu').trigger('click');
+ sent=JSON.parse(f.requests[0].data.menu_data).items[0];
+ assert.equal(sent.url,'/products/','no field means nothing to overwrite');
+ assert.equal(sent.target,'_blank');
+ f.close();
+
+ // A link still on the "#" placeholder is prompted for, in the row and the chip.
+ f=await fixture(false,false,null,'demo',{...menu,items:[{id:'a',label:'Home',type:'link',url:'#'},{id:'b',label:'About',type:'link',url:'/about'}]}); $=f.$;
+ assert.equal($('#abmm-nav-items .abmm-nav-item-row').eq(0).find('.abmm-nav-item-row__url').text(),'No link yet','a link on the placeholder says it has no link yet');
+ assert.equal($('#abmm-nav-items .abmm-nav-item-row').eq(1).find('.abmm-nav-item-row__url').text(),'/about');
+ f.close();
+
+ // The sample warning goes as soon as the saved menu stops being one.
+ const warning='<section class="abmm-sample-warning"><h2>This is a sample</h2></section>';
+ f=await fixture(false,false,null,'demo',menu,warning); $=f.$;
+ $('#abmm-menu-title').val('Changed').trigger('input');
+ $('.abmm-save-menu').trigger('click');
+ f.requests[0].d.resolve({success:true,data:{revision:'r2',sample:true}});
+ assert.equal($('.abmm-sample-warning').length,1,'still a sample: the warning stays');
+ $('#abmm-menu-title').val('Changed again').trigger('input');
+ $('.abmm-save-menu').trigger('click');
+ f.requests[1].d.resolve({success:true,data:{revision:'r3',sample:false}});
+ assert.equal($('.abmm-sample-warning').length,0,'no longer a sample: the warning goes');
+ f.close();
+ console.log('Stepper-only navigation, moved settings, placement path, publish wording, dashboard reveal, dropdown pages and sample warning passed.');
 }

@@ -4,9 +4,9 @@
 
 A simpler editor. Stored menus are not changed. Visitors see one fix: rotating a phone with the drawer open could leave the page unable to scroll, with no menu button, on themes whose sticky header clones the menu. New menus also start with your site's font.
 
-- **One path**: a row of steps (Content, Design, Place, Check) replaces the tabs. After saving, the status says **Live where placed** or **No placement found**. The checklist moved to Check.
+- **One path**: a row of steps (Content, Design, Place, Check) replaces the tabs. After saving, the status says **Live where placed** or **No placement found**. The checklist sits at the top of Place, before the ways to place the menu.
 - **Design**: presets first, with everything else in one closed **Advanced settings** section. A note names each setting in use and jumps to it, so nothing is hidden and active. Mobile navigation and Product Navigation moved there too. Bar padding and plain markup stay as stored values and filters, not editor fields.
-- **Place**: the method recommended for your theme comes first, and the others sit under **Other ways to place it**.
+- **Place**: the method recommended for your theme comes first, with a button to the right screen, and the others sit under **Other ways to place it**.
 - **Dashboard**: the setup guide is the only progress list, and a card's shortcode sits behind a small reveal.
 - **Dropdowns**: new ones start on Simple columns and are called Dropdown. Relationship, CSS classes, per-item icon style and hiding the category bar sit under **More options**, which opens by itself when one is in use. The featured card sits in its own closed section, which also opens by itself when the card has content.
 - **History**: saved versions and backups are in one place, reachable from the menu card and the editor.

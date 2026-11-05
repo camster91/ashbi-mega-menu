@@ -331,6 +331,102 @@ const breakStorage = (window) => Object.defineProperty(window, 'localStorage', {
 	assert.equal(dialog(window), null, 'It still closes.');
 }
 
+// A menu just made from pages has links, but its owner is new. Later visits stay quiet.
+{
+	const made = { items: [{ id: 'a' }] };
+	let window = page({ menu: made, url: 'https://example.test/wp-admin/admin.php?page=ashbi-mega-menu&edit=x&abmm_new=1' });
+	assert.equal(window.ABMMAdminGuide.shouldAutoStart(window), true, 'A menu from the page picker starts the tour.');
+	window.localStorage.setItem(window.ABMMAdminGuide.STORAGE_KEY, JSON.stringify({ status: 'dismissed' }));
+	assert.equal(window.ABMMAdminGuide.shouldAutoStart(window), false, 'A dismissal still wins.');
+	window = page({ menu: made, url: 'https://example.test/wp-admin/admin.php?page=ashbi-mega-menu&edit=x' });
+	assert.equal(window.ABMMAdminGuide.shouldAutoStart(window), false, 'The same menu later stays quiet.');
+}
+
+// A dialog stepping in closes the tour, which isn't the same as dismissing it.
+{
+	const window = page();
+	const doc = window.document;
+	const guide = window.ABMMAdminGuide.create({ window, data: DATA });
+	guide.start(false);
+	assert.ok(dialog(window));
+	doc.getElementById('abmm-icon-modal').hidden = false;
+	doc.getElementById('outside').focus();
+	assert.equal(dialog(window), null, 'The tour steps aside.');
+	assert.notEqual(state(window).status, 'dismissed', 'Stepping aside is not a dismissal.');
+	doc.getElementById('abmm-icon-modal').hidden = true;
+	assert.equal(window.ABMMAdminGuide.shouldAutoStart(window), true, 'So it can carry on later.');
+}
+
+// Narrow screens: the editor's panel is a modal dialog, and the tour walks through it.
+{
+	const NARROW = PAGE.replace('<div id="content-panel"><button class="abmm-add-nav-item">Add item</button><ul id="abmm-nav-items"></ul></div>', '<aside id="abmm-builder-sidebar" style="visibility:hidden"><button class="abmm-builder-panel-close">Close panel</button><div id="content-panel" hidden><button class="abmm-add-nav-item">Add item</button><ul id="abmm-nav-items"></ul></div></aside>');
+	const setup = () => {
+		const window = page({ html: NARROW });
+		const doc = window.document;
+		const sheet = doc.getElementById('abmm-builder-sidebar');
+		const panel = doc.getElementById('content-panel');
+		const close = doc.querySelector('.abmm-builder-panel-close');
+		const open = () => {
+			panel.hidden = false;
+			sheet.classList.add('is-open');
+			sheet.setAttribute('role', 'dialog');
+			sheet.setAttribute('aria-modal', 'true');
+			// As the editor does: the panel takes focus a tick after it opens.
+			window.setTimeout(() => close.focus(), 0);
+		};
+		doc.querySelector('[data-abmm-workflow="content"]').addEventListener('click', open);
+		close.addEventListener('click', () => {
+			panel.hidden = true;
+			sheet.classList.remove('is-open');
+			sheet.removeAttribute('role');
+			sheet.removeAttribute('aria-modal');
+		});
+		return { window, doc, sheet, open, guide: window.ABMMAdminGuide.create({ window, data: DATA }) };
+	};
+	const tick = (window) => new Promise((resolve) => window.setTimeout(resolve, 5));
+	(async () => {
+		let { window, doc, sheet, guide } = setup();
+		assert.equal(guide.start(false), true, 'The tour starts.');
+		assert.ok(sheet.classList.contains('is-open'), 'Its first step opens the panel to reach the target.');
+		await tick(window);
+		assert.ok(dialog(window), 'The panel it opened does not close the tour.');
+		assert.notEqual(state(window).status, 'dismissed', 'Nor does it count as a dismissal.');
+		assert.equal(doc.activeElement, dialog(window).querySelector('.abmm-guide__title'), 'Focus stays with the tour.');
+		guide.next();
+		assert.equal(dialog(window).querySelector('.abmm-guide__title').textContent, 'Save your work');
+		assert.equal(sheet.classList.contains('is-open'), false, 'A step outside the panel closes it first.');
+		guide.destroy();
+
+		// Started from inside the open panel, and the hint works there too.
+		({ window, doc, sheet, guide } = setup());
+		doc.querySelector('[data-abmm-workflow="content"]').click();
+		await tick(window);
+		assert.equal(window.ABMMAdminGuide.isBlocked(window), false, 'The open panel is not a blocker.');
+		doc.getElementById('start').click();
+		assert.ok(dialog(window), 'Show the guide again works from inside the panel.');
+		await tick(window);
+		assert.ok(dialog(window));
+		// The panel traps Tab on the document. The tour keeps Tab to itself.
+		let reached = false;
+		doc.addEventListener('keydown', () => { reached = true; });
+		const titleEl = dialog(window).querySelector('.abmm-guide__next');
+		titleEl.focus();
+		titleEl.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+		assert.equal(reached, false, 'Tab in the tour does not reach the panel\'s trap.');
+		guide.destroy();
+
+		// A different dialog on top still blocks.
+		({ window, doc, sheet, guide } = setup());
+		const other = doc.createElement('div');
+		other.setAttribute('role', 'dialog');
+		other.setAttribute('aria-modal', 'true');
+		doc.body.appendChild(other);
+		assert.equal(window.ABMMAdminGuide.isBlocked(window), true, 'Other modal dialogs still block.');
+		assert.equal(guide.start(false), false);
+		guide.destroy();
+	})().catch((error) => { console.error(error); process.exit(1); });
+}
+
 // The show-again control appears once the script runs, and overrides a dismissal.
 {
 	const window = page();

@@ -6,7 +6,7 @@ A saved menu does not show on your site by itself. You choose where it goes. Thi
 
 1. Open your menu and click **Place**.
 2. Find the method marked **Recommended for your theme**.
-3. Follow the steps shown there.
+3. Follow the steps shown there. A button opens the right screen for you when there is one.
 4. Click **Check** and test the menu on your site.
 
 <!-- screenshot: 19-place-step.png -->

@@ -172,6 +172,7 @@ verify_setup( is_wp_error( $data->create_from_pages( array( 14, 15 ) ) ), 'No pu
 $GLOBALS['abmm_test_options'][ ABMM_OPTION_KEY ] = array();
 $res = setup_request( 'ajax_onboarding', array( 'choice' => 'pages', 'page_ids' => array( '10', '11' ) ) );
 verify_setup( $res->response['success'] && false !== strpos( $res->response['data']['url'], 'edit=' ), 'The pages choice creates a menu and opens it.' );
+verify_setup( false !== strpos( $res->response['data']['url'], 'abmm_new=1' ), 'A menu from pages is marked as new, so the guide can start.' );
 verify_setup( 'pages' === get_user_meta( 1, ABMM_ONBOARDING_META ), 'The choice is remembered for this administrator.' );
 verify_setup( 400 === setup_request( 'ajax_onboarding', array( 'choice' => 'pages', 'page_ids' => array() ) )->getCode(), 'Choosing no pages is refused.' );
 
