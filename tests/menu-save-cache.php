@@ -146,6 +146,37 @@ $backup = $exporter->get_backups()[0];
 check(is_wp_error($exporter->restore_backup($backup['id'], 'stale')), 'Restore ignored revision');
 check(true === $exporter->restore_backup($backup['id'], $store->revision($store->get_all())), 'Backup restore failed');
 check($database_options[ABMM_OPTION_KEY] === $original, 'Restore did not recover prior collection');
+// Repeating an identical import or restore must not evict older recovery points.
+$backup_list = $exporter->get_backups();
+check(!is_wp_error($exporter->import_json(array('menus'=>array('first'=>$original['first'])))), 'Identical import failed');
+check(true === $exporter->restore_backup($backup['id'], $store->revision($store->get_all())), 'Identical restore failed');
+check($backup_list === $exporter->get_backups(), 'No-op operations consumed recovery slots');
+
+// Failed menu writes must not evict more history each time the user retries.
+$fail_option = ABMM_OPTION_KEY;
+$failed_import = $exporter->import_json($payload);
+$backup_list = $exporter->get_backups();
+$retry_import = $exporter->import_json($payload);
+$fail_option = null;
+check($failed_import['imported']['status'] === 'failed' && $retry_import['imported']['status'] === 'failed' && $backup_list === $exporter->get_backups(), 'Retried write failure created duplicate recovery points');
+
+// A portable import can reuse an archived ID. Keep the archive and back up the correct version.
+check(true === $store->archive('second'), 'Could not prepare archived version');
+$archived = $store->get_archived()['second']['menu'];
+check('second-2' === $store->unique_menu_id('second'), 'An archived ID was reused');
+$replacement = array('title'=>'Replacement', 'items'=>array());
+$exporter->import_json(array('menus'=>array('second'=>$replacement)));
+check(is_wp_error($store->archive('second')) && $store->get_all()['second']['title'] === 'Replacement' && $store->get_archived()['second']['menu'] === $archived, 'Re-archiving destroyed an earlier version with the same ID');
+check('second-2' === $store->unique_menu_id('second') && '0' === $store->unique_menu_id('0'), 'Menu ID generation mishandled a reservation or numeric zero');
+check($store->remember_version('second', $replacement, true), 'Could not save the live menu history');
+$fail_option = 'abmm_import_backups';
+check(is_wp_error($store->permanently_delete('second')) && isset($store->get_archived()['second']), 'Permanent deletion ignored the recovery write failure');
+$fail_option = null;
+$before = $wpdb->acquisitions;
+check(true === $store->permanently_delete('second') && $before + 1 === $wpdb->acquisitions, 'Permanent deletion did not use one lock');
+check($exporter->get_backups()[0]['menus']['second'] === $archived && $store->get_all()['second']['title'] === 'Replacement', 'Permanent deletion backed up the live version instead of the archive');
+
+check(count($store->menu_versions('second')) === 1, 'Deleting the archive erased the live menu history');
 $file = tempnam(sys_get_temp_dir(), 'abmm-import-');
 file_put_contents($file, json_encode($payload));
 (new ABMM_WP_CLI_Command())->import(array(), array('file'=>$file, 'dry-run'=>true));

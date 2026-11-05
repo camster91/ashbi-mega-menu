@@ -94,6 +94,10 @@ const adminBar = window.document.getElementById('wpadminbar');
 adminBar.getBoundingClientRect = () => ({ height: 32 });
 const secondHeader = window.document.querySelector('.abmm-header').cloneNode(true);
 secondHeader.setAttribute('data-abmm-instance', 'abmm-demo-2');
+const specialLink = window.document.createElement('a');
+specialLink.href = '#constructor';
+specialLink.setAttribute('aria-describedby', 'constructor');
+secondHeader.appendChild(specialLink);
 window.document.body.appendChild(secondHeader);
 
 const script = fs.readFileSync(
@@ -116,6 +120,8 @@ assert.equal(
 	new Set(Array.from(window.document.querySelectorAll('[id]'), (element) => element.id)).size,
 	window.document.querySelectorAll('[id]').length
 );
+assert.equal(specialLink.getAttribute('href'), '#constructor', 'Unrelated fragments stay intact when a clone is remapped.');
+assert.equal(specialLink.getAttribute('aria-describedby'), 'constructor', 'Unrelated ARIA references stay intact.');
 const toggle = header.querySelector('.abmm-nav__toggle');
 const drawerClose = header.querySelector('[data-abmm-drawer-close]');
 const trigger = header.querySelector('[data-abmm-mega-trigger]');
@@ -381,6 +387,25 @@ window.setTimeout(() => {
 	lateTrigger.click();
 	assert.equal(lateTrigger.getAttribute('aria-expanded'), 'true');
 
+	lateClone.remove();
+	window.setTimeout(() => {
+		assert.equal(window.document.documentElement.classList.contains('abmm-drawer-open'), false, 'Removing an open clone releases the page.');
+		assert.equal(header.hasAttribute('inert'), false);
+		assert.equal(lateClone.hasAttribute('data-abmm-initialized'), false, 'Detached headers release their bindings.');
+		lateToggle.click();
+		assert.equal(lateClone.classList.contains('is-mobile-open'), false, 'A detached toggle cannot lock the page.');
+		window.document.body.appendChild(lateClone);
+		window.setTimeout(() => {
+			lateToggle.click();
+			assert.equal(lateClone.classList.contains('is-mobile-open'), true, 'Reinsertion binds one working toggle.');
+			lateToggle.click();
+			assert.equal(lateClone.classList.contains('is-mobile-open'), false);
+			checkExternalDrawer();
+		}, 0);
+	}, 0);
+}, 0);
+
+function checkExternalDrawer() {
 	const externalDrawer = window.document.querySelector('.elementskit-menu-container');
 	externalDrawer.classList.add('active');
 	window.setTimeout(() => {
@@ -393,4 +418,4 @@ window.setTimeout(() => {
 			dom.window.close();
 		}, 0);
 	}, 0);
-}, 0);
+}

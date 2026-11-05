@@ -29,12 +29,38 @@ class WP_Error {
 }
 
 class ABMM_Test_DB {
+	public $last_error = '';
 	public $options  = 'wp_options';
 	public $postmeta = 'wp_postmeta';
 	public $posts    = 'wp_posts';
 	public function esc_like( $text ) { return addcslashes( $text, '_%\\' ); }
 	public function prepare( $query, ...$args ) { $GLOBALS['abmm_last_args'] = $args; return $query; }
-	public function query( $query ) { return 1; }
+	public function query( $query ) {
+		if ( 0 !== strpos( $query, 'UPDATE ' ) ) {
+			return 1;
+		}
+		list( $after, $id, $before ) = $GLOBALS['abmm_last_args'];
+		if ( 0 === strpos( $query, 'UPDATE wp_posts ' ) ) {
+			$value =& $GLOBALS['abmm_test_posts'][ $id ];
+		} elseif ( 0 === strpos( $query, 'UPDATE wp_postmeta ' ) ) {
+			$value =& $GLOBALS['abmm_test_elementor_rows'][ $id ]['value'];
+		} else {
+			$value =& $GLOBALS['abmm_options'][ $id ];
+			$after  = maybe_unserialize( $after );
+			$before = maybe_unserialize( $before );
+		}
+		if ( isset( $GLOBALS['abmm_test_concurrent_edits'][ $id ] ) ) {
+			$value = $GLOBALS['abmm_test_concurrent_edits'][ $id ];
+		}
+		if ( in_array( $id, $GLOBALS['abmm_test_failed_rows'] ?? array(), true ) ) {
+			return false;
+		}
+		if ( $before !== $value ) {
+			return 0;
+		}
+		$value = $after;
+		return 1;
+	}
 	public function get_var( $query ) {
 		if ( isset( $GLOBALS['abmm_test_content'] ) ) {
 			foreach ( $GLOBALS['abmm_last_args'] as $arg ) {
@@ -55,18 +81,12 @@ class ABMM_Test_DB {
 	public function get_col( $query ) {
 		return $GLOBALS['abmm_test_elementor'] ?? array();
 	}
-	public function update( $table, $data, $where ) {
-		if ( ! empty( $GLOBALS['abmm_test_write_fails'] ) ) {
-			return false;
-		}
-		if ( $this->posts === $table ) {
-			$GLOBALS['abmm_test_posts'][ $where['ID'] ] = $data['post_content'];
-		} else {
-			$GLOBALS['abmm_test_elementor_rows'][ $where['meta_id'] ]['value'] = $data['meta_value'];
-		}
-		return 1;
-	}
 	public function get_results( $query ) {
+		if ( isset( $GLOBALS['abmm_test_failed_scan'] ) && false !== strpos( $query, $GLOBALS['abmm_test_failed_scan'] ) ) {
+			$this->last_error = 'Simulated read failure';
+			return null;
+		}
+		$this->last_error = '';
 		if ( false !== strpos( $query, 'SELECT ID, post_content' ) ) {
 			$rows = array();
 			foreach ( $GLOBALS['abmm_test_posts'] ?? array() as $id => $content ) {
@@ -86,7 +106,7 @@ class ABMM_Test_DB {
 			return $rows;
 		}
 		if ( false !== strpos( $query, 'SELECT option_name' ) ) {
-			return array_map( function ( $name ) { return array( 'option_name' => $name ); }, $GLOBALS['abmm_test_widgets'] ?? array() );
+			return array_map( function ( $name ) { return array( 'option_name' => $name, 'option_value' => maybe_serialize( get_option( $name ) ) ); }, $GLOBALS['abmm_test_widgets'] ?? array() );
 		}
 		$rows = array();
 		foreach ( $GLOBALS['abmm_meta'] as $post_id => $meta ) {
@@ -154,6 +174,8 @@ function wp_enqueue_script() {}
 function wp_add_inline_script() {}
 function wp_cache_delete() {}
 function is_wp_error( $value ) { return $value instanceof WP_Error; }
+function maybe_serialize( $value ) { return is_array( $value ) ? serialize( $value ) : $value; }
+function maybe_unserialize( $value ) { return is_string( $value ) && 0 === strpos( $value, 'a:' ) ? unserialize( $value ) : $value; }
 function get_option( $key, $default = false ) { return $GLOBALS['abmm_options'][ $key ] ?? $default; }
 function delete_option( $key ) { unset( $GLOBALS['abmm_options'][ $key ] ); return true; }
 function delete_transient( $key ) { unset( $GLOBALS['abmm_transients'][ $key ] ); return true; }
@@ -161,6 +183,7 @@ function clean_post_cache( $id ) { $GLOBALS['abmm_cleaned_posts'][] = $id; }
 function add_submenu_page( $parent, $title, $label, $cap, $slug ) { $GLOBALS['abmm_pages'][] = array( $parent, $label ); }
 function add_management_page( $title, $label, $cap, $slug ) { $GLOBALS['abmm_pages'][] = array( 'tools.php', $label ); }
 function update_option( $key, $value, $autoload = null ) {
+	if ( $key === ( $GLOBALS['abmm_test_failed_option'] ?? null ) ) { return false; }
 	if ( ! empty( $GLOBALS['abmm_test_backup_fails'] ) && ABMM_EMM_Migration::BACKUP_OPTION === $key ) { return false; }
 	if ( isset( $GLOBALS['abmm_options'][ $key ] ) && $GLOBALS['abmm_options'][ $key ] === $value ) { return false; }
 	$GLOBALS['abmm_options'][ $key ] = $value;
@@ -261,6 +284,20 @@ verify_migration( $source_before === array_intersect_key( $GLOBALS['abmm_options
 verify_migration( $files_before === array( md5_file( $plugin_dir . '/assets/css/frontend.css' ), md5_file( $plugin_dir . '/assets/icons/emm-sprite.svg' ) ), "Easy Mega Menu's files are unchanged." );
 verify_migration( 'product_a' === ( $GLOBALS['abmm_meta'][42]['_emm_product_profile'] ?? '' ), "Easy Mega Menu's page meta is unchanged." );
 
+// A failed branding save must leave a newly imported profile eligible for a normal retry.
+$GLOBALS['abmm_options']['emm_product_profiles']['retry_profile'] = array( 'label' => 'First label' );
+$GLOBALS['abmm_options']['emm_product_branding']['retry_profile'] = $GLOBALS['abmm_options']['emm_product_branding']['product_a'];
+$GLOBALS['abmm_test_failed_option'] = ABMM_Product_Branding::OPTION_KEY;
+$partial_import = $migration->import();
+unset( $GLOBALS['abmm_test_failed_option'] );
+verify_migration( is_wp_error( $partial_import ) && 'First label' === get_option( ABMM_Product_Profiles::OPTION_KEY )['retry_profile']['label'], 'Profiles can save before branding fails.' );
+$GLOBALS['abmm_options']['emm_product_profiles']['retry_profile']['label'] = 'Updated label';
+$retry_import = $migration->import();
+verify_migration( ! is_wp_error( $retry_import ) && 'Updated label' === get_option( ABMM_Product_Profiles::OPTION_KEY )['retry_profile']['label'], 'A normal retry updates the profile created by the partial import.' );
+foreach ( array( 'emm_product_profiles', 'emm_product_branding', ABMM_Product_Profiles::OPTION_KEY, ABMM_Product_Branding::OPTION_KEY ) as $option ) {
+	unset( $GLOBALS['abmm_options'][ $option ]['retry_profile'] );
+}
+
 // Product navigation, branding and page assignments.
 verify_migration( true === get_option( ABMM_CONTEXTUAL_NAV_OPTION ), 'Contextual navigation is turned on for imported profiles.' );
 $profiles = get_option( ABMM_Product_Profiles::OPTION_KEY );
@@ -281,6 +318,13 @@ verify_migration( 1 === preg_match( '/^emm-sprite-[0-9a-f]{10}\.svg$/', $assets[
 verify_migration( isset( ABMM_Classic_Icons::sprite_keys( $dir . '/' . $assets['sprite'] )['wallet'] ) && in_array( 'wallet', $assets['keys'], true ), 'The sprite copy keeps its icons and the icon list is stored.' );
 verify_migration( ! file_exists( $dir . '/emm-frontend-stale0000.css' ), 'Copies from earlier imports are removed.' );
 
+// An option write failure cannot remove the stylesheet that the site still uses.
+$GLOBALS['abmm_test_failed_option'] = ABMM_Classic::ASSETS_OPTION;
+file_put_contents( $plugin_dir . '/assets/css/frontend.css', ".emm-header{color:blue}\n" );
+$failed_copy = $migration->copy_assets();
+unset( $GLOBALS['abmm_test_failed_option'] );
+verify_migration( ! $failed_copy['copied'] && $assets === get_option( ABMM_Classic::ASSETS_OPTION ) && file_exists( $dir . '/' . $assets['css'] ), 'An unsuccessful asset update preserves the recorded stylesheet.' );
+
 // A changed stylesheet gets a new file; the previous copy is removed.
 $first_css = $assets['css'];
 file_put_contents( $plugin_dir . '/assets/css/frontend.css', ".emm-header{color:blue}\n" );
@@ -298,6 +342,14 @@ $migration->import( false );
 $profiles = get_option( ABMM_Product_Profiles::OPTION_KEY );
 verify_migration( 'Start a trial' === $profiles['product_a']['cta']['label'] && 'My product C' === $profiles['product_c']['label'], 'Re-importing updates imported profiles and keeps your own.' );
 verify_migration( 'product_b' === $GLOBALS['abmm_meta'][42]['_abmm_product_profile'] && 'kept' === $GLOBALS['abmm_meta'][43]['_abmm_product_profile'], 'Re-importing updates imported page assignments and keeps your own.' );
+
+// Keep a removed assignment removed and ignore a reference to a missing profile.
+$GLOBALS['abmm_meta'][44] = array( '_emm_product_profile' => 'missing_profile' );
+unset( $GLOBALS['abmm_meta'][42]['_abmm_product_profile'] );
+$migration->import( false );
+verify_migration( '' === get_post_meta( 42, ABMM_Page_Context::META_KEY ) && '' === get_post_meta( 44, ABMM_Page_Context::META_KEY ), 'Re-import preserves intentional removals and skips missing profiles.' );
+unset( $GLOBALS['abmm_meta'][44] );
+$GLOBALS['abmm_meta'][42]['_abmm_product_profile'] = 'product_b';
 
 // Overwrite replaces the conflicting Ashbi menu when asked; a second import updates classic menus in place.
 $result = $migration->import( true );
@@ -450,6 +502,11 @@ $GLOBALS['abmm_test_elementor_rows'] = $abmm_elementor;
 $GLOBALS['abmm_test_widgets']        = array( 'widget_text' );
 $GLOBALS['abmm_options']['widget_text'] = $abmm_widget_value;
 
+$GLOBALS['abmm_test_failed_scan'] = 'SELECT pm.meta_id, pm.post_id';
+$abmm_failed_scan = $migration->finish_switching();
+unset( $GLOBALS['abmm_test_failed_scan'] );
+verify_migration( is_wp_error( $abmm_failed_scan ) && $abmm_posts === $GLOBALS['abmm_test_posts'] && ! $migration->has_backup(), 'A failed content scan stops the switch before any page is changed.' );
+
 $GLOBALS['abmm_test_backup_fails'] = true;
 $abmm_failed = $migration->finish_switching();
 unset( $GLOBALS['abmm_test_backup_fails'] );
@@ -485,6 +542,23 @@ verify_migration( $abmm_posts === $GLOBALS['abmm_test_posts'], 'Undo restores po
 verify_migration( 'edited after the switch' === $GLOBALS['abmm_test_elementor_rows'][21]['value'], 'Undo keeps a later edit.' );
 verify_migration( $abmm_widget_value === $GLOBALS['abmm_options']['widget_text'], 'Undo restores widgets exactly.' );
 verify_migration( ! $migration->has_backup() && is_wp_error( $migration->undo_switching() ), 'Undo works once, then there is nothing to undo.' );
+
+// Concurrent saves win at write time, in both directions.
+$GLOBALS['abmm_test_concurrent_edits'] = array( 5 => 'New page edit', 'widget_text' => array( 2 => array( 'text' => 'New widget edit' ) ) );
+$abmm_conflicts = $migration->finish_switching();
+verify_migration( 2 === $abmm_conflicts['skipped'] && 'New page edit' === $GLOBALS['abmm_test_posts'][5] && $GLOBALS['abmm_test_concurrent_edits']['widget_text'] === get_option( 'widget_text' ), 'Finish switching preserves edits made after the snapshot.' );
+unset( $GLOBALS['abmm_test_concurrent_edits'] );
+$GLOBALS['abmm_test_posts'] = $abmm_posts;
+$GLOBALS['abmm_test_elementor_rows'] = $abmm_elementor;
+$GLOBALS['abmm_options']['widget_text'] = $abmm_widget_value;
+$migration->finish_switching();
+$GLOBALS['abmm_test_concurrent_edits'] = array( 21 => 'New Elementor edit' );
+$GLOBALS['abmm_test_failed_rows'] = array( 5, 'widget_text' );
+$abmm_partial = $migration->undo_switching();
+verify_migration( 2 === $abmm_partial['failed'] && 1 === $abmm_partial['skipped'] && 0 === $abmm_partial['restored'] && $migration->has_backup(), 'Undo retains failed page and widget writes while leaving concurrent edits alone.' );
+unset( $GLOBALS['abmm_test_concurrent_edits'], $GLOBALS['abmm_test_failed_rows'] );
+$abmm_retry = $migration->undo_switching();
+verify_migration( 2 === $abmm_retry['restored'] && ! $migration->has_backup() && $abmm_posts === $GLOBALS['abmm_test_posts'] && $abmm_widget_value === get_option( 'widget_text' ) && 'New Elementor edit' === $GLOBALS['abmm_test_elementor_rows'][21]['value'], 'Retry restores only the outstanding failures.' );
 
 // Undo restores Elementor data byte for byte too, through the handlers.
 $GLOBALS['abmm_test_elementor_rows'] = $abmm_elementor;

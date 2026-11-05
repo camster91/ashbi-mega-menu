@@ -565,9 +565,10 @@
 
 	function openMegaDesktop(item) {
 		var header = closest(item, '.abmm-header');
-		document.querySelectorAll('.abmm-header').forEach(function (menuHeader) {
-			closeAllMegas(menuHeader);
-		});
+		if (header) {
+			header.dispatchEvent(new window.Event('abmm:menu-opening', { bubbles: true }));
+			closeAllMegas(header);
+		}
 		item.classList.add('is-open');
 		if (header) {
 			syncScrim(header);
@@ -712,9 +713,7 @@
 		var backdrop = header.querySelector('[data-abmm-backdrop]');
 		var drawer = header.querySelector('.abmm-nav__drawer');
 		if (open && isMobile(header)) {
-			document.querySelectorAll('.abmm-header.is-mobile-open').forEach(function (otherHeader) {
-				if (otherHeader !== header) setDrawerOpen(otherHeader, false, false);
-			});
+			header.dispatchEvent(new window.Event('abmm:menu-opening', { bubbles: true }));
 		}
 		var wasOpen = header.classList.contains('is-mobile-open');
 		header.classList.toggle('is-mobile-open', open);
@@ -747,6 +746,7 @@
 		} else {
 			updateMobileGeometry(header);
 			window.requestAnimationFrame(function () {
+				if (!header.isConnected || !header.classList.contains('is-mobile-open')) return;
 				var browsable = drawer ? visibleFocusable(drawer).filter(function (element) {
 					return !element.matches('input');
 				}) : [];
@@ -856,7 +856,7 @@
 	}
 
 	function remapCollidingIds(header) {
-		var idMap = {};
+		var idMap = Object.create(null);
 		var instance = (header.getAttribute('data-abmm-instance') || 'clone')
 			.replace(/[^A-Za-z0-9_-]+/g, '-')
 			.replace(/^-+|-+$/g, '') || 'clone';
@@ -897,7 +897,7 @@
 		});
 	}
 
-	function syncBrandLogos(header) {
+	function syncBrandLogos(header, listen) {
 		header.querySelectorAll('.abmm-nav__brand-logo').forEach(function (logo) {
 			var brand = closest(logo, '.abmm-nav__brand');
 			if (!brand) return;
@@ -911,8 +911,8 @@
 					else fallbackText.setAttribute('aria-hidden', 'true');
 				}
 			};
-			logo.addEventListener('load', sync);
-			logo.addEventListener('error', sync);
+			listen(logo, 'load', sync);
+			listen(logo, 'error', sync);
 			sync();
 		});
 	}
@@ -925,8 +925,16 @@
 		// but not properties or event listeners. A cloned header that carries the
 		// diagnostic data attribute must still receive its own listeners.
 		if (header.__ashbiMegaMenuInitialized === true) return;
+		var removeListeners = [];
+		var connected = true;
+		function listen(target, type, callback, options) {
+			target.addEventListener(type, callback, options);
+			removeListeners.push(function () {
+				target.removeEventListener(type, callback, options);
+			});
+		}
 		remapCollidingIds(header);
-		syncBrandLogos(header);
+		syncBrandLogos(header, listen);
 		header.__ashbiMegaMenuInitialized = true;
 		header.setAttribute('data-abmm-initialized', 'true');
 		initMenuSearch(header);
@@ -952,6 +960,19 @@
 				categoryTimer = null;
 			}
 		}
+
+		header.__ashbiMegaMenuDisconnect = function () {
+			connected = false;
+			removeListeners.forEach(function (remove) { remove(); });
+			clearCloseTimer();
+			clearOpenTimer();
+			clearCategoryTimer();
+			if (geometryObserver && geometryObserver.disconnect) geometryObserver.disconnect();
+			setDrawerOpen(header, false, false);
+			delete header.__ashbiMegaMenuDisconnect;
+			delete header.__ashbiMegaMenuInitialized;
+			header.removeAttribute('data-abmm-initialized');
+		};
 
 		function clearCloseTimer() {
 			if (closeTimer) {
@@ -982,7 +1003,7 @@
 		}
 
 		header.querySelectorAll('.abmm-nav__item').forEach(function (item) {
-			item.addEventListener('mouseenter', function () {
+			listen(item, 'mouseenter', function () {
 				if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
 				clearCloseTimer();
 				clearOpenTimer();
@@ -1002,10 +1023,10 @@
 					closeAllMegas(header);
 				}
 			});
-			item.addEventListener('mouseleave', clearOpenTimer);
+			listen(item, 'mouseleave', clearOpenTimer);
 		});
 
-		header.addEventListener('mouseleave', function (event) {
+		listen(header, 'mouseleave', function (event) {
 			if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
 			if (isWithinHeader(event.relatedTarget)) {
 				clearCloseTimer();
@@ -1014,7 +1035,7 @@
 			scheduleClose();
 		});
 
-		header.addEventListener('mouseenter', function () {
+		listen(header, 'mouseenter', function () {
 			if (desktopOpenMode === 'click') return;
 			clearCloseTimer();
 		});
@@ -1022,7 +1043,7 @@
 		// Tabbing out of the menu closes an open desktop panel and its scrim.
 		// Only a focus move to another element counts: a null relatedTarget is a
 		// click on blank space or a window switch, which must not close it.
-		header.addEventListener('focusout', function (event) {
+		listen(header, 'focusout', function (event) {
 			if (isMobile(header) || isWithinHeader(event.relatedTarget) || !event.relatedTarget) return;
 			if (!header.querySelector('.abmm-nav__item--mega.is-open')) return;
 			clearCloseTimer();
@@ -1035,10 +1056,10 @@
 			if (!trigger) return;
 
 			if (panel) {
-				panel.addEventListener('mouseenter', function () {
+				listen(panel, 'mouseenter', function () {
 					if (desktopOpenMode !== 'click' && !isMobile(header) && hoverMq.matches) clearCloseTimer();
 				});
-				panel.addEventListener('mouseleave', function (event) {
+				listen(panel, 'mouseleave', function (event) {
 					if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
 					if (isWithinHeader(event.relatedTarget)) {
 						clearCloseTimer();
@@ -1048,7 +1069,7 @@
 				});
 			}
 
-			trigger.addEventListener('click', function (e) {
+			listen(trigger, 'click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
 				clearCloseTimer();
@@ -1079,7 +1100,7 @@
 		});
 
 		header.querySelectorAll('.abmm-mega__cat').forEach(function (btn) {
-			btn.addEventListener('mouseenter', function () {
+			listen(btn, 'mouseenter', function () {
 				if (isMobile(header) || !hoverMq.matches) return;
 				clearCategoryTimer();
 				// Switch only once the pointer rests here: on its way from a category
@@ -1093,8 +1114,8 @@
 					activateCategoryDesktop(btn);
 				}, CATEGORY_HOVER_DELAY);
 			});
-			btn.addEventListener('mouseleave', clearCategoryTimer);
-			btn.addEventListener('click', function (e) {
+			listen(btn, 'mouseleave', clearCategoryTimer);
+			listen(btn, 'click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
 				clearCategoryTimer();
@@ -1104,7 +1125,7 @@
 					activateCategoryDesktop(btn);
 				}
 			});
-			btn.addEventListener('keydown', function (e) {
+			listen(btn, 'keydown', function (e) {
 				if (['ArrowDown', 'ArrowUp', 'Home', 'End'].indexOf(e.key) === -1) return;
 				clearCategoryTimer();
 				var mega = closest(btn, '.abmm-mega');
@@ -1123,7 +1144,7 @@
 		});
 
 		header.querySelectorAll('[data-abmm-section-toggle]').forEach(function (btn) {
-			btn.addEventListener('click', function (e) {
+			listen(btn, 'click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
 				var section = closest(btn, '.abmm-mega__section');
@@ -1139,7 +1160,7 @@
 			});
 		});
 
-		header.addEventListener('click', function (e) {
+		listen(header, 'click', function (e) {
 			var back = e.target.closest ? e.target.closest('[data-abmm-back]') : null;
 			if (!back || !header.contains(back)) return;
 			e.preventDefault();
@@ -1151,7 +1172,7 @@
 		var toggle = header.querySelector('.abmm-nav__toggle');
 		// Dismiss before native navigation so a slow response does not leave the
 		// drawer covering the page. Keep drill controls and new-tab clicks intact.
-		header.addEventListener('click', function (e) {
+		listen(header, 'click', function (e) {
 			if (!header.classList.contains('is-mobile-open') || e.defaultPrevented) return;
 			if (e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
 			var link = closest(e.target, 'a[href]');
@@ -1166,22 +1187,22 @@
 
 		// Back/Forward can restore the outgoing document without reinitializing
 		// its scripts. Never restore a stale drawer or its scroll/stacking locks.
-		window.addEventListener('pagehide', function () {
+		listen(window, 'pagehide', function () {
 			setDrawerOpen(header, false, false);
 		});
-		window.addEventListener('pageshow', function (e) {
+		listen(window, 'pageshow', function (e) {
 			if (e.persisted) setDrawerOpen(header, false, false);
 		});
 
 		if (toggle) {
-			toggle.addEventListener('click', function (e) {
+			listen(toggle, 'click', function (e) {
 				e.stopPropagation();
 				var open = toggle.getAttribute('aria-expanded') !== 'true';
 				setDrawerOpen(header, open, true);
 			});
 		}
 
-		header.addEventListener('click', function (e) {
+		listen(header, 'click', function (e) {
 			var closeBtn = e.target.closest ? e.target.closest('[data-abmm-drawer-close]') : null;
 			if (!closeBtn || !header.contains(closeBtn)) return;
 			e.preventDefault();
@@ -1191,14 +1212,27 @@
 
 		var backdrop = header.querySelector('[data-abmm-backdrop]');
 		if (backdrop) {
-			backdrop.addEventListener('click', function () {
+			listen(backdrop, 'click', function () {
 				setDrawerOpen(header, false, true);
 			});
 		}
 
-		document.addEventListener('keydown', function (e) {
+		// Both renderers close synchronously before the new menu takes the page lock.
+		listen(document, 'abmm:menu-opening', function (event) {
+			if (event.target === header) return;
+			clearCloseTimer();
+			clearOpenTimer();
+			clearCategoryTimer();
+			if (header.classList.contains('is-mobile-open')) {
+				setDrawerOpen(header, false, false);
+			} else if (header.classList.contains('abmm-has-open-menu')) {
+				closeAllMegas(header);
+			}
+		});
+
+		listen(document, 'keydown', function (e) {
 			var focusedHeader = closest(document.activeElement, '.abmm-header');
-			if (focusedHeader && focusedHeader !== header) return;
+			if (e.key === 'Tab' && focusedHeader && focusedHeader !== header) return;
 			if (e.key === 'Tab' && isMobile(header) && header.classList.contains('is-mobile-open')) {
 				var drawer = header.querySelector('.abmm-nav__drawer');
 				// The bar stays above the open drawer and its toggle is the close
@@ -1247,9 +1281,11 @@
 		// even though the visitor has not touched outside the drawer. A pointer press
 		// represents the actual dismissal gesture and still precedes a normal click.
 		var outsidePressEvent = window.PointerEvent ? 'pointerdown' : 'mousedown';
-		document.addEventListener(outsidePressEvent, function (e) {
+		listen(document, outsidePressEvent, function (e) {
 			if (!isOutsideHeaderEvent(e)) return;
 			clearCloseTimer();
+			clearOpenTimer();
+			clearCategoryTimer();
 			if (isMobile(header)) {
 				if (header.classList.contains('is-mobile-open')) {
 					setDrawerOpen(header, false, false);
@@ -1259,7 +1295,7 @@
 			closeAllMegas(header);
 		});
 
-		document.addEventListener('click', function (e) {
+		listen(document, 'click', function (e) {
 			if (!isOutsideHeaderEvent(e)) return;
 			// Elementor autoplay widgets call element.click() as they rotate slides.
 			// Those untrusted synthetic events bubble to document and must not close
@@ -1270,7 +1306,7 @@
 			if (!isMobile(header)) closeAllMegas(header);
 		});
 
-		window.addEventListener('resize', function () {
+		listen(window, 'resize', function () {
 			updateOverflowRisk(header);
 			if (
 				isMobile(header) &&
@@ -1288,7 +1324,7 @@
 			repositionOpenPanels(header);
 		});
 
-		window.addEventListener('scroll', function () {
+		listen(window, 'scroll', function () {
 			if (header.classList.contains('abmm-has-open-menu') && !isMobile(header)) syncScrim(header);
 		}, { passive: true });
 
@@ -1306,7 +1342,7 @@
 			if (adminBar) geometryObserver.observe(adminBar);
 		}
 		if (window.visualViewport) {
-			window.visualViewport.addEventListener('resize', function () {
+			listen(window.visualViewport, 'resize', function () {
 				updateMobileGeometry(header);
 			});
 		}
@@ -1316,12 +1352,15 @@
 		if (header.classList.contains('is-mobile-open')) {
 			header.style.removeProperty('min-width');
 			setDrawerOpen(header, false, false);
+		} else if (header.classList.contains('abmm-has-open-menu')) {
+			closeAllMegas(header);
 		}
 
 		updateMobileGeometry(header);
 		updateOverflowRisk(header);
 		if (document.fonts && document.fonts.ready) {
 			document.fonts.ready.then(function () {
+				if (!connected) return;
 				updateOverflowRisk(header);
 				updateMobileGeometry(header);
 				repositionOpenPanels(header);
@@ -1353,14 +1392,22 @@
 		if (toggle && isMobile(target) && !target.classList.contains('is-mobile-open')) toggle.click();
 	}
 
+	function forEachHeader(root, callback) {
+		if (root.nodeType === 1 && root.matches('.abmm-header')) callback(root);
+		if (root.querySelectorAll) root.querySelectorAll('.abmm-header').forEach(callback);
+	}
+
 	function initWithin(root) {
-		if (!root) return;
-		if (root.nodeType === 1 && root.matches && root.matches('.abmm-header')) {
-			initHeader(root);
-		}
-		if (root.querySelectorAll) {
-			root.querySelectorAll('.abmm-header').forEach(initHeader);
-		}
+		forEachHeader(root, function (header) {
+			if (header.isConnected) initHeader(header);
+		});
+	}
+
+	function disconnectWithin(root) {
+		forEachHeader(root, function (header) {
+			// Moving a live header also produces a removal record.
+			if (!header.isConnected && header.__ashbiMegaMenuDisconnect) header.__ashbiMegaMenuDisconnect();
+		});
 	}
 
 	function init() {
@@ -1375,7 +1422,9 @@
 		document.__ashbiMegaMenuObserverActive = true;
 
 		var observer = new MutationObserver(function (records) {
+			if (!document || !document.documentElement) return;
 			records.forEach(function (record) {
+				record.removedNodes.forEach(disconnectWithin);
 				record.addedNodes.forEach(initWithin);
 			});
 		});

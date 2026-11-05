@@ -431,7 +431,14 @@ class ABMM_EMM_Migration {
 		}
 
 		$this->remember_source_menus();
-		$assets   = $this->copy_assets();
+		$assets = $this->copy_assets();
+		return ABMM_Data::instance()->with_collection_lock( function () use ( $source, $overwrite, $only, $assets ) {
+			return $this->import_locked( $source, $overwrite, $only, $assets );
+		} );
+	}
+
+	/** Keep collision checks and the ensuing menu writes under the same lock. */
+	private function import_locked( $source, $overwrite, $only, $assets ) {
 		$existing = ABMM_Data::instance()->get_all();
 		$menus    = array();
 		$skipped  = array();
@@ -509,13 +516,15 @@ class ABMM_EMM_Migration {
 			return $counts;
 		}
 		update_option( ABMM_CONTEXTUAL_NAV_OPTION, true );
-		$state = $this->import_state();
-		$menus = ABMM_Data::instance()->get_all();
-
 		$stored = ABMM_Option_Store::locked(
-			function () use ( $source, $overwrite, &$state, &$counts, $menus ) {
+			function () use ( $source, $overwrite, &$counts, $assignments ) {
+				wp_cache_delete( self::STATE_OPTION, 'options' );
+				$state = $this->import_state();
+				$menus = ABMM_Data::instance()->get_all();
 				$profiles_store = ABMM_Product_Profiles::instance();
 				$profiles       = $profiles_store->get_all();
+				$profile_updates = array();
+				$this->recover_import_ownership( $state, 'profiles', $profiles );
 				foreach ( $source['profiles'] as $id => $profile ) {
 					$id = sanitize_key( (string) $id );
 					if ( '' === $id || ! is_array( $profile ) ) {
@@ -525,13 +534,20 @@ class ABMM_EMM_Migration {
 						$counts['kept_profiles'][] = $id;
 						continue;
 					}
-					$profiles[ $id ]     = $profiles_store->sanitize_profile( $profile );
-					$state['profiles'][] = $id;
+					$profile_updates[ $id ] = $profiles_store->sanitize_profile( $profile );
 					++$counts['profiles'];
 				}
 
+				$saved = $this->persist_import_records( $state, 'profiles', ABMM_Product_Profiles::OPTION_KEY, $profiles, $profile_updates );
+				if ( is_wp_error( $saved ) ) {
+					return $saved;
+				}
+				$profiles = array_replace( $profiles, $profile_updates );
+
 				$branding_store = ABMM_Product_Branding::instance();
 				$branding       = $branding_store->get_all();
+				$branding_updates = array();
+				$this->recover_import_ownership( $state, 'branding', $branding );
 				foreach ( $source['branding'] as $id => $config ) {
 					$id = sanitize_key( (string) $id );
 					if ( '' === $id || ! is_array( $config ) ) {
@@ -544,41 +560,70 @@ class ABMM_EMM_Migration {
 						$counts['kept_branding'][] = $id;
 						continue;
 					}
-					$branding[ $id ]     = $config;
-					$state['branding'][] = $id;
+					$branding_updates[ $id ] = $config;
 					++$counts['branding'];
 				}
 
-				$saved = ABMM_Option_Store::persist( ABMM_Product_Profiles::OPTION_KEY, $profiles );
-				return is_wp_error( $saved ) ? $saved : ABMM_Option_Store::persist( ABMM_Product_Branding::OPTION_KEY, $branding );
+				$saved = $this->persist_import_records( $state, 'branding', ABMM_Product_Branding::OPTION_KEY, $branding, $branding_updates );
+				if ( is_wp_error( $saved ) ) {
+					return $saved;
+				}
+
+				foreach ( $assignments as $post_id => $profile ) {
+					$current = (string) get_post_meta( $post_id, ABMM_Page_Context::META_KEY, true );
+					$previous = $state['pages'][ $post_id ] ?? '';
+					if ( ! isset( $profiles[ $profile ] ) || $current === $profile || ( ! $overwrite && $current !== $previous ) ) {
+						continue;
+					}
+					if ( update_post_meta( $post_id, ABMM_Page_Context::META_KEY, $profile, $current ) ) {
+						$state['pages'][ $post_id ] = $profile;
+						++$counts['pages'];
+					}
+				}
+
+				return ABMM_Option_Store::persist( self::STATE_OPTION, $state );
 			}
 		);
 		if ( is_wp_error( $stored ) ) {
 			return new WP_Error( $stored->get_error_code(), __( 'The menus were imported, but Product Navigation could not be saved. Run the import again.', 'ashbi-mega-menu' ) );
 		}
+		return $counts;
+	}
 
-		foreach ( $assignments as $post_id => $profile ) {
-			$current = (string) get_post_meta( $post_id, ABMM_Page_Context::META_KEY, true );
-			$ours    = isset( $state['pages'][ $post_id ] ) && $state['pages'][ $post_id ] === $current;
-			if ( $current === $profile || ( '' !== $current && ! $ours && ! $overwrite ) ) {
-				continue;
-			}
-			if ( update_post_meta( $post_id, ABMM_Page_Context::META_KEY, $profile ) ) {
-				$state['pages'][ $post_id ] = $profile;
-				++$counts['pages'];
+	/** Recover a previous write only if the stored record matches what was imported. */
+	private function recover_import_ownership( &$state, $group, $records ) {
+		foreach ( $state['pending'][ $group ] ?? array() as $id => $revision ) {
+			if ( isset( $records[ $id ] ) && ABMM_Option_Store::revision( $records[ $id ] ) === $revision ) {
+				$state[ $group ][] = $id;
 			}
 		}
+		$state[ $group ] = array_values( array_unique( $state[ $group ] ) );
+		unset( $state['pending'][ $group ] );
+	}
 
-		$state['profiles'] = array_values( array_unique( $state['profiles'] ) );
-		$state['branding'] = array_values( array_unique( $state['branding'] ) );
-		update_option( self::STATE_OPTION, $state, false );
-		return $counts;
+	/** Record the intended write first so a retry can identify a partial import. */
+	private function persist_import_records( &$state, $group, $option, $records, $updates ) {
+		if ( ! $updates ) {
+			return true;
+		}
+		$state['pending'][ $group ] = array_map( array( 'ABMM_Option_Store', 'revision' ), $updates );
+		$saved = ABMM_Option_Store::persist( self::STATE_OPTION, $state );
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
+		$records = array_replace( $records, $updates );
+		$saved   = ABMM_Option_Store::persist( $option, $records );
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
+		$this->recover_import_ownership( $state, $group, $records );
+		return ABMM_Option_Store::persist( self::STATE_OPTION, $state );
 	}
 
 	/**
 	 * Which profiles, branding and page assignments earlier imports created.
 	 *
-	 * @return array{profiles:string[],branding:string[],pages:array<int,string>}
+	 * @return array{profiles:string[],branding:string[],pages:array<int,string>,pending:array}
 	 */
 	private function import_state() {
 		$state = get_option( self::STATE_OPTION, array() );
@@ -587,6 +632,7 @@ class ABMM_EMM_Migration {
 			'profiles' => array_map( 'sanitize_key', (array) ( $state['profiles'] ?? array() ) ),
 			'branding' => array_map( 'sanitize_key', (array) ( $state['branding'] ?? array() ) ),
 			'pages'    => array_map( 'sanitize_key', (array) ( $state['pages'] ?? array() ) ),
+			'pending'  => (array) ( $state['pending'] ?? array() ),
 		);
 	}
 
@@ -598,6 +644,12 @@ class ABMM_EMM_Migration {
 	 * @return array{copied:bool,message:string}
 	 */
 	public function copy_assets() {
+		$result = ABMM_Data::instance()->with_collection_lock( function () { return $this->copy_assets_locked(); } );
+		return is_wp_error( $result ) ? array( 'copied' => false, 'message' => $result->get_error_message() ) : $result;
+	}
+
+	private function copy_assets_locked() {
+		wp_cache_delete( ABMM_Classic::ASSETS_OPTION, 'options' );
 		$plugin = $this->source_plugin();
 		if ( ! $plugin ) {
 			if ( $this->assets_copied() ) {
@@ -631,17 +683,18 @@ class ABMM_EMM_Migration {
 		if ( ! $this->write_file( $dir . '/' . $files['css'], $css_text ) || ! $this->write_file( $dir . '/' . $files['sprite'], $sprite_text ) ) {
 			return array( 'copied' => false, 'message' => __( 'The copied styles could not be saved.', 'ashbi-mega-menu' ) );
 		}
-		update_option(
-			ABMM_Classic::ASSETS_OPTION,
-			array(
-				'css'     => $files['css'],
-				'sprite'  => $files['sprite'],
-				'version' => '' !== $version ? $version : substr( md5( $css_text ), 0, 10 ),
-				'source'  => $plugin['version'],
-				// Read once here so pages never parse the sprite to know its icons.
-				'keys'    => array_keys( ABMM_Classic_Icons::sprite_keys( $dir . '/' . $files['sprite'] ) ),
-			)
+		$assets = array(
+			'css'     => $files['css'],
+			'sprite'  => $files['sprite'],
+			'version' => '' !== $version ? $version : substr( md5( $css_text ), 0, 10 ),
+			'source'  => $plugin['version'],
+			// Read once here so pages never parse the sprite to know its icons.
+			'keys'    => array_keys( ABMM_Classic_Icons::sprite_keys( $dir . '/' . $files['sprite'] ) ),
 		);
+		update_option( ABMM_Classic::ASSETS_OPTION, $assets );
+		if ( get_option( ABMM_Classic::ASSETS_OPTION ) !== $assets ) {
+			return array( 'copied' => false, 'message' => __( 'The copied styles could not be saved.', 'ashbi-mega-menu' ) );
+		}
 		// Remove copies from earlier imports; only the files just recorded are used.
 		foreach ( (array) glob( $dir . '/emm-*' ) as $old ) {
 			if ( is_string( $old ) && ! in_array( basename( $old ), $files, true ) ) {
@@ -718,7 +771,7 @@ class ABMM_EMM_Migration {
 	 * Trashed posts stay as they are, and old revisions are history, so neither
 	 * is rewritten. If one comes back, its code is still answered.
 	 *
-	 * @return array{posts:array<int,array>,meta:array<int,array>,widgets:array<string,array>}
+	 * @return array{posts:array<int,array>,meta:array<int,array>,widgets:array<string,array>}|WP_Error
 	 */
 	private function old_code_rows() {
 		global $wpdb;
@@ -727,8 +780,17 @@ class ABMM_EMM_Migration {
 		// Site content has no API that searches and writes it without changing dates or slashes.
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$posts = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_content FROM {$wpdb->posts} WHERE post_status <> %s AND post_type <> %s AND post_content LIKE %s", 'trash', 'revision', $like ), ARRAY_A );
+		if ( '' !== $wpdb->last_error ) {
+			return new WP_Error( 'abmm_emm_scan_failed', __( 'Some site content could not be read. The switch was stopped before any changes were made.', 'ashbi-mega-menu' ) );
+		}
 		$metas = $wpdb->get_results( $wpdb->prepare( "SELECT pm.meta_id, pm.post_id, pm.meta_value FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE pm.meta_key = %s AND p.post_status <> %s AND p.post_type <> %s AND pm.meta_value LIKE %s", '_elementor_data', 'trash', 'revision', $like ), ARRAY_A );
-		$names = $wpdb->get_results( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value LIKE %s", $wpdb->esc_like( 'widget_' ) . '%', $like ), ARRAY_A );
+		if ( '' !== $wpdb->last_error ) {
+			return new WP_Error( 'abmm_emm_scan_failed', __( 'Some site content could not be read. The switch was stopped before any changes were made.', 'ashbi-mega-menu' ) );
+		}
+		$names = $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value LIKE %s", $wpdb->esc_like( 'widget_' ) . '%', $like ), ARRAY_A );
+		if ( '' !== $wpdb->last_error ) {
+			return new WP_Error( 'abmm_emm_scan_failed', __( 'Some site content could not be read. The switch was stopped before any changes were made.', 'ashbi-mega-menu' ) );
+		}
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		foreach ( (array) $posts as $row ) {
 			$after = self::rewrite_codes( $row['post_content'] );
@@ -743,7 +805,7 @@ class ABMM_EMM_Migration {
 			}
 		}
 		foreach ( (array) $names as $row ) {
-			$before = get_option( $row['option_name'] );
+			$before = maybe_unserialize( $row['option_value'] );
 			$after  = self::rewrite_value( $before );
 			if ( $after !== $before ) {
 				$rows['widgets'][ $row['option_name'] ] = array( 'before' => $before, 'after' => $after );
@@ -776,105 +838,132 @@ class ABMM_EMM_Migration {
 	 * @return array|WP_Error Counts.
 	 */
 	public function finish_switching() {
-		$reason = $this->finish_blocked_reason();
-		if ( '' !== $reason ) {
-			return new WP_Error( 'abmm_emm_finish_blocked', $reason );
-		}
-		global $wpdb;
-		$rows   = $this->old_code_rows();
-		$counts = array( 'posts' => 0, 'elementor' => 0, 'widgets' => 0, 'failed' => 0 );
-		if ( $rows['posts'] || $rows['meta'] || $rows['widgets'] ) {
+		return ABMM_Data::instance()->with_collection_lock( function () {
+			$reason = $this->finish_blocked_reason();
+			if ( '' !== $reason ) {
+				return new WP_Error( 'abmm_emm_finish_blocked', $reason );
+			}
+
+			$rows = $this->old_code_rows();
+			if ( is_wp_error( $rows ) ) {
+				return $rows;
+			}
+			$counts = array( 'posts' => 0, 'elementor' => 0, 'widgets' => 0, 'failed' => 0, 'skipped' => 0 );
+			if ( $rows['posts'] || $rows['meta'] || $rows['widgets'] ) {
+				$previous = $this->read_backup();
+				$backup   = $previous;
+				$backup['created'] = gmdate( 'c' );
+				foreach ( $rows as $group => $entries ) {
+					$backup[ $group ] = array_replace( $backup[ $group ], $entries );
+				}
+				update_option( self::BACKUP_OPTION, $backup, false );
+				if ( get_option( self::BACKUP_OPTION ) !== $backup ) {
+					return new WP_Error( 'abmm_emm_backup_failed', __( 'The backup could not be saved, so nothing was changed.', 'ashbi-mega-menu' ) );
+				}
+
+				foreach ( $rows as $group => $entries ) {
+					foreach ( $entries as $id => $row ) {
+						$result = $this->replace_switch_value( $group, $id, $row, false );
+						if ( false === $result ) {
+							++$counts['failed'];
+						} elseif ( 0 === $result ) {
+							++$counts['skipped'];
+						} else {
+							++$counts[ 'meta' === $group ? 'elementor' : $group ];
+							continue;
+						}
+						unset( $backup[ $group ][ $id ] );
+						if ( isset( $previous[ $group ][ $id ] ) ) {
+							$backup[ $group ][ $id ] = $previous[ $group ][ $id ];
+						}
+					}
+				}
+				if ( $counts['failed'] || $counts['skipped'] ) {
+					if ( $backup['posts'] || $backup['meta'] || $backup['widgets'] ) {
+						update_option( self::BACKUP_OPTION, $backup, false );
+					} else {
+						delete_option( self::BACKUP_OPTION );
+					}
+				}
+			}
+			// Older versions of this plugin read this if the site rolls back to one.
+			update_option( self::TAKEOVER_OPTION, true );
+			$counts['files'] = $this->clear_generated_files();
+			$this->forget_found_codes();
+			return $counts;
+		} );
+	}
+
+	/** Restore unchanged values and keep failed writes in the backup for retry. */
+	public function undo_switching() {
+		return ABMM_Data::instance()->with_collection_lock( function () {
 			$backup = $this->read_backup();
-			// A place rewritten by an earlier run keeps its entry unless this run changes it too.
-			$backup['posts']   = array_replace( $backup['posts'], $rows['posts'] );
-			$backup['meta']    = array_replace( $backup['meta'], $rows['meta'] );
-			$backup['widgets'] = array_replace( $backup['widgets'], $rows['widgets'] );
-			$backup['created'] = gmdate( 'c' );
-			update_option( self::BACKUP_OPTION, $backup, false );
-			if ( get_option( self::BACKUP_OPTION ) !== $backup ) {
-				return new WP_Error( 'abmm_emm_backup_failed', __( 'The backup could not be saved, so nothing was changed.', 'ashbi-mega-menu' ) );
+			if ( ! $backup['posts'] && ! $backup['meta'] && ! $backup['widgets'] ) {
+				return new WP_Error( 'abmm_emm_no_backup', __( 'There is no switch to undo.', 'ashbi-mega-menu' ) );
 			}
-			foreach ( $rows['posts'] as $id => $row ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- keeps the post's dates and revisions as they are.
-				if ( false === $wpdb->update( $wpdb->posts, array( 'post_content' => $row['after'] ), array( 'ID' => $id ) ) ) {
-					++$counts['failed'];
-					continue;
+
+			$counts = array( 'restored' => 0, 'skipped' => 0, 'failed' => 0 );
+			foreach ( array( 'posts', 'meta', 'widgets' ) as $group ) {
+				foreach ( $backup[ $group ] as $id => $row ) {
+					$result = $this->replace_switch_value( $group, $id, $row, true );
+					if ( false === $result ) {
+						++$counts['failed'];
+						continue;
+					}
+					++$counts[ 0 === $result ? 'skipped' : 'restored' ];
+					unset( $backup[ $group ][ $id ] );
 				}
-				clean_post_cache( $id );
-				++$counts['posts'];
 			}
-			foreach ( $rows['meta'] as $id => $row ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- the meta API would strip the JSON's backslashes.
-				if ( false === $wpdb->update( $wpdb->postmeta, array( 'meta_value' => $row['after'] ), array( 'meta_id' => $id ) ) ) {
-					++$counts['failed'];
-					continue;
-				}
-				wp_cache_delete( $row['post'], 'post_meta' );
-				++$counts['elementor'];
+
+			if ( $counts['failed'] ) {
+				update_option( self::BACKUP_OPTION, $backup, false );
+			} else {
+				delete_option( self::BACKUP_OPTION );
 			}
-			foreach ( $rows['widgets'] as $name => $row ) {
-				update_option( $name, $row['after'] );
-				++$counts['widgets'];
-			}
-		}
-		// Older versions of this plugin read this if the site rolls back to one.
-		update_option( self::TAKEOVER_OPTION, true );
-		$counts['files'] = $this->clear_generated_files();
-		$this->forget_found_codes();
-		return $counts;
+			$counts['files'] = $this->clear_generated_files();
+			$this->forget_found_codes();
+			return $counts;
+		} );
 	}
 
 	/**
-	 * Put back what the last Finish switching changed. A place edited since then
-	 * is left alone, so newer work is never lost.
+	 * Compare and replace in one write, using byte equality so case-only edits
+	 * and Elementor JSON escaping are preserved.
 	 *
-	 * @return array|WP_Error Counts.
+	 * @return int|false Number of updated rows, or false on database failure.
 	 */
-	public function undo_switching() {
+	private function replace_switch_value( $group, $id, $row, $undo ) {
 		global $wpdb;
-		$backup = $this->read_backup();
-		if ( ! $backup['posts'] && ! $backup['meta'] && ! $backup['widgets'] ) {
-			return new WP_Error( 'abmm_emm_no_backup', __( 'There is no switch to undo.', 'ashbi-mega-menu' ) );
-		}
-		$counts = array( 'restored' => 0, 'skipped' => 0 );
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- the same direct writes as finish_switching().
-		foreach ( $backup['posts'] as $id => $row ) {
-			$current = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
-			if ( $current !== $row['after'] || false === $wpdb->update( $wpdb->posts, array( 'post_content' => $row['before'] ), array( 'ID' => $id ) ) ) {
-				++$counts['skipped'];
-				continue;
+		$before = $row[ $undo ? 'after' : 'before' ];
+		$after  = $row[ $undo ? 'before' : 'after' ];
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Atomic updates of core-owned rows; caches are cleared after a successful write.
+		if ( 'posts' === $group ) {
+			$result = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->posts} SET post_content = %s WHERE ID = %d AND BINARY post_content = %s", $after, $id, $before ) );
+			if ( $result ) {
+				clean_post_cache( $id );
 			}
-			clean_post_cache( $id );
-			++$counts['restored'];
-		}
-		foreach ( $backup['meta'] as $id => $row ) {
-			$current = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_id = %d", $id ) );
-			if ( $current !== $row['after'] || false === $wpdb->update( $wpdb->postmeta, array( 'meta_value' => $row['before'] ), array( 'meta_id' => $id ) ) ) {
-				++$counts['skipped'];
-				continue;
+		} elseif ( 'meta' === $group ) {
+			$result = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_id = %d AND BINARY meta_value = %s", $after, $id, $before ) );
+			if ( $result ) {
+				wp_cache_delete( $row['post'], 'post_meta' );
 			}
-			wp_cache_delete( $row['post'], 'post_meta' );
-			++$counts['restored'];
-		}
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-		foreach ( $backup['widgets'] as $name => $row ) {
-			if ( get_option( $name ) !== $row['after'] ) {
-				++$counts['skipped'];
-				continue;
+		} else {
+			$result = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND BINARY option_value = %s", maybe_serialize( $after ), $id, maybe_serialize( $before ) ) );
+			if ( $result ) {
+				wp_cache_delete( $id, 'options' );
+				wp_cache_delete( 'alloptions', 'options' );
 			}
-			update_option( $name, $row['before'] );
-			++$counts['restored'];
 		}
-		delete_option( self::BACKUP_OPTION );
-		$counts['files'] = $this->clear_generated_files();
-		$this->forget_found_codes();
-		return $counts;
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		return $result;
 	}
 
 	/**
 	 * @return array{posts:array,meta:array,widgets:array}
 	 */
 	private function read_backup() {
+		wp_cache_delete( self::BACKUP_OPTION, 'options' );
 		$backup = get_option( self::BACKUP_OPTION, array() );
 		$backup = is_array( $backup ) ? $backup : array();
 		foreach ( array( 'posts', 'meta', 'widgets' ) as $key ) {

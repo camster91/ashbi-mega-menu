@@ -10,6 +10,9 @@
 (function () {
 	'use strict';
 
+	if (document.__ashbiClassicScriptLoaded) return;
+	document.__ashbiClassicScriptLoaded = true;
+
 	var MOBILE_MQ = '(max-width: 900px)';
 	var OVERFLOW_HYSTERESIS = 16;
 	var STACK_HOST_CLASS = 'emm-stack-host--active';
@@ -414,9 +417,10 @@
 
 	function openMegaDesktop(item) {
 		var header = closest(item, '.emm-header');
-		document.querySelectorAll('.emm-header').forEach(function (menuHeader) {
-			closeAllMegas(menuHeader);
-		});
+		if (header) {
+			header.dispatchEvent(new window.Event('abmm:menu-opening', { bubbles: true }));
+			closeAllMegas(header);
+		}
 		item.classList.add('is-open');
 		if (header) header.classList.add('emm-has-open-menu');
 		syncOpenHeaderLayers();
@@ -642,9 +646,7 @@
 		var drawer = header.querySelector('.emm-nav__drawer');
 		if (open && isMobile(header)) {
 			closeExternalProductDrawers();
-			document.querySelectorAll('.emm-header.is-mobile-open').forEach(function (otherHeader) {
-				if (otherHeader !== header) setDrawerOpen(otherHeader, false, false);
-			});
+			header.dispatchEvent(new window.Event('abmm:menu-opening', { bubbles: true }));
 		}
 		header.classList.toggle('is-mobile-open', open);
 		/* The header can measure zero wide on a phone, its button overflowing a
@@ -688,6 +690,7 @@
 		} else {
 			updateMobileGeometry(header);
 			window.requestAnimationFrame(function () {
+				if (!header.isConnected || !header.classList.contains('is-mobile-open')) return;
 				focusFirst(drawer, toggle, drawer);
 			});
 		}
@@ -829,7 +832,7 @@
 	}
 
 	function remapCollidingIds(header) {
-		var idMap = {};
+		var idMap = Object.create(null);
 		var instance = (header.getAttribute('data-emm-instance') || 'clone')
 			.replace(/[^A-Za-z0-9_-]+/g, '-')
 			.replace(/^-+|-+$/g, '') || 'clone';
@@ -883,7 +886,7 @@
 		});
 	}
 
-	function syncBrandLogos(header) {
+	function syncBrandLogos(header, listen) {
 		header.querySelectorAll('.emm-nav__brand-logo').forEach(function (logo) {
 			var brand = closest(logo, '.emm-nav__brand');
 			if (!brand) return;
@@ -900,8 +903,8 @@
 					}
 				}
 			};
-			logo.addEventListener('load', sync);
-			logo.addEventListener('error', sync);
+			listen(logo, 'load', sync);
+			listen(logo, 'error', sync);
 			sync();
 		});
 	}
@@ -914,8 +917,16 @@
 		// but not properties or event listeners. A cloned header that carries the
 		// diagnostic data attribute must still receive its own listeners.
 		if (header.__easyMegaMenuInitialized === true) return;
+		var removeListeners = [];
+		var connected = true;
+		function listen(target, type, callback, options) {
+			target.addEventListener(type, callback, options);
+			removeListeners.push(function () {
+				target.removeEventListener(type, callback, options);
+			});
+		}
 		remapCollidingIds(header);
-		syncBrandLogos(header);
+		syncBrandLogos(header, listen);
 		addNewTabNotes(header);
 		header.__easyMegaMenuInitialized = true;
 		header.setAttribute('data-emm-initialized', 'true');
@@ -930,7 +941,12 @@
 		var toggleButton = header.querySelector('.emm-nav__toggle');
 		var drawerCloseButton = header.querySelector('.emm-nav__drawer-head [data-emm-drawer-close]');
 		// Keep the translated labels the server printed.
-		header.__easyMegaMenuOpenLabel = namedToggleLabel(toggleButton, (toggleButton && toggleButton.getAttribute('aria-label')) || classicString('openMenu', 'Open menu'));
+		var openLabel = toggleButton && toggleButton.getAttribute('data-emm-open-label');
+		if (!openLabel && toggleButton && toggleButton.getAttribute('aria-expanded') !== 'true') {
+			openLabel = toggleButton.getAttribute('aria-label');
+		}
+		header.__easyMegaMenuOpenLabel = namedToggleLabel(toggleButton, openLabel || classicString('openMenu', 'Open menu'));
+		if (toggleButton) toggleButton.setAttribute('data-emm-open-label', header.__easyMegaMenuOpenLabel);
 		header.__easyMegaMenuCloseLabel = namedToggleLabel(toggleButton, (drawerCloseButton && drawerCloseButton.getAttribute('aria-label')) || classicString('closeMenu', 'Close menu'));
 
 		function clearOpenTimer() {
@@ -946,6 +962,19 @@
 				categoryTimer = null;
 			}
 		}
+
+		header.__easyMegaMenuDisconnect = function () {
+			connected = false;
+			removeListeners.forEach(function (remove) { remove(); });
+			clearCloseTimer();
+			clearOpenTimer();
+			clearCategoryTimer();
+			if (geometryObserver && geometryObserver.disconnect) geometryObserver.disconnect();
+			setDrawerOpen(header, false, false);
+			delete header.__easyMegaMenuDisconnect;
+			delete header.__easyMegaMenuInitialized;
+			header.removeAttribute('data-emm-initialized');
+		};
 
 		function clearCloseTimer() {
 			if (closeTimer) {
@@ -977,7 +1006,7 @@
 		}
 
 		header.querySelectorAll('.emm-nav__item').forEach(function (item) {
-			item.addEventListener('mouseenter', function () {
+			listen(item, 'mouseenter', function () {
 				if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
 				clearCloseTimer();
 				clearOpenTimer();
@@ -997,10 +1026,10 @@
 					closeAllMegas(header);
 				}
 			});
-			item.addEventListener('mouseleave', clearOpenTimer);
+			listen(item, 'mouseleave', clearOpenTimer);
 		});
 
-		header.addEventListener('mouseleave', function (event) {
+		listen(header, 'mouseleave', function (event) {
 			if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
 			clearOpenTimer();
 			if (isWithinHeader(event.relatedTarget)) {
@@ -1010,7 +1039,7 @@
 			scheduleClose();
 		});
 
-		header.addEventListener('mouseenter', function () {
+		listen(header, 'mouseenter', function () {
 			if (desktopOpenMode === 'click') return;
 			clearCloseTimer();
 		});
@@ -1018,7 +1047,7 @@
 		// Product links share the same row but sit outside the corporate list.
 		// Moving to one must dismiss the Products panel without another click.
 		header.querySelectorAll('.emm-product-nav__link').forEach(function (link) {
-			link.addEventListener('mouseenter', function () {
+			listen(link, 'mouseenter', function () {
 				if (unifiedHover && !isMobile(header) && hoverMq.matches) {
 					clearCloseTimer();
 					closeAllMegas(header);
@@ -1032,10 +1061,10 @@
 			if (!trigger) return;
 
 			if (panel) {
-				panel.addEventListener('mouseenter', function () {
+				listen(panel, 'mouseenter', function () {
 					if (desktopOpenMode !== 'click' && !isMobile(header) && hoverMq.matches) clearCloseTimer();
 				});
-				panel.addEventListener('mouseleave', function (event) {
+				listen(panel, 'mouseleave', function (event) {
 					if (desktopOpenMode === 'click' || isMobile(header) || !hoverMq.matches) return;
 					if (isWithinHeader(event.relatedTarget)) {
 						clearCloseTimer();
@@ -1045,7 +1074,7 @@
 				});
 			}
 
-			trigger.addEventListener('click', function (e) {
+			listen(trigger, 'click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
 				clearCloseTimer();
@@ -1076,7 +1105,7 @@
 		});
 
 		header.querySelectorAll('.emm-mega__cat').forEach(function (btn) {
-			btn.addEventListener('mouseenter', function () {
+			listen(btn, 'mouseenter', function () {
 				if (isMobile(header) || !hoverMq.matches) return;
 				clearCategoryTimer();
 				// Nor may a pointer hide a link a keyboard user has focused.
@@ -1095,8 +1124,8 @@
 					activateCategoryDesktop(btn);
 				}, CATEGORY_REST_DELAY);
 			});
-			btn.addEventListener('mouseleave', clearCategoryTimer);
-			btn.addEventListener('click', function (e) {
+			listen(btn, 'mouseleave', clearCategoryTimer);
+			listen(btn, 'click', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
 				clearCategoryTimer();
@@ -1107,7 +1136,7 @@
 					activateCategoryDesktop(btn);
 				}
 			});
-			btn.addEventListener('keydown', function (e) {
+			listen(btn, 'keydown', function (e) {
 				if (['ArrowDown', 'ArrowUp', 'Home', 'End'].indexOf(e.key) === -1) return;
 				var mega = closest(btn, '.emm-mega');
 				if (!mega) return;
@@ -1124,7 +1153,7 @@
 			});
 		});
 
-		header.addEventListener('click', function (e) {
+		listen(header, 'click', function (e) {
 			var back = e.target.closest ? e.target.closest('[data-emm-back]') : null;
 			if (!back || !header.contains(back)) return;
 			e.preventDefault();
@@ -1135,14 +1164,14 @@
 
 		var toggle = header.querySelector('.emm-nav__toggle');
 		if (toggle) {
-			toggle.addEventListener('click', function (e) {
+			listen(toggle, 'click', function (e) {
 				e.stopPropagation();
 				var open = toggle.getAttribute('aria-expanded') !== 'true';
 				setDrawerOpen(header, open, true);
 			});
 		}
 
-		header.addEventListener('click', function (e) {
+		listen(header, 'click', function (e) {
 			var closeBtn = e.target.closest ? e.target.closest('[data-emm-drawer-close]') : null;
 			if (!closeBtn || !header.contains(closeBtn)) return;
 			e.preventDefault();
@@ -1152,7 +1181,7 @@
 
 		// Tapping a link leaves the page or moves within it; the drawer must not
 		// stay on top with the page locked.
-		header.addEventListener('click', function (e) {
+		listen(header, 'click', function (e) {
 			if (!header.classList.contains('is-mobile-open') || e.defaultPrevented) return;
 			if (e.button > 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
 			var link = closest(e.target, 'a[href]');
@@ -1167,17 +1196,17 @@
 
 		// Back/Forward can restore the outgoing document without reinitializing
 		// its scripts. Never restore a stale drawer or its scroll and page locks.
-		window.addEventListener('pagehide', function () {
+		listen(window, 'pagehide', function () {
 			if (header.classList.contains('is-mobile-open')) setDrawerOpen(header, false, false);
 		});
-		window.addEventListener('pageshow', function (e) {
+		listen(window, 'pageshow', function (e) {
 			if (e.persisted && header.classList.contains('is-mobile-open')) setDrawerOpen(header, false, false);
 		});
 
 		// Tabbing out of the menu closes an open desktop panel. Only a focus move to
 		// another element counts: a null relatedTarget is a click on blank space or
 		// a window switch, which must not close it.
-		header.addEventListener('focusout', function (event) {
+		listen(header, 'focusout', function (event) {
 			if (isMobile(header) || isWithinHeader(event.relatedTarget) || !event.relatedTarget) return;
 			if (!header.querySelector('.emm-nav__item--mega.is-open')) return;
 			clearCloseTimer();
@@ -1186,14 +1215,27 @@
 
 		var backdrop = header.querySelector('[data-emm-backdrop]');
 		if (backdrop) {
-			backdrop.addEventListener('click', function () {
+			listen(backdrop, 'click', function () {
 				setDrawerOpen(header, false, true);
 			});
 		}
 
-		document.addEventListener('keydown', function (e) {
+		// Both renderers close synchronously before the new menu takes the page lock.
+		listen(document, 'abmm:menu-opening', function (event) {
+			if (event.target === header) return;
+			clearCloseTimer();
+			clearOpenTimer();
+			clearCategoryTimer();
+			if (header.classList.contains('is-mobile-open')) {
+				setDrawerOpen(header, false, false);
+			} else if (header.classList.contains('emm-has-open-menu')) {
+				closeAllMegas(header);
+			}
+		});
+
+		listen(document, 'keydown', function (e) {
 			var focusedHeader = closest(document.activeElement, '.emm-header');
-			if (focusedHeader && focusedHeader !== header) return;
+			if (e.key === 'Tab' && focusedHeader && focusedHeader !== header) return;
 			if (e.key === 'Tab' && isMobile(header) && header.classList.contains('is-mobile-open')) {
 				var drawer = header.querySelector('.emm-nav__drawer');
 				var focusable = visibleFocusable(drawer);
@@ -1211,6 +1253,8 @@
 			}
 			if (e.key !== 'Escape') return;
 			clearCloseTimer();
+			clearOpenTimer();
+			clearCategoryTimer();
 			if (isMobile(header)) {
 				var openItem = header.querySelector('.emm-nav__item--mega.is-open');
 				if (openItem) {
@@ -1237,9 +1281,11 @@
 		// even though the visitor has not touched outside the drawer. A pointer press
 		// represents the actual dismissal gesture and still precedes a normal click.
 		var outsidePressEvent = window.PointerEvent ? 'pointerdown' : 'mousedown';
-		document.addEventListener(outsidePressEvent, function (e) {
+		listen(document, outsidePressEvent, function (e) {
 			if (!isOutsideHeaderEvent(e)) return;
 			clearCloseTimer();
+			clearOpenTimer();
+			clearCategoryTimer();
 			if (isMobile(header)) {
 				if (header.classList.contains('is-mobile-open')) {
 					setDrawerOpen(header, false, false);
@@ -1249,7 +1295,7 @@
 			closeAllMegas(header);
 		});
 
-		document.addEventListener('click', function (e) {
+		listen(document, 'click', function (e) {
 			if (!isOutsideHeaderEvent(e)) return;
 			// Elementor autoplay widgets call element.click() as they rotate slides.
 			// Those untrusted synthetic events bubble to document and must not close
@@ -1260,7 +1306,7 @@
 			if (!isMobile(header)) closeAllMegas(header);
 		});
 
-		window.addEventListener('resize', function () {
+		listen(window, 'resize', function () {
 			updateOverflowRisk(header);
 			if (
 				isMobile(header) &&
@@ -1292,7 +1338,7 @@
 			if (adminBar) geometryObserver.observe(adminBar);
 		}
 		if (window.visualViewport) {
-			window.visualViewport.addEventListener('resize', function () {
+			listen(window.visualViewport, 'resize', function () {
 				updateMobileGeometry(header);
 			});
 		}
@@ -1302,12 +1348,15 @@
 		if (header.classList.contains('is-mobile-open')) {
 			header.style.removeProperty('min-width');
 			setDrawerOpen(header, false, false);
+		} else if (header.classList.contains('emm-has-open-menu')) {
+			closeAllMegas(header);
 		}
 
 		updateMobileGeometry(header);
 		updateOverflowRisk(header);
 		if (document.fonts && document.fonts.ready) {
 			document.fonts.ready.then(function () {
+				if (!connected) return;
 				updateOverflowRisk(header);
 				updateMobileGeometry(header);
 				repositionOpenPanels(header);
@@ -1339,14 +1388,22 @@
 		if (toggle && isMobile(target) && !target.classList.contains('is-mobile-open')) toggle.click();
 	}
 
+	function forEachHeader(root, callback) {
+		if (root.nodeType === 1 && root.matches('.emm-header')) callback(root);
+		if (root.querySelectorAll) root.querySelectorAll('.emm-header').forEach(callback);
+	}
+
 	function initWithin(root) {
-		if (!root) return;
-		if (root.nodeType === 1 && root.matches && root.matches('.emm-header')) {
-			initHeader(root);
-		}
-		if (root.querySelectorAll) {
-			root.querySelectorAll('.emm-header').forEach(initHeader);
-		}
+		forEachHeader(root, function (header) {
+			if (header.isConnected) initHeader(header);
+		});
+	}
+
+	function disconnectWithin(root) {
+		forEachHeader(root, function (header) {
+			// Moving a live header also produces a removal record.
+			if (!header.isConnected && header.__easyMegaMenuDisconnect) header.__easyMegaMenuDisconnect();
+		});
 	}
 
 	function init() {
@@ -1361,6 +1418,7 @@
 	}
 
 	function fitExternalMegaPanels() {
+		if (!document || !document.documentElement) return;
 		var panels = document.querySelectorAll('.elementskit-megamenu-panel');
 		var hasVisiblePanel = false;
 		panels.forEach(function (panel) {
@@ -1387,15 +1445,24 @@
 		document.documentElement.classList.toggle(EXTERNAL_MEGA_CLASS, hasVisiblePanel);
 	}
 
+	var externalFitQueued = false;
+	var externalFitSoon;
+	var externalFitAfterTransition;
+
 	function scheduleExternalPanelFit() {
-		window.requestAnimationFrame(function () {
-			fitExternalMegaPanels();
-		});
-		/* ElementsKit may reveal its panel after the click/hover handler returns.
-		 * Recheck after both its short transition and its delayed inline-style
-		 * update so viewport fitting and chatbot suppression use the final state. */
-		window.setTimeout(fitExternalMegaPanels, 120);
-		window.setTimeout(fitExternalMegaPanels, 360);
+		if (!externalFitQueued) {
+			externalFitQueued = true;
+			window.requestAnimationFrame(function () {
+				externalFitQueued = false;
+				fitExternalMegaPanels();
+			});
+		}
+		/* ElementsKit may reveal its panel after the event returns. Keep one
+		 * check for each transition window, even during a burst of events. */
+		window.clearTimeout(externalFitSoon);
+		window.clearTimeout(externalFitAfterTransition);
+		externalFitSoon = window.setTimeout(fitExternalMegaPanels, 120);
+		externalFitAfterTransition = window.setTimeout(fitExternalMegaPanels, 360);
 	}
 
 	function observeDynamicHeaders() {
@@ -1403,7 +1470,9 @@
 		document.__easyMegaMenuObserverActive = true;
 
 		var observer = new MutationObserver(function (records) {
+			if (!document || !document.documentElement) return;
 			records.forEach(function (record) {
+				record.removedNodes.forEach(disconnectWithin);
 				record.addedNodes.forEach(initWithin);
 			});
 		});
@@ -1415,6 +1484,7 @@
 		document.__easyMegaMenuExternalDrawerObserverActive = true;
 
 		var observer = new MutationObserver(function (records) {
+			if (!document || !document.documentElement) return;
 			var shouldSync = records.some(function (record) {
 				return record.type === 'attributes' || record.addedNodes.length > 0 || record.removedNodes.length > 0;
 			});

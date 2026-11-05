@@ -252,7 +252,7 @@ async function editorPreview(menu, fetchPreview) {
 	<aside id="abmm-builder-sidebar"><input id="abmm-menu-title" value="Demo"><div id="abmm-nav-items"></div></aside>
 	<main class="abmm-builder__main">
 	<p class="abmm-classic-preview-note" hidden></p><p class="abmm-classic-preview-fallback" hidden></p>
-	<button data-abmm-preview-viewport="desktop"></button><button data-abmm-zoom="fit" aria-pressed="true"></button>
+	<div class="abmm-preview-viewports"><button data-abmm-preview-viewport="desktop"></button><button data-abmm-preview-viewport="mobile"></button><button data-abmm-preview-viewport="tablet"></button></div><button data-abmm-zoom="fit" aria-pressed="true"></button>
 	<div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div class="abmm-preview-sizer"><div class="abmm-preview-stage"><div class="abmm-preview" id="abmm-preview"></div></div></div></div>
 	</main></div><script id="abmm-menu-data" type="application/json">${JSON.stringify(menu)}</script></body>`, { url: 'http://localhost/', runScripts: 'outside-only' });
 	const { window: win } = editor;
@@ -299,6 +299,77 @@ async function editorPreview(menu, fetchPreview) {
 	assert.equal(failed.win.document.querySelector('.abmm-classic-preview-fallback').hidden, false, 'And says it isn\'t the Classic look.');
 	assert.equal(failed.win.document.querySelector('.abmm-classic-preview-note').hidden, true);
 	failed.editor.window.close();
+
+	const pending = [];
+	const deferredPreview = () => new Promise((resolve, reject) => pending.push({ resolve, reject }));
+	const racing = await editorPreview({ title: 'Race', items: [links], settings: {} }, deferredPreview);
+	const selectViewport = (device) => racing.$('button[data-abmm-preview-viewport="' + device + '"]').trigger('click');
+	const wait = (ms = 0) => new Promise((resolve) => racing.win.setTimeout(resolve, ms));
+	selectViewport('mobile');
+	assert.equal(pending.length, 1);
+	selectViewport('desktop');
+	pending[0].reject(new Error('obsolete phone request'));
+	await wait();
+	selectViewport('tablet');
+	assert.equal(pending.length, 2, 'A failed request for an abandoned viewport cannot disable the new preview.');
+
+	racing.$('#abmm-menu-title').val('New title').trigger('input');
+	pending[1].resolve(await respond());
+	await wait();
+	const tabletFrame = racing.win.document.querySelector('iframe.abmm-preview-device');
+	assert.ok(tabletFrame);
+	assert.equal(tabletFrame.hasAttribute('srcdoc'), false, 'A response superseded by an edit cannot render during the debounce.');
+	selectViewport('mobile');
+	assert.equal(pending.length, 3);
+	await wait(250);
+	assert.equal(pending.length, 3, 'Switching viewport cancels the old frame’s queued request.');
+	pending[2].reject(new Error('current phone request failed'));
+	await wait();
+	assert.equal(racing.win.document.querySelector('iframe.abmm-preview-device'), null);
+	selectViewport('mobile');
+	assert.equal(pending.length, 4, 'Selecting a viewport again retries after a transient failure.');
+	pending[3].resolve(await respond());
+	await wait();
+	assert.match(racing.win.document.querySelector('iframe.abmm-preview-device').srcdoc, /emm-header/);
+	racing.editor.window.close();
+
+	const mobile = await editorPreview({ title: 'Move', items: [links], settings: {} }, respond);
+	mobile.$('button[data-abmm-preview-viewport="mobile"]').trigger('click');
+	const mobileWait = (ms = 0) => new Promise((resolve) => mobile.win.setTimeout(resolve, ms));
+	await mobileWait();
+	const liveFrame = mobile.win.document.querySelector('iframe.abmm-preview-device');
+	const setFrameMarkup = (items, sections, open) => {
+		liveFrame.contentWindow.requestAnimationFrame = (callback) => callback();
+		liveFrame.contentDocument.body.innerHTML = `<header class="abmm-header${open ? ' is-mobile-open' : ''}">
+			<button class="abmm-nav__toggle" aria-expanded="${open}"></button>
+			<ul class="abmm-nav__list">${items.map((id) => `<li class="abmm-nav__item${open && id === 'products' ? ' is-open' : ''}" data-abmm-item-id="${id}">
+				<button data-abmm-mega-trigger>${id}</button>
+				${id === 'products' ? sections.map(([category, collapsed]) => `<section class="abmm-mega__section${collapsed ? ' is-collapsed' : ''}" data-abmm-section="${category}">
+					<button data-abmm-section-toggle>${category}</button>
+				</section>`).join('') : ''}
+			</li>`).join('')}</ul>
+		</header>`;
+	};
+	const refreshFrame = async () => {
+		mobile.$('#abmm-menu-title').val('Updated ' + mobile.requests.length).trigger('input');
+		await mobileWait(250);
+	};
+	setFrameMarkup(['products', 'other'], [['finance', true], ['people', false]], true);
+	await refreshFrame();
+	setFrameMarkup(['other', 'products'], [['people', true], ['finance', false]], false);
+	const replay = [];
+	liveFrame.contentDocument.addEventListener('click', (event) => replay.push(event.target.textContent));
+	liveFrame.onload();
+	assert.deepEqual(replay.filter(Boolean), ['products', 'people', 'finance'], 'Replaying the open item and collapsed sections follows their IDs after a reorder.');
+
+	setFrameMarkup(['products', 'other'], [['finance', true]], true);
+	await refreshFrame();
+	setFrameMarkup(['other'], [], false);
+	const afterRemoval = [];
+	liveFrame.contentDocument.addEventListener('click', (event) => afterRemoval.push(event.target.textContent));
+	liveFrame.onload();
+	assert.deepEqual(afterRemoval.filter(Boolean), [], 'Removing an open item does not open its former neighbour.');
+	mobile.editor.window.close();
 
 	console.log('Classic desktop frame, Ashbi preview and the failed-frame warning passed.');
 })().catch((error) => { console.error(error); process.exit(1); });

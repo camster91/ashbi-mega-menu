@@ -304,6 +304,9 @@ class ABMM_Data {
 		}
 
 		$original_archives = $this->get_archived();
+		if ( isset( $original_archives[ $id ] ) && ( $original_archives[ $id ]['menu'] ?? null ) !== $menus[ $id ] ) {
+			return new WP_Error( 'abmm_archive_conflict', __( 'A different archived menu already uses this ID. Resolve the existing archive before archiving this menu.', 'ashbi-mega-menu' ) );
+		}
 		$archives        = $original_archives;
 		$archives[ $id ] = array(
 			'menu'        => $menus[ $id ],
@@ -312,7 +315,7 @@ class ABMM_Data {
 		$original_menus  = $menus;
 		unset( $menus[ $id ] );
 
-		if ( ! update_option( ABMM_ARCHIVE_OPTION, $archives ) ) {
+		if ( $archives !== $original_archives && ! update_option( ABMM_ARCHIVE_OPTION, $archives ) ) {
 			return false;
 		}
 		if ( update_option( ABMM_OPTION_KEY, $menus ) ) {
@@ -384,9 +387,13 @@ class ABMM_Data {
 		if ( ! isset( $archives[ $id ] ) ) {
 			return false;
 		}
+		$backup = ABMM_Import_Export::instance()->backup_before_permanent_delete( $id );
+		if ( is_wp_error( $backup ) ) {
+			return $backup;
+		}
 		unset( $archives[ $id ] );
 		$deleted = update_option( ABMM_ARCHIVE_OPTION, $archives );
-		if ( $deleted ) {
+		if ( $deleted && ! isset( $this->get_all()[ $id ] ) ) {
 			$this->forget_versions( $id );
 		}
 		return $deleted;
@@ -1123,8 +1130,9 @@ class ABMM_Data {
 	 * @return string
 	 */
 	public function unique_menu_id( $base = 'menu-copy' ) {
-		$base     = sanitize_key( $base ) ?: 'menu-copy';
-		$existing = $this->get_all();
+		$base     = sanitize_key( $base );
+		$base     = '' === $base ? 'menu-copy' : $base;
+		$existing = $this->get_all() + $this->get_archived();
 		$id       = $base;
 		$suffix   = 2;
 		while ( isset( $existing[ $id ] ) ) {

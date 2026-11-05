@@ -36,17 +36,23 @@ $abmm_step          = 0;
 			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=ashbi-mega-menu' ) ); ?>"><?php esc_html_e( 'Open your menus', 'ashbi-mega-menu' ); ?></a></p>
 		</div>
 	<?php elseif ( 'finished' === $notice && is_array( $result ) ) : ?>
-		<div class="notice notice-success">
+		<div class="notice <?php echo empty( $result['failed'] ) && empty( $result['skipped'] ) ? 'notice-success' : 'notice-warning'; ?>">
 			<p><?php echo esc_html( sprintf( /* translators: 1: posts and pages, 2: Elementor layouts, 3: widgets. */ __( 'Done. Pages and posts updated: %1$d. Elementor layouts updated: %2$d. Widget areas updated: %3$d. A backup was saved first.', 'ashbi-mega-menu' ), (int) $result['posts'], (int) $result['elementor'], (int) $result['widgets'] ) ); ?></p>
 			<?php if ( ! empty( $result['failed'] ) ) : ?>
 				<p><?php echo esc_html( sprintf( /* translators: %d: number of places. */ _n( '%d place could not be updated. Its old code still works.', '%d places could not be updated. Their old codes still work.', (int) $result['failed'], 'ashbi-mega-menu' ), (int) $result['failed'] ) ); ?></p>
 			<?php endif; ?>
+			<?php if ( ! empty( $result['skipped'] ) ) : ?>
+				<p><?php esc_html_e( 'Some content changed during the switch and was left as it is. Run Finish switching again to check those places.', 'ashbi-mega-menu' ); ?></p>
+			<?php endif; ?>
 		</div>
 	<?php elseif ( 'undone' === $notice && is_array( $result ) ) : ?>
-		<div class="notice notice-success">
+		<div class="notice <?php echo empty( $result['failed'] ) && empty( $result['skipped'] ) ? 'notice-success' : 'notice-warning'; ?>">
 			<p><?php echo esc_html( sprintf( /* translators: %d: number of places. */ _n( 'Undone. %d place was put back.', 'Undone. %d places were put back.', (int) $result['restored'], 'ashbi-mega-menu' ), (int) $result['restored'] ) ); ?></p>
 			<?php if ( ! empty( $result['skipped'] ) ) : ?>
 				<p><?php echo esc_html( sprintf( /* translators: %d: number of places. */ _n( '%d place was edited after the switch, so it was left as it is.', '%d places were edited after the switch, so they were left as they are.', (int) $result['skipped'], 'ashbi-mega-menu' ), (int) $result['skipped'] ) ); ?></p>
+			<?php endif; ?>
+			<?php if ( ! empty( $result['failed'] ) ) : ?>
+				<p><?php esc_html_e( 'Some changes could not be undone. The backup was kept so you can retry.', 'ashbi-mega-menu' ); ?></p>
 			<?php endif; ?>
 		</div>
 	<?php elseif ( 'error' === $notice ) : ?>

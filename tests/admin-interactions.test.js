@@ -27,7 +27,7 @@ async function fixture(narrow = false, malformed = false, draft = null, menuId =
  window.abmmAdmin = { ajaxUrl:'/ajax', nonce:'test', strings: new Proxy({}, {get:(_,key)=>String(key)}), icons:[] };
  const requests = [];
  $.post = (_,data) => { const d=$.Deferred(); requests.push({data,d}); return d.promise(); };
- if (draft) window.localStorage.setItem('abmmDraft:' + menuId, JSON.stringify(draft));
+ if (draft) window[draft.storage || 'localStorage'].setItem('abmmDraft:' + menuId, JSON.stringify(draft));
  window.eval(source);
  window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
  await new Promise(resolve=>window.setTimeout(resolve,20));
@@ -75,6 +75,25 @@ async function backupFixture(strings = {}) {
   assert.equal(row('a').find('.abmm-nav-item-row__toggle').attr('aria-expanded'),'false','other rows close');
   assert.equal(rq('#abmm-preview [data-abmm-preview-item="2"] > .abmm-nav__link').hasClass('abmm-canvas-selected'),true,'the selected preview element is outlined');
  } finally { reorderFixture.close(); }
+ const megaItems = ['first','second','third'].map(id=>({
+  id,label:id,type:'mega',categories:[{id:'shared-cat',title:id,groups:[{links:[{id:'shared-link',label:id,url:'/'+id}]}]}],
+ }));
+ const previewFixture=await fixture(false,false,null,'demo',{...menu,items:megaItems},'<div id="abmm-mega-editor" hidden><h2 id="abmm-mega-editor-title"></h2></div>');
+ try {
+  const q=previewFixture.$;
+  const openPreview=()=>q('#abmm-preview .abmm-nav__item.is-open > button').text().trim();
+  q('#abmm-preview [data-abmm-preview-item="1"]').trigger('mouseenter');
+  assert.equal(openPreview(),'second');
+  q('#abmm-preview [data-abmm-preview-item="1"] [data-abmm-link-id="shared-link"] a').trigger('click');
+  await new Promise(resolve=>previewFixture.window.setTimeout(resolve,20));
+  assert.equal(q('#abmm-mega-editor-title').text(),'second','reused link IDs select the owning dropdown');
+  assert.equal(q('#abmm-preview [data-abmm-preview-item="1"] [data-abmm-link-id="shared-link"] a').hasClass('abmm-canvas-selected'),true);
+
+  q('#abmm-nav-items > .abmm-nav-item-row').eq(1).find('.abmm-move-up').trigger('click');
+  assert.equal(openPreview(),'second','built-in preview keeps the same dropdown after reordering');
+  q('#abmm-nav-items > .abmm-nav-item-row').eq(0).find('.abmm-remove-nav').trigger('click');
+  assert.equal(openPreview(),'','removing the open item leaves the built-in preview closed');
+ } finally { previewFixture.close(); }
  let rowsFixture = await fixture(false,false,null,'demo',reorderMenu);
  try {
   const rq = rowsFixture.$;
@@ -492,8 +511,26 @@ async function auditRegressions(){
  assert.equal(f.requests.filter(r=>r.data.action==='abmm_save_menu').length,1,'Save and leave really saves');
  f.close();
 
- // A failed draft write is known, so the exit dialog can warn instead of promising a draft.
- assert.ok(/state\.draftStoreFailed = true/.test(source));
+ // Edits made after Save and leave starts stay in the editor and are backed up.
+ f=await fixture(false,false,null,'demo',menu,'<a class="abmm-guarded-exit" href="#menu-list">Back</a><div id="abmm-exit-dialog" hidden><button class="abmm-save-and-leave">Save and leave</button></div>'); $=f.$;
+ $('#abmm-menu-title').val('Submitted').trigger('input');
+ $('.abmm-guarded-exit').trigger('click');
+ $('.abmm-save-and-leave').trigger('click');
+ const pendingSave=f.requests[f.requests.length-1];
+ $('#abmm-menu-title').val('New edit while saving').trigger('input');
+ await new Promise(resolve=>f.window.setTimeout(resolve,300));
+ assert.equal(JSON.parse(f.window.localStorage.getItem('abmmDraft:demo')).menu.title,'New edit while saving','draft captures changes during the request');
+ pendingSave.d.resolve({success:true,data:{revision:'revision-2'}});
+ assert.equal(f.window.location.hash,'','Save and leave stays when newer edits are unsaved');
+ assert.equal($('#abmm-menu-title').val(),'New edit while saving');
+ $('.abmm-save-menu').trigger('click');
+ const finishingSave=f.requests[f.requests.length-1];
+ $('.abmm-guarded-exit').trigger('click');
+ $('.abmm-save-and-leave').trigger('click');
+ assert.equal(f.requests[f.requests.length-1],finishingSave,'Save and leave waits for the existing request');
+ finishingSave.d.resolve({success:true,data:{revision:'revision-3'}});
+ assert.equal(f.window.location.hash,'#menu-list','the editor leaves once the current edits are saved');
+ f.close();
 
  // After a save conflict, Discard continues from the latest saved version.
  f=await fixture(); $=f.$;
@@ -501,13 +538,62 @@ async function auditRegressions(){
  f.requests[f.requests.length-1].d.reject({responseJSON:{data:{conflict:true,message:'changed'}}});
  assert.equal($('.abmm-save-menu').prop('disabled'),true);
  $('.abmm-discard-draft').trigger('click');
- const reload=f.requests[f.requests.length-1];
+ let reload=f.requests[f.requests.length-1];
  assert.equal(reload.data.action,'abmm_get_menu','discarding fetches the latest saved copy');
+ reload.d.reject({responseJSON:{data:{message:'Offline'}}});
+ assert.equal($('#abmm-menu-title').val(),'Mine','a failed fetch keeps the working copy');
+ assert.equal(JSON.parse(f.window.localStorage.getItem('abmmDraft:demo')).menu.title,'Mine','a failed fetch keeps the recovery draft');
+ $('.abmm-discard-draft').trigger('click');
+ reload=f.requests[f.requests.length-1];
+ $('#abmm-menu-title').val('Edited during reload').trigger('input');
+ reload.d.resolve({success:true,data:{menu:{...menu,title:'Server copy'},revision:'revision-2'}});
+ assert.equal($('#abmm-menu-title').val(),'Edited during reload','a response cannot replace newer edits');
+ $('.abmm-discard-draft').trigger('click');
+ reload=f.requests[f.requests.length-1];
  reload.d.resolve({success:true,data:{menu:{...menu,title:'Server copy'},revision:'revision-2'}});
  assert.equal($('#abmm-menu-title').val(),'Server copy');
  assert.equal($('.abmm-save-menu').prop('disabled'),false,'saving works again');
  $('#abmm-menu-title').val('Next edit').trigger('input'); $('.abmm-save-menu').trigger('click');
  assert.equal(f.requests[f.requests.length-1].data.base_revision,'revision-2','the next save cannot conflict on the old revision');
+ f.close();
+
+ // Storage restrictions must not leave a conflicted editor without recovery controls.
+ f=await fixture(false,false,null,'demo',menu,'<a class="abmm-guarded-exit" href="#list">Back</a><div id="abmm-exit-dialog" hidden><p id="abmm-exit-dialog-description"></p></div>'); $=f.$;
+ f.window.Storage.prototype.setItem=()=>{throw new Error('Storage blocked');};
+ $('#abmm-menu-title').val('In memory').trigger('input'); $('.abmm-save-menu').trigger('click');
+ f.requests[f.requests.length-1].d.reject({responseJSON:{data:{conflict:true}}});
+ assert.equal($('#abmm-draft-recovery').prop('hidden'),false,'conflict recovery is reachable without local storage');
+ assert.equal($('#abmm-menu-title').val(),'In memory');
+ $('.abmm-guarded-exit').trigger('click');
+ assert.match($('#abmm-exit-dialog-description').text(),/could not keep a copy/,'the exit dialog reports that recovery storage failed');
+ f.close();
+
+ // A different tab's recovery draft must survive edits and saves in this tab.
+ f=await fixture(); $=f.$;
+ const otherTabDraft=JSON.stringify({revision:'revision-1',menu:{...menu,title:'Other tab'},updated:100});
+ f.window.localStorage.setItem('abmmDraft:demo',otherTabDraft);
+ $('#abmm-menu-title').val('This tab').trigger('input');
+ f.window.dispatchEvent(new f.window.Event('pagehide'));
+ assert.equal(f.window.localStorage.getItem('abmmDraft:demo'),otherTabDraft,'writing a draft does not overwrite another tab');
+ assert.equal(JSON.parse(f.window.sessionStorage.getItem('abmmDraft:demo')).menu.title,'This tab','this tab keeps its own reloadable draft');
+ $('.abmm-save-menu').trigger('click');
+ f.requests[f.requests.length-1].d.resolve({success:true,data:{revision:'revision-2'}});
+ assert.equal(f.window.sessionStorage.getItem('abmmDraft:demo'),null,'saving clears only this tab’s draft');
+ assert.equal(f.window.localStorage.getItem('abmmDraft:demo'),otherTabDraft);
+ f.close();
+
+ // A per-tab draft is discoverable again after the editor reloads.
+ f=await fixture(false,false,{storage:'sessionStorage',revision:'revision-1',menu:{...menu,title:'Reloaded tab draft'}}); $=f.$;
+ assert.equal($('#abmm-draft-recovery').prop('hidden'),false);
+ $('.abmm-restore-draft').trigger('click');
+ assert.equal($('#abmm-menu-title').val(),'Reloaded tab draft');
+ f.close();
+
+ // Discard acts on the draft shown when the editor opened.
+ f=await fixture(false,false,{revision:'revision-1',menu:{...menu,title:'Old draft'}}); $=f.$;
+ f.window.localStorage.setItem('abmmDraft:demo',otherTabDraft);
+ $('.abmm-discard-draft').trigger('click');
+ assert.equal(f.window.localStorage.getItem('abmmDraft:demo'),otherTabDraft,'discard does not remove a replacement draft');
  f.close();
 
  // The draft panel says how old the draft is.
