@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.7
+
+- **No link on purpose**: a menu item or a link in a dropdown can be marked as having no link, under **More options**. The checklist stops asking for one, and the row shows a **No link** chip. A real address always wins. Visitors see no change.
+
 ## 1.2.6
 
 A simpler editor. Stored menus are not changed. Visitors see small fixes: rotating a phone with the drawer open could leave the page unable to scroll, with no menu button, on themes whose sticky header clones the menu; the phone button shows a tap at once; and the native drawer reads as a dialog to screen readers. New menus also start with your site's font.

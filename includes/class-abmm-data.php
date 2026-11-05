@@ -592,7 +592,8 @@ class ABMM_Data {
 		foreach ( $menu['items'] ?? array() as $item ) {
 			$rows = 'mega' === ( $item['type'] ?? 'link' ) ? $this->active_item_links( $item ) : array( $item );
 			foreach ( $rows as $row ) {
-				if ( ! $this->is_usable_destination( $row['url'] ?? '' ) ) {
+				// An owner can leave a row without a link on purpose.
+				if ( ! $this->is_usable_destination( $row['url'] ?? '' ) && true !== ( $row['no_link'] ?? false ) ) {
 					/* translators: %s: link label. */
 					$issues[] = array( 'field' => 'abmm-nav-items', 'message' => sprintf( __( 'Add a link for "%s", or remove it. It goes nowhere yet.', 'ashbi-mega-menu' ), trim( (string) ( $row['label'] ?? '' ) ) ?: __( 'Untitled', 'ashbi-mega-menu' ) ) );
 				}
@@ -1428,7 +1429,7 @@ class ABMM_Data {
 			'url'   => $this->sanitize_menu_url( $item['url'] ?? '' ),
 			'type'  => $type,
 		);
-		$out = array_merge( $out, $this->sanitize_link_meta( $item ) );
+		$out = array_merge( $out, $this->sanitize_link_meta( $item ), $this->sanitize_no_link( $item ) );
 
 		if ( 'mega' === $type ) {
 			$style = sanitize_key( $this->scalar_string( $item['mega_style'] ?? 'platforms' ) );
@@ -1509,8 +1510,20 @@ class ABMM_Data {
 				'icon_url'    => $this->sanitize_menu_url( $link['icon_url'] ?? '' ),
 			),
 			$this->sanitize_icon_overrides( $link ),
-			$this->sanitize_link_meta( $link )
+			$this->sanitize_link_meta( $link ),
+			$this->sanitize_no_link( $link )
 		);
+	}
+
+	/**
+	 * Keep "no link on purpose" only when it is really on, so menus without it
+	 * store exactly what they stored before. Visitors never see this value.
+	 *
+	 * @param array $source Raw link-like record.
+	 * @return array
+	 */
+	private function sanitize_no_link( $source ) {
+		return true === ( $source['no_link'] ?? null ) ? array( 'no_link' => true ) : array();
 	}
 
 	/**

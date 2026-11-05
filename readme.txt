@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.6
+Stable tag: 1.2.7
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -103,6 +103,9 @@ Deleting removes all its menus, archived menus, saved versions, products, brandi
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
+
+= 1.2.7 =
+* A label can have no link on purpose. Tick the option, and the checklist stops asking for a link.
 
 = 1.2.6 =
 * A simpler editor. Four steps replace the tabs: Content, Design, Place and Check. Presets come first, and everything else sits in one closed Advanced settings section that names what you changed.

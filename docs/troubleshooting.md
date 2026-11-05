@@ -66,7 +66,7 @@ The checklist can tell you to:
 - Add a logo or site title, or turn the logo off.
 - Check a logo address that looks wrong.
 
-A greyed item with no link will also show this label. If you want that item to have no link, you can leave it. Visitors see no warning.
+A label with no link also shows this. If that's on purpose, open the row's link options and tick **No link on purpose** under **More options**. Then save. The checklist stops asking, and visitors see no change.
 
 The checklist doesn't test whether your links work, or whether your menu works with your theme. You still need to check your site.
 
