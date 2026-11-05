@@ -406,7 +406,7 @@ class ABMM_Data {
 	/** Stored bytes allowed for each menu's versions; older ones drop first. */
 	const MAX_VERSION_BYTES = 1048576;
 
-	/** A burst of saves shares one version, so it cannot flush the history. */
+	/** A burst of saves keeps two versions, so it cannot flush the history. */
 	const VERSION_INTERVAL_SECONDS = 300;
 
 	/**
@@ -429,10 +429,17 @@ class ABMM_Data {
 		if ( $versions && $revision === ( $versions[0]['id'] ?? '' ) ) {
 			return false;
 		}
-		if ( $versions && ! $force && time() - (int) ( $versions[0]['saved_at'] ?? 0 ) < self::VERSION_INTERVAL_SECONDS ) {
-			return false;
+		$version = array( 'id' => $revision, 'saved_at' => time(), 'bytes' => $size, 'menu' => $menu );
+		// In a burst, keep the state from before it and the newest state within it,
+		// so undoing a bad save never skips the good save just before it.
+		$burst_at = (int) ( $versions[0]['burst_at'] ?? $versions[0]['saved_at'] ?? 0 );
+		if ( $versions && ! $force && time() - $burst_at < self::VERSION_INTERVAL_SECONDS ) {
+			if ( ! empty( $versions[0]['burst_at'] ) ) {
+				array_shift( $versions );
+			}
+			$version['burst_at'] = $burst_at;
 		}
-		array_unshift( $versions, array( 'id' => $revision, 'saved_at' => time(), 'bytes' => $size, 'menu' => $menu ) );
+		array_unshift( $versions, $version );
 		$kept  = array();
 		$total = 0;
 		foreach ( array_slice( $versions, 0, self::MAX_VERSIONS ) as $version ) {

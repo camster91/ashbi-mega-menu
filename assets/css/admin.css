@@ -3383,6 +3383,10 @@ body.abmm-builder-sheet-open {
 	margin: 0;
 }
 
+.abmm-wrap .abmm-advanced-remove {
+	margin-inline-start: 0.5rem;
+}
+
 .abmm-wrap .abmm-advanced__count {
 	margin-inline: auto 0.5rem;
 	font-weight: 400;

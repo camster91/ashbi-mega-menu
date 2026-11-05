@@ -34,7 +34,6 @@ class ABMM_Admin {
 
 	private function __construct() {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
-		add_action( 'save_post', array( $this, 'clear_reference_cache' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 		add_action( 'wp_ajax_abmm_save_menu', array( $this, 'ajax_save_menu' ) );
 		add_action( 'wp_ajax_abmm_delete_menu', array( $this, 'ajax_delete_menu' ) );
@@ -882,9 +881,7 @@ class ABMM_Admin {
 		if ( class_exists( 'ABMM_EMM_Migration' ) ) {
 			$migration = ABMM_EMM_Migration::instance();
 			if ( ABMM_EMM_Migration::takeover_enabled() ) {
-				$data = ABMM_Data::instance();
-				$ids  = array_unique( array_merge( array( (string) $menu_id ), array_map( 'strval', array_keys( $data->get_all() ) ), array_map( 'strval', array_keys( $data->get_archived() ) ) ) );
-				if ( in_array( (string) $menu_id, $migration->menus_in_use( $ids, $fresh ), true ) ) {
+				if ( $migration->content_uses_shortcode( 'easy_mega_menu', (string) $menu_id, $fresh ) ) {
 					++$other;
 				}
 			}
@@ -910,14 +907,6 @@ class ABMM_Admin {
 		return $summary;
 	}
 
-	/**
-	 * Forget placement counts when content changes.
-	 *
-	 * @return void
-	 */
-	public function clear_reference_cache() {
-		delete_transient( 'abmm_menu_reference_summaries' );
-	}
 
 	/**
 	 * Count [ashbi_mega_menu id="…"] shortcodes for one menu in post content.

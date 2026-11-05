@@ -13,6 +13,20 @@ const strings = {
 	cancel: 'Annuler <img src=x>',
 };
 
+// Placements change from any request, so their caches clear outside the admin too.
+{
+	const plugin = fs.readFileSync('ashbi-mega-menu.php', 'utf8');
+	const init = plugin.slice(plugin.indexOf('function abmm_init()'), plugin.indexOf('if ( is_admin() )'));
+	for (const hook of ['save_post', 'deleted_post', 'elementor/document/after_save', 'added_option', 'updated_option']) {
+		assert.ok(init.includes("add_action( '" + hook + "'"), hook + ' clears placement caches on every request.');
+	}
+	const clear = plugin.slice(plugin.indexOf('function abmm_clear_placement_caches()'), plugin.indexOf('function abmm_clear_placement_caches_for_option'));
+	for (const cache of ['abmm_menu_reference_summaries', 'abmm_emm_menus_in_use']) {
+		assert.ok(clear.includes(cache), cache + ' is cleared.');
+		assert.ok(fs.readFileSync('uninstall.php', 'utf8').includes("delete_transient( '" + cache + "' )"), cache + ' is removed on uninstall.');
+	}
+}
+
 (async () => {
 	const dom = new JSDOM('<body><div class="abmm-menu-card" data-menu-id="demo"><button class="abmm-delete-menu" data-menu-id="demo">Archiver</button></div><div id="abmm-list-status"></div></body>', { url: 'http://localhost/', runScripts: 'outside-only' });
 	const { window } = dom;

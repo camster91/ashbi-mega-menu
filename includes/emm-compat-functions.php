@@ -2,7 +2,7 @@
 /**
  * Easy Mega Menu's theme helpers, answered by Ashbi.
  *
- * Loaded only when the "Handle [easy_mega_menu] shortcodes" setting is on and
+ * Loaded only when the "Use Ashbi Mega Menu in place of Easy Mega Menu" setting is on and
  * Easy Mega Menu is not active, so a theme that calls emm_render_menu() keeps
  * its header. These keep Easy Mega Menu's original names on purpose.
  *

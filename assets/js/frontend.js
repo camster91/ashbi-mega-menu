@@ -720,6 +720,15 @@
 		header.classList.toggle('is-mobile-open', open);
 		setOutsideInert(header, open && isMobile(header));
 		watchOpenDrawer(header, open && isMobile(header));
+		// Not aria-modal: the button that closes this drawer sits outside it.
+		var navLabel = (header.querySelector('.abmm-nav') || header).getAttribute('aria-label');
+		if (drawer && open && isMobile(header) && navLabel) {
+			drawer.setAttribute('role', 'dialog');
+			drawer.setAttribute('aria-label', navLabel);
+		} else if (drawer) {
+			drawer.removeAttribute('role');
+			drawer.removeAttribute('aria-label');
+		}
 		if (wasOpen !== !!open) emit(header, 'abmm:drawer', { open: !!open });
 		syncActiveStackHost();
 		if (toggle) {

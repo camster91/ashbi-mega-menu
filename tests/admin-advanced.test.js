@@ -284,14 +284,34 @@ const buttonFor = (window, key) => window.document.querySelector(`[data-abmm-adv
 	for (const id of ['abmm-classic-bar-padding', 'abmm-classic-plain-markup']) assert.ok(!builder.includes('id="' + id + '"'), id + ' stays out of the editor.');
 }
 
-// Active with no control: listed as text, never hidden and never a dead button.
+// Active with no control: listed as text with a way to remove it, never hidden and never a dead link.
 {
 	const window = moduleWindow(page);
 	window.ABMMAdvanced.refresh({ settings: { ...classicDefaults, render_mode: 'emm-classic', classic_edge_bleed: 8, classic_bar_padding: '0', classic_plain_markup: true }, context: { show: true } });
 	const items = [...window.document.querySelectorAll('.abmm-advanced-summary__list li')];
 	assert.equal(items.length, 4);
-	assert.equal(window.document.querySelectorAll('.abmm-advanced-summary__list button').length, 0, 'Nothing to open, so no button.');
-	assert.deepEqual(items.map((item) => item.textContent).sort(), ['Panel edge offset from the import', 'Phone menu bar padding', 'Plain elements instead of header and headings', 'Product details saved on this menu']);
+	assert.equal(window.document.querySelectorAll('[data-abmm-advanced-key]').length, 0, 'Nothing to open, so no link to it.');
+	const removes = [...window.document.querySelectorAll('[data-abmm-advanced-remove]')];
+	assert.deepEqual(removes.map((button) => button.getAttribute('data-abmm-advanced-remove')).sort(), ['classic_bar_padding', 'classic_edge_bleed', 'classic_plain_markup'], 'Each setting with no control can be removed.');
+	assert.ok(removes.every((button) => button.getAttribute('aria-label').includes(button.previousSibling.textContent)), 'Each Remove button says what it removes.');
+	assert.deepEqual(items.map((item) => item.firstChild.textContent).sort(), ['Panel edge offset from the import', 'Phone menu bar padding', 'Plain elements instead of header and headings', 'Product details saved on this menu']);
+	window.close();
+}
+
+// Remove hands the key to the editor, then keeps the focus on the page.
+{
+	const window = moduleWindow(page);
+	const settings = { ...classicDefaults, render_mode: 'emm-classic', classic_bar_padding: '0', classic_plain_markup: true };
+	window.ABMMAdvanced.refresh({ settings });
+	const removed = [];
+	window.ABMMAdvanced.onRemove = (key) => { removed.push(key); delete settings[key]; window.ABMMAdvanced.refresh({ settings }); };
+	const document = window.document;
+	document.querySelector('[data-abmm-advanced-remove="classic_bar_padding"]').click();
+	assert.deepEqual(removed, ['classic_bar_padding']);
+	assert.equal(document.activeElement, document.querySelector('[data-abmm-advanced-remove="classic_plain_markup"]'), 'Focus moves to the next Remove button.');
+	document.activeElement.click();
+	assert.equal(document.querySelectorAll('[data-abmm-advanced-remove]').length, 0);
+	assert.equal(document.activeElement, document.querySelector('#abmm-advanced-settings > summary'), 'With none left, focus moves to the section heading.');
 	window.close();
 }
 

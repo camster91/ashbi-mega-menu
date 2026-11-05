@@ -26,6 +26,10 @@
 		return entry;
 	}
 
+	function removableClassicOption() {
+		return { tier: 'advanced', removable: true, when: function (settings) { return settings.render_mode === CLASSIC; } };
+	}
+
 	var SETTINGS = {
 		preset: { tier: 'basic', field: '#abmm-preset' },
 		render_mode: { tier: 'basic', field: '#abmm-render-mode' },
@@ -75,10 +79,10 @@
 		show_cat_desc: byId('show-cat-desc'),
 
 		classic_toggle_label: classicOption('classic-toggle-label'),
-		// These two may have no control; a stored value then shows as read-only text.
-		classic_bar_padding: classicOption('classic-bar-padding'),
-		classic_plain_markup: classicOption('classic-plain-markup'),
-		classic_edge_bleed: { tier: 'advanced', when: function (settings) { return settings.render_mode === CLASSIC; } },
+		// No control for these: a stored value is listed with a way to remove it.
+		classic_bar_padding: removableClassicOption(),
+		classic_plain_markup: removableClassicOption(),
+		classic_edge_bleed: removableClassicOption(),
 	};
 
 	// Fonts and dropdown height, stored in settings.style.
@@ -103,9 +107,9 @@
 	SETTINGS['brand.logo_dark_url'] = { tier: 'advanced', field: '#abmm-brand-logo-dark-url', normal: [''] };
 	SETTINGS['brand.logo_height'] = { tier: 'advanced', field: '#abmm-brand-logo-height', normal: ['40'] };
 	// Imported with the menu and still used on the logo link, but with no control.
-	SETTINGS['brand.target'] = { tier: 'advanced', normal: [''] };
-	SETTINGS['brand.rel'] = { tier: 'advanced', normal: [''] };
-	SETTINGS['brand.class'] = { tier: 'advanced', normal: [''] };
+	SETTINGS['brand.target'] = { tier: 'advanced', normal: [''], removable: true };
+	SETTINGS['brand.rel'] = { tier: 'advanced', normal: [''], removable: true };
+	SETTINGS['brand.class'] = { tier: 'advanced', normal: [''], removable: true };
 
 	function normalize(value) {
 		if (value === null || value === undefined || value === false) return '';
@@ -269,6 +273,13 @@
 		section.open = loadOpen();
 		section.addEventListener('toggle', function () { saveOpen(section.open); });
 		summary.addEventListener('click', function (event) {
+			var remove = event.target.closest('[data-abmm-advanced-remove]');
+			if (remove) {
+				if (api.onRemove) api.onRemove(remove.getAttribute('data-abmm-advanced-remove'));
+				// The list was rebuilt, so the pressed button is gone.
+				(view.list.querySelector('[data-abmm-advanced-remove]') || view.section.querySelector('summary')).focus();
+				return;
+			}
 			var button = event.target.closest('[data-abmm-advanced-key]');
 			if (!button) return;
 			var control = controlFor(button.getAttribute('data-abmm-advanced-key'));
@@ -313,6 +324,16 @@
 			}
 			name.textContent = labelFor(key);
 			item.appendChild(name);
+			if (SETTINGS[key] && SETTINGS[key].removable) {
+				var remove = document.createElement('button');
+				remove.type = 'button';
+				remove.className = 'button-link abmm-advanced-remove';
+				remove.setAttribute('data-abmm-advanced-remove', key);
+				remove.textContent = text.__('Remove', 'ashbi-mega-menu');
+				/* translators: %s: the name of a stored setting. */
+				remove.setAttribute('aria-label', text.__('Remove: %s', 'ashbi-mega-menu').replace('%s', labelFor(key)));
+				item.appendChild(remove);
+			}
 			view.list.appendChild(item);
 		});
 		view.list.hidden = !keys.length;
@@ -370,7 +391,7 @@
 		renderClassicNotes(menu.settings || {});
 	}
 
-	window.ABMMAdvanced = {
+	var api = window.ABMMAdvanced = {
 		SETTINGS: SETTINGS,
 		STORAGE_KEY: STORAGE_KEY,
 		baselineFor: baselineFor,

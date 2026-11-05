@@ -9,7 +9,7 @@ Take a full backup of your site first. Then:
 1. **Install** Ashbi Mega Menu. Keep Easy Mega Menu active. Your site doesn't change.
 2. **Import.** Go to **Mega Menu**, then **Easy Mega Menu import**. Check the list, then click **Import ticked menus**.
 3. **Test.** Put the new menu on a private draft page, then compare it with your live header.
-4. **Switch.** Tick **Handle [easy_mega_menu] shortcodes** and click **Save switch setting**. Then deactivate Easy Mega Menu. **Don't delete it.**
+4. **Switch.** Tick **Use Ashbi Mega Menu in place of Easy Mega Menu** and click **Save switch setting**. Then deactivate Easy Mega Menu. **Don't delete it.**
 5. **Clear your cache** and check your site while logged out.
 
 Your headers keep working with no edits, because Ashbi now answers Easy Mega Menu's shortcodes.
@@ -73,7 +73,7 @@ The import screen lists the menus your pages use, so you know which ones to test
 
 Do this at a quiet time.
 
-1. On the import screen, tick **Handle [easy_mega_menu] shortcodes**.
+1. On the import screen, tick **Use Ashbi Mega Menu in place of Easy Mega Menu**.
 2. Click **Save switch setting**. Nothing changes yet, because Easy Mega Menu is still active.
 3. Go to **Plugins** and deactivate Easy Mega Menu. **Don't delete it.**
 4. Clear your page and CDN caches. A CDN is a service that stores copies of your site around the world.
