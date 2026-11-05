@@ -105,6 +105,7 @@ Deleting removes all its menus, archived menus, saved versions, products, brandi
 == Changelog ==
 
 = 1.2.7 =
+* A tap on the phone menu button before the page has finished loading now opens the menu when it is ready, instead of being lost.
 * A label can have no link on purpose. Tick the option, and the checklist stops asking for a link.
 
 = 1.2.6 =

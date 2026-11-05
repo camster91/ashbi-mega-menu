@@ -2,6 +2,7 @@
 
 ## 1.2.7
 
+- **Phone menus on slow connections**: a tap on the menu button before the menu script has run is kept and acted on once, when the script is ready. A very small script in the page head does this, and NitroPack does not delay it. Menu markup does not change.
 - **No link on purpose**: a menu item or a link in a dropdown can be marked as having no link, under **More options**. The checklist stops asking for one, and the row shows a **No link** chip. A real address always wins. Visitors see no change.
 
 ## 1.2.6

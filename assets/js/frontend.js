@@ -1328,6 +1328,12 @@
 			});
 		}
 		syncMode(header);
+		// A tap made before this script ran was kept by the small script in the page head.
+		var earlyTap = header.__abmmEarlyTap;
+		if (earlyTap) {
+			header.__abmmEarlyTap = null;
+			if (isMobile(header) && earlyTap === header.querySelector('.abmm-nav__toggle') && !header.classList.contains('is-mobile-open')) earlyTap.click();
+		}
 	}
 
 	function initWithin(root) {
