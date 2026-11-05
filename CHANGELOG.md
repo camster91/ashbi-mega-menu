@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.8
+
+Easy Mega Menu can now be deleted. Stored menus and what visitors see are not changed.
+
+- **Finish switching**: one button on the switch screen changes `[easy_mega_menu]` to `[ashbi_mega_menu]` in pages, Elementor layouts and widgets, for every status except trash. It saves a backup first, clears Elementor's generated files, reports its counts and can be undone. Both codes render byte-identical headers, and `[ashbi_mega_menu]` now accepts `review_post_id`.
+- **No dependence on Easy Mega Menu**: the upgrade copies any missing styles and icons, page assignments made after the import, and the list of menus that came from it.
+- **Old codes**: `[easy_mega_menu]` and the old theme helpers are always answered when Easy Mega Menu isn't running. The takeover setting is gone. It stays stored, so a rollback keeps working.
+- **Menu**: the import item leaves the sidebar once Easy Mega Menu is deleted and no codes remain. The screen moves under **Tools**.
+- **Cache**: saving, archiving or deleting a menu clears NitroPack's cache once per request, and the save status says so. This uses `nitropack_sdk_purge()`, guarded in case NitroPack is missing. It was tested with a stand-in, not with NitroPack itself.
+- **Deleting the plugin**: menus are now kept, on existing sites too. A new **Delete all data when the plugin is deleted** choice in **Tools** removes them. On a network, each site chooses for itself.
+- **Backups**: a backup with no menus isn't made or listed, and it can't be restored or downloaded. Those made by older versions are cleared out.
+- **Site look**: moved to **Advanced settings**, with the choices **Keep the current look** and **Use the Ashbi look**. It asks first when the menu is on your site. Stored values are unchanged.
+- **Phone menus**: a tap made before the menu script ran now goes to the real header when it landed on a sticky clone, or when the header was rebuilt.
+- **Wording**: fewer mentions of "Classic" and Easy Mega Menu where they no longer help.
+
 ## 1.2.7
 
 - **Phone button label (Classic menus)**: the label and icon stay on one row and the button stays on screen, even when a theme forces its own button size. A long label truncates. The logo title is now hidden only on narrow phones.

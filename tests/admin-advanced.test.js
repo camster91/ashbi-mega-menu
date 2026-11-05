@@ -355,7 +355,7 @@ const buttonFor = (window, key) => window.document.querySelector(`[data-abmm-adv
 	window.ABMMAdvanced.refresh({ settings: { ...classicDefaults, render_mode: 'emm-classic', mobile_enhancements: true } });
 	const note = window.document.querySelector('.abmm-classic-unused');
 	assert.equal(note.hidden, false);
-	assert.equal(note.textContent, 'Not used by the Classic look.');
+	assert.equal(note.textContent, 'Not used by this look.');
 	assert.equal(control.checked, true, 'The value is kept.');
 	window.ABMMAdvanced.refresh(menu({ mobile_enhancements: true }));
 	assert.equal(note.hidden, true, 'Switching back hides it.');
@@ -375,7 +375,7 @@ const buttonFor = (window, key) => window.document.querySelector(`[data-abmm-adv
 	window.ABMMAdvanced.refresh({ settings: { ...classicDefaults, render_mode: 'emm-classic', mobile_enhancements: true, classic_edge_bleed: 8, shadow: 'none' } });
 	assert.equal(window.document.querySelector('.abmm-advanced-summary__count').textContent, '[xx] Advanced: 2 settings active');
 	assert.equal(window.document.querySelector('.abmm-advanced__count').textContent, '[xx] 1 active');
-	assert.equal(window.document.querySelector('.abmm-classic-unused').textContent, '[xx] Not used by the Classic look.');
+	assert.equal(window.document.querySelector('.abmm-classic-unused').textContent, '[xx] Not used by this look.');
 	assert.match(window.document.querySelector('.abmm-advanced-summary__list').textContent, /\[xx\] Panel edge offset/);
 	window.close();
 }

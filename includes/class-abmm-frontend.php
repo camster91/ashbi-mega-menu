@@ -69,7 +69,7 @@ class ABMM_Frontend {
 	/**
 	 * Runs in the page head. Only remembers the tap: the menu script acts on it.
 	 */
-	const EARLY_TAP_SCRIPT = '(function(d){d.addEventListener("click",function(e){var t=e.target,b=t&&t.closest&&t.closest(".emm-nav__toggle,.abmm-nav__toggle"),h=b&&b.closest(".emm-header,.abmm-header");if(h&&!h.__easyMegaMenuInitialized&&!h.__ashbiMegaMenuInitialized){h.__abmmEarlyTap=b;}},true);})(document);';
+	const EARLY_TAP_SCRIPT = '(function(d){d.addEventListener("click",function(e){var t=e.target,b=t&&t.closest&&t.closest(".emm-nav__toggle,.abmm-nav__toggle"),h=b&&b.closest(".emm-header,.abmm-header");if(h&&!h.__easyMegaMenuInitialized&&!h.__ashbiMegaMenuInitialized){d.__abmmEarlyTap=b;}},true);})(document);';
 
 	private function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );

@@ -3,7 +3,7 @@
  * Plugin Name: Ashbi Mega Menu
  * Plugin URI:  https://github.com/camster91/ashbi-mega-menu
  * Description: Build responsive navigation with a visual editor, local previews and portable exports.
- * Version:     1.2.7
+ * Version:     1.2.8
  * Author:      Cameron Ashley
  * Author URI:  https://github.com/camster91
  * License:     GPL-2.0-or-later
@@ -16,12 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ABMM_VERSION', '1.2.7' );
+define( 'ABMM_VERSION', '1.2.8' );
 define( 'ABMM_PLUGIN_FILE', __FILE__ );
 define( 'ABMM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ABMM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ABMM_OPTION_KEY', 'abmm_menus' );
 define( 'ABMM_VERSION_OPTION', 'abmm_plugin_version' );
+define( 'ABMM_DELETE_DATA_OPTION', 'abmm_delete_data_on_uninstall' );
 define( 'ABMM_ARCHIVE_OPTION', 'abmm_archived_menus' );
 define( 'ABMM_ONBOARDING_META', 'abmm_onboarding_complete' );
 define( 'ABMM_CONTEXTUAL_NAV_OPTION', 'abmm_contextual_navigation_enabled' );
@@ -52,6 +53,7 @@ require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-elementor.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-classic.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-classic-icons.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-emm-migration.php';
+require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-cache.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-shortcode.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-block.php';
 require_once ABMM_PLUGIN_DIR . 'includes/class-abmm-widget.php';
@@ -93,6 +95,7 @@ function abmm_menu_search_strings() {
 function abmm_clear_placement_caches() {
 	delete_transient( 'abmm_menu_reference_summaries' );
 	delete_transient( 'abmm_emm_menus_in_use' );
+	delete_transient( 'abmm_emm_shortcode_in_use' );
 }
 
 /**
@@ -131,6 +134,7 @@ function abmm_init() {
 	ABMM_Frontend::instance();
 	ABMM_Classic::instance();
 	ABMM_EMM_Migration::instance();
+	ABMM_Cache::instance();
 	ABMM_Elementor::init();
 	ABMM_Shortcode::instance();
 	ABMM_Block::instance();
@@ -184,6 +188,7 @@ function abmm_maybe_upgrade() {
 	 * Future migrations should operate on documented fields, keep the original
 	 * option intact until the transformed value is valid, and remain idempotent.
 	 */
+	ABMM_EMM_Migration::instance()->upgrade();
 
 	update_option( ABMM_VERSION_OPTION, ABMM_VERSION );
 }

@@ -61,7 +61,7 @@ This is for menus imported from Easy Mega Menu. It is useful when a page shows t
 
 Open **Advanced settings**, then **Mobile navigation**. Type a short word such as "Products" in **Phone menu button label**. Visitors will see it next to the button. Screen readers will read it out too.
 
-![A phone with two stacked Classic menus, using a button label](images/31-phone-label.png)
+![A phone with two stacked menus, using a button label](images/31-phone-label.png)
 
 Leave it empty to show just the icon. That's the default.
 

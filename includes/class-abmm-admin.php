@@ -36,6 +36,7 @@ class ABMM_Admin {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 		add_action( 'wp_ajax_abmm_save_menu', array( $this, 'ajax_save_menu' ) );
+		add_action( 'admin_post_abmm_data_policy', array( $this, 'handle_data_policy' ) );
 		add_action( 'wp_ajax_abmm_delete_menu', array( $this, 'ajax_delete_menu' ) );
 		add_action( 'wp_ajax_abmm_create_menu', array( $this, 'ajax_create_menu' ) );
 		add_action( 'wp_ajax_abmm_duplicate_menu', array( $this, 'ajax_duplicate_menu' ) );
@@ -199,6 +200,9 @@ class ABMM_Admin {
 				'strings'   => array(
 					'saved'           => __( 'Menu saved successfully!', 'ashbi-mega-menu' ),
 					'savedState'      => __( 'All changes saved.', 'ashbi-mega-menu' ),
+					'cacheCleared'    => __( 'Site cache cleared.', 'ashbi-mega-menu' ),
+					'cacheFailed'     => __( 'The site cache could not be cleared. Clear it yourself so visitors see this change.', 'ashbi-mega-menu' ),
+					'lookConfirm'     => __( 'This menu is on your site. Changing its look changes what visitors see as soon as you save. Change it?', 'ashbi-mega-menu' ),
 					'unsavedState'    => __( 'Unsaved changes.', 'ashbi-mega-menu' ),
 					'savingState'     => __( 'Saving…', 'ashbi-mega-menu' ),
 					'retrySave'       => __( 'Retry save', 'ashbi-mega-menu' ),
@@ -466,6 +470,19 @@ class ABMM_Admin {
 	/**
 	 * AJAX: save menu.
 	 */
+	/**
+	 * Save the choice to delete all plugin data when the plugin is deleted.
+	 */
+	public function handle_data_policy() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to change this setting.', 'ashbi-mega-menu' ), '', array( 'response' => 403 ) );
+		}
+		check_admin_referer( 'abmm_data_policy' );
+		update_option( ABMM_DELETE_DATA_OPTION, ! empty( $_POST['delete_data'] ), false );
+		wp_safe_redirect( admin_url( 'admin.php?page=ashbi-mega-menu&abmm_data_policy=saved#abmm-data-panel' ) );
+		exit;
+	}
+
 	public function ajax_save_menu() {
 		check_ajax_referer( 'abmm_admin', 'nonce' );
 		$this->verify_ajax();
@@ -538,6 +555,8 @@ class ABMM_Admin {
 				'revision'  => $store->revision( $saved_menu ),
 				'readiness' => $store->readiness( $saved_menu ),
 				'sample'    => ! empty( $saved_menu['starter_source'] ),
+				// True when the page cache was cleared, false when that failed, null with no cache.
+				'cache_cleared' => class_exists( 'ABMM_Cache' ) ? ABMM_Cache::instance()->flush() : null,
 			)
 		);
 	}
@@ -882,7 +901,8 @@ class ABMM_Admin {
 		$other = 0;
 		if ( class_exists( 'ABMM_EMM_Migration' ) ) {
 			$migration = ABMM_EMM_Migration::instance();
-			if ( ABMM_EMM_Migration::takeover_enabled() ) {
+			// Ashbi answers old codes unless Easy Mega Menu is running.
+			if ( ! ABMM_EMM_Migration::source_active() ) {
 				if ( $migration->content_uses_shortcode( 'easy_mega_menu', (string) $menu_id, $fresh ) ) {
 					++$other;
 				}

@@ -31,7 +31,7 @@ class ABMM_Shortcode {
 	}
 
 	/**
-	 * [ashbi_mega_menu id="menu_demo" context="page" presentation="unified"]
+	 * [ashbi_mega_menu id="menu_demo" context="page" presentation="unified" review_post_id="123"]
 	 *
 	 * @param array $atts Shortcode attributes.
 	 * @return string
@@ -39,9 +39,10 @@ class ABMM_Shortcode {
 	public function shortcode( $atts ) {
 		$atts = shortcode_atts(
 			array(
-				'id'           => '',
-				'context'      => '',
-				'presentation' => '',
+				'id'             => '',
+				'context'        => '',
+				'presentation'   => '',
+				'review_post_id' => '',
 			),
 			$atts,
 			'ashbi_mega_menu'
@@ -60,8 +61,9 @@ class ABMM_Shortcode {
 		return ABMM_Frontend::instance()->render(
 			$atts['id'],
 			array(
-				'context'      => sanitize_key( $atts['context'] ),
-				'presentation' => sanitize_key( $atts['presentation'] ),
+				'context'        => sanitize_key( $atts['context'] ),
+				'presentation'   => sanitize_key( $atts['presentation'] ),
+				'review_post_id' => absint( $atts['review_post_id'] ),
 			)
 		);
 	}

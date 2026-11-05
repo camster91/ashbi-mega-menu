@@ -131,6 +131,8 @@ test.describe('classic menu in the editor', () => {
 		await page.goto('/wp-admin/admin.php?page=ashbi-mega-menu&edit=main_nav');
 		await page.locator('[data-abmm-workflow="design"]').click();
 		await expect(page.locator('#abmm-render-mode')).toHaveValue('emm-classic');
+		// The notice sits with Site look, in Advanced settings, which starts closed.
+		await page.locator('#abmm-advanced-settings > summary').click();
 		await expect(page.locator('.abmm-classic-notice').first()).toBeVisible();
 
 		await page.locator('[data-abmm-preview-viewport="mobile"]').click();

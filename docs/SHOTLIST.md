@@ -66,7 +66,7 @@ These are the screenshots the docs use. Each one is in the docs as an image. If 
 | `28-phone-menu-open.png` | A phone with the drawer open | The menu button and Close | phone-menus |
 | `29-phone-drill.png` | A phone inside a section | **Back** | phone-menus |
 | `30-phone-enhanced.png` | A phone with **Enhanced mobile menu** on | The search box | phone-menus |
-| `31-phone-label.png` | A phone with two stacked Classic menus, using a button label | The label | phone-menus |
+| `31-phone-label.png` | A phone with two stacked menus, using a button label | The label | phone-menus |
 | `42-toolbar-link.png` | A page while logged in, with the toolbar item open on a page with two menus | **Edit mega menu** | user-guide |
 | `46-two-menus.png` | A page showing the theme's old menu above the new one | Both menus | troubleshooting |
 
@@ -87,8 +87,8 @@ These are the screenshots the docs use. Each one is in the docs as an image. If 
 | File | Screen and state | Highlight | Used in |
 | --- | --- | --- | --- |
 | `39-wp-menu-import.png` | **Import from WordPress menu** with a preview showing | Preview button | user-guide |
-| `40-emm-import.png` | Easy Mega Menu import table using made-up menu names | Tick boxes and **Import ticked menus** | migrate-from-easy-mega-menu |
-| `41-emm-switch.png` | Step 3 on that screen, with the warning about a missing menu | The switch and the warning | migrate-from-easy-mega-menu |
+| `40-emm-import.png` | The switch screen, with the list of menus to copy | Tick boxes and **Copy ticked menus** | migrate-from-easy-mega-menu |
+| `41-emm-switch.png` | The switch screen after finishing, with the Undo button | The counts and **Undo the switch** | migrate-from-easy-mega-menu |
 | `43-product-navigation.png` | **Product Navigation** with one product and the form filled in | Main product page and links | user-guide |
 | `44-product-branding.png` | **Product Branding** with one product selected | Logo style and Menu | user-guide |
 | `45-coverage.png` | **Navigation Coverage** with three pages, one of each **Why** | The **Why** column | user-guide |

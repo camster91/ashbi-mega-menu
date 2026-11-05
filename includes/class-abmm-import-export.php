@@ -63,11 +63,18 @@ class ABMM_Import_Export {
 	public function get_backups() {
 		$backups = get_option( 'abmm_import_backups', array() );
 		if ( ! is_array( $backups ) ) { return array(); }
+		// Older versions saved backups with no menus. Restoring one would empty the site.
+		$backups = array_values( array_filter( $backups, array( $this, 'backup_has_menus' ) ) );
 		foreach ( $backups as &$backup ) {
 			if ( empty( $backup['id'] ) ) { $backup['id'] = hash( 'sha256', wp_json_encode( $backup ) ); }
 		}
 		unset( $backup );
 		return $backups;
+	}
+
+	/** Whether a stored recovery point holds any menu. */
+	private function backup_has_menus( $backup ) {
+		return is_array( $backup ) && ! empty( $backup['menus'] ) && is_array( $backup['menus'] );
 	}
 
 	/** Export one recovery point as a portable plugin export. */
@@ -541,17 +548,20 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 	 * @return bool|WP_Error
 	 */
 	private function backup_current_menus( $extra_menus = array() ) {
-		$backups = get_option( 'abmm_import_backups', array() );
-		if ( ! is_array( $backups ) ) {
-			$backups = array();
+		$menus = array_replace( $extra_menus, ABMM_Data::instance()->get_all() );
+		// With no menus there is nothing to protect, and a backup would only push out a real one.
+		if ( ! $menus ) {
+			return true;
 		}
+		$backups = get_option( 'abmm_import_backups', array() );
+		$backups = is_array( $backups ) ? array_values( array_filter( $backups, array( $this, 'backup_has_menus' ) ) ) : array();
 
 		array_unshift(
 			$backups,
 			array(
 				'id'         => wp_generate_uuid4(),
 				'created_at' => gmdate( 'c' ),
-				'menus'      => array_replace( $extra_menus, ABMM_Data::instance()->get_all() ),
+				'menus'      => $menus,
 			)
 		);
 

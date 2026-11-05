@@ -266,7 +266,7 @@ Most people only need a style. The full list is in [Style your menu](style-your-
 
 ![Design with the style cards and the preview](images/15-design-presets.png)
 
-**Site look** shows only on menus imported from Easy Mega Menu. See [Switch from Easy Mega Menu](migrate-from-easy-mega-menu.md#keep-or-change-the-look).
+**Site look** is in **Advanced settings**, and shows only on menus copied from Easy Mega Menu. See [Switch from Easy Mega Menu](migrate-from-easy-mega-menu.md#keep-or-change-the-look).
 
 ## Place and Check
 

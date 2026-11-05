@@ -22,7 +22,8 @@ if ( defined( 'ABMM_UNINSTALLING' ) ) {
 define( 'ABMM_UNINSTALLING', true );
 
 /* ------------------------------------------------------------------
-   Remove all plugin options / transients
+   Remove plugin data, only where a site chose that in Tools. Deleting the
+   plugin keeps menus by default, so a reinstall brings them back.
    ------------------------------------------------------------------ */
 $abmm_option_keys = array(
 	'abmm_menus',
@@ -38,6 +39,9 @@ $abmm_option_keys = array(
 	'abmm_emm_takeover',
 	'abmm_emm_import_state',
 	'abmm_classic_assets',
+	'abmm_emm_switch_backup',
+	'abmm_emm_menu_ids',
+	'abmm_delete_data_on_uninstall',
 );
 
 // Site options and recovery drafts belong to each site's own options table.
@@ -47,6 +51,8 @@ $abmm_cleanup_site = static function () use ( $abmm_option_keys ) {
 	}
 	delete_transient( 'abmm_menu_reference_summaries' );
 	delete_transient( 'abmm_emm_menus_in_use' );
+	delete_transient( 'abmm_emm_shortcode_in_use' );
+	delete_transient( 'abmm_emm_source_installed' );
 
 	// Recovery drafts use unpredictable transient keys; remove every plugin-owned key.
 	global $wpdb;
@@ -68,6 +74,16 @@ $abmm_cleanup_site = static function () use ( $abmm_option_keys ) {
 				wp_delete_file( $abmm_file );
 			}
 		}
+	}
+};
+
+// Network-wide data goes only once every site has chosen to delete its own.
+$abmm_every_site_opted = true;
+$abmm_cleanup_if_opted = static function () use ( $abmm_cleanup_site, &$abmm_every_site_opted ) {
+	if ( get_option( 'abmm_delete_data_on_uninstall', false ) ) {
+		$abmm_cleanup_site();
+	} else {
+		$abmm_every_site_opted = false;
 	}
 };
 
@@ -100,7 +116,7 @@ if ( is_multisite() ) {
 		foreach ( $abmm_site_ids as $abmm_site_id ) {
 			switch_to_blog( $abmm_site_id );
 			try {
-				$abmm_cleanup_site();
+				$abmm_cleanup_if_opted();
 			} finally {
 				restore_current_blog();
 			}
@@ -109,7 +125,11 @@ if ( is_multisite() ) {
 		$abmm_offset     += $abmm_batch_count;
 	} while ( 100 === $abmm_batch_count );
 } else {
-	$abmm_cleanup_site();
+	$abmm_cleanup_if_opted();
+}
+
+if ( ! $abmm_every_site_opted ) {
+	return;
 }
 
 // Preserve cleanup of any legacy network-level plugin options.

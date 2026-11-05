@@ -83,6 +83,8 @@ foreach ( $site_ids as $site_id ) {
   foreach ( $keys as $key ) {
    if ( 'abmm_menus' !== $key ) { update_option( $key, array( 'fixture' => 'private' ) ); }
   }
+  // Each site chooses this in Tools. Without it, deleting the plugin keeps the data.
+  update_option( 'abmm_delete_data_on_uninstall', true );
   set_transient( 'abmm_product_draft_uninstall_fixture', array( 'private' ), 600 );
   abmm_multisite_assert( array( 'private' ) === get_option( '_transient_abmm_product_draft_uninstall_fixture' ), 'Private recovery draft exists in this site options table before uninstall.' );
   update_option( 'abmm_qa_unrelated', 'preserve' );

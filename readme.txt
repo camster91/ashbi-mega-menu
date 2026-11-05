@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.7
+Stable tag: 1.2.8
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,7 +36,7 @@ Ashbi Mega Menu helps you build a clear menu for your site, with no code. Start 
 * A phone menu with an optional search box.
 * An Elementor widget that uses your global fonts and colors.
 * Different links on different parts of your site, for products, services or departments.
-* Move from Easy Mega Menu and keep the same look. You can switch back at any time.
+* Move from Easy Mega Menu, keep the same look, and delete the old plugin.
 * Export and import menus, plus tools for developers.
 
 **How saving works**
@@ -82,7 +82,7 @@ Yes. Undo works while you edit. Each menu also keeps its last 10 saved versions.
 No. A copy is a separate menu with a new ID. Blocks, widgets and shortcodes keep showing the menus they already use until you change them.
 
 = Can I move from Easy Mega Menu? =
-Yes. The import only reads Easy Mega Menu's data and doesn't change it. Your headers keep working with no edits, and you can switch back in about a minute. Test on a staging copy or a private page first. Visitors may see small improvements when panels open and in the phone menu.
+Yes. The copy only reads Easy Mega Menu's data and doesn't change it. One button then updates your pages, with a backup and an undo, and you can delete the old plugin. Test on a staging copy or a private page first. Visitors may see small improvements when panels open and in the phone menu.
 
 = Is it accessible? =
 It passes automated checks and browser tests for keyboard use, focus and contrast. It has not yet been fully tested with real screen readers or on real touch devices, so the plugin does not claim to meet WCAG. Test results are in docs/accessibility.md.
@@ -94,7 +94,7 @@ Standard MySQL and MariaDB WordPress sites work. SQLite has not been tested.
 Report problems you can repeat on the public GitHub page. There is no promised reply time. Do not share passwords, private exports or client data. Tested themes and known limits are listed in the docs.
 
 = What happens when I delete the plugin? =
-Deleting removes all its menus, archived menus, saved versions, products, branding and settings. Export your menus first. Turning the plugin off keeps everything.
+Your menus and settings stay, and they come back if you install it again. To remove them too, turn on "Delete all data when the plugin is deleted" in Tools first.
 
 == Screenshots ==
 
@@ -103,6 +103,15 @@ Deleting removes all its menus, archived menus, saved versions, products, brandi
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
+
+= 1.2.8 =
+* Finish switching from Easy Mega Menu with one button, then delete it. A backup is saved first, and you can undo it.
+* Old [easy_mega_menu] codes keep working with no setting to manage, so a missed one never shows as text.
+* Deleting this plugin now keeps your menus, unless you turn on "Delete all data when the plugin is deleted" in Tools.
+* Saving a menu clears NitroPack's cache, and the save status says so.
+* Empty backups are no longer made or listed, and can't be restored.
+* Site look moved to Advanced settings, in plain words, and asks first when a menu is on your site.
+* A tap on the phone menu button before the page has loaded now also works on headers that stick to the top of the page.
 
 = 1.2.7 =
 * A tap on the phone menu button before the page has finished loading now opens the menu when it is ready, instead of being lost.
@@ -211,6 +220,9 @@ Deleting removes all its menus, archived menus, saved versions, products, brandi
 * Generic sample content and public package isolation.
 
 == Upgrade Notice ==
+
+= 1.2.8 =
+Finish switching from Easy Mega Menu and delete it. Deleting this plugin now keeps your menus unless you choose otherwise. Saving a menu clears NitroPack's cache.
 
 = 1.2.0 =
 Adds font and dropdown-height settings, an Elementor widget, a toolbar edit link and undo/redo. Existing menus render as before.

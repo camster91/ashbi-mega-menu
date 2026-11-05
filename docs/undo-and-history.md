@@ -42,7 +42,7 @@ Undo starts when you open the editor. It ends when you leave.
 
 Each time you save, the plugin keeps a copy of your menu. It keeps your last 10 copies of each menu. If you save many times within five minutes, those saves count as one copy.
 
-A menu's History is removed when you permanently delete that menu. All History is removed when you delete the plugin.
+A menu's History is removed when you permanently delete that menu. All History is removed when you delete the plugin, but only if you turned on **Delete all data when the plugin is deleted** in **Tools**.
 
 ## Backups of all menus
 

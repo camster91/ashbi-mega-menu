@@ -2,9 +2,9 @@
 /**
  * Easy Mega Menu's theme helpers, answered by Ashbi.
  *
- * Loaded only when the "Use Ashbi Mega Menu in place of Easy Mega Menu" setting is on and
- * Easy Mega Menu is not active, so a theme that calls emm_render_menu() keeps
- * its header. These keep Easy Mega Menu's original names on purpose.
+ * Loaded whenever Easy Mega Menu is not running, so a theme that calls
+ * emm_render_menu() keeps its header. These keep Easy Mega Menu's original
+ * names on purpose.
  *
  * @package Ashbi_Mega_Menu
  */

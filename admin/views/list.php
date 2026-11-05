@@ -474,6 +474,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</details>
 
+	<details class="abmm-tool" id="abmm-data-panel" <?php echo isset( $_GET['abmm_data_policy'] ) ? 'open' : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only opens this panel. ?>>
+		<summary>
+			<span class="abmm-tool__icon dashicons dashicons-trash" aria-hidden="true"></span>
+			<span class="abmm-tool__text"><strong><?php esc_html_e( 'If you delete this plugin', 'ashbi-mega-menu' ); ?></strong><small><?php esc_html_e( 'Your menus are kept unless you choose otherwise.', 'ashbi-mega-menu' ); ?></small></span>
+		</summary>
+		<div class="abmm-tool__body">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="abmm_data_policy" />
+				<?php wp_nonce_field( 'abmm_data_policy' ); ?>
+				<p><label><input type="checkbox" name="delete_data" value="1" <?php checked( (bool) get_option( ABMM_DELETE_DATA_OPTION, false ) ); ?> /> <?php esc_html_e( 'Delete all data when the plugin is deleted', 'ashbi-mega-menu' ); ?></label></p>
+				<p class="description"><?php esc_html_e( 'Off: your menus, backups and settings stay, and come back if you install the plugin again. On: deleting the plugin removes all of them for good.', 'ashbi-mega-menu' ); ?></p>
+				<?php submit_button( __( 'Save this choice', 'ashbi-mega-menu' ), 'secondary', 'submit', false ); ?>
+			</form>
+		</div>
+	</details>
+
 	<?php
 	$abmm_nav_menus         = function_exists( 'wp_get_nav_menus' ) ? wp_get_nav_menus() : array();
 	$abmm_block_navigations = get_posts(

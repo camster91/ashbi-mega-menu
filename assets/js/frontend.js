@@ -1328,12 +1328,29 @@
 			});
 		}
 		syncMode(header);
-		// A tap made before this script ran was kept by the small script in the page head.
-		var earlyTap = header.__abmmEarlyTap;
-		if (earlyTap) {
-			header.__abmmEarlyTap = null;
-			if (isMobile(header) && earlyTap === header.querySelector('.abmm-nav__toggle') && !header.classList.contains('is-mobile-open')) earlyTap.click();
+		replayEarlyTap(header);
+	}
+
+	/* A tap made before this script ran was kept by the small script in the page
+	 * head. The tapped header may be a hidden sticky clone, or may have been
+	 * rebuilt since, so the tap goes to the real header with the same menu. */
+	function replayEarlyTap(header) {
+		var tap = document.__abmmEarlyTap;
+		if (!tap) return;
+		var tapped = closest(tap, '.abmm-header');
+		var target = tapped;
+		if (!tapped || !document.documentElement.contains(tapped) || closest(tapped, '.elementor-sticky__spacer')) {
+			var key = tapped && (tapped.getAttribute('data-abmm-instance') || tapped.id);
+			target = null;
+			document.querySelectorAll('.abmm-header').forEach(function (candidate) {
+				if (!target && (candidate.getAttribute('data-abmm-instance') || candidate.id) === key && !closest(candidate, '.elementor-sticky__spacer')) target = candidate;
+			});
 		}
+		// The real header may not be set up yet. Its own setup replays the tap.
+		if (!target || (target !== header && target.__ashbiMegaMenuInitialized !== true)) return;
+		document.__abmmEarlyTap = null;
+		var toggle = target.querySelector('.abmm-nav__toggle');
+		if (toggle && isMobile(target) && !target.classList.contains('is-mobile-open')) toggle.click();
 	}
 
 	function initWithin(root) {
