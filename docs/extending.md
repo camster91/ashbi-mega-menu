@@ -120,7 +120,7 @@ Working examples, each a small standalone plugin, are in [`docs/examples/`](exam
 
 - `abmm-members-only-items.php`: conditional visibility with extension data (`abmm_sanitize_menu` + `abmm_menu_data`). It is exercised by `tests/extension-hooks.php`.
 - `abmm-analytics-events.php`: forwarding front-end events to an analytics tool.
-- `abmm-purge-cache-on-save.php`: purging a page cache on `abmm_menu_saved` / `abmm_menu_deleted`.
+- `abmm-purge-cache-on-save.php`: purging a page cache on `abmm_menu_saved` / `abmm_menu_deleted`. NitroPack is already cleared for you. Use this for other caches.
 
 ## Compatibility and deprecation
 

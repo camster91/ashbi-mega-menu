@@ -109,4 +109,4 @@ Keep another way to get around your site until these all pass.
 
 See [support](support-policy.md) for how to write a useful bug report. Don't share passwords or private files.
 
-**Don't delete the plugin to fix a problem.** Deleting it removes all your menus, products and settings. Turning it off keeps them.
+**Deleting the plugin won't fix a problem.** Your menus, products and settings stay, and they come back when you install it again. They only go if you turned on **Delete all data when the plugin is deleted** in **Tools**.
