@@ -160,6 +160,8 @@ test.describe('classic menu in the editor', () => {
 			response.url().includes('admin-ajax.php') && (response.request().postData() || '').includes('action=abmm_save_menu'));
 		await page.locator('.abmm-save-menu').first().click();
 		expect((await (await saved).json()).success).toBe(true);
+		// WebKit reports a request cut off by leaving the page as a console error.
+		await page.waitForLoadState('networkidle');
 		await page.goto('/?pagename=e2e-classic');
 		await expect(page.locator('header.emm-header[data-emm-id="main_nav"] .emm-nav__toggle')).toHaveAttribute('aria-label', /^Products: /);
 		expect(errors).toEqual([]);
