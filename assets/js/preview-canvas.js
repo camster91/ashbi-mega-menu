@@ -11,7 +11,6 @@
 	var MIN_SCALE = 0.25;
 	var MAX_SCALE = 2;
 	var STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.25, 1.5, 2];
-	var PRESETS = [0.25, 0.5, 0.75, 1, 1.5, 2];
 	var FIT_PADDING = 32;
 	var GRID = 16;
 
@@ -402,7 +401,6 @@
 		return {
 			fit: fit,
 			zoomTo: zoomTo,
-			step: function (direction) { zoomTo(stepScale(view.scale, direction), null, true); },
 			refresh: refresh,
 			restore: restore,
 			bindFrame: bindFrame,
@@ -414,7 +412,6 @@
 	window.ABMMPreviewCanvas = {
 		MIN_SCALE: MIN_SCALE,
 		MAX_SCALE: MAX_SCALE,
-		PRESETS: PRESETS,
 		clampScale: clampScale,
 		zoomAt: zoomAt,
 		panBy: panBy,

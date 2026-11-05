@@ -720,6 +720,15 @@
 		header.classList.toggle('is-mobile-open', open);
 		setOutsideInert(header, open && isMobile(header));
 		watchOpenDrawer(header, open && isMobile(header));
+		// Not aria-modal: the button that closes this drawer sits outside it.
+		var navLabel = (header.querySelector('.abmm-nav') || header).getAttribute('aria-label');
+		if (drawer && open && isMobile(header) && navLabel) {
+			drawer.setAttribute('role', 'dialog');
+			drawer.setAttribute('aria-label', navLabel);
+		} else if (drawer) {
+			drawer.removeAttribute('role');
+			drawer.removeAttribute('aria-label');
+		}
 		if (wasOpen !== !!open) emit(header, 'abmm:drawer', { open: !!open });
 		syncActiveStackHost();
 		if (toggle) {
@@ -1300,6 +1309,13 @@
 			window.visualViewport.addEventListener('resize', function () {
 				updateMobileGeometry(header);
 			});
+		}
+
+		// A clone of an open header, such as Elementor's sticky spacer, copies the
+		// open state. Nobody can close it, and it would keep the page locked.
+		if (header.classList.contains('is-mobile-open')) {
+			header.style.removeProperty('min-width');
+			setDrawerOpen(header, false, false);
 		}
 
 		updateMobileGeometry(header);

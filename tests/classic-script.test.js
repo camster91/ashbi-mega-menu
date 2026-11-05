@@ -310,6 +310,7 @@ for (const file of ['emm-frontend.js', 'emm-frontend.css', 'emm-fixes.css', 'emm
 	assert.ok(/@media \(scripting: none\)/.test(fixes), 'The links stay reachable without JavaScript.');
 	assert.ok(/@media \(forced-colors: active\)/.test(fixes), 'High contrast is covered.');
 	assert.ok(/max-height: none !important/.test(fixes), 'Long phone lists are not nested scroll boxes.');
+	assert.ok(/\.emm-header \.emm-nav__toggle:active \{\s*opacity:/.test(fixes), 'The toggle shows a tap with CSS alone, before the script is ready.');
 	assert.ok(/\.emm-mobile-bar \.emm-mobile-back \{[^}]*display: inline-flex;[^}]*width: auto;/.test(fixes), 'The phone Back button sets its own layout.');
 	assert.ok(/'fixesCss'\s*=> add_query_arg\( 'ver', ABMM_VERSION, ABMM_PLUGIN_URL \. 'assets\/classic\/emm-fixes\.css' \)/.test(php), 'The preview frame gets the fixes stylesheet.');
 }
@@ -367,6 +368,17 @@ for (const file of ['emm-frontend.js', 'emm-frontend.css', 'emm-fixes.css', 'emm
 	ctx.window.document.body.classList.add('after-close');
 	await settle();
 	assert.ok(!ctx.header.classList.contains('is-mobile-open'), 'The watcher stops once the drawer is closed.');
+
+	// A clone of the open header, such as Elementor's sticky spacer, isn't open.
+	ctx = open();
+	const clone = ctx.header.cloneNode(true);
+	ctx.header.parentNode.appendChild(clone);
+	await settle();
+	assert.ok(!clone.classList.contains('is-mobile-open'), 'A clone of an open header starts closed.');
+	assert.equal(clone.querySelector('.'+ctx.toggle.className.split(' ')[0]).getAttribute('aria-expanded'), 'false', 'A cloned button reads as closed.');
+	assert.ok(ctx.header.classList.contains('is-mobile-open'), 'The real drawer stays open.');
+	ctx.toggle.click();
+	released(ctx, 'Closed with a clone on the page');
 })().catch((error) => { console.error(error); process.exit(1); });
 
 console.log('Classic script: single binding, open/close, measurable phone header, hover and rail timing, drawer links, inert page, labels, ids, bleed config and clean bundled assets passed.');

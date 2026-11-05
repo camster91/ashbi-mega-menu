@@ -12,7 +12,7 @@ Exercise both block-theme Header placement and classic-theme shortcode/widget/he
 
 | Journey | Acceptance criteria |
 | --- | --- |
-| Editor section tabs | Arrow keys and Home/End select the expected tab; selected state, panel visibility and focus agree. |
+| Editor steps | Arrow keys and Home/End move between the steps; current step, panel visibility and focus agree. |
 | Add/edit/reorder content | Every operation is available without dragging. After moving an item into the first/last position, focus remains on an enabled control belonging to that item. Saved order survives reload. |
 | Modal and responsive sheets | Opening moves focus inside; Tab/Shift+Tab stay within the active modal; Escape closes it; focus returns to its opener; background controls are unavailable while modal. |
 | Validation/save/recovery | Errors identify the affected field or operation; save/conflict/recovery status is announced; failed saves retain the draft; recovery requires explicit confirmation. |

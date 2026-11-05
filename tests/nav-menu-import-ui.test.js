@@ -6,7 +6,7 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 
 (async () => {
-	// jsdom cannot navigate; the editor URL is checked on the "Open the draft" link instead.
+	// jsdom cannot navigate; the editor URL is checked on the "Open the new menu" link instead.
 	const virtualConsole = new VirtualConsole();
 	virtualConsole.on('jsdomError', (error) => { if (!/navigation/i.test(error.message)) console.error(error); });
 	const dom = new JSDOM(`<body>
@@ -14,7 +14,7 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 			<select id="abmm-nav-import-menu"><optgroup label="Appearance → Menus"><option value="term:7">Main (12 items)</option></optgroup><optgroup label="Site Editor navigation"><option value="navigation:9">Header</option></optgroup></select>
 			<button type="button" class="button abmm-nav-import-preview">Preview</button>
 			<div id="abmm-nav-import-result" hidden></div>
-			<button type="button" class="button button-primary abmm-nav-import-confirm" disabled aria-describedby="abmm-nav-import-hint">Import as draft</button>
+			<button type="button" class="button button-primary abmm-nav-import-confirm" disabled aria-describedby="abmm-nav-import-hint">Import as a new menu</button>
 			<span id="abmm-nav-import-hint">Preview the menu first.</span>
 			<p id="abmm-nav-import-status" role="status"></p>
 		</div></details></body>`, { url: 'http://localhost/wp-admin/admin.php?page=ashbi-mega-menu', runScripts: 'outside-only', virtualConsole });
@@ -56,7 +56,7 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 	assert.equal($result.prop('hidden'), false, 'The preview is shown');
 	assert.match($result.find('.abmm-nav-import__title').text(), /Main \(imported\)/);
 	const outline = $result.find('.is-outline li').map((_, li) => $(li).text()).get();
-	assert.deepEqual(outline, ['Home: link', 'Products: mega menu with 2 categories and 4 links', 'Company: mega menu with 2 links'], 'The outline describes each top-level item');
+	assert.deepEqual(outline, ['Home: link', 'Products: dropdown with 2 categories and 4 links', 'Company: dropdown with 2 links'], 'The outline describes each top-level item');
 	assert.match($result.find('.abmm-nav-import__count').text(), /9 entries will be imported/);
 	assert.match($result.text(), /Retail POS \(level 4\) is now a link in "Software"\./, 'Flattened items are listed');
 	assert.match($result.text(), /Draft page: It links to content that is not published\./, 'Skipped items are listed with a reason');

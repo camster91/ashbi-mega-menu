@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.2.6
+
+A simpler editor. Stored menus are not changed. Visitors see small fixes: rotating a phone with the drawer open could leave the page unable to scroll, with no menu button, on themes whose sticky header clones the menu; the phone button shows a tap at once; and the native drawer reads as a dialog to screen readers. New menus also start with your site's font.
+
+- **Placement status**: the counts are cleared when anything saves, including the block editor and widgets, and a menu reported as not placed is checked again when you open it.
+- **Stored settings with no control**: the Advanced summary now has a **Remove** button for each.
+- **Saved versions**: saving twice within a few minutes no longer loses the first save.
+
+- **Calmer**: the dashboard shows one next step with a button instead of a list of steps, and "I've checked it" moved to the Check step. Each row keeps its drag handle and main action, with move, duplicate and remove in a small menu. In the dropdown editor, Layout and the Featured card now come after the links.
+- **One path**: a row of steps (Content, Design, Place, Check) replaces the tabs. After saving, the status says **Live where placed** or **No placement found**. The checklist sits at the top of Place, before the ways to place the menu.
+- **Design**: presets first, with everything else in one closed **Advanced settings** section. A note names each setting in use and jumps to it, so nothing is hidden and active. Mobile navigation and Product Navigation moved there too. Bar padding and plain markup stay as stored values and filters, not editor fields.
+- **Place**: the method recommended for your theme comes first, with a button to the right screen, and the others sit under **Other ways to place it**.
+- **Dashboard**: the setup guide is the only progress list, and a card's shortcode sits behind a small reveal.
+- **Dropdowns**: new ones start on Simple columns and are called Dropdown. Relationship, CSS classes, per-item icon style and hiding the category bar sit under **More options**, which opens by itself when one is in use. The featured card sits in its own closed section, which also opens by itself when the card has content.
+- **History**: saved versions and backups are in one place, reachable from the menu card and the editor.
+- **Preview**: the Classic desktop preview now shows the real Classic look, and clicks still select what you click. The toolbar is the device buttons and **Fit**.
+- **Guide**: a short, skippable tour for new menus, which you can show again from Help. It keeps its place in this browser only.
+- **Wording**: one name for each feature, such as Product Navigation and backup. Nothing is called a draft unless it is one. New menus use your site's font.
+- **Docs**: the guides are rewritten in plain English, with new guides for placing, styling, phone menus, undo and fixing problems.
+- **History**: restoring a saved version now takes a second click, and each version shows the time to the second.
+
 ## 1.2.5
 
 Fixes from a UX and accessibility audit.

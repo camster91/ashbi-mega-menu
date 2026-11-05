@@ -4,16 +4,16 @@ If you already built a navigation menu in WordPress, under **Appearance → Menu
 
 1. Go to **Mega Menu** and open **Tools → Import from WordPress menu**.
 2. Pick the menu and select **Preview**. Nothing is saved yet.
-3. Read the preview, then select **Import as draft**. The new menu opens in the editor.
+3. Read the preview, then select **Import as a new menu**. The new menu opens in the editor.
 
-The WordPress menu or navigation, your theme and its menu locations are not changed. The imported menu is a separate draft named "*Menu name* (imported)", and it is not placed anywhere until you place it (see [Place it in a page first](user-guide.md#place-it-in-a-page-first)).
+The WordPress menu or navigation, your theme and its menu locations are not changed. The imported menu is a separate menu named "*Menu name* (imported)", and it is not placed anywhere until you place it (see [Place it in a page first](place-your-menu.md#try-it-on-a-test-page-first)).
 
 ## How menus are converted
 
 | In the WordPress menu | In the imported menu |
 | --- | --- |
 | A top-level item with no children | A link in the menu bar |
-| A top-level item with children | A mega menu |
+| A top-level item with children | A dropdown |
 | Its children, when none of them has children | One set of link columns, without a category list |
 | Its children, when some have children | Categories. A child's own page becomes the category's "see all" link |
 | Grandchildren (level 3) | Links in that category |

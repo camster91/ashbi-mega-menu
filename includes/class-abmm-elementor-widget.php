@@ -67,7 +67,7 @@ class ABMM_Elementor_Widget extends Widget_Base {
 			$this->add_control(
 				'context',
 				array(
-					'label'        => __( 'Product navigation on product pages', 'ashbi-mega-menu' ),
+					'label'        => __( 'Show Product Navigation on product pages', 'ashbi-mega-menu' ),
 					'type'         => Controls_Manager::SWITCHER,
 					'return_value' => 'page',
 					'default'      => '',

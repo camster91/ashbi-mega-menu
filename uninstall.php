@@ -45,6 +45,8 @@ $abmm_cleanup_site = static function () use ( $abmm_option_keys ) {
 	foreach ( $abmm_option_keys as $abmm_key ) {
 		delete_option( $abmm_key );
 	}
+	delete_transient( 'abmm_menu_reference_summaries' );
+	delete_transient( 'abmm_emm_menus_in_use' );
 
 	// Recovery drafts use unpredictable transient keys; remove every plugin-owned key.
 	global $wpdb;

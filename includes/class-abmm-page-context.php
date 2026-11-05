@@ -68,8 +68,8 @@ class ABMM_Page_Context {
 		$selected = get_post_meta( $post->ID, self::META_KEY, true );
 		wp_nonce_field( 'abmm_save_page_context', 'abmm_page_context_nonce' );
 		?>
-		<p><?php esc_html_e( 'Usually this page inherits product navigation from its product hub. Choose a profile only when this page is a genuine exception.', 'ashbi-mega-menu' ); ?></p>
-		<label class="screen-reader-text" for="abmm-page-context-profile"><?php esc_html_e( 'Product navigation override', 'ashbi-mega-menu' ); ?></label>
+		<p><?php esc_html_e( 'Usually this page inherits Product Navigation from its product hub. Choose a profile only when this page is a genuine exception.', 'ashbi-mega-menu' ); ?></p>
+		<label class="screen-reader-text" for="abmm-page-context-profile"><?php esc_html_e( 'Product Navigation override', 'ashbi-mega-menu' ); ?></label>
 		<select class="widefat" id="abmm-page-context-profile" name="abmm_page_context_profile">
 			<option value=""><?php esc_html_e( 'Inherit or use global navigation', 'ashbi-mega-menu' ); ?></option>
 			<?php foreach ( $profiles as $profile_id => $profile ) : ?>

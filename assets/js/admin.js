@@ -98,6 +98,24 @@
 		return !!(link && (link.target === '_blank' || String(link.rel || '').trim() || String(link.class || '').trim()));
 	}
 
+	// Relationship and CSS classes are rarely needed, so they sit behind "More options",
+	// which starts open when either has a value: nothing in use is ever out of sight.
+	function linkMoreOptionsHtml(link) {
+		link = link || {};
+		var inUse = String(link.rel || '').trim() !== '' || String(link.class || '').trim() !== '';
+		return (
+			'<details class="abmm-more-options abmm-popover__more"' + (inUse ? ' open' : '') + '>' +
+			'<summary>' + esc(__('More options', 'ashbi-mega-menu')) + '</summary>' +
+			'<div class="abmm-more-options__fields">' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
+			esc(link.rel || '') +
+			'" placeholder="nofollow sponsored" /></label>' +
+			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('CSS classes', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-class" value="' +
+			esc(link.class || '') +
+			'" /></label></div></details>'
+		);
+	}
+
 	// Link options live in a small popover off the URL field, not in a box under every row.
 	function linkOptionsHtml(link) {
 		link = link || {};
@@ -112,12 +130,8 @@
 			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
 			(link.target === '_blank' ? ' checked' : '') +
 			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
-			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
-			esc(link.rel || '') +
-			'" placeholder="nofollow sponsored" /></label>' +
-			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('CSS classes', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-class" value="' +
-			esc(link.class || '') +
-			'" /></label></div></div>'
+			linkMoreOptionsHtml(link) +
+			'</div></div>'
 		);
 	}
 
@@ -137,13 +151,21 @@
 			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
 			(link && link.target === '_blank' ? ' checked' : '') +
 			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
-			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
-			esc((link && link.rel) || '') +
-			'" placeholder="nofollow sponsored" /></label>' +
-			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('CSS classes', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-class" value="' +
-			esc((link && link.class) || '') +
-			'" /></label></div></div>'
+			linkMoreOptionsHtml(link) +
+			'</div></div>'
 		);
+	}
+
+	// A re-rendered row starts with its menu closed. Open it without moving focus,
+	// so a move can keep focus on the control that was used.
+	function revealInRowMenu($control) {
+		var $popover = $control.closest('.abmm-row-menu');
+		if (!$popover.length) return;
+		$('.abmm-popover.is-open').not($popover).each(function () { closePopover($(this), false); });
+		$popover.addClass('is-open');
+		$popover.find('> .abmm-popover__panel').prop('hidden', false);
+		$popover.find('> .abmm-popover__toggle').attr('aria-expanded', 'true');
+		placePopover($popover);
 	}
 
 	function closePopover($popover, returnFocus) {
@@ -154,20 +176,24 @@
 		if (returnFocus) $toggle.trigger('focus');
 	}
 
+	// Open upwards when there is no room below, e.g. near the bottom of the inspector.
+	function placePopover($popover) {
+		$popover.removeClass('is-above');
+		var panel = $popover.find('> .abmm-popover__panel')[0];
+		if (panel && panel.getBoundingClientRect) {
+			var rect = panel.getBoundingClientRect();
+			if (rect.height && rect.bottom > window.innerHeight - 8 && rect.top - rect.height > 120) $popover.addClass('is-above');
+		}
+	}
+
 	function openPopover($popover) {
 		$('.abmm-popover.is-open').not($popover).each(function () { closePopover($(this), false); });
 		$popover.addClass('is-open');
 		var $panel = $popover.find('> .abmm-popover__panel').prop('hidden', false);
 		$popover.find('> .abmm-popover__toggle').attr('aria-expanded', 'true');
-		// Open upwards when there is no room below, e.g. near the bottom of the inspector.
-		$popover.removeClass('is-above');
-		var panel = $panel[0];
-		if (panel && panel.getBoundingClientRect) {
-			var rect = panel.getBoundingClientRect();
-			if (rect.height && rect.bottom > window.innerHeight - 8 && rect.top - rect.height > 120) $popover.addClass('is-above');
-		}
+		placePopover($popover);
 		setTimeout(function () {
-			$panel.find('input, button, select, textarea').filter(':visible').first().trigger('focus');
+			$panel.find('input, button, select, textarea').filter(':visible:not(:disabled)').first().trigger('focus');
 		}, 0);
 	}
 
@@ -179,6 +205,11 @@
 			var $popover = $(this).closest('.abmm-popover');
 			if ($popover.hasClass('is-open')) closePopover($popover, false);
 			else openPopover($popover);
+		});
+		// "More options" makes the panel taller, so check it still fits.
+		$(document).on('click', '.abmm-popover .abmm-more-options > summary', function () {
+			var $popover = $(this).closest('.abmm-popover');
+			setTimeout(function () { placePopover($popover); }, 0);
 		});
 		// Bound below the document so stopping propagation keeps the sheet's own
 		// Escape handler (on the document) from closing the whole sheet.
@@ -467,6 +498,24 @@
 		renderSaveState();
 	}
 
+	function menuIsPlaced() {
+		return String($('#abmm-builder').attr('data-menu-placed')) === '1';
+	}
+
+	// The count on the page can be out of date. A menu reported as not placed may be
+	// live, so ask again rather than drop the warning on the Save button.
+	function refreshPlacedState() {
+		var $builder = $('#abmm-builder');
+		if (!state.menuId || $builder.attr('data-menu-placed') !== '0') return;
+		$.post(abmmAdmin.ajaxUrl, { action: 'abmm_menu_references', nonce: abmmAdmin.nonce, menu_id: state.menuId }).done(function (res) {
+			if (!res || !res.success || !(Number((res.data || {}).known) > 0)) return;
+			$builder.attr('data-menu-placed', '1');
+			$('.abmm-placement-state').text(__('Found on your site. Every save updates it there right away.', 'ashbi-mega-menu'));
+			renderSaveState();
+			renderReadiness();
+		});
+	}
+
 	function renderSaveState() {
 		var $el = $('.abmm-save-status');
 		if (!$el.length || state.loadFailed) return;
@@ -475,6 +524,18 @@
 			.addClass('is-visible is-' + state.saveState)
 			.attr('role', state.saveState === 'failed' ? 'alert' : 'status');
 		$('<span class="abmm-save-status__message" />').text(state.saveMessage).appendTo($el);
+		// Saving is publishing, so say where. Theme templates and PHP cannot be detected.
+		if (state.saveState === 'saved') {
+			var placed = menuIsPlaced();
+			$el.append(' ');
+			$('<span class="abmm-save-status__placement" />')
+				.toggleClass('is-live', placed)
+				.text(placed ? __('Live where placed', 'ashbi-mega-menu') : __('No placement found', 'ashbi-mega-menu'))
+				.attr('title', placed
+					? __('Found on your site. Every save updates it there right away.', 'ashbi-mega-menu')
+					: __('Not found in your pages, widgets or page builder content. Placements in theme templates or PHP cannot be detected.', 'ashbi-mega-menu'))
+				.appendTo($el);
+		}
 		// A conflict cannot be fixed by retrying; the draft recovery panel offers reload instead.
 		if (state.saveState === 'failed' && !state.draftConflict) {
 			$('<button type="button" class="button-link abmm-retry-save" />')
@@ -508,7 +569,7 @@
 		var saved = state.saveState === 'saved';
 		var saving = state.saveState === 'saving';
 		// A placed menu goes live on save, so its button says so.
-		var placed = String($('#abmm-builder').attr('data-menu-placed')) === '1';
+		var placed = menuIsPlaced();
 		var label = saving ? __('Saving…', 'ashbi-mega-menu') : (saved ? __('Saved', 'ashbi-mega-menu') : (placed ? __('Save and update site', 'ashbi-mega-menu') : __('Save changes', 'ashbi-mega-menu')));
 		// Update the children in place: rebuilding them between mousedown and
 		// mouseup (a field's blur changes the save state) would drop the click.
@@ -538,6 +599,13 @@
 			scheduleLocalDraft();
 		} else {
 			updateSaveState('saved', S.savedState);
+			// Changes undone by hand leave nothing to recover. Only a draft written on
+			// this visit goes: one found on arrival still waits for its owner's choice.
+			if (state.draftWritten) {
+				clearTimeout(state.draftTimer);
+				removeLocalDraft();
+				state.draftWritten = false;
+			}
 		}
 	}
 
@@ -559,6 +627,7 @@
 				updated: Date.now(),
 			}));
 			state.draftStoreFailed = false;
+			state.draftWritten = true;
 		} catch (error) {
 			// Storage can be unavailable in private or locked-down browser contexts.
 			state.draftStoreFailed = true;
@@ -589,7 +658,7 @@
 		var conflict = state.draftConflict || draft.revision !== loadedRevision;
 		$('#abmm-draft-recovery').prop('hidden', false);
 		/* translators: %s: date and time the draft was last changed. */
-		$('.abmm-draft-recovery__age').text(draft.updated ? sprintf(__('Unsaved draft from %s.', 'ashbi-mega-menu'), new Date(draft.updated).toLocaleString()) : '');
+		$('.abmm-draft-recovery__age').text(draft.updated ? sprintf(__('Unsaved changes from %s.', 'ashbi-mega-menu'), new Date(draft.updated).toLocaleString()) : '');
 		$('.abmm-draft-recovery__message').text(
 			conflict
 				? S.draftStale
@@ -808,8 +877,8 @@
 				.find('button').text(issue.message).attr('data-field', issue.field).attr('data-item', typeof issue.item === 'number' ? issue.item : null).data('issue', issue).end()
 				.appendTo($list);
 		});
-		// The checklist lives on the Content tab: keep its count visible from the others.
-		$('[data-abmm-builder-section="content"], [data-abmm-workflow="content"]').each(function () {
+		// The checklist lives on the Place step: keep its count visible from the others.
+		$('[data-abmm-workflow="help"]').each(function () {
 			var $count = $(this).children('.abmm-issue-count');
 			if (result.ready) { $count.remove(); return; }
 			if (!$count.length) $count = $('<span class="abmm-issue-count" />').appendTo(this);
@@ -818,60 +887,58 @@
 		});
 		// The shortcode is always available; a draft only gets a reminder.
 		$('.abmm-placement-panel').toggleClass('is-draft', !result.ready);
-		$('.abmm-placement-save-hint').text(
-			hasUnsavedChanges() || state.draftConflict ? S.placementUnsaved :
-				(!result.ready && S.placementDraft ? S.placementDraft : S.placementSaved)
-		);
-		// Edit shows a tick once the saved menu passes its checklist.
+		var placementHint = hasUnsavedChanges() || state.draftConflict ? S.placementUnsaved :
+			(!result.ready && S.placementDraft ? S.placementDraft : '');
+		$('.abmm-placement-save-hint').text(placementHint).prop('hidden', !placementHint);
+		// Content shows a tick once the saved menu passes its checklist.
 		$('[data-abmm-workflow="content"]').toggleClass('is-done', result.ready && !hasUnsavedChanges());
 		setBuilderSection(state.builderSection);
 	}
 
+	// The stepper is the only navigation: each step opens its own panel.
+	var BUILDER_STEPS = ['content', 'design', 'help', 'verify'];
+
 	function setBuilderSection(section) {
-		section = ['content', 'design', 'settings', 'help'].indexOf(section) !== -1 ? section : 'content';
+		section = BUILDER_STEPS.indexOf(section) !== -1 ? section : 'content';
 		state.builderSection = section;
-		if (section !== 'help') state.lastEditSection = section;
-		$('.abmm-builder-sections [data-abmm-builder-section]').each(function () {
-			var $control = $(this);
-			var active = $control.data('abmm-builder-section') === section;
-			$control.toggleClass('is-active', active)
-				.attr('aria-selected', active ? 'true' : 'false')
-				.attr('tabindex', active ? '0' : '-1');
-		});
 		$('.abmm-builder-section-group').each(function () {
 			var $panel = $(this);
 			$panel.prop('hidden', $panel.data('abmm-builder-section-panel') !== section);
 		});
-		// One navigation: the stepper picks the stage, the tabs only exist inside
-		// Edit (Content, Design, Settings). Place and Check share the place panel.
-		$('.abmm-builder-sections').prop('hidden', section === 'help');
-		$('#abmm-builder-sidebar').toggleClass('is-place-step', section === 'help')
-			.find('.abmm-builder-sidebar__mobile-head strong')
-			.text(section === 'help' ? __('Place and check', 'ashbi-mega-menu') : __('Edit menu', 'ashbi-mega-menu'));
-		var step = section === 'help' ? (state.workflowStep === 'verify' ? 'verify' : 'help') : 'content';
-		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + step + '"]').attr('aria-current', 'step');
+		var titles = {
+			content: __('Content', 'ashbi-mega-menu'),
+			design: __('Design', 'ashbi-mega-menu'),
+			help: __('Place', 'ashbi-mega-menu'),
+			verify: __('Check', 'ashbi-mega-menu'),
+		};
+		$('#abmm-builder-sidebar .abmm-builder-sidebar__mobile-head strong').text(titles[section]);
+		$('[data-abmm-workflow]').attr('aria-current', 'false').filter('[data-abmm-workflow="' + section + '"]').attr('aria-current', 'step');
 	}
 
 	function initBuilderSections() {
-		// "Place & verify" on the dashboard links straight to the Place tab; the
-		// card's "N issues" pill links to the checklist on the Content tab.
+		// "Place" on the dashboard links straight to the Place step, and so does the
+		// card's "N issues" pill: the checklist is the first thing on it.
 		var hash = window.location.hash;
 		if (hash === '#placement') state.builderSection = 'help';
-		$('.abmm-builder-sections').on('click', '[data-abmm-builder-section]', function () {
-			state.workflowStep = '';
-			setBuilderSection(String($(this).data('abmm-builder-section') || 'content'));
+		if (hash === '#abmm-readiness-panel') state.builderSection = 'help';
+		if (hash === '#abmm-verification-panel') state.builderSection = 'verify';
+		$('[data-abmm-workflow]').on('click', function () {
+			var step = String($(this).attr('data-abmm-workflow') || 'content');
+			setBuilderSection(step);
+			if (builderPanelIsNarrow()) openBuilderPanel(this);
+			if (step === 'verify') $('#abmm-verification-panel').trigger('focus');
 		});
-		$('.abmm-builder-sections').on('keydown', '[data-abmm-builder-section]', function (event) {
+		$('[data-abmm-workflow]').on('keydown', function (event) {
 			var keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
 			if (keys.indexOf(event.key) === -1) return;
 			event.preventDefault();
-			var $tabs = $('.abmm-builder-sections [data-abmm-builder-section]');
-			var index = $tabs.index(this);
+			var $steps = $('[data-abmm-workflow]');
+			var index = $steps.index(this);
 			if (event.key === 'Home') index = 0;
-			else if (event.key === 'End') index = $tabs.length - 1;
-			else index = (index + (event.key === 'ArrowRight' ? 1 : -1) + $tabs.length) % $tabs.length;
-			var $next = $tabs.eq(index);
-			setBuilderSection(String($next.data('abmm-builder-section') || 'content'));
+			else if (event.key === 'End') index = $steps.length - 1;
+			else index = (index + (event.key === 'ArrowRight' ? 1 : -1) + $steps.length) % $steps.length;
+			var $next = $steps.eq(index);
+			setBuilderSection(String($next.attr('data-abmm-workflow') || 'content'));
 			$next.trigger('focus');
 		});
 		setBuilderSection(state.builderSection);
@@ -881,6 +948,10 @@
 				if ($checklist[0].scrollIntoView) $checklist[0].scrollIntoView({ block: 'start' });
 				$checklist.trigger('focus');
 			}
+		}
+		if (hash === '#abmm-verification-panel') $('#abmm-verification-panel').trigger('focus');
+		if ((hash === '#placement' || hash === '#abmm-readiness-panel' || hash === '#abmm-verification-panel') && builderPanelIsNarrow()) {
+			openBuilderPanel($('[data-abmm-workflow="' + state.builderSection + '"]')[0]);
 		}
 	}
 
@@ -1181,8 +1252,11 @@
 		$warning.prop('hidden', !$list.children().length);
 		var brand = getMenu().brand || {};
 		$('#abmm-logo-alt-warning').prop('hidden', !(brand.show && String(brand.logo_url || brand.logo_dark_url || '').trim() && !String(brand.alt || '').trim() && !String(brand.title || '').trim()));
-		var classicLook = String(s.render_mode || '') === 'emm-classic' && state.previewViewport === 'desktop';
-		$('.abmm-classic-preview-note').prop('hidden', !classicLook);
+		var classicLook = String(s.render_mode || '') === 'emm-classic';
+		var classicFrame = classicLook && !deviceFrame.failed && devicePreviewAvailable();
+		$('.abmm-classic-preview-note').prop('hidden', !classicFrame);
+		$('.abmm-classic-preview-fallback').prop('hidden', !classicLook || classicFrame);
+		if (window.ABMMAdvanced) window.ABMMAdvanced.refresh(getMenu());
 	}
 
 	function previewColorValue(value, fallback) {
@@ -1396,6 +1470,7 @@
 		var usable = function () { return !$(this).closest('[hidden]').length; };
 		var $row = $rows.eq(Math.min(index, $rows.length - 1));
 		var $target = $rows.length ? $row.find(selector).filter(usable).first() : $();
+		if (!$target.length && $rows.length) $target = $row.find('.abmm-row-menu__toggle').filter(usable).first();
 		if (!$target.length && $rows.length) $target = $row.find('button').filter(usable).first();
 		($target.length ? $target : $fallback).trigger('focus');
 	}
@@ -1471,7 +1546,11 @@
 		function status(message, error) {
 			$status.text(message).attr('role', error ? 'alert' : 'status');
 		}
-		// The list loads the first time the panel opens; the button refreshes it.
+		// The list loads the first time the panel opens. The button only shows to
+		// try again after a failure.
+		function showRetry(show) {
+			$('.abmm-load-backups').prop('hidden', !show);
+		}
 		$('#abmm-backup-panel').one('toggle', function () {
 			if (this.open) $('.abmm-load-backups').trigger('click');
 		});
@@ -1480,18 +1559,19 @@
 			status(S.backupLoading || 'Loading recovery snapshots…', false);
 			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_list_backups', nonce: abmmAdmin.nonce })
 				.done(function (res) {
-					if (!res || !res.success || !res.data) { status(responseMessage(res, S.backupLoadError || 'Snapshots could not be loaded.'), true); return; }
+					if (!res || !res.success || !res.data) { status(responseMessage(res, S.backupLoadError || 'Snapshots could not be loaded.'), true); showRetry(true); return; }
+					showRetry(false);
 					revision = String(res.data.revision || '');
 					$list.empty();
 					(res.data.backups || []).forEach(function (backup) {
 						var $row = $('<div class="abmm-backup-row" />').attr('data-backup-id', backup.id);
-						$('<strong />').text((S.backupSummary || '%1$s — menus: %2$s').replace('%1$s', String(backup.created_at)).replace('%2$s', String(backup.menu_count))).appendTo($row);
+						$('<strong />').text((S.backupSummary || '%1$s — menus: %2$s').replace('%1$s', function () { if (backup.created_label) return backup.created_label; var when = new Date(backup.created_at); return isNaN(when.getTime()) ? String(backup.created_at) : when.toLocaleString(); }).replace('%2$s', String(backup.menu_count))).appendTo($row);
 						$('<button type="button" class="button abmm-export-backup" />').text(S.backupExport || 'Export snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$('<button type="button" class="button abmm-restore-backup" />').text(S.backupRestore || 'Restore snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$row.appendTo($list);
 					});
 					status($list.children().length ? (S.backupGuidance || 'Export a snapshot before restoring. Restore replaces every current menu.') : (S.backupEmpty || 'No recovery snapshots are available yet.'), false);
-				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupLoadError || 'Snapshots could not be loaded.'), true); })
+				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupLoadError || 'Snapshots could not be loaded.'), true); showRetry(true); })
 				.always(function () { $button.prop('disabled', false); });
 		});
 		$list.on('click', '.abmm-export-backup', function () {
@@ -1524,12 +1604,97 @@
 			status(S.backupRestoring || 'Restoring snapshot…', false);
 			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_restore_backup', nonce: abmmAdmin.nonce, backup_id: $row.attr('data-backup-id'), revision: revision })
 				.done(function (res) {
-					if (!res || !res.success) { status(responseMessage(res, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); return; }
+					if (!res || !res.success) { status(responseMessage(res, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); showRetry(true); return; }
 					status(responseMessage(res, S.backupRestored || 'Snapshot restored. Reloading menus…'), false);
 					setTimeout(function () { window.location.reload(); }, 700);
-				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); })
+				}).fail(function (xhr) { status(requestErrorMessage(xhr, S.backupRestoreError || 'Snapshot restore failed. Reload snapshots before retrying.'), true); showRetry(true); })
 				.always(function () { $buttons.prop('disabled', false); $row.find('.abmm-backup-confirm').remove(); });
 		});
+	}
+
+	/* History: one place for each menu's saved versions and the backups of all menus. */
+	var historyRequest = 0;
+
+	function showMenuVersions(id) {
+		var $host = $('#abmm-history-versions');
+		var request = ++historyRequest;
+		var $note = $('<p role="status" />').text(__('Loading…', 'ashbi-mega-menu'));
+		var $rows = $('<ul class="abmm-version-list" />');
+		$host.empty().append($note, $rows);
+		$.post(abmmAdmin.ajaxUrl, { action: 'abmm_menu_versions', nonce: abmmAdmin.nonce, menu_id: id }).done(function (res) {
+			if (request !== historyRequest) return;
+			if (!res || !res.success || !res.data) { $note.text(responseMessage(res, __('Saved versions could not be loaded.', 'ashbi-mega-menu'))); return; }
+			var versions = res.data.versions || [];
+			$note.text(versions.length
+				? __('Restoring replaces this menu on your site right away. The current version is kept, so you can change your mind.', 'ashbi-mega-menu')
+				: __('No saved versions yet. One is kept the next time you save a change.', 'ashbi-mega-menu'));
+			versions.forEach(function (version) {
+				var $row = $('<li />').appendTo($rows);
+				/* translators: 1: date and time, 2: number of menu items. */
+				$('<span />').text(sprintf(_n('%1$s, %2$d menu item', '%1$s, %2$d menu items', Number(version.items) || 0, 'ashbi-mega-menu'), version.saved_label, Number(version.items) || 0)).appendTo($row);
+				$('<button type="button" class="button button-small abmm-restore-version" />').text(__('Restore', 'ashbi-mega-menu')).on('click', function (event) {
+					var $restore = $(this);
+					// Restoring changes the live menu, and the second click of a double-click is not a decision.
+					if (event.originalEvent && event.originalEvent.detail > 1) return;
+					if (!$restore.data('confirmed')) {
+						var label = $restore.text();
+						$restore.data('confirmed', true).text(__('Click again to restore', 'ashbi-mega-menu'));
+						setTimeout(function () {
+							if ($restore.prop('disabled')) return;
+							$restore.data('confirmed', false).text(label);
+						}, 5000);
+						return;
+					}
+					$restore.prop('disabled', true);
+					$.post(abmmAdmin.ajaxUrl, { action: 'abmm_restore_menu_version', nonce: abmmAdmin.nonce, menu_id: id, version_id: version.id, base_revision: res.data.revision }).done(function (restored) {
+						if (restored && restored.success) {
+							setListStatus(responseMessage(restored, ''), false, false);
+							window.location.reload();
+							return;
+						}
+						$restore.prop('disabled', false);
+						$note.text(responseMessage(restored, __('The saved version could not be restored. Nothing was changed.', 'ashbi-mega-menu')));
+					}).fail(function (xhr) {
+						$restore.prop('disabled', false);
+						$note.text(requestErrorMessage(xhr, __('The saved version could not be restored. Nothing was changed.', 'ashbi-mega-menu')));
+					});
+				}).appendTo($row);
+			});
+		}).fail(function (xhr) {
+			if (request !== historyRequest) return;
+			$note.text(requestErrorMessage(xhr, __('Saved versions could not be loaded.', 'ashbi-mega-menu')));
+		});
+	}
+
+	function openMenuHistory(id) {
+		var $select = $('#abmm-history-menu');
+		$('#abmm-backup-panel').prop('open', true);
+		if (id && $select.find('option').filter(function () { return this.value === String(id); }).length) $select.val(String(id));
+		if ($select.val()) showMenuVersions($select.val());
+		// The card's menu returns focus to its button first, so move on after it.
+		setTimeout(function () {
+			var title = document.getElementById('abmm-history-title');
+			if (!title) return;
+			title.focus();
+			if (title.scrollIntoView) title.scrollIntoView({ block: 'center' });
+		}, 0);
+	}
+
+	function initMenuHistory() {
+		var $select = $('#abmm-history-menu');
+		$select.on('change', function () {
+			if (this.value) showMenuVersions(this.value);
+		});
+		// Opened by hand: show the selected menu's versions, once.
+		$('#abmm-backup-panel').on('toggle', function () {
+			if (this.open && $select.val() && !$('#abmm-history-versions').children().length) showMenuVersions($select.val());
+		});
+		$('.abmm-menu-versions').on('click', function () {
+			openMenuHistory($(this).data('menu-id'));
+		});
+		// The editor's "History" link lands here with the menu it came from.
+		var fromEditor = new window.URLSearchParams(window.location.search).get('abmm_history');
+		if (fromEditor) openMenuHistory(fromEditor);
 	}
 
 	// Dashboard card "⋯" menus: a menu button with a small popover of actions.
@@ -1628,10 +1793,10 @@
 				var links = (item.categories || []).reduce(function (sum, cat) { return sum + (cat.links || 0); }, 0);
 				if (item.columns_only) {
 					/* translators: 1: menu item label, 2: number of links. */
-					return sprintf(_n('%1$s: mega menu with %2$d link', '%1$s: mega menu with %2$d links', links, 'ashbi-mega-menu'), item.label, links);
+					return sprintf(_n('%1$s: dropdown with %2$d link', '%1$s: dropdown with %2$d links', links, 'ashbi-mega-menu'), item.label, links);
 				}
 				/* translators: 1: menu item label, 2: number of categories, 3: number of links. */
-				return sprintf(__('%1$s: mega menu with %2$d categories and %3$d links', 'ashbi-mega-menu'), item.label, (item.categories || []).length, links);
+				return sprintf(__('%1$s: dropdown with %2$d categories and %3$d links', 'ashbi-mega-menu'), item.label, (item.categories || []).length, links);
 			}), 'is-outline');
 			/* translators: %d: number of menu entries. */
 			$('<p class="abmm-nav-import__count" />').text(sprintf(_n('%d entry will be imported.', '%d entries will be imported.', report.imported || 0, 'ashbi-mega-menu'), report.imported || 0)).appendTo($result);
@@ -1678,9 +1843,9 @@
 					$confirm.prop('disabled', false);
 					return;
 				}
-				status(__('Imported as a draft. Opening it…', 'ashbi-mega-menu'));
+				status(__('Imported as a new menu. Opening it…', 'ashbi-mega-menu'));
 				// A link too, in case opening the editor is slow or blocked.
-				$status.append(' ', $('<a class="abmm-nav-import__open" />').attr('href', res.data.edit_url).text(__('Open the draft', 'ashbi-mega-menu')));
+				$status.append(' ', $('<a class="abmm-nav-import__open" />').attr('href', res.data.edit_url).text(__('Open the new menu', 'ashbi-mega-menu')));
 				window.location.assign(res.data.edit_url);
 			}).fail(function (xhr) {
 				status(requestErrorMessage(xhr, __('The menu could not be imported.', 'ashbi-mega-menu')), true);
@@ -1772,6 +1937,7 @@
 
 	function initListPage() {
 		initBackupRecovery();
+		initMenuHistory();
 		initNavMenuImport();
 		initCardMenus();
 		initMenuToolbar();
@@ -1910,7 +2076,7 @@
 						'<div class="abmm-archive-confirm' + (known ? ' is-danger' : '') + '" role="alert">' +
 						'<strong>' + esc(confirmTitle) + '</strong>' +
 						(consequence ? '<p class="abmm-archive-confirm__consequence">' + esc(consequence) + '</p>' : '') +
-						'<p>' + esc(placements) + '</p>' +
+						(refs.blocks || refs.widgets || refs.shortcodes || refs.other ? '<p>' + esc(placements) + '</p>' : '') +
 						'<p>' + esc(refs.warning || '') + '</p>' +
 						'<button type="button" class="button ' + (known ? 'abmm-button-danger' : 'button-primary') + ' abmm-confirm-archive">' + esc(S.archiveConfirm) + '</button> ' +
 						'<button type="button" class="button abmm-cancel-archive">' + esc(S.cancel) + '</button>' +
@@ -1926,51 +2092,6 @@
 			}).fail(function (xhr) {
 				$button.prop('disabled', false).text(S.archiveMenu).trigger('focus');
 				setListStatus(requestErrorMessage(xhr, S.deleteError), true, true);
-			});
-		});
-
-		$('.abmm-menu-versions').on('click', function () {
-			var $button = $(this);
-			var $card = $button.closest('.abmm-menu-card');
-			var id = $button.data('menu-id');
-			$card.find('.abmm-version-panel').remove();
-			var $panel = $('<div class="abmm-archive-confirm abmm-version-panel" role="group" tabindex="-1" />').attr('aria-label', __('Saved versions', 'ashbi-mega-menu')).appendTo($card);
-			$('<strong />').text(__('Saved versions', 'ashbi-mega-menu')).appendTo($panel);
-			var $note = $('<p role="status" />').text(__('Loading…', 'ashbi-mega-menu')).appendTo($panel);
-			var $rows = $('<ul class="abmm-version-list" />').appendTo($panel);
-			$('<button type="button" class="button abmm-close-versions" />').text(S.cancel).on('click', function () {
-				$panel.remove();
-				$card.find('.abmm-card-menu__toggle').trigger('focus');
-			}).appendTo($panel);
-			$panel.trigger('focus');
-			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_menu_versions', nonce: abmmAdmin.nonce, menu_id: id }).done(function (res) {
-				if (!res || !res.success || !res.data) { $note.text(responseMessage(res, __('Saved versions could not be loaded.', 'ashbi-mega-menu'))); return; }
-				var versions = res.data.versions || [];
-				$note.text(versions.length
-					? __('Restoring replaces this menu on your site right away. The current version is kept, so you can change your mind.', 'ashbi-mega-menu')
-					: __('No saved versions yet. One is kept the next time you save a change.', 'ashbi-mega-menu'));
-				versions.forEach(function (version) {
-					var $row = $('<li />').appendTo($rows);
-					/* translators: 1: date and time, 2: number of menu items. */
-					$('<span />').text(sprintf(_n('%1$s, %2$d menu item', '%1$s, %2$d menu items', Number(version.items) || 0, 'ashbi-mega-menu'), version.saved_label, Number(version.items) || 0)).appendTo($row);
-					$('<button type="button" class="button button-small abmm-restore-version" />').text(__('Restore', 'ashbi-mega-menu')).on('click', function () {
-						var $restore = $(this).prop('disabled', true);
-						$.post(abmmAdmin.ajaxUrl, { action: 'abmm_restore_menu_version', nonce: abmmAdmin.nonce, menu_id: id, version_id: version.id, base_revision: res.data.revision }).done(function (restored) {
-							if (restored && restored.success) {
-								setListStatus(responseMessage(restored, ''), false, false);
-								window.location.reload();
-								return;
-							}
-							$restore.prop('disabled', false);
-							$note.text(responseMessage(restored, __('The saved version could not be restored. Nothing was changed.', 'ashbi-mega-menu')));
-						}).fail(function (xhr) {
-							$restore.prop('disabled', false);
-							$note.text(requestErrorMessage(xhr, __('The saved version could not be restored. Nothing was changed.', 'ashbi-mega-menu')));
-						});
-					}).appendTo($row);
-				});
-			}).fail(function (xhr) {
-				$note.text(requestErrorMessage(xhr, __('Saved versions could not be loaded.', 'ashbi-mega-menu')));
 			});
 		});
 
@@ -2164,6 +2285,7 @@
 				contentType: false,
 			}).done(function (res) {
 				if (res.success && res.data.preview) {
+					setImportStatus('', false);
 					renderImportPreview(res.data.preview, function () {
 						importConfirmed = true;
 						$form.trigger('submit');
@@ -2306,7 +2428,7 @@
 
 	function modalFocusable($modal) {
 		return $modal
-			.find('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')
+			.find('a[href], button:not([disabled]), summary, input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')
 			.filter(function () { return $(this).is(':visible'); });
 	}
 
@@ -2408,7 +2530,7 @@
 			persistLocalDraft();
 			state.pendingExitUrl = $(this).attr('href');
 			if (state.draftStoreFailed) {
-				$('#abmm-exit-dialog-description').text(__('This browser could not keep a recovery draft, so leaving now loses these changes. Save them first.', 'ashbi-mega-menu'));
+				$('#abmm-exit-dialog-description').text(__('This browser could not keep a copy, so leaving now loses these changes. Save them first.', 'ashbi-mega-menu'));
 			}
 			openBuilderModal('#abmm-exit-dialog', this, '.abmm-save-and-leave');
 		});
@@ -2657,14 +2779,22 @@
 		initBuilderSections();
 		initSaveShortcut();
 		initHistory();
-		$('[data-abmm-workflow]').on('click', function () {
-			var step = $(this).attr('data-abmm-workflow');
-			state.workflowStep = step;
-			// Edit returns to the tab the user was last on.
-			setBuilderSection(step === 'content' ? (state.lastEditSection || 'content') : 'help');
-			if (builderPanelIsNarrow()) openBuilderPanel(this);
-			if (step === 'verify') $('#abmm-verification-panel').trigger('focus');
-		});
+		refreshPlacedState();
+		// A stored setting with no control can still be removed, through the normal save.
+		if (window.ABMMAdvanced) {
+			window.ABMMAdvanced.onRemove = function (key) {
+				syncSettingsFromForm();
+				if (key.indexOf('brand.') === 0) {
+					if (getMenu().brand) delete getMenu().brand[key.slice(6)];
+				} else {
+					delete getMenu().settings[key];
+				}
+				markDirtyState();
+				renderPreview();
+				renderDesignWarnings();
+				setStatus(__('Removed. Save to apply it.', 'ashbi-mega-menu'), false);
+			};
+		}
 		$('.abmm-copy-placement').on('click', function () {
 			var $button = $(this), shortcode = String($button.attr('data-shortcode'));
 			if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -2817,9 +2947,11 @@
 
 		$('.abmm-readiness-issues').on('click', 'button', function () {
 			var field = document.getElementById($(this).data('field'));
-			// The field may sit on another tab; a hidden field cannot take focus.
+			// The checklist is on the Place step and fixes are on others. A hidden
+			// field cannot take focus, so open its step and any disclosure around it.
 			var section = field ? $(field).closest('[data-abmm-builder-section-panel]').data('abmm-builder-section-panel') : '';
-			if (section && section !== state.builderSection) setBuilderSection(String(section));
+			setBuilderSection(String(section || 'content'));
+			if (field) $(field).parents('details').prop('open', true);
 			if (openIssueTarget($(this).data('issue'), this)) return;
 			// An issue inside one dropdown opens that dropdown's content editor,
 			// then goes to the field to fix when the editor has one.
@@ -2877,6 +3009,28 @@
 	}
 
 	function bindBuilderEvents() {
+		// "I've checked it" on the Check step. Stays on the page, so unsaved edits are safe.
+		$(document).on('click', '[data-abmm-check]', function () {
+			var $button = $(this).prop('disabled', true);
+			var action = String($button.attr('data-abmm-check'));
+			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_setup_guide', nonce: abmmAdmin.nonce, guide_action: action })
+				.done(function (res) {
+					$button.prop('disabled', false);
+					if (!res || !res.success) {
+						setStatus(responseMessage(res, S.saveError), true);
+						return;
+					}
+					$('[data-abmm-check]').each(function () {
+						$(this).prop('hidden', String($(this).attr('data-abmm-check')) === action);
+					});
+					$('[data-abmm-check]').not('[hidden]').trigger('focus');
+				})
+				.fail(function (xhr) {
+					$button.prop('disabled', false);
+					setStatus(requestErrorMessage(xhr, S.saveError), true);
+				});
+		});
+
 		$(document).on('click', '.abmm-move-item', function () {
 			var $button = $(this);
 			if ($button.prop('disabled')) return;
@@ -2926,7 +3080,9 @@
 				var $preferred = $controls.filter(selector);
 				// At the first/last position the clicked direction becomes disabled.
 				// Keep focus on this item's remaining move control after rerendering.
-				($preferred.length ? $preferred : $controls).first().trigger('focus');
+				var $target = ($preferred.length ? $preferred : $controls).first();
+				revealInRowMenu($target);
+				$target.trigger('focus');
 			}, 0);
 		});
 
@@ -2985,8 +3141,12 @@
 			if (!item) return;
 
 			item.label = $row.find('.abmm-nav-label').val();
-			item.url = $row.find('.abmm-nav-url').val();
-			readLinkOptions($row, item);
+			// Only write what the row can show: a rename must not wipe stored link details.
+			var $navUrl = $row.find('.abmm-nav-url');
+			if ($navUrl.length) {
+				item.url = $navUrl.val();
+				readLinkOptions($row, item);
+			}
 			$row.find('.abmm-nav-item-row__title').text(item.label || __('Untitled item', 'ashbi-mega-menu'));
 			$row.find('.abmm-nav-item-row__url').text(navSummaryText(item));
 			$row.find('.abmm-nav-item-row__toggle').attr('aria-label', navToggleLabel(item, $row.index()));
@@ -3001,7 +3161,8 @@
 			if (newType !== item.type) {
 				item.type = newType;
 				if (newType === 'mega') {
-					if (!item.mega_style) item.mega_style = 'platforms';
+					// A new dropdown starts on Simple columns. Categories it already has stay as they are.
+					if (!item.mega_style) item.mega_style = (item.categories || []).length ? 'platforms' : 'features';
 					if (!item.columns) item.columns = item.mega_style === 'features' ? 2 : 3;
 					if (!item.categories) item.categories = [];
 					if (!item.links) item.links = [];
@@ -3095,7 +3256,7 @@
 			if (!item.links) item.links = [];
 			item.links.push({
 				id: uid(),
-				label: __('New Feature', 'ashbi-mega-menu'),
+				label: __('New Link', 'ashbi-mega-menu'),
 				url: '#',
 				icon: 'link',
 				icon_url: '',
@@ -3292,9 +3453,19 @@
 		return true;
 	}
 
+	function iconStyleInUse(target) {
+		if (!target) return false;
+		var hasColor = ['icon_color', 'icon_hover_color', 'icon_active_color', 'icon_background', 'icon_border_color'].some(function (key) {
+			return !!target[key];
+		});
+		return hasColor || Number(target.icon_size) > 0 || (target.icon_radius !== '' && target.icon_radius !== null && typeof target.icon_radius !== 'undefined');
+	}
+
+	// The per-item icon style stays behind "More options" unless this item already uses it.
 	function renderIconAppearance() {
 		var target = iconTargetObject(state.iconTarget);
 		$('#abmm-icon-appearance').prop('hidden', !target);
+		if (iconStyleInUse(target)) $('#abmm-icon-appearance').prop('open', true);
 		$('#abmm-icon-appearance-fields').html(target ? iconAppearanceHtml(target) : '');
 	}
 
@@ -3304,6 +3475,18 @@
 				esc(__('Select a category on the left to edit its links.', 'ashbi-mega-menu')) +
 				'</p>'
 		);
+	}
+
+	// A row's move, duplicate and remove controls sit in one small menu. The caller
+	// closes it with </span></span>: the panel, then the menu.
+	function rowMenuOpenHtml(subject) {
+		var id = 'abmm-row-menu-' + (++popoverSeq);
+		/* translators: %s: name of a menu item, category, column or link. */
+		var label = sprintf(__('Actions for %s', 'ashbi-mega-menu'), subject);
+		return '<span class="abmm-row-actions abmm-row-menu abmm-popover">' +
+			'<button type="button" class="abmm-row-menu__toggle abmm-popover__toggle" aria-expanded="false" aria-controls="' + id + '" aria-label="' + esc(label) + '" title="' + esc(__('Actions', 'ashbi-mega-menu')) + '">' +
+			'<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span></button>' +
+			'<span class="abmm-row-menu__panel abmm-popover__panel" id="' + id + '" role="group" aria-label="' + esc(label) + '" hidden>';
 	}
 
 	function reorderControlsHtml(label, index, length) {
@@ -3321,6 +3504,10 @@
 		var own = function (selector) {
 			return $row.find(selector).filter(function () { return $(this).closest(rowSelector)[0] === $row[0]; }).first();
 		};
+		/* translators: %s: name of a menu item, category, column or link. */
+		var actionsLabel = sprintf(__('Actions for %s', 'ashbi-mega-menu'), subject);
+		own('.abmm-row-menu__toggle').attr('aria-label', actionsLabel);
+		own('.abmm-row-menu__panel').attr('aria-label', actionsLabel);
 		own('.abmm-reorder-controls').attr('aria-label', (S.positionControls || '%s position controls').replace('%s', subject));
 		own('.abmm-move-up').attr('aria-label', (S.moveUpLabel || 'Move %s up').replace('%s', subject));
 		own('.abmm-move-down').attr('aria-label', (S.moveDownLabel || 'Move %s down').replace('%s', subject));
@@ -3372,7 +3559,8 @@
 
 	function linkPathText(url) {
 		url = String(url || '').trim();
-		if (!url) return '';
+		// "#" is the placeholder a new link starts with: it goes nowhere yet.
+		if (!url || url === '#') return '';
 		var match = url.match(/^(?:https?:)?\/\/([^\/?#]+)(.*)$/i);
 		if (match) {
 			var host = match[1].toLowerCase();
@@ -3417,6 +3605,26 @@
 		setNavRowExpanded($row, expanded);
 	}
 
+	function navUrlFieldHtml(item, urlId) {
+		return wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false, item).replace('<input type="text" class="', '<input type="text" id="' + urlId + '" class="');
+	}
+
+	// A dropdown can have a page of its own. Few do, so it sits behind "More options",
+	// open when it holds a value: it marks the item as current and is the no-script link.
+	function dropdownPageHtml(item, urlId) {
+		var url = String(item.url || '').trim();
+		var inUse = (url !== '' && url !== '#') || linkHasOptions(item);
+		return (
+			'<details class="abmm-more-options abmm-nav-item-row__more"' + (inUse ? ' open' : '') + '>' +
+			'<summary>' + esc(__('More options', 'ashbi-mega-menu')) + '</summary>' +
+			'<div class="abmm-more-options__fields"><div class="abmm-nav-field">' +
+			'<label for="' + urlId + '">' + esc(__('Page for this dropdown', 'ashbi-mega-menu')) + '</label>' +
+			navUrlFieldHtml(item, urlId) +
+			'<p class="description">' + esc(__('Optional. This item shows as the current page there. People whose browser has scripts turned off get a link to it.', 'ashbi-mega-menu')) + '</p>' +
+			'</div></div></details>'
+		);
+	}
+
 	function renderNavItems() {
 		var $list = $('#abmm-nav-items').empty();
 		var items = getMenu().items;
@@ -3439,18 +3647,19 @@
 				'<span class="abmm-nav-item-row__summary">' +
 				'<span class="abmm-nav-item-row__title">' + esc(item.label || __('Untitled item', 'ashbi-mega-menu')) + '</span>' +
 				'<span class="abmm-nav-item-row__sub">' +
-				'<span class="abmm-nav-type-chip">' + esc(isMega ? __('Mega menu', 'ashbi-mega-menu') : __('Link', 'ashbi-mega-menu')) + '</span>' +
+				'<span class="abmm-nav-type-chip">' + esc(isMega ? __('Dropdown', 'ashbi-mega-menu') : __('Link', 'ashbi-mega-menu')) + '</span>' +
 				(isMega
 					? '<span class="abmm-mega-style-badge">' + esc(navSummaryText(item)) + '</span>'
 					: '<span class="abmm-nav-item-row__url">' + esc(navSummaryText(item)) + '</span>') +
 				'</span>' +
 				'</span>' +
-				'<span class="abmm-row-actions">' +
+				/* translators: %s: menu item name. */
+				rowMenuOpenHtml(sprintf(__('navigation item %s', 'ashbi-mega-menu'), name)) +
 				/* translators: %s: menu item name. */
 				reorderControlsHtml(sprintf(__('navigation item %s', 'ashbi-mega-menu'), name), itemIndex, items.length) +
 				'<button type="button" class="button-link abmm-duplicate-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Duplicate navigation item %s', 'ashbi-mega-menu'), name)) + '" title="' + esc(__('Duplicate', 'ashbi-mega-menu')) + '">' + iconButtonContent('admin-page', __('Duplicate', 'ashbi-mega-menu')) + '</button>' +
 				'<button type="button" class="button-link-delete abmm-remove-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Remove navigation item %s', 'ashbi-mega-menu'), name)) + '" title="' + esc(__('Remove navigation item', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
-				'</span>' +
+				'</span></span>' +
 				'<button type="button" class="button-link abmm-nav-item-row__toggle" aria-expanded="' + (expanded ? 'true' : 'false') + '" aria-controls="' + fieldsId + '" aria-label="' + esc(navToggleLabel(item, itemIndex)) + '" title="' + esc(__('Show or hide settings', 'ashbi-mega-menu')) + '">' +
 				'<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span></button>' +
 				'</div>' +
@@ -3462,18 +3671,19 @@
 				'<div class="abmm-nav-field">' +
 				'<label for="' + typeId + '">' + esc(__('Type', 'ashbi-mega-menu')) + '</label>' +
 				'<select id="' + typeId + '" class="abmm-nav-type">' +
-				'<option value="link"' + (!isMega ? ' selected' : '') + '>' + esc(S.simpleLink) + '</option>' +
-				'<option value="mega"' + (isMega ? ' selected' : '') + '>' + esc(S.megaMenu) + '</option>' +
+				'<option value="link"' + (!isMega ? ' selected' : '') + '>' + esc(__('Link', 'ashbi-mega-menu')) + '</option>' +
+				'<option value="mega"' + (isMega ? ' selected' : '') + '>' + esc(__('Dropdown', 'ashbi-mega-menu')) + '</option>' +
 				'</select>' +
 				'</div>' +
 				(isMega
 					? '<div class="abmm-nav-field abmm-nav-item-row__meta">' +
 						'<span class="abmm-nav-field__label">' + esc(__('Content', 'ashbi-mega-menu')) + '</span>' +
 						'<button type="button" class="button abmm-edit-mega"><span class="dashicons dashicons-edit" aria-hidden="true"></span>' + esc(__('Edit content', 'ashbi-mega-menu')) + '</button>' +
-						'</div>'
+						'</div>' +
+						dropdownPageHtml(item, urlId)
 					: '<div class="abmm-nav-field">' +
 						'<label for="' + urlId + '">' + esc(__('URL', 'ashbi-mega-menu')) + '</label>' +
-						wpLinkFieldHtml(item.url || '', 'abmm-nav-url', '.abmm-nav-label', false, item).replace('<input type="text" class="', '<input type="text" id="' + urlId + '" class="') +
+						navUrlFieldHtml(item, urlId) +
 						'</div>') +
 				'</div>' +
 				'</li>'
@@ -3516,6 +3726,10 @@
 		$('#abmm-mega-editor-title').text(item.label || __('Untitled item', 'ashbi-mega-menu'));
 		$('#abmm-mega-editor').prop('hidden', false);
 		$('#abmm-nav-items .abmm-nav-item-row').removeClass('is-selected').eq(index).addClass('is-selected');
+		$('#abmm-mega-more-options').prop('open', false);
+		// A card with anything in it is never hidden behind a closed section.
+		var card = featuredData(item);
+		$('#abmm-featured-details').prop('open', !!card && (!!card.show || !featuredIsEmpty(card)));
 		syncMegaEditorUI();
 		if (megaEditorIsNarrow()) {
 			syncMegaEditorSheetState();
@@ -3544,14 +3758,18 @@
 		}
 	}
 
-	// "Hide the category list" only makes sense with exactly one category,
-	// so the option is left out entirely rather than shown disabled.
+	// "Hide the category list" only makes sense with exactly one category, so the
+	// option is left out entirely rather than shown disabled. It opens "More options"
+	// when it is on, so a hidden bar always has a visible reason.
 	function syncCategoryBarField(item) {
 		var canHideCategoryBar = (item.mega_style || 'platforms') === 'platforms' && (item.categories || []).length === 1;
+		var isHidden = canHideCategoryBar && !!item.hide_category_bar;
+		$('#abmm-mega-more-options').prop('hidden', !canHideCategoryBar);
+		if (isHidden) $('#abmm-mega-more-options').prop('open', true);
 		$('#abmm-category-bar-field').prop('hidden', !canHideCategoryBar);
 		$('#abmm-hide-category-bar')
 			.prop('disabled', !canHideCategoryBar)
-			.prop('checked', canHideCategoryBar && !!item.hide_category_bar);
+			.prop('checked', isHidden);
 	}
 
 	function syncMegaEditorUI() {
@@ -3801,11 +4019,12 @@
 				'<input type="text" class="abmm-cat-title" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s title', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.title) + '" placeholder="' + esc(S.categoryTitle) + '" />' +
 				'<input type="text" class="abmm-cat-desc" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s description', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.description) + '" placeholder="' + esc(S.categoryDesc) + '" />' +
 				'</div>' +
-				'<span class="abmm-row-actions">' +
+				/* translators: %s: category name. */
+				rowMenuOpenHtml(sprintf(__('category %s', 'ashbi-mega-menu'), catName)) +
 				/* translators: %s: category name. */
 				reorderControlsHtml(sprintf(__('category %s', 'ashbi-mega-menu'), catName), i, item.categories.length) +
 				'<button type="button" class="button-link-delete abmm-remove-cat" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Remove category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Remove category', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
-				'</span>' +
+				'</span></span>' +
 				'<button type="button" class="button-link abmm-select-category" aria-pressed="' + (i === state.editingCatIndex ? 'true' : 'false') + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Edit category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Edit links', 'ashbi-mega-menu')) + '">' + iconButtonContent('arrow-right-alt2', __('Edit', 'ashbi-mega-menu')) + '</button>' +
 				'</div>' +
 				'</li>'
@@ -4104,11 +4323,12 @@
 			esc(group.title || '') +
 			'" placeholder="' + esc(__('Column heading (e.g. Services)', 'ashbi-mega-menu')) + '" />' +
 			headingLinkPopoverHtml('abmm-group-heading-options', 'abmm-group-url', '.abmm-group-title', group, group.url) +
-			'<span class="abmm-row-actions">' +
+			/* translators: %s: column name. */
+			rowMenuOpenHtml(sprintf(__('column %s', 'ashbi-mega-menu'), groupName)) +
 			/* translators: %s: column name. */
 			reorderControlsHtml(sprintf(__('column %s', 'ashbi-mega-menu'), groupName), groupIndex, groupLength) +
 			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="' + /* translators: %s: column name. */ esc(sprintf(__('Remove column %s', 'ashbi-mega-menu'), groupName)) + '" title="' + esc(__('Remove column', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove column', 'ashbi-mega-menu')) + '</button>' +
-			'</span>' +
+			'</span></span>' +
 			'</div>' +
 			'<ul class="abmm-sortable abmm-link-list abmm-group-link-list" data-empty="' + esc(__('No links yet. Add one, or drag a link here.', 'ashbi-mega-menu')) + '">' +
 			linksHtml +
@@ -4138,13 +4358,8 @@
 			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
 			(link.target === '_blank' ? ' checked' : '') +
 			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
-			'<div class="abmm-popover__pair">' +
-			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
-			esc(link.rel || '') +
-			'" placeholder="nofollow sponsored" /></label>' +
-			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('CSS classes', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-class" value="' +
-			esc(link.class || '') +
-			'" /></label></div></div></div>'
+			linkMoreOptionsHtml(link) +
+			'</div></div>'
 		);
 	}
 
@@ -4189,11 +4404,12 @@
 				: '') +
 			'</div>' +
 			linkEditPopoverHtml(link) +
-			'<span class="abmm-row-actions">' +
+			/* translators: %s: link name. */
+			rowMenuOpenHtml(sprintf(__('link %s', 'ashbi-mega-menu'), linkName)) +
 			/* translators: %s: link name. */
 			reorderControlsHtml(sprintf(__('link %s', 'ashbi-mega-menu'), linkName), linkIndex, linkLength) +
 			'<button type="button" class="button-link-delete abmm-remove-link" aria-label="' + /* translators: %s: link name. */ esc(sprintf(__('Remove link %s', 'ashbi-mega-menu'), linkName)) + '" title="' + esc(__('Remove link', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove link', 'ashbi-mega-menu')) + '</button>' +
-			'</span>' +
+			'</span></span>' +
 			'</li>'
 		);
 	}
@@ -4231,8 +4447,12 @@
 	// desktop menu is not squeezed into the space between the sidebars.
 	// 1100px keeps the desktop layout (above the 900px mobile breakpoint).
 	// Phone and tablet frames have a fixed screen height, like a real device.
+	// A Classic menu's desktop frame starts at its height and grows to hold an
+	// open panel, up to a limit so a panel sized from the frame's height can't
+	// keep growing it.
 	var PREVIEW_WIDTHS = { desktop: 1100, tablet: 820, mobile: 390 };
-	var PREVIEW_SCREEN_HEIGHTS = { tablet: 1040, mobile: 720 };
+	var PREVIEW_SCREEN_HEIGHTS = { desktop: 600, tablet: 1040, mobile: 720 };
+	var PREVIEW_DESKTOP_MAX_HEIGHT = 1600;
 	var previewCanvas = null;
 
 	function previewFrameSize() {
@@ -4266,7 +4486,6 @@
 		stage.style.width = width + 'px';
 		sizer.style.width = width + 'px';
 		if (previewCanvas) previewCanvas.refresh();
-		else $('.abmm-preview-zoom__value').text('100%');
 	}
 
 	var HINT_KEY = 'abmmCanvasHintSeen';
@@ -4278,28 +4497,10 @@
 		try { window.localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* private window */ }
 	}
 
-	function syncZoomReadout(view, mode) {
+	function syncZoomState(view, mode) {
 		// Once someone has moved the canvas, the gesture hint has done its job.
 		if (mode === 'manual') hideCanvasHint();
-		var percent = Math.round(view.scale * 100) + '%';
-		var $value = $('.abmm-preview-zoom__value');
-		if ($value.text() !== percent) {
-			/* translators: %s: zoom percentage, such as 75%. */
-			$value.text(percent).attr('aria-label', sprintf(__('Zoom %s. Choose a zoom level', 'ashbi-mega-menu'), percent));
-		}
 		$('[data-abmm-zoom="fit"]').attr('aria-pressed', mode === 'fit' ? 'true' : 'false');
-		$('[data-abmm-zoom="actual"]').attr('aria-pressed', mode !== 'fit' && Math.abs(view.scale - 1) < 0.001 ? 'true' : 'false');
-		$('[data-abmm-zoom="in"]').prop('disabled', view.scale >= window.ABMMPreviewCanvas.MAX_SCALE - 0.001);
-		$('[data-abmm-zoom="out"]').prop('disabled', view.scale <= window.ABMMPreviewCanvas.MIN_SCALE + 0.001);
-	}
-
-	function setZoomMenuOpen(open, focusFirst) {
-		var $toggle = $('.abmm-preview-zoom__value');
-		var $list = $('#abmm-zoom-presets');
-		if (!$list.length) return;
-		$toggle.attr('aria-expanded', open ? 'true' : 'false');
-		$list.prop('hidden', !open);
-		if (open && focusFirst) $list.find('[role="menuitem"]').first().trigger('focus');
 	}
 
 	function initPreviewZoom() {
@@ -4316,64 +4517,13 @@
 				fitHeight: function () { return state.previewViewport !== 'desktop'; },
 				device: function () { return state.previewViewport; },
 				userId: (window.abmmAdmin && window.abmmAdmin.userId) || 0,
-				onChange: syncZoomReadout,
+				onChange: syncZoomState,
 			});
 			previewCanvas.restore();
 		}
-		$('.abmm-preview-zoom').on('click', '[data-abmm-zoom]', function () {
-			if (!previewCanvas) return;
-			var action = $(this).attr('data-abmm-zoom');
-			if (action === 'fit') previewCanvas.fit(true);
-			else if (action === 'actual') previewCanvas.zoomTo(1, null, true);
-			else previewCanvas.step(action === 'in' ? 1 : -1);
+		$('[data-abmm-zoom="fit"]').on('click', function () {
+			if (previewCanvas) previewCanvas.fit(true);
 		});
-		$('.abmm-preview-zoom').on('click', '.abmm-preview-zoom__value', function (event) {
-			// Opened from the keyboard (Enter or Space), focus the first preset, as
-			// in a standard menu button; a mouse click leaves focus on the button.
-			setZoomMenuOpen($(this).attr('aria-expanded') !== 'true', event.detail === 0);
-		});
-		$('.abmm-preview-zoom').on('keydown', '.abmm-preview-zoom__value', function (event) {
-			if (event.key === 'Escape' && $(this).attr('aria-expanded') === 'true') {
-				event.preventDefault();
-				setZoomMenuOpen(false);
-				return;
-			}
-			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-			event.preventDefault();
-			setZoomMenuOpen(true, false);
-			var $items = $('#abmm-zoom-presets [role="menuitem"]');
-			(event.key === 'ArrowUp' ? $items.last() : $items.first()).trigger('focus');
-		});
-		$('#abmm-zoom-presets').on('click', '[data-abmm-zoom-preset]', function () {
-			var preset = String($(this).attr('data-abmm-zoom-preset'));
-			if (previewCanvas) {
-				if (preset === 'fit') previewCanvas.fit(true);
-				else previewCanvas.zoomTo(parseFloat(preset), null, true);
-			}
-			setZoomMenuOpen(false);
-			$('.abmm-preview-zoom__value').trigger('focus');
-		});
-		$('#abmm-zoom-presets').on('keydown', '[role="menuitem"]', function (event) {
-			var $items = $('#abmm-zoom-presets [role="menuitem"]');
-			var index = $items.index(this);
-			if (event.key === 'Escape') {
-				event.preventDefault();
-				setZoomMenuOpen(false);
-				$('.abmm-preview-zoom__value').trigger('focus');
-			} else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-				event.preventDefault();
-				$items.eq((index + (event.key === 'ArrowDown' ? 1 : -1) + $items.length) % $items.length).trigger('focus');
-			} else if (event.key === 'Home' || event.key === 'End') {
-				event.preventDefault();
-				$items.eq(event.key === 'Home' ? 0 : $items.length - 1).trigger('focus');
-			} else if (event.key === 'Tab') {
-				setZoomMenuOpen(false);
-			}
-		});
-		$(document).on('mousedown', function (event) {
-			if (!$(event.target).closest('.abmm-zoom-menu').length) setZoomMenuOpen(false);
-		});
-		if (/Mac|iPhone|iPad/.test(window.navigator.platform || '')) $('#abmm-zoom-presets kbd').text('\u23180');
 		$(window).on('resize', function () { if (previewCanvas) previewCanvas.refresh(); });
 		var stage = $('.abmm-preview-stage')[0];
 		if (stage && typeof window.ResizeObserver === 'function') {
@@ -4389,9 +4539,10 @@
 	}
 
 	/* ---------------------------------------------------------------------
-	 * Phone and tablet previews: the live markup, stylesheet and script in a
-	 * frame at the device width, so the two-tap accordion, the sticky drawer
-	 * CTA and every media query behave exactly as on the site.
+	 * Phone and tablet previews, and every preview of a Classic menu: the live
+	 * markup, stylesheet and script in a frame at the device width, so the
+	 * two-tap accordion, the sticky drawer CTA and every media query behave
+	 * exactly as on the site.
 	 * ------------------------------------------------------------------- */
 	var deviceFrame = { seq: 0, timer: null, state: null, viewport: '' };
 
@@ -4446,9 +4597,11 @@
 		var drawer = header.querySelector('.' + p + '-nav__drawer');
 		// Classic sections have no collapse toggles to replay.
 		var sections = open && p === 'abmm' ? Array.prototype.slice.call(open.querySelectorAll('.abmm-mega__section')) : [];
+		var activeSection = open && p === 'emm' ? open.querySelector('.emm-mega__section.is-open') : null;
 		return {
 			open: header.classList.contains('is-mobile-open'),
 			item: open ? items.indexOf(open) : -1,
+			cat: activeSection ? String(activeSection.getAttribute('data-emm-section') || '') : '',
 			expanded: sections.map(function (section) { return !section.classList.contains('is-collapsed'); }),
 			scroll: drawer ? drawer.scrollTop : 0,
 		};
@@ -4458,15 +4611,24 @@
 		var header = frameHeader(frame);
 		var win = frame.contentWindow;
 		if (!header || !win || !saved) return;
+		var desktop = state.previewViewport === 'desktop';
+		// On desktop, a dropdown open in the editor is the one to show.
+		var menuItems = getMenu().items || [];
+		var edited = desktop ? menuItems[state.editingItemIndex] : null;
+		var editedCat = edited ? (edited.categories || [])[state.editingCatIndex] : null;
+		var catId = editedCat ? String(editedCat.id) : saved.cat;
 		win.__abmmQuiet = true;
 		try {
 			var p = framePrefix(header);
 			var toggle = header.querySelector('.' + p + '-nav__toggle');
 			if (saved.open && toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
-			var item = saved.item >= 0 ? header.querySelectorAll('.' + p + '-nav__list > .' + p + '-nav__item')[saved.item] : null;
+			var item = edited ? header.querySelector('.' + p + '-nav__list > [data-' + p + '-item-id="' + cssEscape(String(edited.id)) + '"]') : null;
+			if (!item && saved.item >= 0) item = header.querySelectorAll('.' + p + '-nav__list > .' + p + '-nav__item')[saved.item];
 			var trigger = item && item.querySelector('[data-' + p + '-mega-trigger]');
-			if (saved.open && trigger) {
+			if ((saved.open || desktop) && trigger) {
 				trigger.click();
+				var cat = desktop && catId ? item.querySelector('[data-' + p + '-cat="' + cssEscape(catId) + '"]') : null;
+				if (cat) cat.click();
 				Array.prototype.forEach.call(item.querySelectorAll('.abmm-mega__section'), function (section, index) {
 					var want = saved.expanded[index];
 					var button = section.querySelector('[data-abmm-section-toggle]');
@@ -4481,6 +4643,29 @@
 				win.requestAnimationFrame(function () { win.__abmmQuiet = false; });
 			});
 		}
+	}
+
+	/** The desktop frame holds whatever panel is open, so nothing is clipped. */
+	function sizeDesktopFrame(frame) {
+		var doc = frame.contentDocument;
+		if (!doc || state.previewViewport !== 'desktop') return;
+		var needed = PREVIEW_SCREEN_HEIGHTS.desktop;
+		Array.prototype.forEach.call(doc.querySelectorAll('.emm-mega'), function (panel) {
+			if (panel.getClientRects().length) needed = Math.max(needed, Math.ceil(panel.getBoundingClientRect().bottom) + 24);
+		});
+		frame.style.height = Math.min(needed, PREVIEW_DESKTOP_MAX_HEIGHT) + 'px';
+	}
+
+	function watchDesktopFrame(frame) {
+		var doc = frame.contentDocument;
+		var win = frame.contentWindow;
+		if (!doc || !doc.body || !win || !win.MutationObserver || state.previewViewport !== 'desktop') return;
+		sizeDesktopFrame(frame);
+		var pending = 0;
+		new win.MutationObserver(function () {
+			win.cancelAnimationFrame(pending);
+			pending = win.requestAnimationFrame(function () { sizeDesktopFrame(frame); });
+		}).observe(doc.body, { subtree: true, attributes: true, attributeFilter: ['class', 'hidden'] });
 	}
 
 	function bindDeviceFrame(frame) {
@@ -4512,6 +4697,7 @@
 		frame.onload = function () {
 			bindDeviceFrame(frame);
 			restoreFrameState(frame, deviceFrame.state);
+			watchDesktopFrame(frame);
 			markCanvasSelection();
 			$preview.removeClass('is-loading');
 		};
@@ -4542,16 +4728,17 @@
 
 	/** Returns true when the device frame handles this render. */
 	function renderDeviceFrame() {
-		if (state.previewViewport === 'desktop' || deviceFrame.failed || !devicePreviewAvailable()) return false;
-		var $preview = $('#abmm-preview');
 		var device = state.previewViewport;
+		var classic = String((getMenu().settings || {}).render_mode || '') === 'emm-classic';
+		if ((device === 'desktop' && !classic) || deviceFrame.failed || !devicePreviewAvailable()) return false;
+		var $preview = $('#abmm-preview');
 		var $frame = $preview.find('iframe.abmm-preview-device');
 		if (!$frame.length || deviceFrame.viewport !== device) {
 			deviceFrame.viewport = device;
-			deviceFrame.state = { open: state.previewMobileOpen, item: -1, expanded: [], scroll: 0 };
+			deviceFrame.state = { open: device !== 'desktop' && state.previewMobileOpen, item: -1, cat: '', expanded: [], scroll: 0 };
 			$preview.empty().addClass('has-device-frame is-loading').attr('data-abmm-preview-state', device + '-frame').append(
 				$('<iframe class="abmm-preview-device"></iframe>')
-					.attr('title', device === 'mobile' ? __('Phone preview', 'ashbi-mega-menu') : __('Tablet preview', 'ashbi-mega-menu'))
+					.attr('title', device === 'mobile' ? __('Phone preview', 'ashbi-mega-menu') : device === 'tablet' ? __('Tablet preview', 'ashbi-mega-menu') : __('Desktop preview', 'ashbi-mega-menu'))
 					.css({ width: PREVIEW_WIDTHS[device] + 'px', height: PREVIEW_SCREEN_HEIGHTS[device] + 'px' })
 			);
 			applyPreviewZoom();
@@ -5231,6 +5418,7 @@
 	function openIconPicker(target, opener) {
 		state.iconTarget = target;
 		$('#abmm-icon-search').val('').trigger('input');
+		$('#abmm-icon-appearance').prop('open', false);
 		renderIconAppearance();
 		openBuilderModal('#abmm-icon-modal', opener || document.activeElement, '#abmm-icon-search');
 	}
@@ -5278,6 +5466,7 @@
 					state.savedSnapshot = payload;
 					state.serverRevision = (res.data && res.data.revision) || state.serverRevision;
 					state.trackingChanges = true;
+					if (res.data && res.data.sample === false) $('.abmm-sample-warning').remove();
 					updateSaveState('saved', S.savedState);
 				} else {
 					updateSaveState('failed', responseMessage(res, S.saveError));

@@ -70,6 +70,24 @@ check( false !== strpos( $messages, 'Add a link for "Empty"' ), 'Readiness flags
 check( false === strpos( $messages, 'Hidden dead' ), 'Readiness ignores links in the hidden layout' );
 check( false !== strpos( $messages, 'real destination to Only hidden' ), 'Links hidden by the layout do not satisfy a mega item' );
 
+// A sample stops being one once its items change, and never becomes one again.
+$sample = array( 'title' => 'Sample', 'starter_source' => 'generic', 'items' => array( array( 'id' => 'a', 'label' => 'One', 'type' => 'link', 'url' => '/one' ) ) );
+$database_options[ ABMM_OPTION_KEY ]['sample'] = $sample;
+$cached_options[ ABMM_OPTION_KEY ]['sample']   = $sample;
+$renamed = $sample;
+$renamed['title'] = 'Renamed';
+check( true === $checker->save_if_revision( 'sample', $renamed, $checker->revision( $checker->get_all()['sample'] ) ), 'A sample saves' );
+check( 'generic' === $checker->get_all()['sample']['starter_source'], 'A sample with the same items stays a sample' );
+$edited = $renamed;
+$edited['items'][0]['label'] = 'Mine';
+check( true === $checker->save_if_revision( 'sample', $edited, $checker->revision( $checker->get_all()['sample'] ) ), 'An edited sample saves' );
+check( '' === $checker->get_all()['sample']['starter_source'], 'Changing the items ends the sample' );
+$stale = $edited;
+$stale['title'] = 'Still open in another tab';
+check( true === $checker->save_if_revision( 'sample', $stale, $checker->revision( $checker->get_all()['sample'] ) ), 'A later save goes through' );
+check( '' === $checker->get_all()['sample']['starter_source'], 'A later save cannot turn it back into a sample' );
+unset( $database_options[ ABMM_OPTION_KEY ]['sample'], $cached_options[ ABMM_OPTION_KEY ]['sample'] );
+
 // Saved versions: bounded, deduplicated, restorable and undoable.
 $first = array( 'title' => 'First', 'items' => array() );
 $database_options[ ABMM_OPTION_KEY ]['versioned'] = $first;
@@ -80,7 +98,11 @@ check( true === $checker->save_if_revision( 'versioned', $second, $revision ), '
 check( $checker->remember_version( 'versioned', $first ), 'A version is kept' );
 check( ! $checker->remember_version( 'versioned', $first ), 'The same version is not kept twice' );
 $other = array( 'title' => 'Other', 'items' => array() );
-check( ! $checker->remember_version( 'versioned', $other ), 'A burst of saves shares one version' );
+check( $checker->remember_version( 'versioned', $other ), 'A burst keeps the good save before a bad one' );
+check( array( 'Other', 'First' ) === array_column( $checker->menu_versions( 'versioned' ), 'title' ), 'The state before the burst stays too' );
+$newest = array( 'title' => 'Newest', 'items' => array() );
+check( $checker->remember_version( 'versioned', $newest ), 'A later save in the burst is kept' );
+check( array( 'Newest', 'First' ) === array_column( $checker->menu_versions( 'versioned' ), 'title' ), 'A burst cannot flush the history: it never holds more than two' );
 for ( $i = 0; $i < ABMM_Data::MAX_VERSIONS + 3; $i++ ) {
 	$checker->remember_version( 'versioned', array( 'title' => "Forced $i", 'items' => array() ), true );
 }

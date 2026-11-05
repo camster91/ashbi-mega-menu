@@ -88,16 +88,16 @@ test.describe('editor', () => {
 		await expect(page.locator('#abmm-preview .abmm-nav')).toBeVisible();
 	}
 
-	test('dashboard, editor tabs and content editor pass axe', async ({ page, browserName }) => {
+	test('dashboard, editor steps and content editor pass axe', async ({ page, browserName }) => {
 		await page.goto('/wp-admin/admin.php?page=ashbi-mega-menu');
 		await axe(page, '#wpbody-content');
 		await openEditor(page, browserName);
 		await axe(page, '#wpbody-content');
-		for (const section of ['design', 'settings']) {
-			await page.locator(`[data-abmm-builder-section="${section}"]`).click();
+		for (const step of ['design', 'help', 'verify']) {
+			await page.locator(`[data-abmm-workflow="${step}"]`).click();
 			await axe(page, '#abmm-builder-sidebar');
 		}
-		await page.locator('[data-abmm-builder-section="content"]').click();
+		await page.locator('[data-abmm-workflow="content"]').click();
 		await page.locator('#abmm-nav-items .abmm-edit-mega').first().click();
 		await expect(page.locator('#abmm-mega-editor')).toBeVisible();
 		await axe(page, '#wpbody-content');
@@ -115,19 +115,14 @@ test.describe('editor', () => {
 		await page.keyboard.press('Enter');
 		await expect(opener).toBeFocused();
 
-		// Enter opens the zoom menu on its first preset; Escape closes it and returns focus.
-		const toggle = page.locator('.abmm-preview-zoom__value');
-		await toggle.focus();
+		// Zoom works from the keyboard: the shortcut leaves Fit, Enter on Fit returns to it.
+		const fit = page.locator('[data-abmm-zoom="fit"]');
+		await fit.focus();
+		await page.keyboard.press('Control+1');
+		await expect(fit).toHaveAttribute('aria-pressed', 'false');
 		await page.keyboard.press('Enter');
-		await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-		await expect(page.locator('#abmm-zoom-presets [role="menuitem"]').first()).toBeFocused();
-		await page.keyboard.press('Escape');
-		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-		await expect(toggle).toBeFocused();
-		// ArrowUp opens on the last item.
-		await page.keyboard.press('ArrowUp');
-		await expect(page.locator('#abmm-zoom-presets [role="menuitem"]').last()).toBeFocused();
-		await page.keyboard.press('Escape');
+		await expect(fit).toHaveAttribute('aria-pressed', 'true');
+		await expect(fit).toBeFocused();
 	});
 
 	test('dashboard reflows at 200% and 400% zoom', async ({ page }) => {

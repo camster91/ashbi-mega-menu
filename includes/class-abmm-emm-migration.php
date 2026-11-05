@@ -449,7 +449,7 @@ class ABMM_EMM_Migration {
 			}
 		);
 		if ( is_wp_error( $stored ) ) {
-			return new WP_Error( $stored->get_error_code(), __( 'The menus were imported, but product navigation could not be saved. Run the import again.', 'ashbi-mega-menu' ) );
+			return new WP_Error( $stored->get_error_code(), __( 'The menus were imported, but Product Navigation could not be saved. Run the import again.', 'ashbi-mega-menu' ) );
 		}
 
 		foreach ( $assignments as $post_id => $profile ) {
@@ -794,7 +794,7 @@ class ABMM_EMM_Migration {
 		}
 		printf(
 			'<div class="notice notice-warning"><p>%s <a href="%s">%s</a></p></div>',
-			esc_html__( 'Easy Mega Menu is inactive, so pages that use its [easy_mega_menu] shortcode show the shortcode as text. Import its menus and turn on "Handle [easy_mega_menu] shortcodes" to show them again, or reactivate Easy Mega Menu.', 'ashbi-mega-menu' ),
+			esc_html__( 'Easy Mega Menu is inactive, so pages that use its [easy_mega_menu] shortcode show the shortcode as text. Import its menus and turn on "Use Ashbi Mega Menu in place of Easy Mega Menu" to show them again, or reactivate Easy Mega Menu.', 'ashbi-mega-menu' ),
 			esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) ),
 			esc_html__( 'Open Easy Mega Menu import', 'ashbi-mega-menu' )
 		);

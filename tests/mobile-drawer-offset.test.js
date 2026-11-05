@@ -161,6 +161,29 @@ assert.equal(openDrawerWithBarAt(760), '0px', 'a bar near the bottom opens the d
 }
 
 
+// The native drawer reads as a dialog while open. It is not aria-modal, because
+// the button that closes it sits outside it. A tap shows before the script is ready.
+{
+	const { window } = new JSDOM(`<!doctype html><html><body><div class="abmm-header" data-abmm-instance="abmm-dialog-1"><nav class="abmm-nav" aria-label="Main"><div class="abmm-nav__bar"><button class="abmm-nav__toggle" aria-expanded="false" aria-controls="dlg">Menu</button></div><div class="abmm-nav__drawer" id="dlg"><ul class="abmm-nav__list"><li class="abmm-nav__item"><a href="/a">A</a></li></ul></div></nav></div></body></html>`, { runScripts: 'outside-only', pretendToBeVisual: true, url: 'https://example.test/' });
+	window.matchMedia = (query) => ({ matches: query.includes('max-width'), media: query, addEventListener() {}, removeEventListener() {} });
+	window.requestAnimationFrame = (callback) => callback();
+	window.ResizeObserver = class { observe() {} };
+	window.eval(fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'frontend.js'), 'utf8'));
+	window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
+	const toggle = window.document.querySelector('.abmm-nav__toggle');
+	const drawer = window.document.getElementById('dlg');
+	assert.equal(drawer.hasAttribute('role'), false, 'A closed drawer has no dialog role.');
+	toggle.click();
+	assert.equal(drawer.getAttribute('role'), 'dialog', 'An open drawer is a dialog.');
+	assert.equal(drawer.getAttribute('aria-label'), 'Main', 'It takes the menu\'s name.');
+	assert.equal(drawer.hasAttribute('aria-modal'), false, 'It stays non-modal, so its close button stays reachable.');
+	toggle.click();
+	assert.equal(drawer.hasAttribute('role'), false, 'Closing removes the role.');
+	assert.equal(drawer.hasAttribute('aria-label'), false, 'Closing removes the label.');
+	window.close();
+	assert.match(fs.readFileSync(path.join(__dirname, '..', 'assets', 'css', 'frontend.css'), 'utf8'), /\.abmm-nav__toggle:active \{\s*opacity:/, 'The toggle shows a tap with CSS alone.');
+}
+
 // An open drawer can end from outside: a script removing its class, a visibility
 // rule hiding it, or a builder replacing it. The page must not stay inert.
 (async () => {
@@ -218,6 +241,17 @@ assert.equal(openDrawerWithBarAt(760), '0px', 'a bar near the bottom opens the d
 	ctx.window.document.body.classList.add('after-close');
 	await settle();
 	assert.ok(!ctx.header.classList.contains('is-mobile-open'), 'The watcher stops once the drawer is closed.');
+
+	// A clone of the open header, such as Elementor's sticky spacer, isn't open.
+	ctx = open();
+	const clone = ctx.header.cloneNode(true);
+	ctx.header.parentNode.appendChild(clone);
+	await settle();
+	assert.ok(!clone.classList.contains('is-mobile-open'), 'A clone of an open header starts closed.');
+	assert.equal(clone.querySelector('.'+ctx.toggle.className.split(' ')[0]).getAttribute('aria-expanded'), 'false', 'A cloned button reads as closed.');
+	assert.ok(ctx.header.classList.contains('is-mobile-open'), 'The real drawer stays open.');
+	ctx.toggle.click();
+	released(ctx, 'Closed with a clone on the page');
 })().catch((error) => { console.error(error); process.exit(1); });
 
 console.log('Mobile drawer stays on screen wherever the menu bar is placed.');

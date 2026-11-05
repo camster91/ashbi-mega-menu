@@ -34,7 +34,6 @@ class ABMM_Admin {
 
 	private function __construct() {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
-		add_action( 'save_post', array( $this, 'clear_reference_cache' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 		add_action( 'wp_ajax_abmm_save_menu', array( $this, 'ajax_save_menu' ) );
 		add_action( 'wp_ajax_abmm_delete_menu', array( $this, 'ajax_delete_menu' ) );
@@ -82,6 +81,55 @@ class ABMM_Admin {
 	}
 
 	/**
+	 * Wording and links for the editor's guide (assets/js/admin-guide.js). A step or
+	 * hint left out here is left out of the guide.
+	 *
+	 * @return array
+	 */
+	private function guide_data() {
+		return array(
+			'docsUrl' => 'https://github.com/camster91/ashbi-mega-menu/blob/main/docs/',
+			'labels'  => array(
+				'next'      => __( 'Next', 'ashbi-mega-menu' ),
+				'back'      => __( 'Back', 'ashbi-mega-menu' ),
+				'skip'      => __( 'Skip', 'ashbi-mega-menu' ),
+				'done'      => __( 'Done', 'ashbi-mega-menu' ),
+				'close'     => __( 'Close', 'ashbi-mega-menu' ),
+				'readMore'  => __( 'Read more', 'ashbi-mega-menu' ),
+				'newTab'    => __( '(opens in a new tab)', 'ashbi-mega-menu' ),
+				/* translators: 1: current step number, 2: total number of steps. */
+				'stepCount' => __( 'Step %1$d of %2$d', 'ashbi-mega-menu' ),
+				/* translators: %s: the name of a feature, such as Advanced settings. */
+				'whatsThis' => __( 'What\'s this? %s', 'ashbi-mega-menu' ),
+			),
+			'steps'   => array(
+				'links' => array(
+					'title' => __( 'Add your links', 'ashbi-mega-menu' ),
+					'body'  => __( 'Add the pages you want in your menu. Drag them, or use the ⋯ menu on a row, to put them in order.', 'ashbi-mega-menu' ),
+				),
+				'save'  => array(
+					'title' => __( 'Save your work', 'ashbi-mega-menu' ),
+					'body'  => __( 'Press Save to keep your changes. If this menu is already on your site, saving updates it right away.', 'ashbi-mega-menu' ),
+				),
+				'place' => array(
+					'title' => __( 'Put it on your site', 'ashbi-mega-menu' ),
+					'body'  => __( 'Open Place to see the easiest way to add this menu to your site.', 'ashbi-mega-menu' ),
+				),
+				'check' => array(
+					'title' => __( 'Check it on your site', 'ashbi-mega-menu' ),
+					'body'  => __( 'Open Check for a short list of things to try on your site. Then you are done.', 'ashbi-mega-menu' ),
+				),
+			),
+			'hints'   => array(
+				'advanced' => array(
+					'title' => __( 'Advanced settings', 'ashbi-mega-menu' ),
+					'body'  => __( 'Most people never need these. Use them to fine-tune colors, fonts and sizes.', 'ashbi-mega-menu' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Enqueue admin assets.
 	 *
 	 * @param string $hook Current admin page hook.
@@ -112,13 +160,18 @@ class ABMM_Admin {
 		wp_localize_script( 'abmm-menu-search-preview', 'abmmRuntime', array( 'adminPreview' => true, 'searchStrings' => abmm_menu_search_strings() ) );
 
 		wp_enqueue_script( 'abmm-preview-canvas', ABMM_PLUGIN_URL . 'assets/js/preview-canvas.js', array(), ABMM_VERSION, true );
+		wp_enqueue_script( 'abmm-admin-advanced', ABMM_PLUGIN_URL . 'assets/js/admin-advanced.js', array( 'wp-i18n' ), ABMM_VERSION, true );
+		wp_enqueue_style( 'abmm-admin-guide', ABMM_PLUGIN_URL . 'assets/css/admin-guide.css', array( 'abmm-admin' ), ABMM_VERSION );
+		wp_enqueue_script( 'abmm-admin-guide', ABMM_PLUGIN_URL . 'assets/js/admin-guide.js', array(), ABMM_VERSION, true );
+		wp_localize_script( 'abmm-admin-guide', 'abmmGuide', $this->guide_data() );
 		wp_enqueue_script(
 			'abmm-admin',
 			ABMM_PLUGIN_URL . 'assets/js/admin.js',
-			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview', 'abmm-preview-canvas' ),
+			array( 'jquery', 'jquery-ui-sortable', 'wp-color-picker', 'wplink', 'wp-i18n', 'abmm-menu-search-preview', 'abmm-preview-canvas', 'abmm-admin-advanced' ),
 			ABMM_VERSION,
 			true
 		);
+		wp_set_script_translations( 'abmm-admin-advanced', 'ashbi-mega-menu', ABMM_PLUGIN_DIR . 'languages' );
 		wp_set_script_translations( 'abmm-admin', 'ashbi-mega-menu', ABMM_PLUGIN_DIR . 'languages' );
 
 		$icons = ABMM_Icons::instance();
@@ -152,49 +205,37 @@ class ABMM_Admin {
 					'saveError'       => __( 'Could not save. Your changes are still unsaved.', 'ashbi-mega-menu' ),
 					'loadMalformed'   => __( 'The menu data was incomplete or malformed. Reload to try again. Your stored content was not changed.', 'ashbi-mega-menu' ),
 					'loadIncompatible'=> __( 'This menu uses an incompatible data format. Update the plugin or restore a compatible export before editing. Your stored content was not changed.', 'ashbi-mega-menu' ),
-					'confirmDelete'   => __( 'Delete this menu? This cannot be undone.', 'ashbi-mega-menu' ),
-					'confirmRemove'   => __( 'Remove this item?', 'ashbi-mega-menu' ),
-					'confirmImport'   => __( 'This will overwrite the current menu. Continue?', 'ashbi-mega-menu' ),
 					'newMenu'         => __( 'New Mega Menu', 'ashbi-mega-menu' ),
 					'menuName'        => __( 'Menu name', 'ashbi-mega-menu' ),
 					'createMenu'      => __( 'Create menu', 'ashbi-mega-menu' ),
 					'duplicateError'  => __( 'The menu could not be duplicated.', 'ashbi-mega-menu' ),
 					'cancel'          => __( 'Cancel', 'ashbi-mega-menu' ),
 					'untitled'        => __( 'Untitled', 'ashbi-mega-menu' ),
-					'addCategory'     => __( 'Add Category', 'ashbi-mega-menu' ),
 					'addLink'         => __( 'Add link', 'ashbi-mega-menu' ),
-					'addNavItem'      => __( 'Add Menu Item', 'ashbi-mega-menu' ),
 					'copyShortcode'   => __( 'Shortcode copied!', 'ashbi-mega-menu' ),
 					'copyError'       => __( 'Automatic copy failed. The shortcode is selected below; press Ctrl+C or Command+C.', 'ashbi-mega-menu' ),
 					'creatingMenu'    => __( 'Creating menu…', 'ashbi-mega-menu' ),
 					'createError'     => __( 'The menu could not be created. Check your connection and permissions, then try again.', 'ashbi-mega-menu' ),
-					'deletingMenu'    => __( 'Deleting menu…', 'ashbi-mega-menu' ),
-					'deleteSuccess'   => __( 'Menu deleted.', 'ashbi-mega-menu' ),
 					'deleteError'     => __( 'The menu could not be deleted. Nothing was removed. Try again.', 'ashbi-mega-menu' ),
 					'archiveMenu'     => __( 'Archive menu', 'ashbi-mega-menu' ),
 					'archiveChecking' => __( 'Checking placements…', 'ashbi-mega-menu' ),
 					/* translators: %1$s: menu title. */
 					'archiveConfirmTitle' => __( 'Archive “%1$s”?', 'ashbi-mega-menu' ),
 					/* translators: 1: number of block placements, 2: number of widget placements, 3: number of shortcodes in pages, 4: number of page builder or Easy Mega Menu shortcode placements. */
-					'archivePlacements' => __( 'Placements: blocks %1$d, widgets %2$d, shortcodes %3$d, page builders and Easy Mega Menu shortcodes %4$d.', 'ashbi-mega-menu' ),
+					'archivePlacements' => __( 'Where it is used: %1$d blocks, %2$d widgets, %3$d shortcodes, %4$d in page builders or older shortcodes.', 'ashbi-mega-menu' ),
 					'archiveConfirm'  => __( 'Archive and keep recoverable', 'ashbi-mega-menu' ),
 					'archiveSuccess'  => __( 'Menu archived. It can be restored below.', 'ashbi-mega-menu' ),
 					'restoreSuccess'  => __( 'Menu restored with its original ID.', 'ashbi-mega-menu' ),
-					'conflictError'   => __( 'This menu changed on the server. Your local draft was preserved; reload or export it before continuing.', 'ashbi-mega-menu' ),
-					'selectIcon'      => __( 'Choose an icon', 'ashbi-mega-menu' ),
+					'conflictError'   => __( 'This menu changed on the server. Your unsaved changes are kept in this browser. Reload or export them before continuing.', 'ashbi-mega-menu' ),
 					'uploadIcon'      => __( 'Upload custom icon', 'ashbi-mega-menu' ),
 					'categoryTitle'   => __( 'Category title', 'ashbi-mega-menu' ),
 					'categoryDesc'    => __( 'Short description', 'ashbi-mega-menu' ),
 					'panelTitle'      => __( '"See all" link text (optional)', 'ashbi-mega-menu' ),
 					'panelTitleHelp'  => __( 'Shown at the bottom of this category\'s panel. Add a link to make it clickable.', 'ashbi-mega-menu' ),
 					'panelTitleHint'  => __( 'e.g. See all products', 'ashbi-mega-menu' ),
-					'panelUrl'        => __( 'Heading link (optional)', 'ashbi-mega-menu' ),
-					'groupUrl'        => __( 'Column heading link (optional)', 'ashbi-mega-menu' ),
 					'linkLabel'       => __( 'Link label', 'ashbi-mega-menu' ),
 					'linkUrl'         => __( 'Search or type URL', 'ashbi-mega-menu' ),
 					'selectLink'      => __( 'Select / edit link', 'ashbi-mega-menu' ),
-					'megaMenu'        => __( 'Mega Menu', 'ashbi-mega-menu' ),
-					'simpleLink'      => __( 'Simple Link', 'ashbi-mega-menu' ),
 					'dragHint'        => __( 'Drag to reorder', 'ashbi-mega-menu' ),
 					'moveUp'          => __( 'Move up', 'ashbi-mega-menu' ),
 					'moveDown'        => __( 'Move down', 'ashbi-mega-menu' ),
@@ -209,12 +250,11 @@ class ABMM_Admin {
 					'importSuccess'   => __( 'Menu imported successfully!', 'ashbi-mega-menu' ),
 					'importError'     => __( 'Import failed. Check the file format.', 'ashbi-mega-menu' ),
 					'importInvalid'   => __( 'Invalid JSON file.', 'ashbi-mega-menu' ),
-					'importNoMenus'   => __( 'No valid menus found in file.', 'ashbi-mega-menu' ),
 					'importPreview'   => __( 'Review these changes before importing:', 'ashbi-mega-menu' ),
 					'importConfirm'   => __( 'Confirm Import', 'ashbi-mega-menu' ),
 					'importCancel'    => __( 'Cancel', 'ashbi-mega-menu' ),
-					'draftStale' => __( 'This local draft is based on an older saved version. Download a copy before continuing. You can restore it for review, but saving stays off: discard it to load the latest saved version, then reapply the changes you want.', 'ashbi-mega-menu' ),
-					'draftAvailable' => __( 'Restore these unsaved changes, or discard them and continue with the saved version. If you carry on editing without restoring, your new changes replace this draft.', 'ashbi-mega-menu' ),
+					'draftStale' => __( 'These unsaved changes are based on an older saved version. Download a copy before continuing. You can restore them for review, but saving stays off: discard them to load the latest saved version, then reapply the changes you want.', 'ashbi-mega-menu' ),
+					'draftAvailable' => __( 'Restore these unsaved changes, or discard them and continue with the saved version. If you carry on editing without restoring, your new changes replace them.', 'ashbi-mega-menu' ),
 					'checkName' => __( 'Add a menu name.', 'ashbi-mega-menu' ),
 					/* translators: %s: item number, label, count, or formatted file size. */
 					'checkLabel' => __( 'Add a label to top menu item %s.', 'ashbi-mega-menu' ),
@@ -234,27 +274,26 @@ class ABMM_Admin {
 					'logoBroken' => __( 'Logo image not found', 'ashbi-mega-menu' ),
 					'checkPassed' => __( 'Ready to place.', 'ashbi-mega-menu' ),
 					'placementUnsaved' => __( 'You have unsaved changes. Save first: the shortcode shows the saved version.', 'ashbi-mega-menu' ),
-					'placementSaved' => __( 'Copy the shortcode, or use the block or widget.', 'ashbi-mega-menu' ),
 					'placementDraft' => __( 'This menu still has items in its checklist. You can place it, but fix those first.', 'ashbi-mega-menu' ),
 					'importing' => __( 'Importing…', 'ashbi-mega-menu' ),
 					'preparingImport' => __( 'Preparing preview…', 'ashbi-mega-menu' ),
 					/* translators: %s: item number, label, count, or formatted file size. */
 					'importTooLarge' => __( 'The import file exceeds the %s limit.', 'ashbi-mega-menu' ),
-					'backupLoading'   => __( 'Loading recovery snapshots…', 'ashbi-mega-menu' ),
-					'backupLoadError' => __( 'Snapshots could not be loaded.', 'ashbi-mega-menu' ),
-					/* translators: 1: snapshot date, 2: number of menus. */
+					'backupLoading'   => __( 'Loading backups…', 'ashbi-mega-menu' ),
+					'backupLoadError' => __( 'Backups could not be loaded.', 'ashbi-mega-menu' ),
+					/* translators: 1: backup date, 2: number of menus. */
 					'backupSummary'   => __( '%1$s — menus: %2$s', 'ashbi-mega-menu' ),
-					'backupExport'    => __( 'Export snapshot', 'ashbi-mega-menu' ),
-					'backupRestore'   => __( 'Restore snapshot', 'ashbi-mega-menu' ),
-					'backupGuidance'  => __( 'Export a snapshot before restoring. Restore replaces every current menu.', 'ashbi-mega-menu' ),
-					'backupEmpty'     => __( 'No recovery snapshots are available yet.', 'ashbi-mega-menu' ),
-					'backupExportError' => __( 'Snapshot export failed.', 'ashbi-mega-menu' ),
-					'backupExported'  => __( 'Snapshot exported. Keep the downloaded JSON file for recovery.', 'ashbi-mega-menu' ),
-					'backupConfirmWarning' => __( 'Replace ALL current menus with this snapshot? Current menus will be backed up first. Published placements may change. Export your current menus before continuing.', 'ashbi-mega-menu' ),
-					'backupConfirm'   => __( 'Replace menus with snapshot', 'ashbi-mega-menu' ),
-					'backupRestoring' => __( 'Restoring snapshot…', 'ashbi-mega-menu' ),
-					'backupRestoreError' => __( 'Snapshot restore failed. Reload snapshots before retrying.', 'ashbi-mega-menu' ),
-					'backupRestored'  => __( 'Snapshot restored. Reloading menus…', 'ashbi-mega-menu' ),
+					'backupExport'    => __( 'Export backup', 'ashbi-mega-menu' ),
+					'backupRestore'   => __( 'Restore backup', 'ashbi-mega-menu' ),
+					'backupGuidance'  => __( 'Export a backup before restoring. Restore replaces every current menu.', 'ashbi-mega-menu' ),
+					'backupEmpty'     => __( 'No backups are available yet.', 'ashbi-mega-menu' ),
+					'backupExportError' => __( 'Backup export failed.', 'ashbi-mega-menu' ),
+					'backupExported'  => __( 'Backup exported. Keep the downloaded JSON file for recovery.', 'ashbi-mega-menu' ),
+					'backupConfirmWarning' => __( 'Replace ALL current menus with this backup? Current menus will be backed up first. Published placements may change. Export your current menus before continuing.', 'ashbi-mega-menu' ),
+					'backupConfirm'   => __( 'Replace menus with backup', 'ashbi-mega-menu' ),
+					'backupRestoring' => __( 'Restoring backup…', 'ashbi-mega-menu' ),
+					'backupRestoreError' => __( 'Backup restore failed. Reload backups before retrying.', 'ashbi-mega-menu' ),
+					'backupRestored'  => __( 'Backup restored. Reloading menus…', 'ashbi-mega-menu' ),
 				),
 			)
 		);
@@ -409,7 +448,7 @@ class ABMM_Admin {
 			$classic = ABMM_Classic::instance();
 			wp_send_json_success(
 				array(
-					'html'   => $classic->render_menu( $menu, '' !== $id ? $id : 'preview', array( 'presentation' => 'stacked' ) ),
+					'html'   => $classic->render_preview( $menu, '' !== $id ? $id : 'preview' ),
 					'assets' => $classic->preview_assets( $menu, '' !== $id ? $id : 'preview' ),
 				)
 			);
@@ -458,7 +497,7 @@ class ABMM_Admin {
 		if ( $revision && ! hash_equals( $store->revision( $current ), $revision ) ) {
 			wp_send_json_error(
 				array(
-					'message'  => __( 'This menu changed on the server. Your local draft was not overwritten.', 'ashbi-mega-menu' ),
+					'message'  => __( 'This menu changed on the server. Your unsaved changes were not overwritten.', 'ashbi-mega-menu' ),
 					'conflict' => true,
 					'revision' => $store->revision( $current ),
 				),
@@ -498,6 +537,7 @@ class ABMM_Admin {
 				'message'   => 'saved',
 				'revision'  => $store->revision( $saved_menu ),
 				'readiness' => $store->readiness( $saved_menu ),
+				'sample'    => ! empty( $saved_menu['starter_source'] ),
 			)
 		);
 	}
@@ -575,10 +615,12 @@ class ABMM_Admin {
 			wp_send_json_error( array( 'message' => __( 'The first menu could not be created.', 'ashbi-mega-menu' ) ), 500 );
 		}
 		update_user_meta( get_current_user_id(), ABMM_ONBOARDING_META, $choice );
+		// A menu made from pages already has links, so the guide needs telling it is new.
+		$new_mark = 'pages' === $choice ? '&abmm_new=1' : '';
 		wp_send_json_success(
 			array(
 				'id'  => $id,
-				'url' => $id ? admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) ) : admin_url( 'admin.php?page=ashbi-mega-menu' ),
+				'url' => $id ? admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $id ) . $new_mark ) : admin_url( 'admin.php?page=ashbi-mega-menu' ),
 			)
 		);
 	}
@@ -720,7 +762,9 @@ class ABMM_Admin {
 		}
 		$versions = $store->menu_versions( $id );
 		foreach ( $versions as &$version ) {
-			$version['saved_label'] = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $version['saved_at'] );
+			// Seconds, because two saves in one minute would otherwise read the same.
+			$seconds_format         = preg_match( '/[GH]/', (string) get_option( 'time_format' ) ) ? 'H:i:s' : 'g:i:s a';
+			$version['saved_label'] = wp_date( get_option( 'date_format' ) . ' ' . $seconds_format, $version['saved_at'] );
 		}
 		unset( $version );
 		wp_send_json_success( array( 'revision' => $store->revision( $menu ), 'versions' => $versions ) );
@@ -780,7 +824,7 @@ class ABMM_Admin {
 		if ( ! $result ) {
 			wp_send_json_error( array( 'message' => __( 'Permanent deletion failed.', 'ashbi-mega-menu' ) ), 500 );
 		}
-		wp_send_json_success( array( 'message' => __( 'Archived menu permanently deleted. A recovery snapshot was saved first.', 'ashbi-mega-menu' ) ) );
+		wp_send_json_success( array( 'message' => __( 'Archived menu permanently deleted. A backup was saved first.', 'ashbi-mega-menu' ) ) );
 	}
 
 	/**
@@ -839,9 +883,7 @@ class ABMM_Admin {
 		if ( class_exists( 'ABMM_EMM_Migration' ) ) {
 			$migration = ABMM_EMM_Migration::instance();
 			if ( ABMM_EMM_Migration::takeover_enabled() ) {
-				$data = ABMM_Data::instance();
-				$ids  = array_unique( array_merge( array( (string) $menu_id ), array_map( 'strval', array_keys( $data->get_all() ) ), array_map( 'strval', array_keys( $data->get_archived() ) ) ) );
-				if ( in_array( (string) $menu_id, $migration->menus_in_use( $ids, $fresh ), true ) ) {
+				if ( $migration->content_uses_shortcode( 'easy_mega_menu', (string) $menu_id, $fresh ) ) {
 					++$other;
 				}
 			}
@@ -867,14 +909,6 @@ class ABMM_Admin {
 		return $summary;
 	}
 
-	/**
-	 * Forget placement counts when content changes.
-	 *
-	 * @return void
-	 */
-	public function clear_reference_cache() {
-		delete_transient( 'abmm_menu_reference_summaries' );
-	}
 
 	/**
 	 * Count [ashbi_mega_menu id="…"] shortcodes for one menu in post content.

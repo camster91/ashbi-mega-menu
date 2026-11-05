@@ -70,7 +70,7 @@
 .abmm-dash-header h1 {margin:0;padding:0;font-size:23px;font-weight:700;letter-spacing:-.4px;line-height:1.2;color:var(--abmm-brand-ink)}
 .abmm-dash-header .abmm-admin-intro {margin:2px 0 0;color:var(--abmm-brand-muted);font-size:13px}
 .abmm-dash-header .button-primary {display:inline-flex;align-items:center;gap:4px;min-height:38px;padding:0 16px;font-weight:600}
-.abmm-dash-header .button-primary .dashicons {margin:0;font-size:18px;width:18px;height:18px;line-height:18px}
+.abmm-wrap .abmm-dash-header .button-primary .dashicons {margin:0;font-size:18px;width:18px;height:18px;line-height:18px;color:#fff !important}
 .abmm-dashboard .abmm-list-status:empty {display:none}
 
 .abmm-welcome {padding:32px;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:14px;box-shadow:0 1px 2px #1922380a}
@@ -84,9 +84,6 @@
 .abmm-choice strong {font-size:15px}
 .abmm-choice > span:last-child {color:var(--abmm-brand-muted);font-size:13px}
 .abmm-choice__icon {display:grid;place-items:center;width:36px !important;height:36px !important;margin-bottom:6px;font-size:20px !important;color:var(--abmm-brand-blue);background:#eef3ff;border-radius:9px}
-.abmm-how {display:flex;flex-wrap:wrap;gap:8px 28px;margin:26px 0 0;padding:18px 0 0;list-style:none;border-top:1px solid var(--abmm-brand-line);color:var(--abmm-brand-muted);font-size:13px}
-.abmm-how li {display:flex;align-items:center;gap:8px;margin:0}
-.abmm-how li > span {display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#eef3ff;color:var(--abmm-brand-blue);font-size:12px;font-weight:700}
 .abmm-welcome__skip {margin-top:16px !important;color:var(--abmm-brand-muted) !important;font-size:13px}
 
 .abmm-dashboard .abmm-empty-state {padding:48px 24px;text-align:center;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:14px}
@@ -164,7 +161,6 @@
 .abmm-preview .abmm-mega__inner,
 .abmm-preview .abmm-mega__accordion {min-height:0}
 
-.abmm-wrap .abmm-builder-sections {border-radius:10px}
 .abmm-wrap .abmm-builder-panel h2 {font-size:15px;letter-spacing:-.1px}
 
 
@@ -221,7 +217,6 @@
 .abmm-wrap .abmm-editor-chrome .abmm-preview-zoom .button {min-width:30px;min-height:30px;padding:0 8px;color:var(--abmm-brand-ink);background:transparent;border:0;border-radius:7px;box-shadow:none;line-height:1}
 .abmm-wrap .abmm-editor-chrome .abmm-preview-zoom .button:hover {background:#fff}
 .abmm-wrap .abmm-editor-chrome .abmm-preview-zoom [aria-pressed="true"] {background:#fff;font-weight:600;box-shadow:0 1px 2px #1922381f}
-.abmm-preview-zoom__value {min-width:42px;font-size:12px;font-variant-numeric:tabular-nums;text-align:center;color:var(--abmm-brand-muted)}
 /* Long top-level labels wrap in the preview instead of pushing items off the canvas. */
 .abmm-preview .abmm-nav__list {flex-wrap:wrap}
 @media (max-width:782px) {.abmm-wrap .abmm-editor-chrome .abmm-preview-zoom {width:100%;justify-content:center}}
@@ -408,11 +403,11 @@
 .abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__head {grid-column:1;justify-content:flex-start}
 .abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__title {flex:0 1 auto}
 .abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__meta {grid-column:1}
-.abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__shortcode {grid-column:2;grid-row:1 / span 2;margin:0}
+.abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__reveal {grid-column:2;grid-row:1 / span 2;margin:0}
 .abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__actions {flex:none;margin:0;padding:0 16px 0 0;border-top:0}
 @media (max-width:960px) {
 	.abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__body {grid-template-columns:minmax(0,1fr)}
-	.abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__shortcode {display:none}
+	.abmm-dashboard .abmm-menu-cards.is-list .abmm-menu-card__reveal {display:none}
 }
 @media (max-width:600px) {
 	.abmm-menu-toolbar {flex:1 1 100%;margin:4px 0 0}
@@ -446,6 +441,7 @@
 .abmm-wrap .abmm-card-menu__list .button::before {width:18px;font:normal 18px/1 dashicons;color:var(--abmm-brand-muted);-webkit-font-smoothing:antialiased}
 .abmm-wrap .abmm-card-menu__list .abmm-export-menu::before {content:"\f316"}
 .abmm-wrap .abmm-card-menu__list .abmm-duplicate-menu::before {content:"\f105"}
+.abmm-wrap .abmm-card-menu__list .abmm-menu-versions::before {content:"\f321"}
 .abmm-wrap .abmm-card-menu__list .abmm-delete-menu {margin-top:4px;color:#b32d2e;box-shadow:inset 0 1px 0 #edf0f6;border-radius:0 0 6px 6px}
 .abmm-wrap .abmm-card-menu__list .abmm-delete-menu::before {content:"\f480";color:currentColor}
 .abmm-wrap .abmm-card-menu__list .button:hover,
@@ -930,7 +926,7 @@
 .abmm-wrap .abmm-save-status.is-error,
 .abmm-wrap .abmm-save-status.is-failed {color:#b32d2e;white-space:normal}
 /* "Saved" lives on the button; the status text stays for screen readers. */
-.abmm-wrap .abmm-save-status.is-saved {position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.abmm-wrap .abmm-save-status.is-saved .abmm-save-status__message {position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 .abmm-wrap .abmm-builder-topbar .abmm-save-menu {display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:92px;min-height:34px;height:34px;margin:0;padding:0 14px;font-size:13px;font-weight:600;line-height:1;border-radius:8px;transition:background .15s ease,color .15s ease,border-color .15s ease}
 .abmm-wrap .abmm-builder-topbar .abmm-save-menu.is-saved {color:#0a6b30;background:#fff;border-color:var(--abmm-brand-line);box-shadow:none}
 .abmm-wrap .abmm-builder-topbar .abmm-save-menu.is-saved:hover {color:#0a6b30;background:#f4f8f5;border-color:#c9dccf}
@@ -969,11 +965,6 @@
 /* Inspector: one panel with sections separated by lines, not cards in cards. */
 .abmm-wrap .abmm-builder {gap:16px}
 .abmm-wrap .abmm-builder__sidebar {gap:0;padding:0;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:12px;box-shadow:0 1px 2px #1922380a}
-.abmm-wrap .abmm-builder__sidebar .abmm-builder-sections {position:sticky;top:0;z-index:5;margin:10px;padding:3px;gap:2px;background:#eef1f7;border:0;border-radius:9px;box-shadow:0 0 0 10px #fff}
-.abmm-wrap .abmm-builder__sidebar .abmm-builder-sections button {min-height:30px;padding:0 6px;color:var(--abmm-brand-muted);font-size:13px;font-weight:500;border-radius:7px}
-.abmm-wrap .abmm-builder__sidebar .abmm-builder-sections button:hover {color:var(--abmm-brand-ink);background:transparent}
-.abmm-wrap .abmm-builder__sidebar .abmm-builder-sections button.is-active {color:var(--abmm-brand-ink);background:#fff;font-weight:600;box-shadow:0 1px 2px #1922381f}
-.abmm-wrap .abmm-builder__sidebar .abmm-builder-sections button:focus-visible {outline:2px solid var(--abmm-brand-blue);outline-offset:0}
 .abmm-wrap .abmm-builder__sidebar .abmm-builder-section-group {gap:0}
 .abmm-wrap .abmm-builder__sidebar .abmm-builder-panel {margin:0;padding:18px 18px 20px;background:transparent;border:0;border-top:1px solid var(--abmm-ui-line-soft);border-radius:0;box-shadow:none}
 .abmm-wrap .abmm-builder__sidebar .abmm-builder-section-group > .abmm-builder-panel:first-child {border-top-color:var(--abmm-brand-line)}
@@ -1000,7 +991,6 @@
 	.abmm-wrap .abmm-builder__sidebar {top:32px;width:min(400px,calc(100vw - 24px));padding:0;overflow-y:auto;border:0;border-left:1px solid var(--abmm-brand-line);border-radius:0;box-shadow:-16px 0 48px #19223829}
 	.abmm-wrap .abmm-builder-sidebar__mobile-head {position:sticky;top:0;z-index:6;display:flex;align-items:center;justify-content:space-between;min-height:52px;margin:0;padding:8px 8px 8px 18px;box-sizing:border-box;background:#fff;border-bottom:1px solid var(--abmm-brand-line);-webkit-backdrop-filter:none;backdrop-filter:none}
 	.abmm-wrap .abmm-builder-sidebar__mobile-head strong {color:var(--abmm-brand-ink);font-size:14px;font-weight:600}
-	.abmm-wrap .abmm-builder__sidebar .abmm-builder-sections {top:52px}
 	.abmm-wrap .abmm-builder-panel-backdrop:not([hidden]) {top:32px;background:#19223852}
 	.abmm-wrap .abmm-editor-chrome .abmm-builder-panel-toggle {display:inline-flex;align-items:center}
 }
@@ -1042,6 +1032,13 @@
 .abmm-wrap .abmm-popover__panel {position:absolute;top:calc(100% + 6px);right:0;z-index:60;display:flex;flex-direction:column;gap:10px;width:264px;padding:12px;box-sizing:border-box;text-align:start;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:10px;box-shadow:0 12px 32px #19223824,0 2px 6px #1922380f;cursor:default}
 .abmm-wrap .abmm-popover__panel[hidden] {display:none}
 .abmm-wrap .abmm-popover.is-above > .abmm-popover__panel {top:auto;bottom:calc(100% + 6px)}
+/* A row's move, duplicate and remove controls: one quiet button, then labelled actions. */
+.abmm-wrap .abmm-row-menu__panel {gap:2px;width:190px;padding:6px}
+.abmm-wrap .abmm-row-actions .abmm-row-menu__panel .abmm-reorder-controls {display:flex;flex-direction:column;gap:2px}
+.abmm-wrap .abmm-row-actions .abmm-row-menu__panel button {display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%;height:auto;min-height:32px;padding:4px 8px!important;font-size:13px!important;text-align:start}
+.abmm-wrap .abmm-row-menu__panel .screen-reader-text {position:static!important;width:auto;height:auto;margin:0;overflow:visible;clip:auto;clip-path:none;white-space:normal}
+.abmm-wrap [data-abmm-check][hidden] {display:none}
+.abmm-wrap .abmm-verification-panel [data-abmm-check] {margin-inline-start:8px}
 .abmm-wrap .abmm-popover__title {margin:0;color:var(--abmm-brand-ink);font-size:12.5px;font-weight:600;line-height:1.3}
 .abmm-wrap .abmm-popover__hint {margin:-6px 0 0;color:var(--abmm-brand-muted);font-size:12px;line-height:1.4}
 .abmm-wrap .abmm-popover .abmm-popover__check {display:flex;align-items:center;gap:8px;margin:0;color:var(--abmm-brand-ink);font-size:13px;font-weight:400}
@@ -1300,9 +1297,11 @@
 /* Page header: the pattern shared with the dashboard and product pages.
  * 40px logo, 22px title (the menu name), 13px muted subtitle, actions on the right.
  * Stuck to the top, it paints the page colour edge to edge so nothing shows through. */
-.abmm-wrap.abmm-builder-wrap .abmm-builder-header {position:sticky;top:32px;z-index:100;display:flex;flex-wrap:nowrap;align-items:center;gap:16px;min-height:var(--abmm-header-h);margin:0 0 16px;padding:14px 0;box-sizing:border-box;background:var(--abmm-page-bg);border:0;border-bottom:1px solid var(--abmm-brand-line);border-radius:0;box-shadow:0 0 0 100vmax var(--abmm-page-bg);clip-path:inset(-100vmax -100vmax 0 -100vmax);-webkit-backdrop-filter:none;backdrop-filter:none}
+.abmm-wrap.abmm-builder-wrap .abmm-builder-header {position:sticky;top:32px;z-index:100;display:flex;flex-wrap:nowrap;align-items:center;gap:16px;min-height:var(--abmm-header-h);margin:0 0 16px;padding:14px 0;box-sizing:border-box;background:var(--abmm-page-bg);border:0;border-bottom:1px solid var(--abmm-brand-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+/* The edge-to-edge colour sits on its own layer, because clipping the header itself would cut off its ... menu. */
+.abmm-wrap.abmm-builder-wrap .abmm-builder-header::before {content:"";position:absolute;inset:0;z-index:-1;background:var(--abmm-page-bg);box-shadow:0 0 0 100vmax var(--abmm-page-bg);clip-path:inset(-100vmax -100vmax 0 -100vmax);pointer-events:none}
 .abmm-builder-header__logo {flex:none;width:40px;height:40px;border-radius:10px}
-.abmm-builder-header__titles {display:flex;flex-direction:column;align-items:flex-start;flex:1 1 auto;min-width:0}
+.abmm-builder-header__titles {display:flex;flex-direction:column;align-items:flex-start;flex:1 1 200px;min-width:200px}
 .abmm-wrap .abmm-builder-header .abmm-back {display:inline-flex;align-items:center;gap:2px;margin:0 0 1px -4px;padding:1px 6px 1px 2px;border-radius:6px;color:var(--abmm-brand-muted);font-size:12px;font-weight:500;line-height:18px;text-decoration:none}
 .abmm-wrap .abmm-builder-header .abmm-back:hover {background:#e4e8f0;color:var(--abmm-brand-ink)}
 .abmm-wrap .abmm-builder-header .abmm-back:focus-visible {outline:2px solid var(--abmm-brand-blue);outline-offset:1px;box-shadow:none}
@@ -1311,10 +1310,15 @@
 .abmm-wrap .abmm-builder-header .abmm-menu-title-input {display:block;width:100%;max-width:min(560px,100%);height:32px;min-height:32px;margin:0 0 0 -7px;padding:0 6px!important;color:var(--abmm-brand-ink);background:transparent;border:1px solid transparent!important;border-radius:7px;box-shadow:none;font-size:22px!important;font-weight:650;letter-spacing:-.35px;line-height:30px;text-overflow:ellipsis}
 .abmm-wrap .abmm-builder-header .abmm-menu-title-input:hover {background:#fff;border-color:var(--abmm-brand-line)!important}
 .abmm-wrap .abmm-builder-header .abmm-menu-title-input:focus {background:#fff;border-color:var(--abmm-brand-blue)!important;box-shadow:var(--abmm-ui-ring);outline:0}
-.abmm-builder-header__subtitle {display:flex;align-items:center;gap:6px;max-width:100%;margin:1px 0 0;overflow:hidden;color:var(--abmm-brand-muted);font-size:13px;line-height:18px;white-space:nowrap}
+.abmm-builder-header__subtitle {max-width:100%;margin:1px 0 0;color:var(--abmm-brand-muted);font-size:13px;line-height:18px}
+/* A placed menu's status beside the save button says this already. */
+.abmm-wrap .abmm-builder-header .abmm-builder-header__subtitle.is-placed {display:none}
 .abmm-builder-header__subtitle code {overflow:hidden;padding:0 5px;color:var(--abmm-brand-muted);background:#e6e9f0;border-radius:4px;font-size:12px;line-height:18px;text-overflow:ellipsis;white-space:nowrap}
-.abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions {flex:none;gap:6px}
-/* The stepper sits in the header: Edit, Place, Check. */
+.abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions {flex:0 1 auto;min-width:0;gap:6px}
+/* A long message wraps in its own space, so the title and Save always keep theirs. */
+.abmm-wrap .abmm-builder-header .abmm-save-status {flex:0 1 auto;min-width:0;max-width:240px;line-height:1.3;white-space:normal}
+.abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions > :not(.abmm-save-status) {flex:none}
+/* The stepper sits in the header: Content, Design, Place, Check. */
 .abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav {display:inline-flex;flex:none;align-items:center;gap:0;margin:0 6px 0 0;padding:3px;background:#e4e8f0;border-radius:10px}
 .abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav button {min-height:30px;padding:0 12px 0 6px;border-radius:7px;font-size:13px;cursor:pointer}
 .abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav button + button {margin-inline-start:2px}
@@ -1336,7 +1340,8 @@
 	.abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav {order:3;margin:0 0 0 56px}
 }
 @media (max-width:782px) {
-	.abmm-wrap.abmm-builder-wrap .abmm-builder-header {position:static;top:auto;gap:12px;clip-path:none;box-shadow:none}
+	.abmm-wrap.abmm-builder-wrap .abmm-builder-header {position:static;top:auto;gap:12px}
+	.abmm-wrap.abmm-builder-wrap .abmm-builder-header::before {display:none}
 	.abmm-builder-header__logo {width:32px;height:32px}
 	.abmm-builder-header__titles {flex-basis:calc(100% - 44px)}
 	.abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions {order:2;width:100%;justify-content:flex-end}
@@ -1350,10 +1355,8 @@
 	.abmm-wrap .abmm-builder__sidebar {top:calc(32px + var(--abmm-header-h) + 16px);max-height:calc(100vh - var(--abmm-header-h) - 80px)}
 }
 
-/* Inspector: the stepper owns Place and Check, so the tabs only appear inside Edit. */
-.abmm-wrap .abmm-builder__sidebar .abmm-builder-sections[hidden] {display:none}
-.abmm-wrap .abmm-builder__sidebar .abmm-builder-sections {grid-template-columns:repeat(3,minmax(0,1fr))}
-.abmm-wrap .abmm-builder__sidebar.is-place-step .abmm-builder-section-group > .abmm-builder-panel:first-child {border-top:0}
+/* Inspector: the stepper picks the panel, so nothing sits above its first section. */
+.abmm-wrap .abmm-builder__sidebar .abmm-builder-section-group > .abmm-builder-panel:first-child {border-top:0}
 .abmm-wrap .abmm-placement-panel .abmm-disclosure,
 .abmm-wrap .abmm-builder-help .abmm-disclosure {margin-top:8px}
 .abmm-wrap .abmm-disclosure > summary {padding:10px 0}
@@ -1434,7 +1437,9 @@
 .abmm-switch input:focus-visible + .abmm-switch__track {outline:2px solid var(--abmm-brand-blue);outline-offset:2px}
 
 /* Featured card editor. */
-.abmm-wrap .abmm-featured-editor {margin:0;padding:16px 20px 20px;border-top:1px solid var(--abmm-brand-line)}
+.abmm-wrap .abmm-featured-details {margin:0;padding:12px 20px;border-top:1px solid var(--abmm-brand-line)}
+.abmm-wrap .abmm-featured-details > summary h3 {display:inline;margin:0;color:inherit;font:inherit}
+.abmm-wrap .abmm-featured-editor {margin:0;padding:0}
 .abmm-featured-editor__head {display:flex;align-items:center;justify-content:space-between;gap:16px}
 .abmm-wrap .abmm-featured-editor__head h3 {margin:0;color:var(--abmm-brand-ink);font-size:13px;font-weight:600}
 .abmm-wrap .abmm-featured-editor__head .description {margin:2px 0 0;color:var(--abmm-brand-muted);font-size:12px;line-height:1.45}
@@ -1532,22 +1537,12 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
 @media (hover:none) {.abmm-canvas-hint {display:none}}
 @media (prefers-reduced-motion:reduce) {.abmm-preview-shell .abmm-preview-sizer.is-animating {transition:none}}
 
-/* Zoom readout: a menu of presets, plus Fit and 100%. */
-.abmm-wrap .abmm-editor-chrome .abmm-preview-zoom .button:disabled {opacity:.4;background:transparent;cursor:not-allowed}
-.abmm-wrap .abmm-editor-chrome .abmm-preview-zoom .abmm-preview-zoom__value {min-width:52px;color:var(--abmm-brand-ink);font-size:12px;font-variant-numeric:tabular-nums}
-.abmm-preview-zoom__divider {width:1px;height:18px;margin:0 2px;background:var(--abmm-brand-line)}
-.abmm-zoom-menu {position:relative}
-.abmm-zoom-menu__list {position:absolute;top:calc(100% + 6px);left:50%;z-index:30;display:flex;flex-direction:column;min-width:160px;padding:6px;transform:translateX(-50%);background:#fff;border:1px solid var(--abmm-brand-line);border-radius:10px;box-shadow:0 12px 32px -8px #19223840}
-.abmm-zoom-menu__list[hidden] {display:none}
-.abmm-zoom-menu__list button {display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:32px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--abmm-brand-ink);font-size:13px;text-align:left;cursor:pointer}
-.abmm-zoom-menu__list button:hover,.abmm-zoom-menu__list button:focus {background:#eef1f7;outline:none}
-.abmm-zoom-menu__list button:focus-visible {box-shadow:inset 0 0 0 2px var(--abmm-brand-blue)}
-.abmm-zoom-menu__fit {margin-top:4px;border-top:1px solid var(--abmm-brand-line)!important;border-radius:0 0 6px 6px!important}
-.abmm-zoom-menu__list kbd {padding:0;background:none;color:var(--abmm-brand-muted);font:inherit;font-size:12px}
 
-/* Phone and tablet: the live site in a frame at the device width. */
+/* Phone, tablet and Classic desktop: the live site in a frame at the device width. */
 .abmm-wrap .abmm-preview-shell .abmm-preview.has-device-frame {min-height:0!important;display:block;line-height:0}
 .abmm-preview.has-device-frame .abmm-preview-device {display:block;max-width:none;border:0;background:#fff}
+.abmm-wrap .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview.has-device-frame {padding:30px 0 0;overflow:hidden}
+.abmm-wrap .abmm-preview-shell[data-abmm-preview-viewport="desktop"] .abmm-preview.has-device-frame .abmm-preview-device {border-radius:0 0 10px 10px}
 .abmm-wrap .abmm-preview-shell[data-abmm-preview-viewport="mobile"] .abmm-preview.has-device-frame .abmm-preview-device {border-radius:0 0 34px 34px}
 .abmm-wrap .abmm-preview-shell[data-abmm-preview-viewport="tablet"] .abmm-preview.has-device-frame .abmm-preview-device {border-radius:0 0 14px 14px}
 .abmm-preview.has-device-frame.is-loading .abmm-preview-device {opacity:.4}
@@ -1576,22 +1571,38 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
 .abmm-setup-guide {margin:0 0 24px;padding:18px 20px;border:1px solid var(--abmm-brand-line);border-radius:12px;background:#fff}
 .abmm-setup-guide__head {display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:10px}
 .abmm-setup-guide__head h2 {margin:0;font-size:16px}
-.abmm-setup-guide__progress {color:var(--abmm-brand-muted)}
 .abmm-setup-guide__hide {margin-inline-start:auto}
-.abmm-setup-guide__steps {display:grid;gap:8px;margin:0;padding:0;list-style:none;counter-reset:abmm-step}
-.abmm-setup-guide__steps li {position:relative;margin:0;padding:10px 12px 10px 44px;border-radius:10px;counter-increment:abmm-step}
-.abmm-setup-guide__steps li::before {content:counter(abmm-step);position:absolute;top:10px;left:12px;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#eef1f7;color:var(--abmm-brand-ink);font-size:12px;font-weight:600}
-.abmm-setup-guide__steps li.is-done::before {content:"\2713";background:#e3f3ea;color:#11643a}
-.abmm-setup-guide__steps li.is-next {background:#f6f8ff;outline:1px solid #d7defa}
-.abmm-setup-guide__steps p {margin:4px 0 8px;color:var(--abmm-brand-muted);max-width:72ch}
-.abmm-setup-guide__steps li:not(.is-next) p,
-.abmm-setup-guide__steps li:not(.is-next) .button,
-.abmm-setup-guide__steps li:not(.is-next) .button-link {display:none}
-.abmm-setup-guide__steps li.is-done strong {color:var(--abmm-brand-muted)}
-.abmm-setup-guide.is-complete li:last-child .button-link {display:inline}
-.abmm-setup-guide__status {position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.abmm-setup-guide__next {display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0}
+.abmm-setup-guide__next strong {flex:0 0 100%}
+.abmm-setup-guide__next p {flex:0 0 100%;margin:0 0 6px;color:var(--abmm-brand-muted);max-width:72ch}
 .abmm-setup-guide__note {font-size:12.5px}
-.abmm-place-options li.is-recommended {padding:8px 10px;border-radius:8px;background:#f6f8ff}
+.abmm-wrap .abmm-place-recommended {margin:12px 0;padding:12px 14px;border-radius:10px;background:#f6f8ff;font-size:13px;line-height:1.5}
+.abmm-wrap .abmm-place-recommended strong {display:block;margin:6px 0 2px;color:var(--abmm-brand-ink);font-size:14px}
+.abmm-wrap .abmm-place-recommended p {margin:0 0 8px;color:var(--abmm-brand-muted)}
+.abmm-wrap .abmm-place-recommended p:last-child {margin-bottom:0}
+.abmm-wrap .abmm-place-others .abmm-copy-placement {margin:8px 0 10px}
+.abmm-wrap .abmm-readiness-panel:focus {outline:0}
+.abmm-wrap .abmm-readiness-panel:focus-visible {box-shadow:inset 0 0 0 3px #ffb568}
+.abmm-setup-guide__tips {margin:6px 0 8px;font-size:12.5px}
+.abmm-setup-guide__tips > summary {color:var(--abmm-brand-muted);cursor:pointer}
+.abmm-wrap .abmm-save-status .abmm-save-status__placement {font-weight:400}
+.abmm-wrap .abmm-save-status .abmm-save-status__placement.is-live {color:#0a6b30}
+@media (min-width:783px) and (max-width:1319px), (max-width:480px) {
+	/* No room beside the title or on a small phone: the Check step still says it. */
+	.abmm-wrap .abmm-builder-header .abmm-save-status__placement {position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+	.abmm-wrap .abmm-builder-header .abmm-builder-header__subtitle.is-placed {display:block}
+}
+/* The count is not a step number. */
+.abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav button > .abmm-issue-count,
+.abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav button:not([aria-current="step"]):not(.is-done) > .abmm-issue-count {box-sizing:border-box;width:auto;min-width:20px;margin:0;padding:0 6px;background:#fff3df;color:#8a4b00}
+@media (max-width:480px) {
+	/* Four steps on one row: the words and the count stay, the numbers go. */
+	.abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav button {padding:0 4px;gap:4px;font-size:12px}
+	.abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav button > span:not(.abmm-issue-count) {display:none}
+}
+.abmm-dashboard .abmm-menu-card__reveal {margin:8px 0 0;font-size:12.5px}
+.abmm-dashboard .abmm-menu-card__reveal > summary {width:max-content;color:var(--abmm-brand-muted);cursor:pointer}
+.abmm-dashboard .abmm-menu-card__reveal > summary:hover {color:var(--abmm-brand-ink)}
 .abmm-badge--recommended {display:inline-block;margin-inline-start:6px;padding:1px 8px;border-radius:999px;background:#e3eaff;color:#1b3fbf;font-size:11.5px;font-weight:600}
 @media (min-width:960px) {.abmm-welcome__choices:has(.abmm-pages-choice) {grid-template-columns:repeat(3,minmax(0,1fr));max-width:1040px}}
 
@@ -1610,3 +1621,7 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
 .abmm-nav-import__actions {display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .abmm-nav-import__status {min-height:1.4em;margin:8px 0 0}
 .abmm-nav-import__status.is-error {color:#b32d2e}
+
+/* WordPress enlarges checkboxes on phones, and a narrower rule then leaves them tall.
+ * Keep them square in a toggle row. */
+.abmm-wrap .abmm-builder__sidebar .abmm-field.abmm-field--toggle input[type="checkbox"] {flex:none;align-self:center;width:20px;min-width:20px;height:20px;min-height:0}

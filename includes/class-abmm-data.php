@@ -128,7 +128,7 @@ class ABMM_Data {
 				if ( ! hash_equals( $current_revision, $expected_revision ) ) {
 					return new WP_Error(
 						'abmm_menu_conflict',
-						__( 'This menu changed on the server. Your local draft was not overwritten.', 'ashbi-mega-menu' ),
+						__( 'This menu changed on the server. Your unsaved changes were not overwritten.', 'ashbi-mega-menu' ),
 						array(
 							'conflict' => true,
 							'revision' => $current_revision,
@@ -137,6 +137,10 @@ class ABMM_Data {
 				}
 
 				$sanitized = $this->sanitize_menu( $data );
+				// A sample stops being one once its items change, and never becomes one again.
+				if ( ! empty( $sanitized['starter_source'] ) && ( empty( $current['starter_source'] ) || ( $sanitized['items'] ?? array() ) !== ( $current['items'] ?? array() ) ) ) {
+					$sanitized['starter_source'] = '';
+				}
 				if ( $current === $sanitized ) {
 					return true;
 				}
@@ -402,7 +406,7 @@ class ABMM_Data {
 	/** Stored bytes allowed for each menu's versions; older ones drop first. */
 	const MAX_VERSION_BYTES = 1048576;
 
-	/** A burst of saves shares one version, so it cannot flush the history. */
+	/** A burst of saves keeps two versions, so it cannot flush the history. */
 	const VERSION_INTERVAL_SECONDS = 300;
 
 	/**
@@ -425,10 +429,17 @@ class ABMM_Data {
 		if ( $versions && $revision === ( $versions[0]['id'] ?? '' ) ) {
 			return false;
 		}
-		if ( $versions && ! $force && time() - (int) ( $versions[0]['saved_at'] ?? 0 ) < self::VERSION_INTERVAL_SECONDS ) {
-			return false;
+		$version = array( 'id' => $revision, 'saved_at' => time(), 'bytes' => $size, 'menu' => $menu );
+		// In a burst, keep the state from before it and the newest state within it,
+		// so undoing a bad save never skips the good save just before it.
+		$burst_at = (int) ( $versions[0]['burst_at'] ?? $versions[0]['saved_at'] ?? 0 );
+		if ( $versions && ! $force && time() - $burst_at < self::VERSION_INTERVAL_SECONDS ) {
+			if ( ! empty( $versions[0]['burst_at'] ) ) {
+				array_shift( $versions );
+			}
+			$version['burst_at'] = $burst_at;
 		}
-		array_unshift( $versions, array( 'id' => $revision, 'saved_at' => time(), 'bytes' => $size, 'menu' => $menu ) );
+		array_unshift( $versions, $version );
 		$kept  = array();
 		$total = 0;
 		foreach ( array_slice( $versions, 0, self::MAX_VERSIONS ) as $version ) {
@@ -785,6 +796,16 @@ class ABMM_Data {
 	}
 
 	/**
+	 * Settings for a menu created from nothing: the defaults, in the site's own
+	 * font. Kept out of default_settings(), which existing menus fill gaps from.
+	 *
+	 * @return array
+	 */
+	public static function new_menu_settings() {
+		return array_merge( self::default_settings(), array( 'style' => array( 'font_family_mode' => 'inherit' ) ) );
+	}
+
+	/**
 	 * Built-in design presets (easy one-click themes).
 	 *
 	 * @return array
@@ -918,7 +939,7 @@ class ABMM_Data {
 					'alt'           => '',
 					'logo_height'   => 40,
 				),
-				'settings' => self::default_settings(),
+				'settings' => self::new_menu_settings(),
 			)
 		);
 
@@ -1694,7 +1715,7 @@ class ABMM_Data {
 	 * @return array
 	 */
 	public static function generic_starter() {
-		$settings = self::default_settings();
+		$settings = self::new_menu_settings();
 		$settings['mobile_enhancements'] = true;
 		$sample = '#' . self::SAMPLE_FRAGMENT;
 		$link   = function ( $label, $icon, $description ) use ( $sample ) {
@@ -2148,7 +2169,7 @@ class ABMM_Data {
 					'alt'           => '',
 					'logo_height'   => 40,
 				),
-				'settings' => self::default_settings(),
+				'settings' => self::new_menu_settings(),
 			)
 		);
 		return array( 'menu' => $menu, 'report' => $report );

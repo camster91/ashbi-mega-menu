@@ -3,7 +3,7 @@
  * Plugin Name: Ashbi Mega Menu
  * Plugin URI:  https://github.com/camster91/ashbi-mega-menu
  * Description: Build responsive navigation with a visual editor, local previews and portable exports.
- * Version:     1.2.5
+ * Version:     1.2.6
  * Author:      Cameron Ashley
  * Author URI:  https://github.com/camster91
  * License:     GPL-2.0-or-later
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ABMM_VERSION', '1.2.5' );
+define( 'ABMM_VERSION', '1.2.6' );
 define( 'ABMM_PLUGIN_FILE', __FILE__ );
 define( 'ABMM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ABMM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -84,7 +84,36 @@ function abmm_menu_search_strings() {
 	);
 }
 
+/**
+ * Forget where menus are placed. Saves can come from anywhere, such as the block
+ * editor's REST requests, so this is hooked on every request.
+ *
+ * @return void
+ */
+function abmm_clear_placement_caches() {
+	delete_transient( 'abmm_menu_reference_summaries' );
+	delete_transient( 'abmm_emm_menus_in_use' );
+}
+
+/**
+ * Widgets are stored in options, and they can place a menu too.
+ *
+ * @param string $option Option name.
+ * @return void
+ */
+function abmm_clear_placement_caches_for_option( $option ) {
+	if ( 0 === strpos( (string) $option, 'widget_' ) ) {
+		abmm_clear_placement_caches();
+	}
+}
+
 function abmm_init() {
+	add_action( 'save_post', 'abmm_clear_placement_caches', 10, 0 );
+	add_action( 'deleted_post', 'abmm_clear_placement_caches', 10, 0 );
+	add_action( 'elementor/document/after_save', 'abmm_clear_placement_caches', 10, 0 );
+	add_action( 'added_option', 'abmm_clear_placement_caches_for_option', 10, 1 );
+	add_action( 'updated_option', 'abmm_clear_placement_caches_for_option', 10, 1 );
+
 	ABMM_Data::instance();
 	ABMM_Icons::instance();
 	ABMM_Import_Export::instance();

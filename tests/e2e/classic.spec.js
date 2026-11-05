@@ -114,13 +114,22 @@ test.describe('classic menu on desktop', () => {
 	});
 });
 
+// The phone button label sits in Advanced settings, under Mobile navigation.
+async function showToggleLabel(page) {
+	await page.locator('[data-abmm-workflow="design"]').click();
+	const advanced = page.locator('#abmm-advanced-settings');
+	if (!(await advanced.evaluate((node) => node.open))) await advanced.locator('> summary').click();
+	const group = advanced.locator('[data-abmm-advanced-group="mobile"]');
+	if (!(await group.evaluate((node) => node.open))) await group.locator('> summary').click();
+}
+
 test.describe('classic menu in the editor', () => {
 	test.use({ viewport: { width: 1440, height: 900 } });
 
 	test('shows the Classic notice, keeps the look on save and previews the classic phone menu', async ({ page }) => {
 		const errors = watchErrors(page);
 		await page.goto('/wp-admin/admin.php?page=ashbi-mega-menu&edit=main_nav');
-		await page.locator('[data-abmm-builder-section="design"]').click();
+		await page.locator('[data-abmm-workflow="design"]').click();
 		await expect(page.locator('#abmm-render-mode')).toHaveValue('emm-classic');
 		await expect(page.locator('.abmm-classic-notice').first()).toBeVisible();
 
@@ -140,7 +149,7 @@ test.describe('classic menu in the editor', () => {
 		await expect(page.locator('#abmm-mega-editor')).toBeVisible();
 
 		// An edit re-renders the frame; the open drawer comes back as it was.
-		await page.locator('[data-abmm-builder-section="design"]').click();
+		await showToggleLabel(page);
 		const label = page.locator('#abmm-classic-toggle-label');
 		await label.fill('Products');
 		await expect(frame.locator('header.emm-header')).toHaveClass(/\bis-mobile-open\b/);
@@ -151,9 +160,55 @@ test.describe('classic menu in the editor', () => {
 			response.url().includes('admin-ajax.php') && (response.request().postData() || '').includes('action=abmm_save_menu'));
 		await page.locator('.abmm-save-menu').first().click();
 		expect((await (await saved).json()).success).toBe(true);
+		// WebKit reports a request cut off by leaving the page as a console error.
+		await page.waitForLoadState('networkidle');
 		await page.goto('/?pagename=e2e-classic');
 		await expect(page.locator('header.emm-header[data-emm-id="main_nav"] .emm-nav__toggle')).toHaveAttribute('aria-label', /^Products: /);
 		expect(errors).toEqual([]);
+	});
+});
+
+test.describe('classic menu desktop preview', () => {
+	test.use({ viewport: { width: 1440, height: 900 } });
+
+	test('shows the real Classic markup, selects what you click and keeps the open panel through an edit', async ({ page }) => {
+		const errors = watchErrors(page);
+		await page.goto('/wp-admin/admin.php?page=ashbi-mega-menu&edit=main_nav');
+		const frame = page.frameLocator('#abmm-preview iframe.abmm-preview-device');
+		await expect(frame.locator('header.emm-header')).toHaveCount(1);
+		await expect(frame.locator('link[href*="assets/classic/emm-fixes.css"]')).toHaveCount(1);
+		await expect(page.locator('.abmm-classic-preview-note')).toBeVisible();
+		await expect(page.locator('.abmm-classic-preview-fallback')).toBeHidden();
+
+		const trigger = frame.locator('[data-emm-mega-trigger]').first();
+		await trigger.click();
+		await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+		await frame.locator('.emm-mega__cat[data-emm-cat="people"]').click();
+		await expect(page.locator('#abmm-mega-editor')).toBeVisible();
+
+		const link = frame.locator('.emm-nav__item.is-open [data-abmm-link-id] a:visible').first();
+		await link.click();
+		await expect(frame.locator('.abmm-canvas-selected')).toHaveCount(1);
+
+		// An edit re-renders the frame; the open dropdown comes back. Nothing is saved.
+		await showToggleLabel(page);
+		const label = page.locator('#abmm-classic-toggle-label');
+		await label.fill('Menu');
+		await expect(frame.locator('.emm-nav__toggle-label')).toHaveCount(1);
+		await expect(frame.locator('.emm-nav__list > .emm-nav__item.is-open')).toHaveCount(1);
+		await expect(label).toBeFocused();
+		await label.fill('');
+		await expect(frame.locator('.emm-nav__toggle-label')).toHaveCount(0);
+		expect(errors).toEqual([]);
+	});
+
+	test('falls back to the built-in preview and says so when the frame cannot load', async ({ page }) => {
+		await page.route('**/admin-ajax.php', (route) => ((route.request().postData() || '').includes('abmm_preview_markup') ? route.abort() : route.continue()));
+		await page.goto('/wp-admin/admin.php?page=ashbi-mega-menu&edit=main_nav');
+		await expect(page.locator('#abmm-preview .abmm-nav')).toBeVisible();
+		await expect(page.locator('#abmm-preview iframe.abmm-preview-device')).toHaveCount(0);
+		await expect(page.locator('.abmm-classic-preview-fallback')).toBeVisible();
+		await expect(page.locator('.abmm-classic-preview-note')).toBeHidden();
 	});
 });
 
