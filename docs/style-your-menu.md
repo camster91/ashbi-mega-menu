@@ -6,7 +6,7 @@
 2. Click a style.
 3. Click **Save changes**.
 
-<!-- screenshot: 15-design-presets.png -->
+![Design with the style cards and the preview](images/15-design-presets.png)
 
 That is all most people need. Each style sets colors that are made to work together.
 
@@ -37,7 +37,7 @@ New menus use your site's font. An older menu may still use its own font. To mat
 3. Click the picture button to choose your logo.
 4. Fill in **Logo alternative text**. Screen readers read this out for people who can't see the image.
 
-<!-- screenshot: 14-logo-panel.png -->
+![The Logo section with Show logo on and a logo chosen](images/14-logo-panel.png)
 
 An SVG file looks sharpest. A PNG file with a clear background also works well.
 
@@ -45,17 +45,17 @@ An SVG file looks sharpest. A PNG file with a clear background also works well.
 
 The plugin warns you if text may be hard to read on its background. The warning does not stop you from saving. It's best to change one of the two colors.
 
-<!-- screenshot: 18-contrast-warning.png -->
+![Design with a pale text color on a pale background, so the warning shows](images/18-contrast-warning.png)
 
 ## Advanced settings
 
 Everything below is optional. It sits inside **Advanced settings**, which is closed until you open it.
 
-<!-- screenshot: 16-advanced-collapsed.png -->
+![Advanced settings closed, with a note naming changed settings](images/16-advanced-collapsed.png)
 
 When the section is closed, you can still see what you changed. A short note names each setting that isn't at its default. Click a name to go right to it. So a hidden setting can't catch you by surprise.
 
-<!-- screenshot: 17-advanced-open.png -->
+![Advanced settings open, with Fonts expanded](images/17-advanced-open.png)
 
 Picking a style replaces the colors. If you edit a color, the style changes to **Custom**. If you then pick another style, **Undo** or the **Custom** card brings your colors back, until you reload the page. Once you save a new style and reload, use [History](undo-and-history.md) instead.
 

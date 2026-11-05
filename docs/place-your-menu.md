@@ -9,7 +9,7 @@ A saved menu does not show on your site by itself. You choose where it goes. Thi
 3. Follow the steps shown there. A button opens the right screen for you when there is one.
 4. Click **Check** and test the menu on your site.
 
-<!-- screenshot: 19-place-step.png -->
+![Place on a block theme](images/19-place-step.png)
 
 Keep these three tips in mind:
 
@@ -52,7 +52,7 @@ A block theme lets you edit your header in WordPress. A change to the header sho
 5. Save, then check your site on a computer and a phone.
 6. When it works, remove the old **Navigation** block.
 
-<!-- screenshot: 20-block-header.png -->
+![Site Editor with the Header open and the Ashbi block selected](images/20-block-header.png)
 
 **To undo this:** remove the Ashbi block and restore your old Navigation block. Turning off the plugin does not bring back a menu you removed.
 
@@ -66,7 +66,7 @@ A widget area is a spot in your theme that holds small add-ons. Not every theme 
 4. Pick your menu.
 5. Check your site. Then turn off your theme's old menu in your theme's settings.
 
-<!-- screenshot: 21-widget.png -->
+![Appearance, Widgets, using a classic theme](images/21-widget.png)
 
 **To undo this:** remove the widget and turn your theme's old menu back on.
 
@@ -76,7 +76,7 @@ A widget area is a spot in your theme that holds small add-ons. Not every theme 
 2. Drag it into a full-width section of your header.
 3. Choose your menu on the widget's **Content** tab.
 
-<!-- screenshot: 23-elementor-widget.png -->
+![Elementor with the widget selected on the Content tab](images/23-elementor-widget.png)
 
 You still edit the links in Mega Menu. The widget gives you a link to get there.
 
@@ -93,7 +93,7 @@ A shortcode is a short piece of text. WordPress swaps it for your menu when the 
 1. Click **Copy shortcode** on the **Place** step. If you don't see it, open **Other ways to place it**. You can also click **Shortcode** on the menu's card, then **Copy**.
 2. Paste it into a shortcode block or element in a full-width section.
 
-<!-- screenshot: 22-shortcode-block.png -->
+![A shortcode block in the page editor with the shortcode pasted](images/22-shortcode-block.png)
 
 Use your menu's own code. The ID in the example above will not work on your site.
 

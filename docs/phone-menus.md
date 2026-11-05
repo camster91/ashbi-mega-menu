@@ -6,7 +6,7 @@ You don't have to set anything up. Every menu works on phones by itself.
 
 On screens up to 900 pixels wide, your menu bar becomes a menu button. Tapping it slides open a panel called a drawer.
 
-<!-- screenshot: 28-phone-menu-open.png -->
+![A phone with the drawer open](images/28-phone-menu-open.png)
 
 Your visitors do this:
 
@@ -15,14 +15,14 @@ Your visitors do this:
 3. Tap a link to go to that page. The drawer closes by itself.
 4. Tap **Back** to go up a level, or tap **Close** to leave.
 
-<!-- screenshot: 29-phone-drill.png -->
+![A phone inside a section](images/29-phone-drill.png)
 
 ## Check it in the preview
 
 1. Click the phone button above the preview.
 2. Open the menu and tap through it, as a visitor would.
 
-<!-- screenshot: 27-preview-devices.png -->
+![Editor preview on the phone size](images/27-preview-devices.png)
 
 Then check on a real phone, once the menu is on your site. The preview does not load your theme's styles.
 
@@ -49,7 +49,7 @@ This option adds three things to the phone menu:
 - Rows that fill the full width of the drawer.
 - The word "Back" next to the back arrow.
 
-<!-- screenshot: 30-phone-enhanced.png -->
+![A phone with Enhanced mobile menu on](images/30-phone-enhanced.png)
 
 To turn it on, click **Design** and open **Advanced settings**. Then open **Mobile navigation** and turn on **Enhanced mobile menu**. Save when you are done.
 
@@ -61,7 +61,7 @@ This is for menus imported from Easy Mega Menu. It is useful when a page shows t
 
 Open **Advanced settings**, then **Mobile navigation**. Type a short word such as "Products" in **Phone menu button label**. Visitors will see it next to the button. Screen readers will read it out too.
 
-<!-- screenshot: 31-phone-label.png -->
+![A phone with two stacked Classic menus, using a button label](images/31-phone-label.png)
 
 Leave it empty to show just the icon. That's the default.
 
