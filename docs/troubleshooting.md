@@ -21,7 +21,7 @@ Most problems have one of three causes: a page cache, an unsaved change or a dup
 
 Your theme's old menu is still there. Remove it once the new one works. You will find it in your theme's settings or header.
 
-<!-- screenshot: 46-two-menus.png -->
+![A page showing the theme's old menu above the new one](images/46-two-menus.png)
 
 ## My changes don't show on my site
 
@@ -52,7 +52,7 @@ Update the plugin to the newest version first. Then clear your cache. If this st
 
 The checklist found something to fix. Your menu may still be live. Click the issue count on the card to see what's wrong. Then click an item in the list to go to the right spot.
 
-<!-- screenshot: 25-checklist-issue.png -->
+![Place with the checklist showing two issues at the top](images/25-checklist-issue.png)
 
 The checklist can tell you to:
 

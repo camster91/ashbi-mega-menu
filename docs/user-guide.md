@@ -30,7 +30,7 @@ Creating a menu never changes your theme's header. You choose when and where the
 
 Click **Mega Menu** in the WordPress sidebar. This screen lists your menus.
 
-<!-- screenshot: 04-menu-cards.png -->
+![Three cards: one Placed, one No placement found, one with Needs attention](images/04-menu-cards.png)
 
 ### Next step
 
@@ -38,7 +38,7 @@ The **Next step** card shows the one thing to do now, with a button that takes y
 
 The last step is yours. On the **Check** step, click **I've checked it** when your menu works. Changed your mind? Click **Mark as not checked**.
 
-<!-- screenshot: 03-setup-guide.png -->
+![Main screen with the Next step card, on a menu that still needs placing](images/03-setup-guide.png)
 
 Click **Hide** to close the card. Click **Show setup guide** at the bottom of the screen to bring it back.
 
@@ -60,7 +60,7 @@ Card buttons:
 - **Place** opens the **Place** step.
 - **⋯** opens more actions, shown below.
 
-<!-- screenshot: 05-card-more-menu.png -->
+![A card with its ⋯ menu open](images/05-card-more-menu.png)
 
 - **Export:** save this menu as a file.
 - **Duplicate:** make a copy to work on.
@@ -86,7 +86,7 @@ When you have no menus, you can start three ways:
 - **Use a template.** You get a sample menu. Replace all its words and links.
 - **Start from scratch.** You get an empty menu.
 
-<!-- screenshot: 02-page-picker.png -->
+![Welcome screen after clicking Start from your pages, with a few pages ticked](images/02-page-picker.png)
 
 Later, use **Create menu** at the top of the main screen.
 
@@ -98,7 +98,7 @@ If you built a menu in WordPress, you can start from it.
 2. Pick the menu and click **Preview**. Nothing is saved yet.
 3. Read the preview, then import it.
 
-<!-- screenshot: 39-wp-menu-import.png -->
+![Import from WordPress menu with a preview showing](images/39-wp-menu-import.png)
 
 This creates a new menu. It doesn't change your WordPress menu or theme, and it isn't on your site until you place it. See [Import a WordPress menu](import-wordpress-menus.md) for the details.
 
@@ -106,7 +106,7 @@ This creates a new menu. It doesn't change your WordPress menu or theme, and it 
 
 The editor has four steps along the top. Work through them in order, or jump to any of them.
 
-<!-- screenshot: 06-editor-overview.png -->
+![Editor on Content, with a few items and the preview showing](images/06-editor-overview.png)
 
 - **Content:** your links, button and logo.
 - **Design:** how the menu looks.
@@ -122,13 +122,13 @@ At the top you will also find:
 
 Next to it, a status tells you whether your changes are saved. Once they are, it also says **Live where placed** or **No placement found**. Press **Ctrl+S** or **Cmd+S** to save with your keyboard.
 
-<!-- screenshot: 26-save-status.png -->
+![Top bar on a placed menu with changes not yet saved](images/26-save-status.png)
 
 ### Find the editor from your site
 
 When you're logged in, pages with a menu show **Edit mega menu** in the top toolbar. Click it to open that menu. If a page has more than one menu, pick one from the list.
 
-<!-- screenshot: 42-toolbar-link.png -->
+![A page while logged in, with the toolbar item open on a page with two menus](images/42-toolbar-link.png)
 
 ## Content
 
@@ -136,7 +136,7 @@ When you're logged in, pages with a menu show **Edit mega menu** in the top tool
 
 Click **Add item** to add an item. Each row has these options:
 
-<!-- screenshot: 07-add-item.png -->
+![An item row open, Type set to Link](images/07-add-item.png)
 
 - **Label.** The words people see. Keep it short. Long labels will be flagged by the checklist.
 - **Type.** Choose **Link** or **Dropdown**. Default: **Link**.
@@ -146,7 +146,7 @@ Click **Add item** to add an item. Each row has these options:
 
 Row buttons let you reorder, duplicate or remove an item. You can also drag the handle on the left.
 
-<!-- screenshot: 08-link-search.png -->
+![The link search open with page results](images/08-link-search.png)
 
 ### Dropdown content
 
@@ -154,14 +154,14 @@ Click **Edit content** on a dropdown. Then choose a layout.
 
 **Simple columns** is what most menus need. It's also the default. Your links sit in 1 to 4 columns.
 
-<!-- screenshot: 09-dropdown-simple-columns.png -->
+![Dropdown editor on Simple columns with links filled in](images/09-dropdown-simple-columns.png)
 
 - **Columns.** How many columns to use. Default: 2 for a new dropdown.
 - **Add link.** Adds a link to the panel.
 
 **Categories + links** is for large menus. A list of categories sits on one side. Pointing at one shows its links.
 
-<!-- screenshot: 10-dropdown-categories.png -->
+![Dropdown editor on Categories + links with one category selected](images/10-dropdown-categories.png)
 
 Use it when you have many links that fall into clear groups. Each category has:
 
@@ -186,7 +186,7 @@ Each link can have:
 
 Click the gear next to a link to see its options.
 
-<!-- screenshot: 12-more-options.png -->
+![A link's options open, with More options expanded](images/12-more-options.png)
 
 - **Open in new tab.** Opens the link in a new tab. Use it for links to other sites. Screen readers will say that it opens a new tab. Default: off.
 
@@ -208,7 +208,7 @@ Click a row's icon spot to open the icon window.
 
 A featured card is an optional highlight at the end of a panel. Use it for a launch, a guide or an offer. It sits in a closed section at the bottom of the dropdown editor. The section opens by itself if the card has anything in it.
 
-<!-- screenshot: 11-featured-card.png -->
+![Dropdown editor with the Featured card section open and the card on, plus the card in the preview](images/11-featured-card.png)
 
 - **Show a featured card.** Turns the card on. Default: off.
 - **Title.** The heading on the card.
@@ -221,7 +221,7 @@ A featured card is an optional highlight at the end of a panel. Use it for a lau
 
 The button stands out at the end of the menu bar. Use it for your main action, such as "Book a demo".
 
-<!-- screenshot: 13-button-panel.png -->
+![The Button section with Show button on](images/13-button-panel.png)
 
 - **Show button.** Turns it on or off.
 - **Button text.** The words on the button.
@@ -233,7 +233,7 @@ You can change its colors and shape in [Style your menu](style-your-menu.md).
 
 Show your logo or site name at the start of the menu bar.
 
-<!-- screenshot: 14-logo-panel.png -->
+![The Logo section with Show logo on and a logo chosen](images/14-logo-panel.png)
 
 - **Show logo.** Turns it on. Default: off.
 - **Logo image URL.** Click the picture button to choose from your Media Library.
@@ -247,7 +247,7 @@ The preview shows your menu as you work. Menus open as they do on your site. Cli
 
 Click **Desktop**, **Tablet** or **Mobile** above it to change the size.
 
-<!-- screenshot: 27-preview-devices.png -->
+![Editor preview on the phone size](images/27-preview-devices.png)
 
 **The preview doesn't load your theme's styles.** Always check the final look on your site.
 
@@ -263,7 +263,7 @@ These help on a large menu. Each device remembers its own zoom in your browser.
 
 Most people only need a style. The full list is in [Style your menu](style-your-menu.md).
 
-<!-- screenshot: 15-design-presets.png -->
+![Design with the style cards and the preview](images/15-design-presets.png)
 
 **Site look** shows only on menus imported from Easy Mega Menu. See [Switch from Easy Mega Menu](migrate-from-easy-mega-menu.md#keep-or-change-the-look).
 
@@ -271,13 +271,13 @@ Most people only need a style. The full list is in [Style your menu](style-your-
 
 See [Place your menu](place-your-menu.md).
 
-<!-- screenshot: 24-check-step.png -->
+![Check with View site](images/24-check-step.png)
 
 ### Checklist
 
 The checklist is at the top of the **Place** step, so you can fix things before you place the menu. A small number on that step shows how many things it found. It looks for things to fix, such as links that go nowhere. Click an item to jump to the problem.
 
-<!-- screenshot: 25-checklist-issue.png -->
+![Place with the checklist showing two issues at the top](images/25-checklist-issue.png)
 
 It doesn't test your links, your theme or how easy the menu is to use. The full list is in [Fix a problem](troubleshooting.md#my-menu-card-says-needs-attention).
 
@@ -314,7 +314,7 @@ Most sites don't need this. It's off by default.
 3. Click **Add product**.
 4. Turn it on where the menu is placed. See [Place your menu](place-your-menu.md#show-extra-links-on-product-pages).
 
-<!-- screenshot: 43-product-navigation.png -->
+![Product Navigation with one product and the form filled in](images/43-product-navigation.png)
 
 Product options:
 
@@ -338,7 +338,7 @@ A card's label tells you where the product stands:
 
 This shows a product's own logo in the menu, on that product's pages.
 
-<!-- screenshot: 44-product-branding.png -->
+![Product Branding with one product selected](images/44-product-branding.png)
 
 - **Use a product logo.** Turns it on for this product.
 - **Logo style.** **One combined logo image** or **Shared logo + product name**. The second keeps your main logo and adds the product's name after it.
@@ -349,7 +349,7 @@ This shows a product's own logo in the menu, on that product's pages.
 
 This page lists which product links each page shows. Use it to check your setup. You can search it and filter it.
 
-<!-- screenshot: 45-coverage.png -->
+![Navigation Coverage with three pages, one of each Why](images/45-coverage.png)
 
 The **Why** column tells you the reason:
 

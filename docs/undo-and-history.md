@@ -13,7 +13,7 @@
 
 You can also open **History** from the **⋯** menu in the editor.
 
-<!-- screenshot: 32-history-versions.png -->
+![History, under One menu, with three versions listed](images/32-history-versions.png)
 
 If you restore the wrong version, you can undo that too. Your menu keeps the version it had before.
 
@@ -48,7 +48,7 @@ A menu's History is removed when you permanently delete that menu. All History i
 
 The plugin saves a backup of all your menus before big changes, such as an import. It keeps the last five. These are in **History**, under **All menus**. **History** sits in **Tools** on the main screen.
 
-<!-- screenshot: 33-history-backups.png -->
+![History, under All menus, listing two backups](images/33-history-backups.png)
 
 **Restoring a backup replaces all your menus,** not just one. So it's for big mistakes. The plugin saves your current menus as a new backup first.
 
@@ -71,7 +71,7 @@ An export is not a full backup. It doesn't include your products, branding or th
 
 Go to **Tools** on the main screen, then **Import and export**. Choose a file and a mode. You will see a preview before anything changes.
 
-<!-- screenshot: 38-import-export.png -->
+![Import and export open, with a file preview showing](images/38-import-export.png)
 
 - **Copy** adds these as new menus and changes nothing else. This is the safest choice.
 - **Merge** adds new menus and updates menus with the same ID. Menus already on your site may change.
@@ -86,13 +86,13 @@ Archive takes a menu out of use but keeps it.
 1. Click **⋯** on the menu's card, then **Archive**.
 2. Read the message. It tells you how many places use this menu.
 
-<!-- screenshot: 36-archive-dialog.png -->
+![The archive message for a placed menu](images/36-archive-dialog.png)
 
 **If the menu is placed, it will disappear from those pages.** Archive only if that's what you want. The plugin can't see inside theme files, so a count of zero doesn't always mean the menu is unused.
 
 To bring it back, find it under **Archived menus** and click **Restore**. It keeps its ID, so it goes back to the same places.
 
-<!-- screenshot: 37-archived-list.png -->
+![The Archived menus list with one menu](images/37-archived-list.png)
 
 ## Permanently delete
 
@@ -108,7 +108,7 @@ The plugin warns you. You can choose one of these:
 - **Leave, keep a copy** keeps your work in this browser only.
 - **Keep editing** stays on the page.
 
-<!-- screenshot: 35-exit-dialog.png -->
+![The dialog for leaving with unsaved changes](images/35-exit-dialog.png)
 
 ## Getting unsaved changes back
 
@@ -120,7 +120,7 @@ If you come back to a menu with unsaved changes, you will see when they were mad
 - **Download a copy** saves it as a file.
 - **Discard my changes** throws it away.
 
-<!-- screenshot: 34-unsaved-changes.png -->
+![Editor showing the panel for unsaved changes](images/34-unsaved-changes.png)
 
 The copy stays in that one browser. It won't show up on another computer.
 

@@ -25,7 +25,7 @@ Your site looks the same as before. Nothing changes for visitors until you place
 1. Click **Mega Menu** in the sidebar.
 2. Pick how you want to start.
 
-<!-- screenshot: 01-welcome.png -->
+![Mega Menu with no menus yet, the three starting choices](images/01-welcome.png)
 
 - **Start from your pages** is the fastest choice if your site has pages. Tick the pages you want. Pages with a parent page go in that parent's dropdown.
 - **Use a template** gives you a sample menu to change. Replace every sample word and link.
@@ -37,7 +37,7 @@ Then type a name at the top of the editor, such as "Main menu". Visitors do not 
 
 The editor has four steps along the top: **Content**, **Design**, **Place** and **Check**. You start on **Content**.
 
-<!-- screenshot: 06-editor-overview.png -->
+![Editor on Content, with a few items and the preview showing](images/06-editor-overview.png)
 
 1. Click **Add item**.
 2. Type the words people will see in **Label**.
@@ -70,7 +70,7 @@ Saving is the only step. There is no separate "publish" button. Once your menu i
 
 The plugin picks the method that suits your theme. If you want more detail, read [how to place your menu](place-your-menu.md).
 
-<!-- screenshot: 19-place-step.png -->
+![Place on a block theme](images/19-place-step.png)
 
 Keep your old menu for now. That way visitors can always find their way while you test.
 

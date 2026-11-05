@@ -1,15 +1,15 @@
 # Screenshot list
 
-These are the screenshots the docs need. Each doc marks its spot with a hidden comment that starts with `screenshot:` and gives the file name. Replace the comment with an image when the picture is ready.
+These are the screenshots the docs use. Each one is in the docs as an image. If you retake one, keep its file name.
 
 ## Rules
 
-- Take them on a local test site with made-up content, such as "Example Coffee". Use no client names, real menus or live sites.
-- Take them after the simplified editor ships, so the screens match the docs.
+- Take them on a local test site with made-up content, such as "Maple Street Bakery". Use no client names, real menus or live sites.
+- Retake a picture when its screen changes, so the screens match the docs.
 - Save them in `docs/images/`.
-- Use a 1440 by 900 window for admin screens and 390 by 844 for phones, unless a row says otherwise.
+- Use a 1280 wide window for admin screens and 390 by 844 for phones, unless a row says otherwise.
 - Use WordPress's default admin colors and the Twenty Twenty-Five theme, unless a row says otherwise.
-- Crop to what matters. Put a simple box or arrow on what the "Highlight" column names.
+- Crop to what matters. Put a simple box on what the "Highlight" column names.
 - Give each image alt text that says what it shows.
 
 ## Admin: main screen
@@ -53,7 +53,7 @@ These are the screenshots the docs need. Each doc marks its spot with a hidden c
 | --- | --- | --- | --- |
 | `19-place-step.png` | **Place** on a block theme | **Recommended for your theme** | getting-started, place-your-menu |
 | `20-block-header.png` | Site Editor with the Header open and the Ashbi block selected | Block and its menu picker | place-your-menu |
-| `21-widget.png` | **Appearance**, **Widgets**, using a classic theme with a header widget area | The menu picker | place-your-menu |
+| `21-widget.png` | **Appearance**, **Widgets**, using a classic theme | The menu picker | place-your-menu |
 | `22-shortcode-block.png` | A shortcode block in the page editor with the shortcode pasted | The shortcode | place-your-menu |
 | `23-elementor-widget.png` | Elementor with the widget selected on the Content tab | The Menu setting | place-your-menu |
 | `24-check-step.png` | **Check** with **View site** | The list | user-guide |

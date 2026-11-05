@@ -14,7 +14,7 @@ Take a full backup of your site first. Then:
 
 Your headers keep working with no edits, because Ashbi now answers Easy Mega Menu's shortcodes.
 
-<!-- screenshot: 40-emm-import.png -->
+![Easy Mega Menu import table using made-up menu names](images/40-emm-import.png)
 
 ## Step by step
 
@@ -79,7 +79,7 @@ Do this at a quiet time.
 4. Clear your page and CDN caches. A CDN is a service that stores copies of your site around the world.
 5. Check your live pages while logged out.
 
-<!-- screenshot: 41-emm-switch.png -->
+![Step 3 on that screen, with the warning about a missing menu](images/41-emm-switch.png)
 
 **If a warning appears:** your pages use a menu that you haven't imported. With the switch on, those headers will be empty. Import those menus first. You can tick a box to turn the switch on anyway, but those headers stay empty until you do.
 
