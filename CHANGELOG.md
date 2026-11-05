@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.9
+
+The editor is easier to scan. Nothing visitors see changes.
+
+- **Editor layout**: menu items and settings are on the left. The preview and the dropdown editor are on the right. Narrow screens keep the slide-in panel.
+- **Preview size**: the preview canvas is shorter (340 to 560 px, was up to 1,600 px). The desktop frame starts at 400 px and grows when a dropdown opens. Before, the canvas filled most of the window.
+
 ## 1.2.8
 
 Easy Mega Menu can now be deleted. Stored menus and what visitors see are not changed.

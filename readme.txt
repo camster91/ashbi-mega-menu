@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.8
+Stable tag: 1.2.9
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -103,6 +103,11 @@ Your menus and settings stay, and they come back if you install it again. To rem
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
+
+= 1.2.9 =
+* The editor has your menu items and settings on the left, and the preview on the right.
+* The preview is shorter, so you see the menu bar and the settings together without scrolling.
+* Nothing changes for visitors. Narrow screens work as before.
 
 = 1.2.8 =
 * Finish switching from Easy Mega Menu with one button, then delete it. A backup is saved first, and you can undo it.
@@ -220,6 +225,9 @@ Your menus and settings stay, and they come back if you install it again. To rem
 * Generic sample content and public package isolation.
 
 == Upgrade Notice ==
+
+= 1.2.9 =
+A tidier editor: settings on the left, a shorter preview on the right. Your menus on the site are unchanged.
 
 = 1.2.8 =
 Finish switching from Easy Mega Menu and delete it. Deleting this plugin now keeps your menus unless you choose otherwise. Saving a menu clears NitroPack's cache.
