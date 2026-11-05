@@ -674,7 +674,8 @@ async function auditRegressions(){
   assert.equal($('.abmm-confirm-archive').hasClass('abmm-button-danger'),known>0);
   assert.equal($('.abmm-confirm-archive').hasClass('button-primary'),known===0);
   assert.equal(/disappear/.test($('.abmm-archive-confirm').text()),known>0,'the consequence is named');
-  assert.match($('.abmm-archive-confirm').text(),new RegExp('0 0 0 '+known),'page builder placements count');
+  if(known) assert.match($('.abmm-archive-confirm').text(),new RegExp('0 0 0 '+known),'page builder placements count');
+   else assert.ok(!/0 0 0 0/.test($('.abmm-archive-confirm').text()),'no list of zero counts when nothing is found');
   f.close();
  }
  // A card's History opens the shared panel on that menu, with its versions and restore.

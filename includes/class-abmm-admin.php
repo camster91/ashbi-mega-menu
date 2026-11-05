@@ -222,7 +222,7 @@ class ABMM_Admin {
 					/* translators: %1$s: menu title. */
 					'archiveConfirmTitle' => __( 'Archive “%1$s”?', 'ashbi-mega-menu' ),
 					/* translators: 1: number of block placements, 2: number of widget placements, 3: number of shortcodes in pages, 4: number of page builder or Easy Mega Menu shortcode placements. */
-					'archivePlacements' => __( 'Placements: blocks %1$d, widgets %2$d, shortcodes %3$d, page builders and Easy Mega Menu shortcodes %4$d.', 'ashbi-mega-menu' ),
+					'archivePlacements' => __( 'Where it is used: %1$d blocks, %2$d widgets, %3$d shortcodes, %4$d in page builders or older shortcodes.', 'ashbi-mega-menu' ),
 					'archiveConfirm'  => __( 'Archive and keep recoverable', 'ashbi-mega-menu' ),
 					'archiveSuccess'  => __( 'Menu archived. It can be restored below.', 'ashbi-mega-menu' ),
 					'restoreSuccess'  => __( 'Menu restored with its original ID.', 'ashbi-mega-menu' ),

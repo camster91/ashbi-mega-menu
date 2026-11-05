@@ -63,7 +63,7 @@ const strings = {
 		assert.equal(requests.length, 1, 'cancel never sends an archive mutation');
 		$archive.trigger('click');
 		requests[1].d.resolve({ success: true, data: {} });
-		assert.equal($('.abmm-archive-confirm p').first().text(), 'Widgets : 0 ; blocs : 0 ; encore 0. <img src=x>', 'missing reference counts retain zero defaults');
+		assert.ok(!$('.abmm-archive-confirm').text().includes('Widgets :'), 'no list of zero counts when nothing is found');
 		$('.abmm-confirm-archive').trigger('click');
 		assert.equal(requests[2].data.action, 'abmm_delete_menu');
 		assert.equal(requests[2].data.menu_id, 'demo');

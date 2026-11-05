@@ -1565,7 +1565,7 @@
 					$list.empty();
 					(res.data.backups || []).forEach(function (backup) {
 						var $row = $('<div class="abmm-backup-row" />').attr('data-backup-id', backup.id);
-						$('<strong />').text((S.backupSummary || '%1$s — menus: %2$s').replace('%1$s', function () { var when = new Date(backup.created_at); return isNaN(when.getTime()) ? String(backup.created_at) : when.toLocaleString(); }).replace('%2$s', String(backup.menu_count))).appendTo($row);
+						$('<strong />').text((S.backupSummary || '%1$s — menus: %2$s').replace('%1$s', function () { if (backup.created_label) return backup.created_label; var when = new Date(backup.created_at); return isNaN(when.getTime()) ? String(backup.created_at) : when.toLocaleString(); }).replace('%2$s', String(backup.menu_count))).appendTo($row);
 						$('<button type="button" class="button abmm-export-backup" />').text(S.backupExport || 'Export snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$('<button type="button" class="button abmm-restore-backup" />').text(S.backupRestore || 'Restore snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$row.appendTo($list);
@@ -2076,7 +2076,7 @@
 						'<div class="abmm-archive-confirm' + (known ? ' is-danger' : '') + '" role="alert">' +
 						'<strong>' + esc(confirmTitle) + '</strong>' +
 						(consequence ? '<p class="abmm-archive-confirm__consequence">' + esc(consequence) + '</p>' : '') +
-						'<p>' + esc(placements) + '</p>' +
+						(refs.blocks || refs.widgets || refs.shortcodes || refs.other ? '<p>' + esc(placements) + '</p>' : '') +
 						'<p>' + esc(refs.warning || '') + '</p>' +
 						'<button type="button" class="button ' + (known ? 'abmm-button-danger' : 'button-primary') + ' abmm-confirm-archive">' + esc(S.archiveConfirm) + '</button> ' +
 						'<button type="button" class="button abmm-cancel-archive">' + esc(S.cancel) + '</button>' +
@@ -2285,6 +2285,7 @@
 				contentType: false,
 			}).done(function (res) {
 				if (res.success && res.data.preview) {
+					setImportStatus('', false);
 					renderImportPreview(res.data.preview, function () {
 						importConfirmed = true;
 						$form.trigger('submit');

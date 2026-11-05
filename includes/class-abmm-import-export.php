@@ -116,7 +116,15 @@ class ABMM_Import_Export {
 		$this->check_backup_access();
 		$items = array();
 		foreach ( $this->get_backups() as $backup ) {
-			$items[] = array( 'id' => $backup['id'], 'created_at' => $backup['created_at'], 'menu_count' => count( $backup['menus'] ) );
+			$created = strtotime( (string) $backup['created_at'] );
+			// The same format as saved versions, in the site's own timezone.
+			$seconds = preg_match( '/[GH]/', (string) get_option( 'time_format' ) ) ? 'H:i:s' : 'g:i:s a';
+			$items[] = array(
+				'id'            => $backup['id'],
+				'created_at'    => $backup['created_at'],
+				'created_label' => $created && function_exists( 'wp_date' ) ? wp_date( get_option( 'date_format' ) . ' ' . $seconds, $created ) : '',
+				'menu_count'    => count( $backup['menus'] ),
+			);
 		}
 		wp_send_json_success( array( 'backups' => $items, 'revision' => ABMM_Data::instance()->revision( ABMM_Data::instance()->get_all() ) ) );
 	}
