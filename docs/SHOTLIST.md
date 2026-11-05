@@ -66,7 +66,7 @@ These are the screenshots the docs use. Each one is in the docs as an image. If 
 | `28-phone-menu-open.png` | A phone with the drawer open | The menu button and Close | phone-menus |
 | `29-phone-drill.png` | A phone inside a section | **Back** | phone-menus |
 | `30-phone-enhanced.png` | A phone with **Enhanced mobile menu** on | The search box | phone-menus |
-| `31-phone-label.png` | A phone with two stacked Classic menus, using a button label | The label | phone-menus |
+| `31-phone-label.png` | A phone with two stacked menus, using a button label | The label | phone-menus |
 | `42-toolbar-link.png` | A page while logged in, with the toolbar item open on a page with two menus | **Edit mega menu** | user-guide |
 | `46-two-menus.png` | A page showing the theme's old menu above the new one | Both menus | troubleshooting |
 

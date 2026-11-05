@@ -341,7 +341,7 @@ class ABMM_EMM_Migration {
 				'conflict' => isset( $existing[ $id ] ) && ! ABMM_Classic::is_classic( $existing[ $id ] ),
 				'exists'   => isset( $existing[ $id ] ),
 				// An earlier import that no longer matches Easy Mega Menu: usually Ashbi edits.
-				'edited'   => isset( $existing[ $id ] ) && ABMM_Classic::is_classic( $existing[ $id ] ) && ABMM_Data::instance()->revision( ABMM_Data::instance()->sanitize_menu( $mapped['menu'] ) ) !== ABMM_Data::instance()->revision( $existing[ $id ] ),
+				'edited'   => isset( $existing[ $id ] ) && ABMM_Classic::is_classic( $existing[ $id ] ) && ABMM_Data::instance()->revision( self::without_ids( ABMM_Data::instance()->sanitize_menu( $mapped['menu'] ) ) ) !== ABMM_Data::instance()->revision( self::without_ids( $existing[ $id ] ) ),
 				'issues'   => $mapped['issues'],
 			);
 		}
@@ -354,6 +354,23 @@ class ABMM_EMM_Migration {
 			'assets_ready' => $plugin && is_readable( $plugin['dir'] . '/assets/css/frontend.css' ) && is_readable( $sprite ),
 			'assets_kept'  => $this->assets_copied(),
 		);
+	}
+
+	/**
+	 * A menu without its item IDs. Items that have none get a new random ID each
+	 * time they are read, which says nothing about whether anyone edited them.
+	 *
+	 * @param array $menu Menu or part of one.
+	 * @return array
+	 */
+	private static function without_ids( $menu ) {
+		unset( $menu['id'] );
+		foreach ( $menu as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$menu[ $key ] = self::without_ids( $value );
+			}
+		}
+		return $menu;
 	}
 
 	private function count_links( $menu ) {

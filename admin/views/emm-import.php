@@ -37,7 +37,7 @@ $abmm_step          = 0;
 		</div>
 	<?php elseif ( 'finished' === $notice && is_array( $result ) ) : ?>
 		<div class="notice notice-success">
-			<p><?php echo esc_html( sprintf( /* translators: 1: posts and pages, 2: Elementor layouts, 3: widgets. */ __( 'Done. Updated %1$d pages and posts, %2$d Elementor layouts and %3$d widget areas. A backup was saved first.', 'ashbi-mega-menu' ), (int) $result['posts'], (int) $result['elementor'], (int) $result['widgets'] ) ); ?></p>
+			<p><?php echo esc_html( sprintf( /* translators: 1: posts and pages, 2: Elementor layouts, 3: widgets. */ __( 'Done. Pages and posts updated: %1$d. Elementor layouts updated: %2$d. Widget areas updated: %3$d. A backup was saved first.', 'ashbi-mega-menu' ), (int) $result['posts'], (int) $result['elementor'], (int) $result['widgets'] ) ); ?></p>
 			<?php if ( ! empty( $result['failed'] ) ) : ?>
 				<p><?php echo esc_html( sprintf( /* translators: %d: number of places. */ _n( '%d place could not be updated. Its old code still works.', '%d places could not be updated. Their old codes still work.', (int) $result['failed'], 'ashbi-mega-menu' ), (int) $result['failed'] ) ); ?></p>
 			<?php endif; ?>

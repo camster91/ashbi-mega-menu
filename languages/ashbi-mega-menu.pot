@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-05T04:48:27+00:00\n"
+"POT-Creation-Date: 2026-11-05T05:02:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: ashbi-mega-menu\n"
@@ -1262,8 +1262,8 @@ msgid "Overrides the icon style in Advanced settings for this item only."
 msgstr ""
 
 #: admin/views/emm-import.php:26
-#: includes/class-abmm-emm-migration.php:1181
-#: includes/class-abmm-emm-migration.php:1192
+#: includes/class-abmm-emm-migration.php:1198
+#: includes/class-abmm-emm-migration.php:1209
 msgid "Switch from Easy Mega Menu"
 msgstr ""
 
@@ -1285,7 +1285,7 @@ msgstr ""
 
 #. translators: 1: posts and pages, 2: Elementor layouts, 3: widgets.
 #: admin/views/emm-import.php:40
-msgid "Done. Updated %1$d pages and posts, %2$d Elementor layouts and %3$d widget areas. A backup was saved first."
+msgid "Done. Pages and posts updated: %1$d. Elementor layouts updated: %2$d. Widget areas updated: %3$d. A backup was saved first."
 msgstr ""
 
 #. translators: %d: number of places.
@@ -3002,82 +3002,82 @@ msgstr ""
 msgid "%s changed while copying."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:413
+#: includes/class-abmm-emm-migration.php:430
 msgid "Easy Mega Menu has no menus to import."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:540
+#: includes/class-abmm-emm-migration.php:557
 msgid "The menus were imported, but Product Navigation could not be saved. Run the import again."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:587
+#: includes/class-abmm-emm-migration.php:604
 msgid "The styles and icons copied earlier are still in place."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:589
+#: includes/class-abmm-emm-migration.php:606
 msgid "Easy Mega Menu files were not found, so the bundled styles and generic icons are used."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:594
+#: includes/class-abmm-emm-migration.php:611
 msgid "Easy Mega Menu styles or icons could not be read."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:598
+#: includes/class-abmm-emm-migration.php:615
 msgid "The uploads folder is not writable."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:605
+#: includes/class-abmm-emm-migration.php:622
 msgid "Easy Mega Menu styles or icons were not usable."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:615
+#: includes/class-abmm-emm-migration.php:632
 msgid "The copied styles could not be saved."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:634
+#: includes/class-abmm-emm-migration.php:651
 msgid "Easy Mega Menu styles and icons were copied."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:745
+#: includes/class-abmm-emm-migration.php:762
 msgid "Deactivate Easy Mega Menu first. While it is active it still answers its own codes."
 msgstr ""
 
 #. translators: %s: comma-separated menu IDs.
-#: includes/class-abmm-emm-migration.php:750
+#: includes/class-abmm-emm-migration.php:767
 msgid "Your pages use these menus, but they are not copied yet: %s. Copy them first."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:778
+#: includes/class-abmm-emm-migration.php:795
 msgid "The backup could not be saved, so nothing was changed."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:820
+#: includes/class-abmm-emm-migration.php:837
 msgid "There is no switch to undo."
 msgstr ""
 
 #. translators: %s: comma-separated menu IDs.
-#: includes/class-abmm-emm-migration.php:1099
+#: includes/class-abmm-emm-migration.php:1116
 msgid "Your pages use these menus, but they are not copied yet, so their headers are empty: %s."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:1101
+#: includes/class-abmm-emm-migration.php:1118
 msgid "Copy them now"
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:1182
+#: includes/class-abmm-emm-migration.php:1199
 msgid "Easy Mega Menu import"
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:1193
+#: includes/class-abmm-emm-migration.php:1210
 msgid "Easy Mega Menu switch"
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:1203
+#: includes/class-abmm-emm-migration.php:1220
 msgid "You do not have permission to import menus."
 msgstr ""
 
-#: includes/class-abmm-emm-migration.php:1223
-#: includes/class-abmm-emm-migration.php:1234
+#: includes/class-abmm-emm-migration.php:1240
+#: includes/class-abmm-emm-migration.php:1251
 msgid "You do not have permission to change site content."
 msgstr ""
 

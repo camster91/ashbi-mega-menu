@@ -378,6 +378,15 @@ verify_migration( 'emm-classic' === $classic_menu['settings']['render_mode'] && 
 verify_migration( 40 === strlen( $classic_menu['settings']['classic_toggle_label'] ), 'The toggle label is capped.' );
 verify_migration( 'Clean' === ABMM_Data::design_presets()['classic']['label'], 'The default preset no longer shares a name with the Classic look.' );
 
+// A copied menu whose links have no IDs of their own does not look edited.
+$abmm_no_ids = array( 'title' => 'No IDs', 'items' => array( array( 'label' => 'Shop', 'url' => '#', 'type' => 'mega', 'mega_style' => 'simple', 'links' => array( array( 'label' => 'One', 'url' => 'https://example.test/one/' ) ) ) ) );
+$GLOBALS['abmm_options']['emm_menus']['no_ids'] = $abmm_no_ids;
+$migration->import( false, array( 'no_ids' ) );
+$abmm_rows = array_column( $migration->preview()['menus'], null, 'id' );
+verify_migration( ! empty( $abmm_rows['no_ids']['exists'] ) && empty( $abmm_rows['no_ids']['edited'] ), 'A fresh copy of a menu with no item IDs is not reported as edited.' );
+unset( $GLOBALS['abmm_options']['emm_menus']['no_ids'] );
+ABMM_Data::instance()->archive( 'no_ids' );
+
 // A re-import keeps edits unless a row is ticked, and each replaced menu can be rolled back.
 $edited                 = ABMM_Data::instance()->get_all();
 $edited['main_nav']['title'] = 'My edits';
