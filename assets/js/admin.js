@@ -4496,7 +4496,8 @@
 	// open panel, up to a limit so a panel sized from the frame's height can't
 	// keep growing it.
 	var PREVIEW_WIDTHS = { desktop: 1100, tablet: 820, mobile: 390 };
-	var PREVIEW_SCREEN_HEIGHTS = { desktop: 600, tablet: 1040, mobile: 720 };
+	// The desktop frame starts short, so the canvas hugs the menu bar. It grows when a dropdown opens.
+	var PREVIEW_SCREEN_HEIGHTS = { desktop: 400, tablet: 1040, mobile: 720 };
 	var PREVIEW_DESKTOP_MAX_HEIGHT = 1600;
 	var previewCanvas = null;
 

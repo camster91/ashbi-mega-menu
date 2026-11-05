@@ -1522,9 +1522,9 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
    scales with the view (preview-canvas.js sets its size and position).
    ------------------------------------------------------------------------ */
 .abmm-wrap .abmm-preview-shell,
-.abmm-wrap .abmm-preview-shell[data-abmm-preview-viewport] {position:relative;height:clamp(440px,calc(100vh - 250px),1600px);min-height:0;padding:0;overflow:hidden;cursor:grab;touch-action:none;overscroll-behavior:contain;background-color:#f3f5f9;background-image:radial-gradient(circle,#c9d1df 1px,transparent 1.2px);background-size:16px 16px;user-select:none;-webkit-user-select:none}
+.abmm-wrap .abmm-preview-shell[data-abmm-preview-viewport] {position:relative;height:clamp(340px,calc(100vh - 460px),560px);min-height:0;padding:0;overflow:hidden;cursor:grab;touch-action:none;overscroll-behavior:contain;background-color:#f3f5f9;background-image:radial-gradient(circle,#c9d1df 1px,transparent 1.2px);background-size:16px 16px;user-select:none;-webkit-user-select:none}
 /* While a dropdown's content is edited below, a shorter canvas keeps both in view. */
-.abmm-wrap.is-editing-mega .abmm-preview-shell[data-abmm-preview-viewport] {height:clamp(320px,calc(100vh - 520px),620px)}
+.abmm-wrap.is-editing-mega .abmm-preview-shell[data-abmm-preview-viewport] {height:clamp(240px,calc(100vh - 620px),420px)}
 .abmm-wrap .abmm-preview-shell.is-panning,.abmm-wrap .abmm-preview-shell.is-panning * {cursor:grabbing!important}
 .abmm-wrap .abmm-preview-shell .abmm-preview {cursor:auto;user-select:text;-webkit-user-select:text}
 .abmm-preview-shell .abmm-preview-sizer {position:absolute;top:0;left:0;margin:0;transform-origin:0 0;will-change:transform}

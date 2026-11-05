@@ -277,7 +277,7 @@ async function editorPreview(menu, fetchPreview) {
 	const frame = classic.win.document.querySelector('#abmm-preview iframe.abmm-preview-device');
 	assert.ok(frame, 'A Classic menu previews in a frame on desktop.');
 	assert.equal(frame.style.width, '1100px', 'At the desktop width.');
-	assert.equal(frame.style.height, '600px', 'At the desktop frame height.');
+	assert.equal(frame.style.height, '400px', 'At the desktop frame height.');
 	assert.deepEqual(classic.requests, ['abmm_preview_markup'], 'The markup comes from the live renderer.');
 	const srcdoc = frame.getAttribute('srcdoc') || '';
 	assert.ok(srcdoc.includes('<header class="emm-header">'), 'The frame holds the Classic markup.');
