@@ -131,7 +131,7 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 			<?php endif; ?>
 			<section class="abmm-builder-panel abmm-menu-structure-panel">
 				<h2><?php esc_html_e( 'Menu items', 'ashbi-mega-menu' ); ?></h2>
-				<p class="description"><?php esc_html_e( 'Shown in the menu bar. Drag or use the arrows to reorder.', 'ashbi-mega-menu' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Shown in the menu bar. Drag a row, or use its ⋯ menu, to reorder.', 'ashbi-mega-menu' ); ?></p>
 				<ul class="abmm-sortable abmm-nav-items" id="abmm-nav-items" tabindex="-1"></ul>
 				<button type="button" class="button abmm-add-nav-item">
 					+ <?php esc_html_e( 'Add item', 'ashbi-mega-menu' ); ?>

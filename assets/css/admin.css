@@ -3401,6 +3401,7 @@ body.abmm-builder-sheet-open {
 /* The groups sit one level in, so the section's heading reads as their parent. */
 .abmm-wrap .abmm-advanced > .abmm-design-more {
 	margin-inline-start: 0.5rem;
+}
 
 /* "More options": rarely needed settings, closed until one is in use. */
 .abmm-more-options[hidden] {
@@ -3408,8 +3409,15 @@ body.abmm-builder-sheet-open {
 }
 
 .abmm-wrap .abmm-load-backups[hidden] {
-	display: none;
+	display: none !important;
 }
+
+/* Focus lands here when History opens, as a place to read from, not a control. */
+.abmm-wrap #abmm-history-title:focus {
+	outline: 0;
+	box-shadow: none;
+}
+
 
 .abmm-more-options > summary {
 	width: fit-content;
@@ -3471,13 +3479,23 @@ body.abmm-builder-sheet-open {
 }
 
 /* Tools, closed to one line until a menu exists. */
-.abmm-tools__closed > summary {
+.abmm-wrap .abmm-tools__closed > summary {
+	display: list-item;
+	padding: 16px 20px;
 	cursor: pointer;
 }
 
-.abmm-tools__closed > summary h2 {
+.abmm-tools__closed[open] > summary {
+	border-bottom: 1px solid var(--abmm-brand-line, #dcdcde);
+}
+
+.abmm-wrap .abmm-tools__closed > summary h2 {
 	display: inline;
 	margin: 0;
+	padding: 0;
+	font-size: 15px;
+	font-weight: 600;
+	border: 0;
 }
 
 .abmm-nav-item-row__more {

@@ -93,6 +93,11 @@
 		padding-inline: 0.5rem;
 	}
 
+	/* The label takes the room the title had, so a logo stands alone. */
+	.emm-header:has(.emm-nav__toggle-label) .emm-nav__brand:has(.emm-nav__brand-logo) .emm-nav__brand-title {
+		display: none;
+	}
+
 	/* An explicit per-menu padding beats a site override in any load order. */
 	.emm-header[style*="--emm-bar-padding"] .emm-nav__bar {
 		padding: var(--emm-bar-padding) !important;

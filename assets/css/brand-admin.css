@@ -441,6 +441,7 @@
 .abmm-wrap .abmm-card-menu__list .button::before {width:18px;font:normal 18px/1 dashicons;color:var(--abmm-brand-muted);-webkit-font-smoothing:antialiased}
 .abmm-wrap .abmm-card-menu__list .abmm-export-menu::before {content:"\f316"}
 .abmm-wrap .abmm-card-menu__list .abmm-duplicate-menu::before {content:"\f105"}
+.abmm-wrap .abmm-card-menu__list .abmm-menu-versions::before {content:"\f321"}
 .abmm-wrap .abmm-card-menu__list .abmm-delete-menu {margin-top:4px;color:#b32d2e;box-shadow:inset 0 1px 0 #edf0f6;border-radius:0 0 6px 6px}
 .abmm-wrap .abmm-card-menu__list .abmm-delete-menu::before {content:"\f480";color:currentColor}
 .abmm-wrap .abmm-card-menu__list .button:hover,
@@ -1296,9 +1297,11 @@
 /* Page header: the pattern shared with the dashboard and product pages.
  * 40px logo, 22px title (the menu name), 13px muted subtitle, actions on the right.
  * Stuck to the top, it paints the page colour edge to edge so nothing shows through. */
-.abmm-wrap.abmm-builder-wrap .abmm-builder-header {position:sticky;top:32px;z-index:100;display:flex;flex-wrap:nowrap;align-items:center;gap:16px;min-height:var(--abmm-header-h);margin:0 0 16px;padding:14px 0;box-sizing:border-box;background:var(--abmm-page-bg);border:0;border-bottom:1px solid var(--abmm-brand-line);border-radius:0;box-shadow:0 0 0 100vmax var(--abmm-page-bg);clip-path:inset(-100vmax -100vmax 0 -100vmax);-webkit-backdrop-filter:none;backdrop-filter:none}
+.abmm-wrap.abmm-builder-wrap .abmm-builder-header {position:sticky;top:32px;z-index:100;display:flex;flex-wrap:nowrap;align-items:center;gap:16px;min-height:var(--abmm-header-h);margin:0 0 16px;padding:14px 0;box-sizing:border-box;background:var(--abmm-page-bg);border:0;border-bottom:1px solid var(--abmm-brand-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+/* The edge-to-edge colour sits on its own layer, because clipping the header itself would cut off its ... menu. */
+.abmm-wrap.abmm-builder-wrap .abmm-builder-header::before {content:"";position:absolute;inset:0;z-index:-1;background:var(--abmm-page-bg);box-shadow:0 0 0 100vmax var(--abmm-page-bg);clip-path:inset(-100vmax -100vmax 0 -100vmax);pointer-events:none}
 .abmm-builder-header__logo {flex:none;width:40px;height:40px;border-radius:10px}
-.abmm-builder-header__titles {display:flex;flex-direction:column;align-items:flex-start;flex:1 1 auto;min-width:0}
+.abmm-builder-header__titles {display:flex;flex-direction:column;align-items:flex-start;flex:1 1 200px;min-width:200px}
 .abmm-wrap .abmm-builder-header .abmm-back {display:inline-flex;align-items:center;gap:2px;margin:0 0 1px -4px;padding:1px 6px 1px 2px;border-radius:6px;color:var(--abmm-brand-muted);font-size:12px;font-weight:500;line-height:18px;text-decoration:none}
 .abmm-wrap .abmm-builder-header .abmm-back:hover {background:#e4e8f0;color:var(--abmm-brand-ink)}
 .abmm-wrap .abmm-builder-header .abmm-back:focus-visible {outline:2px solid var(--abmm-brand-blue);outline-offset:1px;box-shadow:none}
@@ -1311,7 +1314,10 @@
 /* A placed menu's status beside the save button says this already. */
 .abmm-wrap .abmm-builder-header .abmm-builder-header__subtitle.is-placed {display:none}
 .abmm-builder-header__subtitle code {overflow:hidden;padding:0 5px;color:var(--abmm-brand-muted);background:#e6e9f0;border-radius:4px;font-size:12px;line-height:18px;text-overflow:ellipsis;white-space:nowrap}
-.abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions {flex:none;gap:6px}
+.abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions {flex:0 1 auto;min-width:0;gap:6px}
+/* A long message wraps in its own space, so the title and Save always keep theirs. */
+.abmm-wrap .abmm-builder-header .abmm-save-status {flex:0 1 auto;min-width:0;max-width:240px;line-height:1.3;white-space:normal}
+.abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions > :not(.abmm-save-status) {flex:none}
 /* The stepper sits in the header: Content, Design, Place, Check. */
 .abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav {display:inline-flex;flex:none;align-items:center;gap:0;margin:0 6px 0 0;padding:3px;background:#e4e8f0;border-radius:10px}
 .abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav button {min-height:30px;padding:0 12px 0 6px;border-radius:7px;font-size:13px;cursor:pointer}
@@ -1334,7 +1340,8 @@
 	.abmm-wrap.abmm-builder-wrap .abmm-builder-header .abmm-workflow-nav {order:3;margin:0 0 0 56px}
 }
 @media (max-width:782px) {
-	.abmm-wrap.abmm-builder-wrap .abmm-builder-header {position:static;top:auto;gap:12px;clip-path:none;box-shadow:none}
+	.abmm-wrap.abmm-builder-wrap .abmm-builder-header {position:static;top:auto;gap:12px}
+	.abmm-wrap.abmm-builder-wrap .abmm-builder-header::before {display:none}
 	.abmm-builder-header__logo {width:32px;height:32px}
 	.abmm-builder-header__titles {flex-basis:calc(100% - 44px)}
 	.abmm-wrap .abmm-builder-header .abmm-builder-topbar__actions {order:2;width:100%;justify-content:flex-end}
@@ -1614,3 +1621,7 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
 .abmm-nav-import__actions {display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .abmm-nav-import__status {min-height:1.4em;margin:8px 0 0}
 .abmm-nav-import__status.is-error {color:#b32d2e}
+
+/* WordPress enlarges checkboxes on phones, and a narrower rule then leaves them tall.
+ * Keep them square in a toggle row. */
+.abmm-wrap .abmm-builder__sidebar .abmm-field.abmm-field--toggle input[type="checkbox"] {flex:none;align-self:center;width:20px;min-width:20px;height:20px;min-height:0}

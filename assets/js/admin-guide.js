@@ -529,7 +529,13 @@
 	if (window.abmmGuide) {
 		var guide = create({ window: window });
 		// Wait for the page to finish, so the editor has decided about any dialog.
-		if ('complete' === window.document.readyState) guide.maybeAutoStart();
-		else window.addEventListener('load', guide.maybeAutoStart);
+		// A fast page can reach load before jQuery's ready, and the tour clicks controls
+		// the editor wires up there, so start after the editor's own ready callback.
+		var startWhenReady = function () {
+			if (window.jQuery) window.jQuery(guide.maybeAutoStart);
+			else guide.maybeAutoStart();
+		};
+		if ('complete' === window.document.readyState) startWhenReady();
+		else window.addEventListener('load', startWhenReady);
 	}
 })(window);

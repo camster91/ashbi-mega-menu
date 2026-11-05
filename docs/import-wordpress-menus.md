@@ -13,7 +13,7 @@ The WordPress menu or navigation, your theme and its menu locations are not chan
 | In the WordPress menu | In the imported menu |
 | --- | --- |
 | A top-level item with no children | A link in the menu bar |
-| A top-level item with children | A mega menu |
+| A top-level item with children | A dropdown |
 | Its children, when none of them has children | One set of link columns, without a category list |
 | Its children, when some have children | Categories. A child's own page becomes the category's "see all" link |
 | Grandchildren (level 3) | Links in that category |

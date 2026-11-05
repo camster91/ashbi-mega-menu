@@ -599,6 +599,13 @@
 			scheduleLocalDraft();
 		} else {
 			updateSaveState('saved', S.savedState);
+			// Changes undone by hand leave nothing to recover. Only a draft written on
+			// this visit goes: one found on arrival still waits for its owner's choice.
+			if (state.draftWritten) {
+				clearTimeout(state.draftTimer);
+				removeLocalDraft();
+				state.draftWritten = false;
+			}
 		}
 	}
 
@@ -620,6 +627,7 @@
 				updated: Date.now(),
 			}));
 			state.draftStoreFailed = false;
+			state.draftWritten = true;
 		} catch (error) {
 			// Storage can be unavailable in private or locked-down browser contexts.
 			state.draftStoreFailed = true;
@@ -1557,7 +1565,7 @@
 					$list.empty();
 					(res.data.backups || []).forEach(function (backup) {
 						var $row = $('<div class="abmm-backup-row" />').attr('data-backup-id', backup.id);
-						$('<strong />').text((S.backupSummary || '%1$s — menus: %2$s').replace('%1$s', String(backup.created_at)).replace('%2$s', String(backup.menu_count))).appendTo($row);
+						$('<strong />').text((S.backupSummary || '%1$s — menus: %2$s').replace('%1$s', function () { var when = new Date(backup.created_at); return isNaN(when.getTime()) ? String(backup.created_at) : when.toLocaleString(); }).replace('%2$s', String(backup.menu_count))).appendTo($row);
 						$('<button type="button" class="button abmm-export-backup" />').text(S.backupExport || 'Export snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$('<button type="button" class="button abmm-restore-backup" />').text(S.backupRestore || 'Restore snapshot').attr('data-backup-id', backup.id).appendTo($row);
 						$row.appendTo($list);
@@ -1624,8 +1632,20 @@
 				var $row = $('<li />').appendTo($rows);
 				/* translators: 1: date and time, 2: number of menu items. */
 				$('<span />').text(sprintf(_n('%1$s, %2$d menu item', '%1$s, %2$d menu items', Number(version.items) || 0, 'ashbi-mega-menu'), version.saved_label, Number(version.items) || 0)).appendTo($row);
-				$('<button type="button" class="button button-small abmm-restore-version" />').text(__('Restore', 'ashbi-mega-menu')).on('click', function () {
-					var $restore = $(this).prop('disabled', true);
+				$('<button type="button" class="button button-small abmm-restore-version" />').text(__('Restore', 'ashbi-mega-menu')).on('click', function (event) {
+					var $restore = $(this);
+					// Restoring changes the live menu, and the second click of a double-click is not a decision.
+					if (event.originalEvent && event.originalEvent.detail > 1) return;
+					if (!$restore.data('confirmed')) {
+						var label = $restore.text();
+						$restore.data('confirmed', true).text(__('Click again to restore', 'ashbi-mega-menu'));
+						setTimeout(function () {
+							if ($restore.prop('disabled')) return;
+							$restore.data('confirmed', false).text(label);
+						}, 5000);
+						return;
+					}
+					$restore.prop('disabled', true);
 					$.post(abmmAdmin.ajaxUrl, { action: 'abmm_restore_menu_version', nonce: abmmAdmin.nonce, menu_id: id, version_id: version.id, base_revision: res.data.revision }).done(function (restored) {
 						if (restored && restored.success) {
 							setListStatus(responseMessage(restored, ''), false, false);
@@ -1773,10 +1793,10 @@
 				var links = (item.categories || []).reduce(function (sum, cat) { return sum + (cat.links || 0); }, 0);
 				if (item.columns_only) {
 					/* translators: 1: menu item label, 2: number of links. */
-					return sprintf(_n('%1$s: mega menu with %2$d link', '%1$s: mega menu with %2$d links', links, 'ashbi-mega-menu'), item.label, links);
+					return sprintf(_n('%1$s: dropdown with %2$d link', '%1$s: dropdown with %2$d links', links, 'ashbi-mega-menu'), item.label, links);
 				}
 				/* translators: 1: menu item label, 2: number of categories, 3: number of links. */
-				return sprintf(__('%1$s: mega menu with %2$d categories and %3$d links', 'ashbi-mega-menu'), item.label, (item.categories || []).length, links);
+				return sprintf(__('%1$s: dropdown with %2$d categories and %3$d links', 'ashbi-mega-menu'), item.label, (item.categories || []).length, links);
 			}), 'is-outline');
 			/* translators: %d: number of menu entries. */
 			$('<p class="abmm-nav-import__count" />').text(sprintf(_n('%d entry will be imported.', '%d entries will be imported.', report.imported || 0, 'ashbi-mega-menu'), report.imported || 0)).appendTo($result);

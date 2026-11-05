@@ -56,7 +56,7 @@ const source = fs.readFileSync('assets/js/admin.js', 'utf8');
 	assert.equal($result.prop('hidden'), false, 'The preview is shown');
 	assert.match($result.find('.abmm-nav-import__title').text(), /Main \(imported\)/);
 	const outline = $result.find('.is-outline li').map((_, li) => $(li).text()).get();
-	assert.deepEqual(outline, ['Home: link', 'Products: mega menu with 2 categories and 4 links', 'Company: mega menu with 2 links'], 'The outline describes each top-level item');
+	assert.deepEqual(outline, ['Home: link', 'Products: dropdown with 2 categories and 4 links', 'Company: dropdown with 2 links'], 'The outline describes each top-level item');
 	assert.match($result.find('.abmm-nav-import__count').text(), /9 entries will be imported/);
 	assert.match($result.text(), /Retail POS \(level 4\) is now a link in "Software"\./, 'Flattened items are listed');
 	assert.match($result.text(), /Draft page: It links to content that is not published\./, 'Skipped items are listed with a reason');

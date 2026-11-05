@@ -19,6 +19,7 @@ A simpler editor. Stored menus are not changed. Visitors see small fixes: rotati
 - **Guide**: a short, skippable tour for new menus, which you can show again from Help. It keeps its place in this browser only.
 - **Wording**: one name for each feature, such as Product Navigation and backup. Nothing is called a draft unless it is one. New menus use your site's font.
 - **Docs**: the guides are rewritten in plain English, with new guides for placing, styling, phone menus, undo and fixing problems.
+- **History**: restoring a saved version now takes a second click, and each version shows the time to the second.
 
 ## 1.2.5
 

@@ -105,7 +105,7 @@ class ABMM_Admin {
 			'steps'   => array(
 				'links' => array(
 					'title' => __( 'Add your links', 'ashbi-mega-menu' ),
-					'body'  => __( 'Add the pages you want in your menu. Drag them or use the arrows to put them in order.', 'ashbi-mega-menu' ),
+					'body'  => __( 'Add the pages you want in your menu. Drag them, or use the ⋯ menu on a row, to put them in order.', 'ashbi-mega-menu' ),
 				),
 				'save'  => array(
 					'title' => __( 'Save your work', 'ashbi-mega-menu' ),
@@ -762,7 +762,9 @@ class ABMM_Admin {
 		}
 		$versions = $store->menu_versions( $id );
 		foreach ( $versions as &$version ) {
-			$version['saved_label'] = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $version['saved_at'] );
+			// Seconds, because two saves in one minute would otherwise read the same.
+			$seconds_format         = preg_match( '/[GH]/', (string) get_option( 'time_format' ) ) ? 'H:i:s' : 'g:i:s a';
+			$version['saved_label'] = wp_date( get_option( 'date_format' ) . ' ' . $seconds_format, $version['saved_at'] );
 		}
 		unset( $version );
 		wp_send_json_success( array( 'revision' => $store->revision( $menu ), 'versions' => $versions ) );

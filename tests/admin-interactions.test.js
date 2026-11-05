@@ -203,7 +203,7 @@ async function backupFixture(strings = {}) {
  f=await backupFixture({backupLoading:'Chargement',backupExport:'<b>Exporter</b>',backupSummary:'%2$s menus — %1$s'}); $=f.$;
  $('.abmm-load-backups').trigger('click'); assert.equal($('#abmm-backup-status').text(),'Chargement');
  f.requests[0].d.resolve({success:true,data:{backups:[{id:'backup-1',created_at:'2026-10-10',menu_count:2}],revision:'collection-1'}});
- assert.equal($('.abmm-backup-row strong').text(),'2 menus — 2026-10-10');
+ assert.equal($('.abmm-backup-row strong').text(),'2 menus — '+new Date('2026-10-10').toLocaleString());
  assert.equal($('.abmm-export-backup').text(),'<b>Exporter</b>');
  assert.equal($('.abmm-export-backup b').length,0,'translated labels are text, never HTML'); f.close();
  f=await fixture(false,false,{revision:'revision-old',menu:{...menu,title:'Recovered older draft'}}); $=f.$;
@@ -690,6 +690,9 @@ async function auditRegressions(){
  assert.equal(f.window.document.activeElement.id,'abmm-history-title','focus moves to History');
  f.requests[0].d.resolve({success:true,data:{revision:'rev-now',versions:[{id:'v1',saved_at:1,saved_label:'Today',items:3}]}});
  assert.match($('.abmm-version-list').text(),/Today, 3 menu items/);
+ $('.abmm-restore-version').trigger('click');
+ assert.equal(f.requests.length,1,'the first click only asks');
+ assert.match($('.abmm-restore-version').text(),/Click again to restore/);
  $('.abmm-restore-version').trigger('click');
  assert.equal(f.requests[1].data.action,'abmm_restore_menu_version');
  assert.equal(f.requests[1].data.version_id,'v1'); assert.equal(f.requests[1].data.base_revision,'rev-now');

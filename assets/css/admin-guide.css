@@ -131,6 +131,8 @@
 	display: flex;
 	margin-block-end: -24px;
 	margin-inline-start: auto;
+	margin-inline-end: 44px;
+	top: 8px;
 }
 
 .abmm-guide-hint:hover,

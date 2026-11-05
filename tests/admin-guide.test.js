@@ -546,6 +546,45 @@ assert.doesNotMatch(source, /Add your links|Save your work|What's this\?\s*%/, '
 	assert.deepEqual(placePopup({ top: 100, bottom: 130, left: 40 }, size, { width: 390, height: 844 }), { docked: true }, 'Docks on a narrow screen.');
 }
 
+// A dropped brace silently disables every rule after it, with no error anywhere.
+for (const dir of ['assets/css', 'assets/classic']) {
+	for (const name of fs.readdirSync(path.join(root, dir)).filter((file) => file.endsWith('.css'))) {
+		const css = fs.readFileSync(path.join(root, dir, name), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+		let depth = 0;
+		for (const character of css) {
+			if ('{' === character) depth++;
+			if ('}' === character) depth--;
+			assert.ok(depth >= 0, `${name} closes a block it never opened.`);
+		}
+		assert.equal(depth, 0, `${name} has an unclosed block.`);
+	}
+}
+
+// The tour clicks controls the editor wires up at jQuery ready, which a fast page
+// can reach after load, so it waits its turn behind the editor.
+{
+	const { window } = new JSDOM(PAGE, { runScripts: 'outside-only', url: 'https://example.test/wp-admin/', pretendToBeVisual: true });
+	window.HTMLElement.prototype.getBoundingClientRect = () => ({ width: 100, height: 30, top: 20, bottom: 50, left: 20, right: 120 });
+	const node = window.document.createElement('script');
+	node.type = 'application/json';
+	node.id = 'abmm-menu-data';
+	node.textContent = '{"items":[]}';
+	window.document.body.appendChild(node);
+	const queued = [];
+	window.jQuery = (callback) => queued.push(callback);
+	window.abmmGuide = DATA;
+	window.eval(source);
+	window.addEventListener('load', () => {
+		setTimeout(() => {
+			assert.equal(window.document.querySelector('.abmm-guide--tour'), null, 'The tour waits for jQuery ready.');
+			assert.equal(queued.length, 1, 'It queues behind the editor.');
+			queued[0]();
+			assert.ok(window.document.querySelector('.abmm-guide--tour'), 'It starts from jQuery ready.');
+		}, 0);
+	});
+	if ('complete' === window.document.readyState) window.dispatchEvent(new window.Event('load'));
+}
+
 // The script starts itself when PHP provides the wording.
 {
 	const dom = new JSDOM(PAGE.replace('</div>\n<div class="abmm-exit-dialog"', '<details id="abmm-advanced-settings"><summary>Advanced</summary></details></div>\n<div class="abmm-exit-dialog"'), { runScripts: 'outside-only', url: 'https://example.test/wp-admin/', pretendToBeVisual: true });
