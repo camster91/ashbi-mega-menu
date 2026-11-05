@@ -156,6 +156,18 @@
 		);
 	}
 
+	// A re-rendered row starts with its menu closed. Open it without moving focus,
+	// so a move can keep focus on the control that was used.
+	function revealInRowMenu($control) {
+		var $popover = $control.closest('.abmm-row-menu');
+		if (!$popover.length) return;
+		$('.abmm-popover.is-open').not($popover).each(function () { closePopover($(this), false); });
+		$popover.addClass('is-open');
+		$popover.find('> .abmm-popover__panel').prop('hidden', false);
+		$popover.find('> .abmm-popover__toggle').attr('aria-expanded', 'true');
+		placePopover($popover);
+	}
+
 	function closePopover($popover, returnFocus) {
 		if (!$popover || !$popover.length) return;
 		$popover.removeClass('is-open');
@@ -181,7 +193,7 @@
 		$popover.find('> .abmm-popover__toggle').attr('aria-expanded', 'true');
 		placePopover($popover);
 		setTimeout(function () {
-			$panel.find('input, button, select, textarea').filter(':visible').first().trigger('focus');
+			$panel.find('input, button, select, textarea').filter(':visible:not(:disabled)').first().trigger('focus');
 		}, 0);
 	}
 
@@ -901,6 +913,7 @@
 		var hash = window.location.hash;
 		if (hash === '#placement') state.builderSection = 'help';
 		if (hash === '#abmm-readiness-panel') state.builderSection = 'help';
+		if (hash === '#abmm-verification-panel') state.builderSection = 'verify';
 		$('[data-abmm-workflow]').on('click', function () {
 			var step = String($(this).attr('data-abmm-workflow') || 'content');
 			setBuilderSection(step);
@@ -928,7 +941,8 @@
 				$checklist.trigger('focus');
 			}
 		}
-		if ((hash === '#placement' || hash === '#abmm-readiness-panel') && builderPanelIsNarrow()) {
+		if (hash === '#abmm-verification-panel') $('#abmm-verification-panel').trigger('focus');
+		if ((hash === '#placement' || hash === '#abmm-readiness-panel' || hash === '#abmm-verification-panel') && builderPanelIsNarrow()) {
 			openBuilderPanel($('[data-abmm-workflow="' + state.builderSection + '"]')[0]);
 		}
 	}
@@ -1448,6 +1462,7 @@
 		var usable = function () { return !$(this).closest('[hidden]').length; };
 		var $row = $rows.eq(Math.min(index, $rows.length - 1));
 		var $target = $rows.length ? $row.find(selector).filter(usable).first() : $();
+		if (!$target.length && $rows.length) $target = $row.find('.abmm-row-menu__toggle').filter(usable).first();
 		if (!$target.length && $rows.length) $target = $row.find('button').filter(usable).first();
 		($target.length ? $target : $fallback).trigger('focus');
 	}
@@ -2973,6 +2988,28 @@
 	}
 
 	function bindBuilderEvents() {
+		// "I've checked it" on the Check step. Stays on the page, so unsaved edits are safe.
+		$(document).on('click', '[data-abmm-check]', function () {
+			var $button = $(this).prop('disabled', true);
+			var action = String($button.attr('data-abmm-check'));
+			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_setup_guide', nonce: abmmAdmin.nonce, guide_action: action })
+				.done(function (res) {
+					$button.prop('disabled', false);
+					if (!res || !res.success) {
+						setStatus(responseMessage(res, S.saveError), true);
+						return;
+					}
+					$('[data-abmm-check]').each(function () {
+						$(this).prop('hidden', String($(this).attr('data-abmm-check')) === action);
+					});
+					$('[data-abmm-check]').not('[hidden]').trigger('focus');
+				})
+				.fail(function (xhr) {
+					$button.prop('disabled', false);
+					setStatus(requestErrorMessage(xhr, S.saveError), true);
+				});
+		});
+
 		$(document).on('click', '.abmm-move-item', function () {
 			var $button = $(this);
 			if ($button.prop('disabled')) return;
@@ -3022,7 +3059,9 @@
 				var $preferred = $controls.filter(selector);
 				// At the first/last position the clicked direction becomes disabled.
 				// Keep focus on this item's remaining move control after rerendering.
-				($preferred.length ? $preferred : $controls).first().trigger('focus');
+				var $target = ($preferred.length ? $preferred : $controls).first();
+				revealInRowMenu($target);
+				$target.trigger('focus');
 			}, 0);
 		});
 
@@ -3417,6 +3456,18 @@
 		);
 	}
 
+	// A row's move, duplicate and remove controls sit in one small menu. The caller
+	// closes it with </span></span>: the panel, then the menu.
+	function rowMenuOpenHtml(subject) {
+		var id = 'abmm-row-menu-' + (++popoverSeq);
+		/* translators: %s: name of a menu item, category, column or link. */
+		var label = sprintf(__('Actions for %s', 'ashbi-mega-menu'), subject);
+		return '<span class="abmm-row-actions abmm-row-menu abmm-popover">' +
+			'<button type="button" class="abmm-row-menu__toggle abmm-popover__toggle" aria-expanded="false" aria-controls="' + id + '" aria-label="' + esc(label) + '" title="' + esc(__('Actions', 'ashbi-mega-menu')) + '">' +
+			'<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span></button>' +
+			'<span class="abmm-row-menu__panel abmm-popover__panel" id="' + id + '" role="group" aria-label="' + esc(label) + '" hidden>';
+	}
+
 	function reorderControlsHtml(label, index, length) {
 		return '<span class="abmm-reorder-controls" role="group" aria-label="' + esc((S.positionControls || '%s position controls').replace('%s', label)) + '">' +
 			'<button type="button" class="button-link abmm-move-item abmm-move-up" aria-label="' + esc((S.moveUpLabel || 'Move %s up').replace('%s', label)) + '" title="' + esc(S.moveUp || 'Move up') + '"' +
@@ -3432,6 +3483,10 @@
 		var own = function (selector) {
 			return $row.find(selector).filter(function () { return $(this).closest(rowSelector)[0] === $row[0]; }).first();
 		};
+		/* translators: %s: name of a menu item, category, column or link. */
+		var actionsLabel = sprintf(__('Actions for %s', 'ashbi-mega-menu'), subject);
+		own('.abmm-row-menu__toggle').attr('aria-label', actionsLabel);
+		own('.abmm-row-menu__panel').attr('aria-label', actionsLabel);
 		own('.abmm-reorder-controls').attr('aria-label', (S.positionControls || '%s position controls').replace('%s', subject));
 		own('.abmm-move-up').attr('aria-label', (S.moveUpLabel || 'Move %s up').replace('%s', subject));
 		own('.abmm-move-down').attr('aria-label', (S.moveDownLabel || 'Move %s down').replace('%s', subject));
@@ -3577,12 +3632,13 @@
 					: '<span class="abmm-nav-item-row__url">' + esc(navSummaryText(item)) + '</span>') +
 				'</span>' +
 				'</span>' +
-				'<span class="abmm-row-actions">' +
+				/* translators: %s: menu item name. */
+				rowMenuOpenHtml(sprintf(__('navigation item %s', 'ashbi-mega-menu'), name)) +
 				/* translators: %s: menu item name. */
 				reorderControlsHtml(sprintf(__('navigation item %s', 'ashbi-mega-menu'), name), itemIndex, items.length) +
 				'<button type="button" class="button-link abmm-duplicate-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Duplicate navigation item %s', 'ashbi-mega-menu'), name)) + '" title="' + esc(__('Duplicate', 'ashbi-mega-menu')) + '">' + iconButtonContent('admin-page', __('Duplicate', 'ashbi-mega-menu')) + '</button>' +
 				'<button type="button" class="button-link-delete abmm-remove-nav" aria-label="' + /* translators: %s: menu item name. */ esc(sprintf(__('Remove navigation item %s', 'ashbi-mega-menu'), name)) + '" title="' + esc(__('Remove navigation item', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
-				'</span>' +
+				'</span></span>' +
 				'<button type="button" class="button-link abmm-nav-item-row__toggle" aria-expanded="' + (expanded ? 'true' : 'false') + '" aria-controls="' + fieldsId + '" aria-label="' + esc(navToggleLabel(item, itemIndex)) + '" title="' + esc(__('Show or hide settings', 'ashbi-mega-menu')) + '">' +
 				'<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span></button>' +
 				'</div>' +
@@ -3942,11 +3998,12 @@
 				'<input type="text" class="abmm-cat-title" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s title', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.title) + '" placeholder="' + esc(S.categoryTitle) + '" />' +
 				'<input type="text" class="abmm-cat-desc" aria-label="' + /* translators: %s: category number. */ esc(sprintf(__('Category %s description', 'ashbi-mega-menu'), i + 1)) + '" value="' + esc(cat.description) + '" placeholder="' + esc(S.categoryDesc) + '" />' +
 				'</div>' +
-				'<span class="abmm-row-actions">' +
+				/* translators: %s: category name. */
+				rowMenuOpenHtml(sprintf(__('category %s', 'ashbi-mega-menu'), catName)) +
 				/* translators: %s: category name. */
 				reorderControlsHtml(sprintf(__('category %s', 'ashbi-mega-menu'), catName), i, item.categories.length) +
 				'<button type="button" class="button-link-delete abmm-remove-cat" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Remove category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Remove category', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove', 'ashbi-mega-menu')) + '</button>' +
-				'</span>' +
+				'</span></span>' +
 				'<button type="button" class="button-link abmm-select-category" aria-pressed="' + (i === state.editingCatIndex ? 'true' : 'false') + '" aria-label="' + /* translators: %s: category name. */ esc(sprintf(__('Edit category %s', 'ashbi-mega-menu'), catName)) + '" title="' + esc(__('Edit links', 'ashbi-mega-menu')) + '">' + iconButtonContent('arrow-right-alt2', __('Edit', 'ashbi-mega-menu')) + '</button>' +
 				'</div>' +
 				'</li>'
@@ -4245,11 +4302,12 @@
 			esc(group.title || '') +
 			'" placeholder="' + esc(__('Column heading (e.g. Services)', 'ashbi-mega-menu')) + '" />' +
 			headingLinkPopoverHtml('abmm-group-heading-options', 'abmm-group-url', '.abmm-group-title', group, group.url) +
-			'<span class="abmm-row-actions">' +
+			/* translators: %s: column name. */
+			rowMenuOpenHtml(sprintf(__('column %s', 'ashbi-mega-menu'), groupName)) +
 			/* translators: %s: column name. */
 			reorderControlsHtml(sprintf(__('column %s', 'ashbi-mega-menu'), groupName), groupIndex, groupLength) +
 			'<button type="button" class="button-link-delete abmm-remove-group" aria-label="' + /* translators: %s: column name. */ esc(sprintf(__('Remove column %s', 'ashbi-mega-menu'), groupName)) + '" title="' + esc(__('Remove column', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove column', 'ashbi-mega-menu')) + '</button>' +
-			'</span>' +
+			'</span></span>' +
 			'</div>' +
 			'<ul class="abmm-sortable abmm-link-list abmm-group-link-list" data-empty="' + esc(__('No links yet. Add one, or drag a link here.', 'ashbi-mega-menu')) + '">' +
 			linksHtml +
@@ -4325,11 +4383,12 @@
 				: '') +
 			'</div>' +
 			linkEditPopoverHtml(link) +
-			'<span class="abmm-row-actions">' +
+			/* translators: %s: link name. */
+			rowMenuOpenHtml(sprintf(__('link %s', 'ashbi-mega-menu'), linkName)) +
 			/* translators: %s: link name. */
 			reorderControlsHtml(sprintf(__('link %s', 'ashbi-mega-menu'), linkName), linkIndex, linkLength) +
 			'<button type="button" class="button-link-delete abmm-remove-link" aria-label="' + /* translators: %s: link name. */ esc(sprintf(__('Remove link %s', 'ashbi-mega-menu'), linkName)) + '" title="' + esc(__('Remove link', 'ashbi-mega-menu')) + '">' + iconButtonContent('trash', __('Remove link', 'ashbi-mega-menu')) + '</button>' +
-			'</span>' +
+			'</span></span>' +
 			'</li>'
 		);
 	}

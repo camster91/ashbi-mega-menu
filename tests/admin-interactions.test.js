@@ -57,6 +57,7 @@ async function backupFixture(strings = {}) {
   assert.deepEqual(order(),['b','a','c','d'],'moving up into first position preserves other items');
   assert.equal(reorderFixture.window.document.activeElement,row('b').find('.abmm-move-down')[0],'first-position move retains focus on the same item through its enabled control');
   assert.equal(row('b').find('.abmm-move-up').prop('disabled'),true);
+  assert.equal(row('b').find('.abmm-row-menu__panel').prop('hidden'),false,'a move keeps the row menu open, so focus stays on a usable control');
   await move('b','down');
   assert.deepEqual(order(),['a','b','c','d'],'moving into an interior position restores expected order');
   assert.equal(reorderFixture.window.document.activeElement,row('b').find('.abmm-move-down')[0],'interior moves retain the requested direction control');
@@ -474,6 +475,7 @@ async function auditRegressions(){
  $('#abmm-nav-items .abmm-nav-item-row').eq(0).find('.abmm-remove-nav').trigger('click');
  assert.equal($('#abmm-nav-items .abmm-nav-item-row').length,2);
  assert.equal(f.window.document.activeElement.closest('.abmm-nav-item-row'),$('#abmm-nav-items .abmm-nav-item-row')[0],'focus moves to the next row');
+ assert.equal(f.window.document.activeElement,$('#abmm-nav-items .abmm-nav-item-row').eq(0).find('.abmm-row-menu__toggle')[0],'focus lands on a control that can be seen: the next row\'s menu button');
  await wait(30);
  assert.equal($('.abmm-status-undo').length,1,'Undo is offered');
  $('.abmm-status-undo').trigger('click');
@@ -925,12 +927,59 @@ async function simplicityRegressions(){
   w.close();
  }
 
+ // Calm rows: move, duplicate and remove sit in one menu that follows the popover pattern.
+ {
+  const calm={...menu,items:['a','b'].map(id=>({id,label:id.toUpperCase(),type:'link',url:'/'+id}))};
+  const g=await fixture(false,false,null,'demo',calm); const q=g.$;
+  const head=q('#abmm-nav-items .abmm-nav-item-row').eq(0).find('.abmm-nav-item-row__head');
+  const toggle=head.find('.abmm-row-menu__toggle'), panel=head.find('.abmm-row-menu__panel');
+  assert.equal(panel.prop('hidden'),true,'the row menu starts closed');
+  for (const name of ['.abmm-move-up','.abmm-move-down','.abmm-duplicate-nav','.abmm-remove-nav']) assert.equal(panel.find(name).length,1,name+' is in the row menu');
+  const shown=head.find('button').filter((_,el)=>!q(el).closest('[hidden]').length);
+  assert.equal(shown.length,2,'a closed nav row shows two buttons: its menu and its expand toggle');
+  toggle.trigger('click');
+  assert.equal(panel.prop('hidden'),false,'the button opens the menu');
+  assert.equal(toggle.attr('aria-expanded'),'true');
+  await wait(10);
+  assert.equal(g.window.document.activeElement,panel.find('.abmm-move-down')[0],'focus goes to the first enabled action, not a disabled one');
+  panel.find('.abmm-move-down').trigger(q.Event('keydown',{key:'Escape'}));
+  assert.equal(panel.prop('hidden'),true,'Escape closes the menu');
+  assert.equal(g.window.document.activeElement,toggle[0],'and returns focus to its button');
+  const label=head.closest('.abmm-nav-item-row').find('.abmm-nav-label');
+  label.val('Renamed').trigger('input');
+  assert.equal(q('#abmm-nav-items .abmm-nav-item-row').eq(0).find('.abmm-row-menu__toggle').attr('aria-label'),'Actions for navigation item Renamed','the menu button follows the label');
+  g.close();
+ }
+
+ // "I've checked it" lives on the Check step and keeps unsaved edits on the page.
+ {
+  const g=await fixture(false,false,null,'demo',menu,'<button id="chk" data-abmm-check="verify"></button><button id="unchk" data-abmm-check="unverify" hidden></button>'); const q=g.$;
+  q('#chk').trigger('click');
+  const sent=g.requests.filter(r=>r.data.action==='abmm_setup_guide').pop();
+  assert.equal(sent.data.guide_action,'verify','the Check step saves through the setup guide action');
+  sent.d.resolve({success:true,data:{}});
+  assert.equal(q('#chk').prop('hidden'),true,'checked: the button goes away');
+  assert.equal(q('#unchk').prop('hidden'),false,'and it can be undone');
+  g.close();
+ }
+ assert.match(builderView,/data-abmm-check="verify"/,'the editor offers the check');
+ assert.equal(builderView.slice(builderView.indexOf('id="abmm-verification-panel"')).indexOf('data-abmm-check="verify"')<builderView.slice(builderView.indexOf('id="abmm-verification-panel"')).indexOf('abmm-builder-help'),true,'on the Check step, next to the real-page list');
+ assert.ok(builderView.indexOf('id="abmm-editor-features"')<builderView.indexOf('id="abmm-mega-style-picker"'),'links come before Layout in the dropdown editor');
+ assert.ok(builderView.indexOf('id="abmm-mega-style-picker"')<builderView.indexOf('id="abmm-featured-details"'),'and Layout before the Featured card');
+
+ // One progress path: the dashboard shows one next action, and the stepper is the only step list.
+ assert.ok(!/abmm-setup-guide__steps/.test(listView),'no step list on the dashboard');
+ assert.match(listView,/data-guide-action="dismiss"/,'the card can be hidden');
+ assert.match(listView,/#abmm-verification-panel/,'an undetectable placement can still reach Check');
+ assert.ok(!/data-guide-action="verify"/.test(listView),'the check itself moved to the Check step');
+ for (const value of ['edit','place','verify']) assert.match(listView,new RegExp("'"+value+"' === \\$abmm_guide_next"),'the card has a next action for '+value);
+
  // The dashboard card keeps Place in view and tucks the shortcode behind a reveal.
  const card=listView.slice(listView.indexOf('abmm-menu-card__body'),listView.indexOf('abmm-card-menu__toggle'));
  const reveal=card.slice(card.indexOf('<details class="abmm-menu-card__reveal">'),card.indexOf('</details>'));
  assert.match(reveal,/abmm-copy-shortcode/,'the shortcode and its copy button are inside the reveal');
  assert.ok(card.indexOf('#placement')>card.indexOf('</details>'),'Place stays outside the reveal, on every card');
- assert.ok(!/abmm-how/.test(listView),'one progress list on the dashboard: the setup guide');
+ assert.ok(!/abmm-how/.test(listView),'one progress list on the dashboard: the next step card');
  assert.match(listView,/abmm-setup-guide__tips/,'the setup notes are folded, not lost');
 
  // Place ends in a button, not a paragraph, and names the Elementor route.

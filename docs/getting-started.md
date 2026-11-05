@@ -45,7 +45,7 @@ The editor has four steps along the top: **Content**, **Design**, **Place** and 
 4. For a **Link**, click the link button and search for your page.
 5. For a **Dropdown**, click **Edit content**, then **Add link**. Add each link, then click **Back to menu**.
 
-To change the order, drag a row or use its arrows.
+To change the order, drag a row. Or click its **⋯** button and choose **Move up** or **Move down**.
 
 The preview shows your menu as you work. Click the phone button above it to see the phone menu.
 

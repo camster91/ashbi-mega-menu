@@ -18,7 +18,7 @@ These are the screenshots the docs need. Each doc marks its spot with a hidden c
 | --- | --- | --- | --- |
 | `01-welcome.png` | Mega Menu with no menus yet, the three starting choices | The three choices | getting-started |
 | `02-page-picker.png` | Welcome screen after clicking **Start from your pages**, with a few pages ticked | Ticked pages and **Create menu from these pages** | user-guide |
-| `03-setup-guide.png` | Main screen with the Setup guide open, 2 of 4 steps done | The next step and **Hide guide** | user-guide |
+| `03-setup-guide.png` | Main screen with the **Next step** card, on a menu that still needs placing | The button and **Hide** | user-guide |
 | `04-menu-cards.png` | Three cards: one **Placed**, one **No placement found**, one with **Needs attention** | The labels | user-guide |
 | `05-card-more-menu.png` | A card with its **⋯** menu open | Export, Duplicate, History and Archive | user-guide |
 

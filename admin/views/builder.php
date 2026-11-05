@@ -645,6 +645,9 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				<p class="description abmm-placement-state"><?php echo esc_html( $abmm_is_placed ? __( 'Found on your site. Every save updates it there right away.', 'ashbi-mega-menu' ) : __( 'Not found in your pages, widgets or page builder content. Placements in theme templates or PHP cannot be detected.', 'ashbi-mega-menu' ) ); ?></p>
 				<ul class="abmm-checklist"><li><?php esc_html_e( 'Every link goes to the right page', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Dropdowns open with a mouse and the keyboard', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'The phone menu opens, goes back and closes', 'ashbi-mega-menu' ); ?></li><li><?php esc_html_e( 'Your theme\'s old menu is removed, so there is only one', 'ashbi-mega-menu' ); ?></li></ul>
 				<a class="button" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View site', 'ashbi-mega-menu' ); ?></a>
+				<?php $abmm_checked = ! empty( $setup_guide['steps']['verify'] ); ?>
+				<button type="button" class="button button-primary" data-abmm-check="verify"<?php echo $abmm_checked ? ' hidden' : ''; ?>><?php esc_html_e( 'I\'ve checked it', 'ashbi-mega-menu' ); ?></button>
+				<button type="button" class="button-link" data-abmm-check="unverify"<?php echo $abmm_checked ? '' : ' hidden'; ?>><?php esc_html_e( 'Mark as not checked', 'ashbi-mega-menu' ); ?></button>
 			</section>
 
 			<section class="abmm-builder-panel abmm-builder-help" aria-labelledby="abmm-builder-help-title">
@@ -705,6 +708,28 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					<p class="abmm-mega-editor__note"><?php esc_html_e( 'Changes show in the preview right away. Save from the top bar.', 'ashbi-mega-menu' ); ?></p>
 				</div>
 
+				<!-- Category-bar layout editor -->
+				<div class="abmm-mega-editor__layout" id="abmm-editor-platforms">
+					<div class="abmm-mega-editor__cats">
+						<h3><?php esc_html_e( 'Categories', 'ashbi-mega-menu' ); ?></h3>
+						<p class="description"><?php esc_html_e( 'Each category shows its own links when selected.', 'ashbi-mega-menu' ); ?></p>
+						<ul class="abmm-sortable abmm-cat-list" id="abmm-cat-list"></ul>
+						<button type="button" class="button abmm-add-category"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add category', 'ashbi-mega-menu' ); ?></button>
+					</div>
+
+					<div class="abmm-mega-editor__cat-detail" id="abmm-cat-detail">
+						<p class="abmm-placeholder"><?php esc_html_e( 'Select a category to edit its links.', 'ashbi-mega-menu' ); ?></p>
+					</div>
+				</div>
+
+				<!-- Features grid layout editor -->
+				<div class="abmm-mega-editor__features" id="abmm-editor-features" hidden>
+					<h3><?php esc_html_e( 'Links', 'ashbi-mega-menu' ); ?></h3>
+					<p class="description"><?php esc_html_e( 'Each link can have an icon and a short description.', 'ashbi-mega-menu' ); ?></p>
+					<ul class="abmm-sortable abmm-link-list" id="abmm-features-link-list"></ul>
+					<button type="button" class="button abmm-add-feature-link"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add link', 'ashbi-mega-menu' ); ?></button>
+				</div>
+
 				<div class="abmm-mega-style-picker" id="abmm-mega-style-picker">
 					<p class="abmm-mega-style-picker__label"><?php esc_html_e( 'Layout', 'ashbi-mega-menu' ); ?></p>
 					<div class="abmm-mega-style-cards">
@@ -742,28 +767,6 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 							</label>
 						</div>
 					</details>
-				</div>
-
-				<!-- Category-bar layout editor -->
-				<div class="abmm-mega-editor__layout" id="abmm-editor-platforms">
-					<div class="abmm-mega-editor__cats">
-						<h3><?php esc_html_e( 'Categories', 'ashbi-mega-menu' ); ?></h3>
-						<p class="description"><?php esc_html_e( 'Each category shows its own links when selected.', 'ashbi-mega-menu' ); ?></p>
-						<ul class="abmm-sortable abmm-cat-list" id="abmm-cat-list"></ul>
-						<button type="button" class="button abmm-add-category"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add category', 'ashbi-mega-menu' ); ?></button>
-					</div>
-
-					<div class="abmm-mega-editor__cat-detail" id="abmm-cat-detail">
-						<p class="abmm-placeholder"><?php esc_html_e( 'Select a category to edit its links.', 'ashbi-mega-menu' ); ?></p>
-					</div>
-				</div>
-
-				<!-- Features grid layout editor -->
-				<div class="abmm-mega-editor__features" id="abmm-editor-features" hidden>
-					<h3><?php esc_html_e( 'Links', 'ashbi-mega-menu' ); ?></h3>
-					<p class="description"><?php esc_html_e( 'Each link can have an icon and a short description.', 'ashbi-mega-menu' ); ?></p>
-					<ul class="abmm-sortable abmm-link-list" id="abmm-features-link-list"></ul>
-					<button type="button" class="button abmm-add-feature-link"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add link', 'ashbi-mega-menu' ); ?></button>
 				</div>
 
 				<!-- Featured card: an optional highlighted card after the link columns -->

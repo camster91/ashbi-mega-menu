@@ -32,13 +32,15 @@ Click **Mega Menu** in the WordPress sidebar. This screen lists your menus.
 
 <!-- screenshot: 04-menu-cards.png -->
 
-### Setup guide
+### Next step
 
-The Setup guide walks you through your first menu. Its steps are: create a menu, add your links, place it and check it. Steps tick themselves off when the plugin can see that they're done. You tick the last one yourself by clicking **I've checked it**.
+The **Next step** card shows the one thing to do now, with a button that takes you there. It moves on by itself when the plugin can see a step is done. Placed your menu in a theme file? The plugin can't see that, so click **Already placed it? Check it on your site**.
+
+The last step is yours. On the **Check** step, click **I've checked it** when your menu works. Changed your mind? Click **Mark as not checked**.
 
 <!-- screenshot: 03-setup-guide.png -->
 
-Click **Hide guide** to close it. Click **Show setup guide** at the bottom of the screen to bring it back.
+Click **Hide** to close the card. Click **Show setup guide** at the bottom of the screen to bring it back.
 
 ### Menu cards
 

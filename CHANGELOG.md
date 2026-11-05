@@ -8,6 +8,7 @@ A simpler editor. Stored menus are not changed. Visitors see small fixes: rotati
 - **Stored settings with no control**: the Advanced summary now has a **Remove** button for each.
 - **Saved versions**: saving twice within a few minutes no longer loses the first save.
 
+- **Calmer**: the dashboard shows one next step with a button instead of a list of steps, and "I've checked it" moved to the Check step. Each row keeps its drag handle and main action, with move, duplicate and remove in a small menu. In the dropdown editor, Layout and the Featured card now come after the links.
 - **One path**: a row of steps (Content, Design, Place, Check) replaces the tabs. After saving, the status says **Live where placed** or **No placement found**. The checklist sits at the top of Place, before the ways to place the menu.
 - **Design**: presets first, with everything else in one closed **Advanced settings** section. A note names each setting in use and jumps to it, so nothing is hidden and active. Mobile navigation and Product Navigation moved there too. Bar padding and plain markup stay as stored values and filters, not editor fields.
 - **Place**: the method recommended for your theme comes first, with a button to the right screen, and the others sit under **Other ways to place it**.

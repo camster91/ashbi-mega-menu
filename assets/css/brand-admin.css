@@ -1031,6 +1031,13 @@
 .abmm-wrap .abmm-popover__panel {position:absolute;top:calc(100% + 6px);right:0;z-index:60;display:flex;flex-direction:column;gap:10px;width:264px;padding:12px;box-sizing:border-box;text-align:start;background:#fff;border:1px solid var(--abmm-brand-line);border-radius:10px;box-shadow:0 12px 32px #19223824,0 2px 6px #1922380f;cursor:default}
 .abmm-wrap .abmm-popover__panel[hidden] {display:none}
 .abmm-wrap .abmm-popover.is-above > .abmm-popover__panel {top:auto;bottom:calc(100% + 6px)}
+/* A row's move, duplicate and remove controls: one quiet button, then labelled actions. */
+.abmm-wrap .abmm-row-menu__panel {gap:2px;width:190px;padding:6px}
+.abmm-wrap .abmm-row-actions .abmm-row-menu__panel .abmm-reorder-controls {display:flex;flex-direction:column;gap:2px}
+.abmm-wrap .abmm-row-actions .abmm-row-menu__panel button {display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%;height:auto;min-height:32px;padding:4px 8px!important;font-size:13px!important;text-align:start}
+.abmm-wrap .abmm-row-menu__panel .screen-reader-text {position:static!important;width:auto;height:auto;margin:0;overflow:visible;clip:auto;clip-path:none;white-space:normal}
+.abmm-wrap [data-abmm-check][hidden] {display:none}
+.abmm-wrap .abmm-verification-panel [data-abmm-check] {margin-inline-start:8px}
 .abmm-wrap .abmm-popover__title {margin:0;color:var(--abmm-brand-ink);font-size:12.5px;font-weight:600;line-height:1.3}
 .abmm-wrap .abmm-popover__hint {margin:-6px 0 0;color:var(--abmm-brand-muted);font-size:12px;line-height:1.4}
 .abmm-wrap .abmm-popover .abmm-popover__check {display:flex;align-items:center;gap:8px;margin:0;color:var(--abmm-brand-ink);font-size:13px;font-weight:400}
@@ -1557,21 +1564,10 @@ html:has(.abmm-builder-wrap) {scroll-padding-top:136px}
 .abmm-setup-guide {margin:0 0 24px;padding:18px 20px;border:1px solid var(--abmm-brand-line);border-radius:12px;background:#fff}
 .abmm-setup-guide__head {display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:10px}
 .abmm-setup-guide__head h2 {margin:0;font-size:16px}
-.abmm-setup-guide__progress {color:var(--abmm-brand-muted)}
 .abmm-setup-guide__hide {margin-inline-start:auto}
-.abmm-setup-guide__steps {display:grid;gap:8px;margin:0;padding:0;list-style:none;counter-reset:abmm-step}
-.abmm-setup-guide__steps li {position:relative;margin:0;padding:10px 12px 10px 44px;border-radius:10px;counter-increment:abmm-step}
-.abmm-setup-guide__steps li::before {content:counter(abmm-step);position:absolute;top:10px;left:12px;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#eef1f7;color:var(--abmm-brand-ink);font-size:12px;font-weight:600}
-.abmm-setup-guide__steps li.is-done::before {content:"\2713";background:#e3f3ea;color:#11643a}
-.abmm-setup-guide__steps li.is-next {background:#f6f8ff;outline:1px solid #d7defa}
-.abmm-setup-guide__steps p {margin:4px 0 8px;color:var(--abmm-brand-muted);max-width:72ch}
-.abmm-setup-guide__steps li:not(.is-next) p,
-.abmm-setup-guide__steps li:not(.is-next) .abmm-setup-guide__tips,
-.abmm-setup-guide__steps li:not(.is-next) .button,
-.abmm-setup-guide__steps li:not(.is-next) .button-link {display:none}
-.abmm-setup-guide__steps li.is-done strong {color:var(--abmm-brand-muted)}
-.abmm-setup-guide.is-complete li:last-child .button-link {display:inline}
-.abmm-setup-guide__status {position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.abmm-setup-guide__next {display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0}
+.abmm-setup-guide__next strong {flex:0 0 100%}
+.abmm-setup-guide__next p {flex:0 0 100%;margin:0 0 6px;color:var(--abmm-brand-muted);max-width:72ch}
 .abmm-setup-guide__note {font-size:12.5px}
 .abmm-wrap .abmm-place-recommended {margin:12px 0;padding:12px 14px;border-radius:10px;background:#f6f8ff;font-size:13px;line-height:1.5}
 .abmm-wrap .abmm-place-recommended strong {display:block;margin:6px 0 2px;color:var(--abmm-brand-ink);font-size:14px}

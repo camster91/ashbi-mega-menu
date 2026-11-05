@@ -37,34 +37,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php if ( ! empty( $menus ) && ! empty( $setup_guide ) && empty( $setup_guide['dismissed'] ) ) : ?>
 		<?php
 		$abmm_guide_edit = admin_url( 'admin.php?page=ashbi-mega-menu&edit=' . rawurlencode( $setup_guide['menu_id'] ) );
-		$abmm_guide_steps = $setup_guide['steps'];
-		$abmm_guide_next  = array_search( false, $abmm_guide_steps, true );
-		$abmm_guide_done  = count( array_filter( $abmm_guide_steps ) );
+		$abmm_guide_next = array_search( false, $setup_guide['steps'], true );
+		$abmm_guide_check_url = $abmm_guide_edit . '#abmm-verification-panel';
 		?>
 		<section class="abmm-setup-guide<?php echo $setup_guide['complete'] ? ' is-complete' : ''; ?>" id="abmm-setup-guide" aria-labelledby="abmm-setup-guide-title">
 			<div class="abmm-setup-guide__head">
-				<h2 id="abmm-setup-guide-title"><?php echo $setup_guide['complete'] ? esc_html__( 'Your menu is set up', 'ashbi-mega-menu' ) : esc_html__( 'Setup guide', 'ashbi-mega-menu' ); ?></h2>
-				<span class="abmm-setup-guide__progress">
-					<?php
-					/* translators: 1: steps done, 2: total steps. */
-					echo esc_html( sprintf( __( '%1$d of %2$d done', 'ashbi-mega-menu' ), $abmm_guide_done, count( $abmm_guide_steps ) ) );
-					?>
-				</span>
-				<button type="button" class="button-link abmm-setup-guide__hide" data-guide-action="dismiss"><?php esc_html_e( 'Hide guide', 'ashbi-mega-menu' ); ?></button>
+				<h2 id="abmm-setup-guide-title"><?php echo $setup_guide['complete'] ? esc_html__( 'Your menu is set up', 'ashbi-mega-menu' ) : esc_html__( 'Next step', 'ashbi-mega-menu' ); ?></h2>
+				<button type="button" class="button-link abmm-setup-guide__hide" data-guide-action="dismiss"><?php esc_html_e( 'Hide', 'ashbi-mega-menu' ); ?></button>
 			</div>
-			<ol class="abmm-setup-guide__steps">
-				<li class="<?php echo $abmm_guide_steps['create'] ? 'is-done' : ''; ?>">
-					<span class="abmm-setup-guide__status"><?php echo $abmm_guide_steps['create'] ? esc_html__( 'Done:', 'ashbi-mega-menu' ) : esc_html__( 'To do:', 'ashbi-mega-menu' ); ?></span>
-					<strong><?php esc_html_e( 'Create a menu', 'ashbi-mega-menu' ); ?></strong>
-				</li>
-				<li class="<?php echo $abmm_guide_steps['edit'] ? 'is-done' : ''; ?><?php echo 'edit' === $abmm_guide_next ? ' is-next' : ''; ?>">
-					<span class="abmm-setup-guide__status"><?php echo $abmm_guide_steps['edit'] ? esc_html__( 'Done:', 'ashbi-mega-menu' ) : esc_html__( 'To do:', 'ashbi-mega-menu' ); ?></span>
+			<?php if ( 'edit' === $abmm_guide_next ) : ?>
+				<div class="abmm-setup-guide__next">
 					<strong><?php esc_html_e( 'Add your links and save', 'ashbi-mega-menu' ); ?></strong>
 					<p><?php esc_html_e( 'Replace any sample links with your own pages and clear the checklist in the editor. Done when a menu no longer shows Needs attention.', 'ashbi-mega-menu' ); ?></p>
-					<?php if ( ! $abmm_guide_steps['edit'] ) : ?><a class="button" href="<?php echo esc_url( $abmm_guide_edit ); ?>"><?php esc_html_e( 'Edit menu', 'ashbi-mega-menu' ); ?></a><?php endif; ?>
-				</li>
-				<li class="<?php echo $abmm_guide_steps['place'] ? 'is-done' : ''; ?><?php echo 'place' === $abmm_guide_next ? ' is-next' : ''; ?>">
-					<span class="abmm-setup-guide__status"><?php echo $abmm_guide_steps['place'] ? esc_html__( 'Done:', 'ashbi-mega-menu' ) : esc_html__( 'To do:', 'ashbi-mega-menu' ); ?></span>
+					<a class="button button-primary" href="<?php echo esc_url( $abmm_guide_edit ); ?>"><?php esc_html_e( 'Edit menu', 'ashbi-mega-menu' ); ?></a>
+				</div>
+			<?php elseif ( 'place' === $abmm_guide_next ) : ?>
+				<div class="abmm-setup-guide__next">
 					<strong><?php esc_html_e( 'Place it on your site', 'ashbi-mega-menu' ); ?></strong>
 					<p>
 						<?php
@@ -73,25 +61,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 						?>
 						<?php echo esc_html( $placement_recommendation['steps'] ); ?>
 					</p>
-					<details class="abmm-setup-guide__tips">
-						<summary><?php esc_html_e( 'Tips for switching safely', 'ashbi-mega-menu' ); ?></summary>
-						<p class="abmm-setup-guide__note"><?php esc_html_e( 'Placed it in a theme file or a page builder? Those can\'t be detected: check it on your site in the next step.', 'ashbi-mega-menu' ); ?></p>
-						<p class="abmm-setup-guide__note"><?php esc_html_e( 'Keep your theme\'s menu while you test, so visitors never lose navigation. Once the new menu works, remove the old one from the header to avoid two menus. To roll back, remove the Ashbi block, widget or shortcode: your theme\'s menu and settings are never changed by this plugin.', 'ashbi-mega-menu' ); ?></p>
-					</details>
-					<?php if ( ! $abmm_guide_steps['place'] ) : ?><a class="button" href="<?php echo esc_url( $abmm_guide_edit . '#placement' ); ?>"><?php esc_html_e( 'Get the block, widget or shortcode', 'ashbi-mega-menu' ); ?></a><?php endif; ?>
-				</li>
-				<li class="<?php echo $abmm_guide_steps['verify'] ? 'is-done' : ''; ?><?php echo ( 'verify' === $abmm_guide_next || ( 'place' === $abmm_guide_next && $abmm_guide_steps['edit'] ) ) ? ' is-next' : ''; ?>">
-					<span class="abmm-setup-guide__status"><?php echo $abmm_guide_steps['verify'] ? esc_html__( 'Done:', 'ashbi-mega-menu' ) : esc_html__( 'To do:', 'ashbi-mega-menu' ); ?></span>
+					<a class="button button-primary" href="<?php echo esc_url( $abmm_guide_edit . '#placement' ); ?>"><?php esc_html_e( 'Get the block, widget or shortcode', 'ashbi-mega-menu' ); ?></a>
+					<?php // Theme files can't always be detected, so this step can't be a dead end. ?>
+					<a href="<?php echo esc_url( $abmm_guide_check_url ); ?>"><?php esc_html_e( 'Already placed it? Check it on your site', 'ashbi-mega-menu' ); ?></a>
+				</div>
+			<?php elseif ( 'verify' === $abmm_guide_next ) : ?>
+				<div class="abmm-setup-guide__next">
 					<strong><?php esc_html_e( 'Check it on your site', 'ashbi-mega-menu' ); ?></strong>
 					<p><?php esc_html_e( 'Open a page with the menu. Try every link, the dropdowns with a mouse and the keyboard, and the menu on a phone.', 'ashbi-mega-menu' ); ?></p>
-					<a class="button" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View site', 'ashbi-mega-menu' ); ?><span class="screen-reader-text"> <?php esc_html_e( '(opens in a new tab)', 'ashbi-mega-menu' ); ?></span></a>
-					<?php if ( $abmm_guide_steps['verify'] ) : ?>
-						<button type="button" class="button-link" data-guide-action="unverify"><?php esc_html_e( 'Mark as not checked', 'ashbi-mega-menu' ); ?></button>
-					<?php else : ?>
-						<button type="button" class="button" data-guide-action="verify"><?php esc_html_e( 'I\'ve checked it', 'ashbi-mega-menu' ); ?></button>
-					<?php endif; ?>
-				</li>
-			</ol>
+					<a class="button button-primary" href="<?php echo esc_url( $abmm_guide_check_url ); ?>"><?php esc_html_e( 'Open the Check step', 'ashbi-mega-menu' ); ?></a>
+				</div>
+			<?php else : ?>
+				<p class="abmm-setup-guide__next"><?php esc_html_e( 'Every step is done. You can change the menu at any time.', 'ashbi-mega-menu' ); ?></p>
+			<?php endif; ?>
+			<?php if ( ! $setup_guide['complete'] ) : ?>
+				<details class="abmm-setup-guide__tips">
+					<summary><?php esc_html_e( 'Tips for switching safely', 'ashbi-mega-menu' ); ?></summary>
+					<p class="abmm-setup-guide__note"><?php esc_html_e( 'Placed it in a theme file or a page builder? Those can\'t be detected: check it on your site in the next step.', 'ashbi-mega-menu' ); ?></p>
+					<p class="abmm-setup-guide__note"><?php esc_html_e( 'Keep your theme\'s menu while you test, so visitors never lose navigation. Once the new menu works, remove the old one from the header to avoid two menus. To roll back, remove the Ashbi block, widget or shortcode: your theme\'s menu and settings are never changed by this plugin.', 'ashbi-mega-menu' ); ?></p>
+				</details>
+			<?php endif; ?>
 		</section>
 	<?php endif; ?>
 
