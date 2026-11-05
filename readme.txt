@@ -4,7 +4,7 @@ Tags: mega menu, navigation, responsive menu, menu builder
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 1.2.9
+Stable tag: 1.2.10
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -103,6 +103,11 @@ Your menus and settings stay, and they come back if you install it again. To rem
 3. Responsive mobile navigation open in Chrome.
 
 == Changelog ==
+
+= 1.2.10 =
+* Editor: keep newer edits during saves and recovery, protect drafts across tabs, and keep previews in sync when switching views or moving items.
+* Storefront: coordinate Classic and Ashbi menus on the same page and clean up replaced headers.
+* Migration and recovery: preserve concurrent edits, retain failed restores for retry, and protect archived menus and recovery points.
 
 = 1.2.9 =
 * The editor has your menu items and settings on the left, and the preview on the right.
@@ -225,6 +230,9 @@ Your menus and settings stay, and they come back if you install it again. To rem
 * Generic sample content and public package isolation.
 
 == Upgrade Notice ==
+
+= 1.2.10 =
+Improves editor draft recovery, menu previews and migration safety.
 
 = 1.2.9 =
 A tidier editor: settings on the left, a shorter preview on the right. Your menus on the site are unchanged.

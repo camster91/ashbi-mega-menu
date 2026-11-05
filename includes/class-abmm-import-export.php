@@ -103,6 +103,7 @@ class ABMM_Import_Export {
 			}
 			$payload = $this->get_backup_payload( $id );
 			if ( is_wp_error( $payload ) ) { return $payload; }
+			if ( $store->get_all() === $payload['menus'] ) { return true; }
 			$backup = $this->backup_current_menus();
 			if ( is_wp_error( $backup ) ) { return $backup; }
 			$saved = $store->replace_all( $payload['menus'] );
@@ -152,7 +153,7 @@ class ABMM_Import_Export {
 		$revision = isset( $_POST['revision'] ) ? sanitize_text_field( wp_unslash( $_POST['revision'] ) ) : '';
 		$result = $this->restore_backup( $id, $revision );
 		if ( is_wp_error( $result ) ) { wp_send_json_error( array( 'message' => $result->get_error_message() ), 'abmm_backup_conflict' === $result->get_error_code() ? 409 : 400 ); }
-		wp_send_json_success( array( 'message' => __( 'Backup restored. The previous menu collection was preserved as a recovery point.', 'ashbi-mega-menu' ), 'revision' => ABMM_Data::instance()->revision( ABMM_Data::instance()->get_all() ) ) );
+		wp_send_json_success( array( 'message' => __( 'Backup restored. Reloading menus…', 'ashbi-mega-menu' ), 'revision' => ABMM_Data::instance()->revision( ABMM_Data::instance()->get_all() ) ) );
 	}
 
 	/* ================================================================
@@ -475,12 +476,14 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 			return $results;
 		}
 
-		$backup = $this->backup_current_menus();
-		if ( is_wp_error( $backup ) ) { return $backup; }
-
 		$next  = 'replace' === $mode ? $prepared : array_replace( $existing, $prepared );
-		$saved = ABMM_Data::instance()->replace_all( $next );
-		if ( is_wp_error( $saved ) ) { return $saved; }
+		$saved = true;
+		if ( $next !== $existing ) {
+			$backup = $this->backup_current_menus();
+			if ( is_wp_error( $backup ) ) { return $backup; }
+			$saved = ABMM_Data::instance()->replace_all( $next );
+			if ( is_wp_error( $saved ) ) { return $saved; }
+		}
 
 		foreach ( $prepared as $id => $menu_data ) {
 			$results[ $id ] = $saved
@@ -548,13 +551,18 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 	 * @return bool|WP_Error
 	 */
 	private function backup_current_menus( $extra_menus = array() ) {
-		$menus = array_replace( $extra_menus, ABMM_Data::instance()->get_all() );
+		$menus = array_replace( ABMM_Data::instance()->get_all(), $extra_menus );
 		// With no menus there is nothing to protect, and a backup would only push out a real one.
 		if ( ! $menus ) {
 			return true;
 		}
 		$backups = get_option( 'abmm_import_backups', array() );
 		$backups = is_array( $backups ) ? array_values( array_filter( $backups, array( $this, 'backup_has_menus' ) ) ) : array();
+
+		// Failed writes can be retried against the same already-protected collection.
+		if ( $menus === ( $backups[0]['menus'] ?? null ) ) {
+			return true;
+		}
 
 		array_unshift(
 			$backups,
@@ -572,7 +580,7 @@ __( 'Copy of %s', 'ashbi-mega-menu' ), sanitize_text_field( $menu_data['title'] 
 
 	/**
 	 * Recovery point before an archived menu is permanently deleted. It holds the
-	 * current menus plus the archived one, so restoring it brings that menu back.
+	 * current menus plus the archived one, using the archived version if an ID is shared.
 	 *
 	 * @param string $id Archived menu ID.
 	 * @return true|WP_Error

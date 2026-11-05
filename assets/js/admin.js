@@ -34,7 +34,7 @@
 		pendingExitUrl: '',
 		previewViewport: 'desktop',
 		previewDrill: 'root',
-		previewItemIndex: -1,
+		previewItemId: null,
 		previewCategoryId: '',
 		previewMobileOpen: false,
 		builderSection: 'content',
@@ -619,20 +619,22 @@
 	}
 
 	function markDirtyState() {
-		if (!state.trackingChanges || state.loadFailed || state.isSaving) return;
+		if (!state.trackingChanges || state.loadFailed) return;
 		scheduleHistory();
-		if (hasUnsavedChanges()) {
+		var dirty = hasUnsavedChanges();
+		if (dirty) scheduleLocalDraft();
+		if (state.isSaving || state.draftConflict) return;
+		if (dirty) {
 			state.cacheNote = '';
 			updateSaveState('dirty', S.unsavedState);
-			scheduleLocalDraft();
 		} else {
 			updateSaveState('saved', S.savedState);
 			// Changes undone by hand leave nothing to recover. Only a draft written on
 			// this visit goes: one found on arrival still waits for its owner's choice.
-			if (state.draftWritten) {
+			if (state.writtenDraft) {
 				clearTimeout(state.draftTimer);
-				removeLocalDraft();
-				state.draftWritten = false;
+				removeLocalDraft(state.writtenDraft);
+				state.writtenDraft = null;
 			}
 		}
 	}
@@ -648,39 +650,63 @@
 
 	function persistLocalDraft() {
 		if (!state.menuId || state.loadFailed || !hasUnsavedChanges()) return;
-		try {
-			localStorage.setItem(localDraftKey(), JSON.stringify({
-				revision: state.serverRevision,
-				menu: getMenu(),
-				updated: Date.now(),
-			}));
-			state.draftStoreFailed = false;
-			state.draftWritten = true;
-		} catch (error) {
-			// Storage can be unavailable in private or locked-down browser contexts.
-			state.draftStoreFailed = true;
-		}
+		var raw = JSON.stringify({ revision: state.serverRevision, menu: getMenu(), updated: Date.now() });
+		var previous = state.writtenDraft;
+		// A shared draft may belong to another tab. Keep this tab’s copy in
+		// session storage when the shared slot is already occupied.
+		var stores = previous && previous.storage === 'sessionStorage'
+			? ['sessionStorage', 'localStorage'] : ['localStorage', 'sessionStorage'];
+		state.draftStoreFailed = !stores.some(function (name) {
+			try {
+				var storage = window[name];
+				var current = storage.getItem(localDraftKey());
+				if (current !== null && (!previous || previous.storage !== name || previous.raw !== current)) return false;
+				storage.setItem(localDraftKey(), raw);
+				state.writtenDraft = { storage: name, raw: raw };
+				return true;
+			} catch (error) {
+				return false;
+			}
+		});
 	}
 
-	function removeLocalDraft() {
+	function removeLocalDraft(draft) {
+		if (!draft || !draft.storage) return;
 		try {
-			localStorage.removeItem(localDraftKey());
+			var storage = window[draft.storage];
+			if (storage.getItem(localDraftKey()) === draft.raw) storage.removeItem(localDraftKey());
 		} catch (error) {
-			// No action needed when storage is unavailable.
+			// Storage may have become unavailable.
 		}
 	}
 
 	function readLocalDraft() {
-		try {
-			var raw = localStorage.getItem(localDraftKey());
-			return raw ? JSON.parse(raw) : null;
-		} catch (error) {
-			return null;
+		var names = ['sessionStorage', 'localStorage'];
+		for (var index = 0; index < names.length; index++) {
+			var name = names[index];
+			try {
+				var raw = window[name].getItem(localDraftKey());
+				var draft = raw && JSON.parse(raw);
+				if (draft && validateBuilderMenu(draft.menu) && JSON.stringify(draft.menu) !== state.savedSnapshot) {
+					draft.storage = name;
+					draft.raw = raw;
+					return draft;
+				}
+			} catch (error) {
+				// The other storage area may still hold a usable draft.
+			}
 		}
+		return null;
+	}
+
+	function recoveryDraft() {
+		if (!state.saveConflict) return readLocalDraft();
+		syncSettingsFromForm();
+		return { revision: state.serverRevision, menu: JSON.parse(JSON.stringify(getMenu())) };
 	}
 
 	function checkLocalDraft() {
-		var draft = readLocalDraft();
+		var draft = recoveryDraft();
 		if (!draft || !validateBuilderMenu(draft.menu) || JSON.stringify(draft.menu) === state.savedSnapshot) return;
 		var loadedRevision = state.serverRevision;
 		var conflict = state.draftConflict || draft.revision !== loadedRevision;
@@ -694,6 +720,7 @@
 		);
 		$('.abmm-restore-draft').off('click').on('click', function () {
 			state.menu = draft.menu;
+			if (draft.storage) state.writtenDraft = draft;
 			state.draftConflict = conflict;
 			$('.abmm-save-menu').prop('disabled', conflict);
 			state.serverRevision = draft.revision || state.serverRevision;
@@ -704,42 +731,59 @@
 			$('.abmm-save-menu').trigger('focus');
 		});
 		$('.abmm-download-draft').off('click').on('click', function () {
-			var local = readLocalDraft();
+			var local = state.saveConflict ? recoveryDraft() : draft;
 			if (local && local.menu) downloadMenuJson(state.menuId + '-local-draft', JSON.stringify(local.menu, null, 2));
 		});
 		$('.abmm-discard-draft').off('click').on('click', function () {
-			removeLocalDraft();
+			var $discard = $(this);
+			if ($discard.prop('disabled')) return;
 			function finish() {
+				clearTimeout(state.draftTimer);
+				removeLocalDraft(draft);
+				removeLocalDraft(state.writtenDraft);
+				state.writtenDraft = null;
 				state.draftConflict = false;
 				$('.abmm-save-menu').prop('disabled', false);
 				$('#abmm-draft-recovery').prop('hidden', true);
+				markDirtyState();
 				$('#abmm-menu-title').trigger('focus');
 			}
-			if (state.draftConflict) {
-				state.menu = JSON.parse(state.savedSnapshot);
-				populateFormFromMenu(); renderNavItems(); renderPreview();
-			}
-			state.serverRevision = loadedRevision;
 			if (!state.saveConflict) {
+				if (state.draftConflict) {
+					state.menu = JSON.parse(state.savedSnapshot);
+					populateFormFromMenu(); renderNavItems(); renderPreview();
+				}
+				state.serverRevision = loadedRevision;
 				finish();
 				return;
 			}
-			// After a save conflict the copy this page loaded is out of date too:
-			// saving it would conflict again, so continue from the latest saved version.
+			// Keep the working copy until the latest revision has loaded successfully.
+			syncSettingsFromForm();
+			var workingSnapshot = JSON.stringify(getMenu());
+			$discard.prop('disabled', true);
 			$.post(abmmAdmin.ajaxUrl, { action: 'abmm_get_menu', nonce: abmmAdmin.nonce, menu_id: state.menuId }).done(function (res) {
-				if (!res || !res.success || !res.data || !validateBuilderMenu(res.data.menu)) {
+				if (!res || !res.success || !res.data || !res.data.revision || !validateBuilderMenu(res.data.menu)) {
 					setStatus(responseMessage(res, S.loadMalformed), true);
 					return;
 				}
+				syncSettingsFromForm();
+				if (JSON.stringify(getMenu()) !== workingSnapshot) {
+					persistLocalDraft();
+					setStatus(S.conflictError, true);
+					return;
+				}
 				state.menu = res.data.menu;
-				state.serverRevision = res.data.revision || state.serverRevision;
-				populateFormFromMenu(); renderNavItems(); syncSettingsFromForm();
-				state.savedSnapshot = JSON.stringify(getMenu());
+				state.serverRevision = res.data.revision;
+				populateFormFromMenu();
+				renderNavItems();
 				state.saveConflict = false;
+				captureSavedState();
 				renderPreview();
 				finish();
 			}).fail(function (xhr) {
 				setStatus(requestErrorMessage(xhr, S.loadMalformed), true);
+			}).always(function () {
+				$discard.prop('disabled', false);
 			});
 		});
 	}
@@ -2835,8 +2879,9 @@
 		initPreviewZoom();
 		$('.abmm-preview-viewports').on('click', '[data-abmm-preview-viewport]', function () {
 			state.previewViewport = String($(this).data('abmm-preview-viewport') || 'desktop');
+			deviceFrame.failed = false;
 			state.previewDrill = 'root';
-			state.previewItemIndex = -1;
+			state.previewItemId = null;
 			state.previewCategoryId = '';
 			// Show the drawer straight away so tablet and phone previews show the menu, not just a hamburger.
 			state.previewMobileOpen = state.previewViewport !== 'desktop';
@@ -4638,17 +4683,21 @@
 		var header = frameHeader(frame);
 		if (!header) return deviceFrame.state;
 		var p = framePrefix(header);
-		var items = Array.prototype.slice.call(header.querySelectorAll('.' + p + '-nav__list > .' + p + '-nav__item'));
 		var open = header.querySelector('.' + p + '-nav__list > .' + p + '-nav__item.is-open');
 		var drawer = header.querySelector('.' + p + '-nav__drawer');
 		// Classic sections have no collapse toggles to replay.
 		var sections = open && p === 'abmm' ? Array.prototype.slice.call(open.querySelectorAll('.abmm-mega__section')) : [];
 		var activeSection = open && p === 'emm' ? open.querySelector('.emm-mega__section.is-open') : null;
+		var expanded = Object.create(null);
+		sections.forEach(function (section) {
+			var id = section.getAttribute('data-abmm-section');
+			if (id) expanded[id] = !section.classList.contains('is-collapsed');
+		});
 		return {
 			open: header.classList.contains('is-mobile-open'),
-			item: open ? items.indexOf(open) : -1,
+			itemId: open ? open.getAttribute('data-' + p + '-item-id') : null,
 			cat: activeSection ? String(activeSection.getAttribute('data-emm-section') || '') : '',
-			expanded: sections.map(function (section) { return !section.classList.contains('is-collapsed'); }),
+			expanded: expanded,
 			scroll: drawer ? drawer.scrollTop : 0,
 		};
 	}
@@ -4668,15 +4717,15 @@
 			var p = framePrefix(header);
 			var toggle = header.querySelector('.' + p + '-nav__toggle');
 			if (saved.open && toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
-			var item = edited ? header.querySelector('.' + p + '-nav__list > [data-' + p + '-item-id="' + cssEscape(String(edited.id)) + '"]') : null;
-			if (!item && saved.item >= 0) item = header.querySelectorAll('.' + p + '-nav__list > .' + p + '-nav__item')[saved.item];
+			var itemId = edited ? String(edited.id) : saved.itemId;
+			var item = itemId ? header.querySelector('.' + p + '-nav__list > [data-' + p + '-item-id="' + cssEscape(itemId) + '"]') : null;
 			var trigger = item && item.querySelector('[data-' + p + '-mega-trigger]');
 			if ((saved.open || desktop) && trigger) {
 				trigger.click();
 				var cat = desktop && catId ? item.querySelector('[data-' + p + '-cat="' + cssEscape(catId) + '"]') : null;
 				if (cat) cat.click();
-				Array.prototype.forEach.call(item.querySelectorAll('.abmm-mega__section'), function (section, index) {
-					var want = saved.expanded[index];
+				Array.prototype.forEach.call(item.querySelectorAll('.abmm-mega__section'), function (section) {
+					var want = saved.expanded[section.getAttribute('data-abmm-section')];
 					var button = section.querySelector('[data-abmm-section-toggle]');
 					if (typeof want === 'boolean' && button && want === section.classList.contains('is-collapsed')) button.click();
 				});
@@ -4727,20 +4776,23 @@
 			if (frame.contentWindow && frame.contentWindow.__abmmQuiet) return;
 			var selection = previewSelectionFrom(target, 'frame');
 			if (selection) selectFromPreview(selection);
-			setTimeout(function () { deviceFrame.state = captureFrameState(frame); }, 0);
+			setTimeout(function () {
+				if (frame.isConnected && frame.contentDocument === doc) deviceFrame.state = captureFrameState(frame);
+			}, 0);
 		}, true);
 		var drawer = doc.querySelector('.abmm-nav__drawer, .emm-nav__drawer');
 		if (drawer) {
-			drawer.addEventListener('scroll', function () { if (deviceFrame.state) deviceFrame.state.scroll = drawer.scrollTop; }, { passive: true });
+			drawer.addEventListener('scroll', function () {
+				if (frame.isConnected && frame.contentDocument === doc && deviceFrame.state) deviceFrame.state.scroll = drawer.scrollTop;
+			}, { passive: true });
 		}
 	}
 
-	function writeDeviceFrame(html, menuAssets) {
+	function writeDeviceFrame(frame, html, menuAssets) {
 		var $preview = $('#abmm-preview');
-		var frame = $preview.find('iframe.abmm-preview-device')[0];
-		if (!frame) return;
 		if (frameHeader(frame)) deviceFrame.state = captureFrameState(frame);
 		frame.onload = function () {
+			if (!frame.isConnected) return;
 			bindDeviceFrame(frame);
 			restoreFrameState(frame, deviceFrame.state);
 			watchDesktopFrame(frame);
@@ -4750,8 +4802,7 @@
 		frame.srcdoc = deviceDocument(html, menuAssets);
 	}
 
-	function requestDeviceMarkup() {
-		var seq = ++deviceFrame.seq;
+	function requestDeviceMarkup(frame, seq) {
 		var body = new window.FormData();
 		body.append('action', 'abmm_preview_markup');
 		body.append('nonce', window.abmmAdmin.nonce);
@@ -4760,12 +4811,12 @@
 		window.fetch(window.abmmAdmin.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
 			.then(function (response) { return response.json(); })
 			.then(function (result) {
-				if (seq !== deviceFrame.seq) return;
+				if (seq !== deviceFrame.seq || !frame.isConnected) return;
 				if (!result || !result.success || !result.data || typeof result.data.html !== 'string') throw new Error('preview');
-				writeDeviceFrame(result.data.html, result.data.assets);
+				writeDeviceFrame(frame, result.data.html, result.data.assets);
 			})
 			.catch(function () {
-				if (seq !== deviceFrame.seq) return;
+				if (seq !== deviceFrame.seq || !frame.isConnected) return;
 				// Fall back to the built-in preview rather than an empty frame.
 				deviceFrame.failed = true;
 				renderPreview();
@@ -4774,6 +4825,9 @@
 
 	/** Returns true when the device frame handles this render. */
 	function renderDeviceFrame() {
+		// Invalidate the previous render immediately, including during the edit debounce.
+		clearTimeout(deviceFrame.timer);
+		var seq = ++deviceFrame.seq;
 		var device = state.previewViewport;
 		var classic = String((getMenu().settings || {}).render_mode || '') === 'emm-classic';
 		if ((device === 'desktop' && !classic) || deviceFrame.failed || !devicePreviewAvailable()) return false;
@@ -4781,18 +4835,17 @@
 		var $frame = $preview.find('iframe.abmm-preview-device');
 		if (!$frame.length || deviceFrame.viewport !== device) {
 			deviceFrame.viewport = device;
-			deviceFrame.state = { open: device !== 'desktop' && state.previewMobileOpen, item: -1, cat: '', expanded: [], scroll: 0 };
+			deviceFrame.state = { open: device !== 'desktop' && state.previewMobileOpen, itemId: null, cat: '', expanded: Object.create(null), scroll: 0 };
 			$preview.empty().addClass('has-device-frame is-loading').attr('data-abmm-preview-state', device + '-frame').append(
 				$('<iframe class="abmm-preview-device"></iframe>')
 					.attr('title', device === 'mobile' ? __('Phone preview', 'ashbi-mega-menu') : device === 'tablet' ? __('Tablet preview', 'ashbi-mega-menu') : __('Desktop preview', 'ashbi-mega-menu'))
 					.css({ width: PREVIEW_WIDTHS[device] + 'px', height: PREVIEW_SCREEN_HEIGHTS[device] + 'px' })
 			);
 			applyPreviewZoom();
-			requestDeviceMarkup();
+			requestDeviceMarkup($preview.find('iframe.abmm-preview-device')[0], seq);
 			return true;
 		}
-		clearTimeout(deviceFrame.timer);
-		deviceFrame.timer = setTimeout(requestDeviceMarkup, 200);
+		deviceFrame.timer = setTimeout(function () { requestDeviceMarkup($frame[0], seq); }, 200);
 		return true;
 	}
 
@@ -4800,41 +4853,44 @@
 	 * Selecting in the preview selects in the editor.
 	 * ------------------------------------------------------------------- */
 	function previewSelectionFrom(target, source) {
+		var itemEl = target.closest('[data-abmm-preview-item], .abmm-nav__list > [data-abmm-item-id], .emm-nav__list > [data-emm-item-id]');
+		var itemId = null;
+		if (itemEl && itemEl.hasAttribute('data-abmm-preview-item')) {
+			var item = (getMenu().items || [])[Number(itemEl.getAttribute('data-abmm-preview-item'))];
+			if (item) itemId = String(item.id);
+		} else if (itemEl) {
+			itemId = itemEl.getAttribute('data-abmm-item-id') || itemEl.getAttribute('data-emm-item-id');
+		}
+
 		var linkEl = target.closest('[data-abmm-link-id]');
-		if (linkEl) return { kind: 'link', id: String(linkEl.getAttribute('data-abmm-link-id')), source: source };
+		if (linkEl && itemId !== null) {
+			var section = linkEl.closest('[data-abmm-section], [data-emm-section]');
+			var catId = section && (section.getAttribute('data-abmm-section') || section.getAttribute('data-emm-section'));
+			return { kind: 'link', id: linkEl.getAttribute('data-abmm-link-id'), itemId: itemId, catId: catId, source: source };
+		}
 		// Classic (Easy Mega Menu) frames use emm- names for the same parts.
 		var catEl = target.closest('[data-abmm-cat], [data-emm-cat]');
-		if (catEl) return { kind: 'cat', id: String(catEl.getAttribute('data-abmm-cat') || catEl.getAttribute('data-emm-cat')), source: source };
+		if (catEl && itemId !== null) return { kind: 'cat', id: catEl.getAttribute('data-abmm-cat') || catEl.getAttribute('data-emm-cat'), itemId: itemId, source: source };
 		if (target.closest('.abmm-nav__cta, .emm-nav__cta')) return { kind: 'cta', source: source };
-		var itemEl = target.closest('[data-abmm-preview-item], .abmm-nav__list > [data-abmm-item-id], .emm-nav__list > [data-emm-item-id]');
-		if (itemEl) {
-			var items = getMenu().items || [];
-			var index = itemEl.hasAttribute('data-abmm-preview-item')
-				? Number(itemEl.getAttribute('data-abmm-preview-item'))
-				: items.map(function (item) { return String(item.id); }).indexOf(String(itemEl.getAttribute('data-abmm-item-id') || itemEl.getAttribute('data-emm-item-id')));
-			if (items[index]) return { kind: 'item', id: String(items[index].id), source: source };
-		}
-		return null;
+		return itemId === null ? null : { kind: 'item', id: itemId, source: source };
 	}
 
-	function findLinkLocation(linkId) {
-		var found = null;
-		(getMenu().items || []).forEach(function (item, itemIndex) {
-			if (found) return;
-			(item.links || []).forEach(function (link) {
-				if (!found && String(link.id) === linkId) found = { itemIndex: itemIndex, catIndex: -1 };
-			});
-			(item.categories || []).forEach(function (cat, catIndex) {
-				if (found) return;
-				var groups = Array.isArray(cat.groups) && cat.groups.length ? cat.groups : [{ links: cat.links || [] }];
-				groups.forEach(function (group) {
-					(group.links || []).forEach(function (link) {
-						if (!found && String(link.id) === linkId) found = { itemIndex: itemIndex, catIndex: catIndex };
-					});
-				});
-			});
-		});
-		return found;
+	function findLinkLocation(selection) {
+		var items = getMenu().items || [];
+		var itemIndex = items.findIndex(function (item) { return String(item.id) === selection.itemId; });
+		if (itemIndex < 0) return null;
+		var item = items[itemIndex];
+		function matchesLink(link) { return String(link.id) === selection.id; }
+		if (!selection.catId) {
+			return (item.links || []).some(matchesLink) ? { itemIndex: itemIndex, catIndex: -1 } : null;
+		}
+		var categories = item.categories || [];
+		var catIndex = categories.findIndex(function (cat) { return String(cat.id) === selection.catId; });
+		if (catIndex < 0) return null;
+		var cat = categories[catIndex];
+		var groups = Array.isArray(cat.groups) && cat.groups.length ? cat.groups : [{ links: cat.links || [] }];
+		return groups.some(function (group) { return (group.links || []).some(matchesLink); })
+			? { itemIndex: itemIndex, catIndex: catIndex } : null;
 	}
 
 	function revealInInspector($element) {
@@ -4873,24 +4929,29 @@
 				revealInInspector($row);
 			}
 		} else if (selection.kind === 'cat') {
-			var catItem = -1, catIndex = -1;
-			items.forEach(function (item, index) {
-				(item.categories || []).forEach(function (cat, ci) {
-					if (catItem < 0 && String(cat.id) === selection.id) { catItem = index; catIndex = ci; }
-				});
-			});
+			var catItem = items.findIndex(function (item) { return String(item.id) === selection.itemId; });
 			if (catItem < 0) return;
+			var catIndex = (items[catItem].categories || []).findIndex(function (cat) { return String(cat.id) === selection.id; });
+			if (catIndex < 0) return;
 			openMegaEditorFor(catItem);
 			selectCategory(catIndex);
 			revealInInspector($('#abmm-cat-list .abmm-cat-row').eq(catIndex));
 		} else if (selection.kind === 'link') {
-			var where = findLinkLocation(selection.id);
+			var where = findLinkLocation(selection);
 			if (!where) return;
 			openMegaEditorFor(where.itemIndex);
 			if (where.catIndex >= 0 && state.editingCatIndex !== where.catIndex) selectCategory(where.catIndex);
 			revealInInspector($('#abmm-mega-editor .abmm-link-row').filter(function () { return String($(this).data('id')) === selection.id; }).first());
 		}
 		markCanvasSelection();
+	}
+
+	function previewItemNode(root, itemId) {
+		var index = (getMenu().items || []).findIndex(function (item) { return String(item.id) === itemId; });
+		if (index < 0) return null;
+		var escaped = cssEscape(itemId);
+		return root.querySelector('[data-abmm-preview-item="' + index + '"]') ||
+			root.querySelector('.abmm-nav__list > [data-abmm-item-id="' + escaped + '"], .emm-nav__list > [data-emm-item-id="' + escaped + '"]');
 	}
 
 	/** Outline the selected element in whichever preview is showing. */
@@ -4904,12 +4965,22 @@
 			Array.prototype.forEach.call(root.querySelectorAll('.abmm-canvas-selected'), function (el) { el.classList.remove('abmm-canvas-selected'); });
 			if (!selection) return;
 			var el = null;
-			if (selection.kind === 'link') el = root.querySelector('[data-abmm-link-id="' + cssEscape(selection.id) + '"] > :is(a, span)');
-			else if (selection.kind === 'cat') el = root.querySelector('[data-abmm-cat="' + cssEscape(selection.id) + '"], [data-emm-cat="' + cssEscape(selection.id) + '"]');
-			else if (selection.kind === 'cta') el = Array.prototype.filter.call(root.querySelectorAll('.abmm-nav__cta, .emm-nav__cta'), function (cta) { return cta.getClientRects().length; })[0] || null;
+			if (selection.kind === 'link' || selection.kind === 'cat') {
+				var scope = previewItemNode(root, selection.itemId);
+				if (!scope) return;
+				var id = cssEscape(selection.id);
+				if (selection.kind === 'cat') {
+					el = scope.querySelector('[data-abmm-cat="' + id + '"], [data-emm-cat="' + id + '"]');
+				} else {
+					if (selection.catId) {
+						var cat = cssEscape(selection.catId);
+						scope = scope.querySelector('[data-abmm-section="' + cat + '"], [data-emm-section="' + cat + '"]');
+					}
+					el = scope && scope.querySelector('[data-abmm-link-id="' + id + '"] > :is(a, span)');
+				}
+			} else if (selection.kind === 'cta') el = Array.prototype.filter.call(root.querySelectorAll('.abmm-nav__cta, .emm-nav__cta'), function (cta) { return cta.getClientRects().length; })[0] || null;
 			else if (selection.kind === 'item') {
-				var index = (getMenu().items || []).map(function (item) { return String(item.id); }).indexOf(selection.id);
-				var li = root.querySelector('[data-abmm-preview-item="' + index + '"]') || root.querySelector('.abmm-nav__list > [data-abmm-item-id="' + cssEscape(selection.id) + '"], .emm-nav__list > [data-emm-item-id="' + cssEscape(selection.id) + '"]');
+				var li = previewItemNode(root, selection.id);
 				el = li && li.querySelector(':scope > .abmm-nav__link, :scope > .emm-nav__link');
 			}
 			if (el) el.classList.add('abmm-canvas-selected');
@@ -4938,6 +5009,28 @@
 		deviceFrame.viewport = '';
 		$('#abmm-preview').removeClass('has-device-frame is-loading');
 
+		var mobilePreview = state.previewViewport !== 'desktop';
+		var items = m.items || [];
+		if (!mobilePreview && state.previewItemId === null) {
+			var firstMega = items.find(function (item) { return item.type === 'mega'; });
+			if (firstMega) state.previewItemId = String(firstMega.id);
+		}
+		var selectedIndex = items.findIndex(function (item) {
+			return item.type === 'mega' && String(item.id) === state.previewItemId;
+		});
+		var selectedItem = items[selectedIndex];
+		if (!selectedItem && mobilePreview) {
+			state.previewDrill = 'root';
+			state.previewItemId = null;
+			state.previewCategoryId = '';
+		}
+		if (state.previewCategoryId && selectedItem && !(selectedItem.categories || []).some(function (cat) {
+			return String(cat.id) === state.previewCategoryId;
+		})) {
+			state.previewCategoryId = '';
+			if (mobilePreview && state.previewDrill === 'links') state.previewDrill = 'cats';
+		}
+
 		var itemsHtml = '';
 		(m.items || []).forEach(function (item, idx) {
 			var isMega = item.type === 'mega';
@@ -4961,7 +5054,7 @@
 						item.categories &&
 						item.categories.length))
 			) {
-				itemsHtml += renderMegaPreview(item, idx);
+				itemsHtml += renderMegaPreview(item, idx, idx === selectedIndex ? state.previewCategoryId : '');
 			}
 			itemsHtml += '</li>';
 		});
@@ -5006,7 +5099,6 @@
 			return '<a ' + previewLinkAttrs(m.cta, 'abmm-nav__cta abmm-nav__cta--' + location) + ' href="' + href + '">' + esc(m.cta.label) + '</a>';
 		}
 
-		var mobilePreview = state.previewViewport !== 'desktop';
 		var mobileOpen = mobilePreview && state.previewMobileOpen;
 		var drillMarkup =
 			mobilePreview && state.previewDrill !== 'root'
@@ -5070,10 +5162,7 @@
 		if (mobilePreview && state.previewDrill === 'root' && window.ABMMMenuSearch) {
 			window.ABMMMenuSearch.init($preview.find('.abmm-header')[0]);
 		}
-		if (!mobilePreview && state.previewItemIndex < 0) {
-			state.previewItemIndex = Number($preview.find('.abmm-nav__item--mega').first().data('abmm-preview-item'));
-		}
-		var $selected = $preview.find('[data-abmm-preview-item="' + state.previewItemIndex + '"]');
+		var $selected = $preview.find('[data-abmm-preview-item="' + selectedIndex + '"]');
 		if (!mobilePreview || state.previewDrill !== 'root') {
 			$selected.addClass('is-open');
 			$selected.find('> .abmm-nav__link').attr('aria-expanded', 'true');
@@ -5101,9 +5190,9 @@
 			.on('mouseenter.abmmpreview', '.abmm-nav__item--mega', function () {
 				// As on the live site, hovering a desktop item opens its panel.
 				if (mobilePreview || s.desktop_interaction === 'click') return;
-				var index = Number($(this).data('abmm-preview-item'));
-				if (index === state.previewItemIndex) return;
-				state.previewItemIndex = index;
+				var item = items[Number($(this).data('abmm-preview-item'))];
+				if (!item || String(item.id) === state.previewItemId) return;
+				state.previewItemId = String(item.id);
 				state.previewCategoryId = '';
 				renderPreview();
 			})
@@ -5112,7 +5201,7 @@
 				state.previewMobileOpen = !state.previewMobileOpen;
 				if (!state.previewMobileOpen) {
 					state.previewDrill = 'root';
-					state.previewItemIndex = -1;
+					state.previewItemId = null;
 					state.previewCategoryId = '';
 				}
 				renderPreview();
@@ -5121,7 +5210,7 @@
 			.on('click.abmmpreview', '[data-abmm-preview-drawer-close], [data-abmm-preview-backdrop]', function () {
 				state.previewMobileOpen = false;
 				state.previewDrill = 'root';
-				state.previewItemIndex = -1;
+				state.previewItemId = null;
 				state.previewCategoryId = '';
 				renderPreview();
 				setTimeout(function () { $('#abmm-preview .abmm-nav__toggle').trigger('focus'); }, 0);
@@ -5129,7 +5218,7 @@
 			.on('click.abmmpreview', '[data-abmm-preview-back]', function () {
 				state.previewDrill = state.previewDrill === 'links' ? 'cats' : 'root';
 				if (state.previewDrill === 'root') {
-					state.previewItemIndex = -1;
+					state.previewItemId = null;
 					state.previewCategoryId = '';
 				}
 				renderPreview();
@@ -5138,8 +5227,10 @@
 			.on('click.abmmpreview', '[data-abmm-preview-item] > .abmm-nav__link', function () {
 				var $item = $(this).parent();
 				if (!$item.hasClass('abmm-nav__item--mega')) return;
-				state.previewItemIndex = Number($item.data('abmm-preview-item'));
-				var selected = m.items && m.items[state.previewItemIndex];
+				var openedIndex = Number($item.data('abmm-preview-item'));
+				var selected = items[openedIndex];
+				if (!selected) return;
+				state.previewItemId = String(selected.id);
 				var directToLinks = selected && (selected.mega_style === 'features' || (selected.hide_category_bar && (selected.categories || []).length === 1));
 				state.previewDrill = mobilePreview ? (directToLinks ? 'links' : 'cats') : 'root';
 				state.previewCategoryId = '';
@@ -5151,7 +5242,6 @@
 					}, 0);
 				} else {
 					// The render replaces the button that had focus: give it back to the new one.
-					var openedIndex = state.previewItemIndex;
 					setTimeout(function () {
 						$('#abmm-preview [data-abmm-preview-item="' + openedIndex + '"] > .abmm-nav__link').first().trigger('focus');
 					}, 0);
@@ -5194,7 +5284,7 @@
 		});
 	}
 
-	function renderMegaPreview(item, itemIndex) {
+	function renderMegaPreview(item, itemIndex, categoryId) {
 		var style = item.mega_style || 'platforms';
 		var cols = previewNumberValue(item.columns, style === 'features' ? 2 : 3, 1, 4);
 		var previewPanelId = 'abmm-preview-panel-' + (itemIndex == null ? 0 : itemIndex);
@@ -5232,7 +5322,7 @@
 		var featuredHtml = featuredPreviewMarkup(item);
 
 		cats.forEach(function (cat, i) {
-			var active = state.previewCategoryId ? String(cat.id) === String(state.previewCategoryId) : i === 0;
+			var active = categoryId ? String(cat.id) === categoryId : i === 0;
 			var catId = String(cat.id || 'cat-' + i);
 			var catUid = previewPanelId + '-cat-' + i + '-' + catId.replace(/[^A-Za-z0-9_-]/g, '-');
 			ensureCategoryGroups(cat);
@@ -5489,7 +5579,8 @@
 	}
 
 	function saveMenu() {
-		if (state.loadFailed || state.isSaving || state.draftConflict) {
+		if (state.isSaving) return;
+		if (state.loadFailed || state.draftConflict) {
 			state.exitAfterSave = false;
 			return;
 		}
@@ -5536,10 +5627,11 @@
 				$btn.prop('disabled', state.draftConflict);
 				if (saveSucceeded) {
 					markDirtyState();
-					if (hasUnsavedChanges()) persistLocalDraft();
-					else removeLocalDraft();
+					var dirty = hasUnsavedChanges();
+					if (dirty) persistLocalDraft();
+					else removeLocalDraft(state.writtenDraft);
 					renderReadiness();
-					if (state.exitAfterSave && state.pendingExitUrl) window.location = state.pendingExitUrl;
+					if (!dirty && state.exitAfterSave && state.pendingExitUrl) window.location = state.pendingExitUrl;
 				}
 				// A failed save stays here, with its error and Retry showing.
 				state.exitAfterSave = false;

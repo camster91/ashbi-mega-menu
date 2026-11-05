@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.10
+
+- Preserve edits made during Save and leave or conflict recovery, and keep drafts from different tabs separate.
+- Ignore obsolete preview requests, allow retries, and keep open dropdowns and editor selections attached to their items.
+- Coordinate Classic and Ashbi menus on the same page, release listeners when headers are removed, and avoid duplicate ElementsKit layout checks.
+- Preserve concurrent site edits during migration, keep failed restores available for retry, and protect existing styles, archives and recovery points.
+
 ## 1.2.9
 
 The editor is easier to scan. Nothing visitors see changes.

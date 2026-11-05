@@ -75,6 +75,11 @@ const unhover = (element) => element.dispatchEvent(new window.MouseEvent('mousel
 	await wait(150);
 	assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'a pointer passing over the item opens nothing');
 
+	hover(item);
+	after.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true }));
+	await wait(150);
+	assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'an outside press cancels the pending hover');
+
 	// A pointer that stays opens the panel.
 	hover(item);
 	await wait(150);
@@ -176,11 +181,23 @@ const unhover = (element) => element.dispatchEvent(new window.MouseEvent('mousel
 
 	// A cloned header gets its own root id too.
 	header.id = 'abmm-hover-1';
+	trigger.click();
 	const clone = header.cloneNode(true);
 	clone.setAttribute('data-abmm-instance', 'abmm-hover-2');
 	window.document.body.appendChild(clone);
 	await wait(20);
 	assert.equal(clone.id, 'abmm-hover-1--abmm-hover-2', 'a clone does not repeat the root id');
+
+	const cloneTrigger = clone.querySelector('[data-abmm-mega-trigger]');
+	assert.equal(cloneTrigger.getAttribute('aria-expanded'), 'false', 'a clone does not inherit an open desktop panel');
+	trigger.click();
+	cloneTrigger.focus();
+	hover(item);
+	await wait(150);
+	assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+	cloneTrigger.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+	assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'Escape closes a hover panel while another header has focus');
+	assert.equal(window.document.activeElement, cloneTrigger);
 
 	console.log('Desktop hover then click keeps the panel open, hover waits for intent, and tabbing out closes it.');
 	dom.window.close();

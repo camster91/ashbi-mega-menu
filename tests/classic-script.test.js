@@ -33,6 +33,52 @@ function load({ copies = 1, config, mobile = false, timers = false, wrap = (html
 	return window;
 }
 
+// A site can keep a Classic header while adding an Ashbi menu on the same page.
+for (const mobile of [false, true]) {
+	const window = load({
+		mobile,
+		wrap: (html) => `<main id="mixed-content"></main>${html}
+			<header class="abmm-header">
+				<nav class="abmm-nav">
+					<div class="abmm-nav__bar">
+						<button class="abmm-nav__toggle" aria-expanded="false">Open</button>
+					</div>
+					<div class="abmm-nav__drawer">
+						<ul><li class="abmm-nav__item abmm-nav__item--mega">
+							<button data-abmm-mega-trigger aria-expanded="false">Products</button>
+							<div data-abmm-mega-panel hidden><a href="/products">Products</a></div>
+						</li></ul>
+					</div>
+				</nav>
+			</header>`,
+	});
+	window.eval(fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'frontend.js'), 'utf8'));
+	window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
+	const classic = window.document.querySelector('.emm-header');
+	const ashbi = window.document.querySelector('.abmm-header');
+	const classicControl = classic.querySelector(mobile ? '.emm-nav__toggle' : '[data-emm-mega-trigger]');
+	const ashbiControl = ashbi.querySelector(mobile ? '.abmm-nav__toggle' : '[data-abmm-mega-trigger]');
+	const content = window.document.getElementById('mixed-content');
+
+	classicControl.click();
+	assert.equal(classicControl.getAttribute('aria-expanded'), 'true');
+	ashbiControl.click();
+	assert.equal(classicControl.getAttribute('aria-expanded'), 'false', 'Opening Ashbi closes Classic.');
+	assert.equal(ashbiControl.getAttribute('aria-expanded'), 'true');
+	if (mobile) assert.equal(content.hasAttribute('inert'), true, 'The second drawer owns the page lock.');
+
+	classicControl.click();
+	assert.equal(ashbiControl.getAttribute('aria-expanded'), 'false', 'Opening Classic closes Ashbi.');
+	assert.equal(classicControl.getAttribute('aria-expanded'), 'true');
+	if (mobile) {
+		assert.equal(content.hasAttribute('inert'), true);
+		classicControl.click();
+		assert.equal(content.hasAttribute('inert'), false, 'Closing the last drawer releases the page.');
+		assert.equal(window.document.documentElement.matches('.emm-drawer-open, .abmm-drawer-open'), false);
+	}
+	window.close();
+}
+
 // One copy: the header is initialised and a click toggles the first panel.
 {
 	const window = load();
@@ -53,6 +99,16 @@ function load({ copies = 1, config, mobile = false, timers = false, wrap = (html
 	const trigger = window.document.querySelector('header.emm-header [data-emm-mega-trigger]');
 	trigger.click();
 	assert.equal(trigger.getAttribute('aria-expanded'), 'true', 'Loading the script twice still opens on one click.');
+}
+
+// A burst of page interactions should leave at most two delayed ElementsKit fits.
+{
+	const window = load({ copies: 2, timers: true });
+	for (let index = 0; index < 10; index++) {
+		window.document.body.dispatchEvent(new window.MouseEvent('pointerover', { bubbles: true }));
+	}
+	assert.equal(window.pendingTimers.filter(Boolean).length, 2, 'Duplicate scripts and pointer activity share the delayed fitting work.');
+	window.close();
 }
 
 // A header can measure zero wide on a phone, its button overflowing a shrunken
@@ -356,6 +412,15 @@ for (const file of ['emm-frontend.js', 'emm-frontend.css', 'emm-fixes.css', 'emm
 	ctx.header.remove();
 	await settle();
 	released(ctx, 'Header removed from the page');
+	assert.equal(ctx.header.hasAttribute('data-emm-initialized'), false, 'Removing a Classic header releases its bindings.');
+	ctx.toggle.click();
+	assert.equal(ctx.header.classList.contains('is-mobile-open'), false, 'A detached toggle cannot lock the page.');
+	ctx.window.document.getElementById('host').appendChild(ctx.header);
+	await settle();
+	ctx.toggle.click();
+	assert.equal(ctx.header.classList.contains('is-mobile-open'), true, 'Reinserting the header binds one working toggle.');
+	ctx.toggle.click();
+	released(ctx, 'Reinserted header closed again');
 
 	ctx = open();
 	ctx.window.document.body.classList.add('unrelated');
@@ -372,13 +437,39 @@ for (const file of ['emm-frontend.js', 'emm-frontend.css', 'emm-fixes.css', 'emm
 	// A clone of the open header, such as Elementor's sticky spacer, isn't open.
 	ctx = open();
 	const clone = ctx.header.cloneNode(true);
+	const fragment = ctx.window.document.createElement('a');
+	fragment.href = '#constructor';
+	fragment.setAttribute('aria-describedby', 'constructor');
+	clone.appendChild(fragment);
 	ctx.header.parentNode.appendChild(clone);
 	await settle();
 	assert.ok(!clone.classList.contains('is-mobile-open'), 'A clone of an open header starts closed.');
 	assert.equal(clone.querySelector('.'+ctx.toggle.className.split(' ')[0]).getAttribute('aria-expanded'), 'false', 'A cloned button reads as closed.');
+	assert.equal(clone.querySelector('.emm-nav__toggle').getAttribute('aria-label'), 'Open menu', 'A clone does not inherit the close label.');
+	assert.equal(fragment.getAttribute('href'), '#constructor', 'Unrelated fragments stay intact.');
+	assert.equal(fragment.getAttribute('aria-describedby'), 'constructor', 'Unrelated ARIA references stay intact.');
 	assert.ok(ctx.header.classList.contains('is-mobile-open'), 'The real drawer stays open.');
 	ctx.toggle.click();
 	released(ctx, 'Closed with a clone on the page');
+
+	const desktop = load({ timers: true });
+	const original = desktop.document.querySelector('.emm-header');
+	const item = original.querySelector('.emm-nav__item--mega');
+	const trigger = item.querySelector('[data-emm-mega-trigger]');
+	item.dispatchEvent(new desktop.MouseEvent('mouseenter'));
+	desktop.document.body.dispatchEvent(new desktop.MouseEvent('mousedown', { bubbles: true }));
+	desktop.runTimers();
+	assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'An outside press cancels pending hover.');
+	trigger.click();
+	const desktopClone = original.cloneNode(true);
+	desktop.document.body.appendChild(desktopClone);
+	await settle();
+	const cloneTrigger = desktopClone.querySelector('[data-emm-mega-trigger]');
+	assert.equal(cloneTrigger.getAttribute('aria-expanded'), 'false', 'A cloned desktop panel starts closed.');
+	cloneTrigger.focus();
+	cloneTrigger.dispatchEvent(new desktop.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+	assert.equal(trigger.getAttribute('aria-expanded'), 'false', 'Escape closes the open menu when a second menu has focus.');
+	assert.equal(desktop.document.activeElement, cloneTrigger);
 })().catch((error) => { console.error(error); process.exit(1); });
 
 // A labelled phone button stays on one row and on screen, whatever a theme forces on buttons.
