@@ -2,7 +2,7 @@
 /** Exercise the actual uninstall file against isolated per-site data stores. */
 define( 'WP_UNINSTALL_PLUGIN', 'ashbi-mega-menu/ashbi-mega-menu.php' );
 $mode = $argv[1] ?? 'multisite';
-$site_count = in_array( $mode, array( 'multisite', 'multi-network', 'failure' ), true ) ? 205 : 1;
+$site_count = in_array( $mode, array( 'multisite', 'multi-network', 'failure', 'keep-network', 'partial-network' ), true ) ? 205 : 1;
 $current_site = 1;
 $switch_stack = array();
 $site_options = array();
@@ -21,6 +21,10 @@ foreach ( range( 1, $site_count ) as $site_id ) {
   '_transient_abmm_emm_menus_in_use' => array( 'private' => 1 ), '_transient_timeout_abmm_emm_menus_in_use' => 123,
   'unrelated' => 'keep', '_transient_other_plugin' => 'keep',
  );
+ // Sites keep everything unless they chose otherwise in Tools.
+ if ( ! in_array( $mode, array( 'keep', 'keep-network' ), true ) && ! ( 'partial-network' === $mode && 3 === $site_id ) ) {
+  $site_options[$site_id]['abmm_delete_data_on_uninstall'] = true;
+ }
 }
 $site_networks = array_fill_keys( range( 1, $site_count ), 17 );
 if ( 'multi-network' === $mode ) {
@@ -31,7 +35,8 @@ if ( 'multi-network' === $mode ) {
 }
 $before = $site_options;
 function current_user_can( $capability ) { return 'activate_plugins' === $capability && 'denied' !== $GLOBALS['mode']; }
-function is_multisite() { return in_array( $GLOBALS['mode'], array( 'multisite', 'multi-network', 'failure' ), true ); }
+function is_multisite() { return in_array( $GLOBALS['mode'], array( 'multisite', 'multi-network', 'failure', 'keep-network', 'partial-network' ), true ); }
+function get_option( $key, $default = false ) { return $GLOBALS['site_options'][$GLOBALS['current_site']][$key] ?? $default; }
 function get_sites( $args ) {
  ++$GLOBALS['queries'];
  if ( 'ids' !== $args['fields'] || $args['number'] > 100 ) { throw new Exception( 'Site enumeration must be bounded and return IDs only.' ); }
@@ -69,6 +74,12 @@ catch ( RuntimeException $error ) {
 if ( 1 !== $current_site || ! empty( $switch_stack ) ) { throw new Exception( 'Uninstall did not restore the original site context.' ); }
 if ( 'failure' === $mode ) {
  if ( ! isset( $user_metadata['abmm_onboarding_complete'], $network_options['abmm_menus'] ) ) { throw new Exception( 'Failed cleanup continued with shared metadata removal.' ); }
+} elseif ( in_array( $mode, array( 'keep', 'keep-network' ), true ) ) {
+ if ( $before !== $site_options || ! isset( $user_metadata['abmm_onboarding_complete'], $network_options['abmm_menus'] ) ) { throw new Exception( 'Deleting the plugin erased data without the site choosing that.' ); }
+} elseif ( 'partial-network' === $mode ) {
+ if ( $before[3] !== $site_options[3] ) { throw new Exception( 'A site that did not choose to delete its data lost it.' ); }
+ if ( array( 'unrelated' => 'keep', '_transient_other_plugin' => 'keep' ) !== $site_options[2] ) { throw new Exception( 'A site that chose to delete its data kept it.' ); }
+ if ( ! isset( $user_metadata['abmm_onboarding_complete'], $network_options['abmm_menus'] ) ) { throw new Exception( 'Shared data was removed while a site still keeps its menus.' ); }
 } elseif ( 'denied' === $mode ) {
  if ( $before !== $site_options || ! isset( $user_metadata['abmm_onboarding_complete'], $network_options['abmm_menus'] ) ) { throw new Exception( 'Denied uninstall changed data.' ); }
 } else {

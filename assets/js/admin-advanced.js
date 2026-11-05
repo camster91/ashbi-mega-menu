@@ -32,9 +32,10 @@
 
 	var SETTINGS = {
 		preset: { tier: 'basic', field: '#abmm-preset' },
-		render_mode: { tier: 'basic', field: '#abmm-render-mode' },
 		nav_align: { tier: 'basic', field: '#abmm-nav-align' },
 
+		// Which look a menu uses is a choice, not a change from a default, so it never counts as active.
+		render_mode: { tier: 'internal', field: '#abmm-render-mode' },
 		presentation: { tier: 'internal' },
 		classic_origin: { tier: 'internal' },
 		// The phone scroll fix now applies to every Classic menu, so this does nothing.
@@ -376,7 +377,7 @@
 				if (!classic) return;
 				note = document.createElement('p');
 				note.className = 'description abmm-classic-unused';
-				note.textContent = strings().__('Not used by the Classic look.', 'ashbi-mega-menu');
+				note.textContent = strings().__('Not used by this look.', 'ashbi-mega-menu');
 				wrapper.parentNode.insertBefore(note, wrapper.nextSibling);
 			}
 			note.hidden = !classic;

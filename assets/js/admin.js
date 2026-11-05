@@ -558,6 +558,10 @@
 					? __('Found on your site. Every save updates it there right away.', 'ashbi-mega-menu')
 					: __('Not found in your pages, widgets or page builder content. Placements in theme templates or PHP cannot be detected.', 'ashbi-mega-menu'))
 				.appendTo($el);
+			if (state.cacheNote) {
+				$el.append(' ');
+				$('<span class="abmm-save-status__cache" />').text(state.cacheNote).appendTo($el);
+			}
 		}
 		// A conflict cannot be fixed by retrying; the draft recovery panel offers reload instead.
 		if (state.saveState === 'failed' && !state.draftConflict) {
@@ -618,6 +622,7 @@
 		if (!state.trackingChanges || state.loadFailed || state.isSaving) return;
 		scheduleHistory();
 		if (hasUnsavedChanges()) {
+			state.cacheNote = '';
 			updateSaveState('dirty', S.unsavedState);
 			scheduleLocalDraft();
 		} else {
@@ -1035,6 +1040,7 @@
 		var $renderMode = $('#abmm-render-mode');
 		if ($renderMode.length) {
 			$renderMode.val(s.render_mode === 'emm-classic' ? 'emm-classic' : '');
+			$renderMode.data('abmmLook', $renderMode.val());
 			$('.abmm-classic-notice').prop('hidden', $renderMode.val() !== 'emm-classic');
 		}
 		$('#abmm-classic-toggle-label').val(s.classic_toggle_label || '');
@@ -2898,6 +2904,20 @@
 			syncSettingsFromForm();
 			renderPreview();
 			setStatus(__('Reset to default.', 'ashbi-mega-menu'), false);
+		});
+
+		// A live menu's look changes for visitors on save, so ask first. A browser fires
+		// both input and change for one choice, and only the first one differs.
+		$('#abmm-render-mode').data('abmmLook', String($('#abmm-render-mode').val() || '')).on('change input', function () {
+			var $look = $(this);
+			var chosen = String($look.val() || '');
+			var previous = String($look.data('abmmLook') || '');
+			if (chosen === previous) return;
+			if (menuIsPlaced() && !window.confirm(S.lookConfirm)) {
+				$look.val(previous);
+				return;
+			}
+			$look.data('abmmLook', chosen);
 		});
 
 		$(designSelectors).on('change input', function () {
@@ -5492,6 +5512,8 @@
 					state.serverRevision = (res.data && res.data.revision) || state.serverRevision;
 					state.trackingChanges = true;
 					if (res.data && res.data.sample === false) $('.abmm-sample-warning').remove();
+					var cacheCleared = res.data ? res.data.cache_cleared : null;
+					state.cacheNote = cacheCleared === true ? S.cacheCleared : cacheCleared === false ? S.cacheFailed : '';
 					updateSaveState('saved', S.savedState);
 				} else {
 					updateSaveState('failed', responseMessage(res, S.saveError));

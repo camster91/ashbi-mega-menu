@@ -234,20 +234,6 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				$abmm_classic_origin = $abmm_classic || ! empty( $abmm_settings['classic_origin'] ) || ( class_exists( 'ABMM_EMM_Migration' ) && ABMM_EMM_Migration::instance()->is_source_menu( $edit_id ) );
 				?>
 
-				<?php if ( $abmm_classic_origin ) : ?>
-					<label class="abmm-field">
-						<span><?php esc_html_e( 'Site look', 'ashbi-mega-menu' ); ?></span>
-						<select id="abmm-render-mode" aria-describedby="abmm-render-mode-help">
-							<option value="emm-classic" <?php selected( $abmm_classic ); ?>><?php esc_html_e( 'Classic (Easy Mega Menu)', 'ashbi-mega-menu' ); ?></option>
-							<option value="" <?php selected( ! $abmm_classic ); ?>><?php esc_html_e( 'Ashbi', 'ashbi-mega-menu' ); ?></option>
-						</select>
-						<span class="description" id="abmm-render-mode-help"><?php esc_html_e( 'Classic keeps the exact look, markup and site CSS of Easy Mega Menu. Saving a switch changes how the menu looks on your site right away. You can switch back here at any time.', 'ashbi-mega-menu' ); ?></span>
-					</label>
-					<div class="notice notice-info inline abmm-classic-notice">
-						<p><?php esc_html_e( 'Color and size changes below still apply to the Classic look.', 'ashbi-mega-menu' ); ?></p>
-					</div>
-				<?php endif; ?>
-
 				<div class="abmm-field">
 					<span><?php esc_html_e( 'Style preset', 'ashbi-mega-menu' ); ?></span>
 					<div class="abmm-preset-grid" id="abmm-preset-grid">
@@ -299,6 +285,20 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 				<details class="abmm-design-more abmm-advanced" id="abmm-advanced-settings" data-abmm-baselines="<?php echo esc_attr( wp_json_encode( array( 'native' => ABMM_Data::default_settings(), 'classic' => ABMM_Classic::default_settings() ) ) ); ?>">
 				<summary><?php esc_html_e( 'Advanced settings', 'ashbi-mega-menu' ); ?></summary>
 				<p class="description"><?php esc_html_e( 'Optional. Most menus do not need these.', 'ashbi-mega-menu' ); ?></p>
+
+				<?php if ( $abmm_classic_origin ) : ?>
+					<label class="abmm-field">
+						<span><?php esc_html_e( 'Site look', 'ashbi-mega-menu' ); ?></span>
+						<select id="abmm-render-mode" aria-describedby="abmm-render-mode-help">
+							<option value="emm-classic" <?php selected( $abmm_classic ); ?>><?php esc_html_e( 'Keep the current look', 'ashbi-mega-menu' ); ?></option>
+							<option value="" <?php selected( ! $abmm_classic ); ?>><?php esc_html_e( 'Use the Ashbi look', 'ashbi-mega-menu' ); ?></option>
+						</select>
+						<span class="description" id="abmm-render-mode-help"><?php esc_html_e( 'The current look is how this menu looked when you brought it over. Saving a change here updates your site right away. You can change it back at any time.', 'ashbi-mega-menu' ); ?></span>
+					</label>
+					<div class="notice notice-info inline abmm-classic-notice">
+						<p><?php esc_html_e( 'Color and size changes still apply to the current look.', 'ashbi-mega-menu' ); ?></p>
+					</div>
+				<?php endif; ?>
 
 				<details class="abmm-design-more" data-abmm-advanced-group="top-colors">
 					<summary><?php esc_html_e( 'Top menu item colors', 'ashbi-mega-menu' ); ?></summary>
@@ -674,8 +674,8 @@ $abmm_is_placed      = ! empty( $placements[ $edit_id ]['known'] );
 					<span class="dashicons dashicons-edit" aria-hidden="true"></span><?php esc_html_e( 'Edit menu', 'ashbi-mega-menu' ); ?>
 				</button>
 				<p class="abmm-editor-chrome__label"><?php esc_html_e( 'Preview', 'ashbi-mega-menu' ); ?></p>
-				<p class="abmm-editor-chrome__note abmm-classic-preview-note" hidden><?php esc_html_e( 'Classic look. Your theme\'s styles aren\'t loaded here, so check the result on your site.', 'ashbi-mega-menu' ); ?></p>
-				<p class="abmm-editor-chrome__note abmm-classic-preview-fallback" hidden><?php esc_html_e( 'The Classic preview couldn\'t load, so this shows Ashbi\'s style. Reload the page to try again.', 'ashbi-mega-menu' ); ?></p>
+				<p class="abmm-editor-chrome__note abmm-classic-preview-note" hidden><?php esc_html_e( 'Your theme\'s styles aren\'t loaded here, so check the result on your site.', 'ashbi-mega-menu' ); ?></p>
+				<p class="abmm-editor-chrome__note abmm-classic-preview-fallback" hidden><?php esc_html_e( 'The preview of this look couldn\'t load, so this shows Ashbi\'s style. Reload the page to try again.', 'ashbi-mega-menu' ); ?></p>
 				<div class="abmm-preview-viewports" role="group" aria-label="<?php esc_attr_e( 'Preview viewport', 'ashbi-mega-menu' ); ?>">
 					<button type="button" class="button is-active" data-abmm-preview-viewport="desktop" aria-pressed="true" title="<?php esc_attr_e( 'Desktop', 'ashbi-mega-menu' ); ?>"><span class="dashicons dashicons-desktop" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Desktop', 'ashbi-mega-menu' ); ?></span></button>
 					<button type="button" class="button" data-abmm-preview-viewport="tablet" aria-pressed="false" title="<?php esc_attr_e( 'Tablet', 'ashbi-mega-menu' ); ?>"><span class="dashicons dashicons-tablet" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Tablet', 'ashbi-mega-menu' ); ?></span></button>

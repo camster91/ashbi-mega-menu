@@ -556,6 +556,27 @@ async function auditRegressions(){
  saved=payload(f.requests[f.requests.length-1]).settings;
  assert.equal(saved.render_mode,'emm-classic','and can switch back'); assert.equal(saved.classic_origin,undefined); assert.equal(saved.classic_edge_bleed,8);
  f.close();
+ // A live menu asks before its look changes. One choice fires both input and change, and it asks once.
+ f=await fixture(false,false,null,'demo',{...menu,settings:{render_mode:'emm-classic'}},classic); $=f.$;
+ assert.equal($('#abmm-render-mode').data('abmmLook'),'emm-classic');
+ $('#abmm-builder').attr('data-menu-placed','1');
+ let lookAsked=0, lookAnswer=false; f.window.confirm=()=>{lookAsked++;return lookAnswer;};
+ $('#abmm-render-mode').val('').trigger('input').trigger('change');
+ assert.equal(lookAsked,1,'it asks once'); assert.equal($('#abmm-render-mode').val(),'emm-classic','saying no keeps the look');
+ $('.abmm-save-menu').trigger('click');
+ assert.equal(payload(f.requests[f.requests.length-1]).settings.render_mode,'emm-classic','and that is what is saved');
+ f.requests[f.requests.length-1].d.resolve({success:true,data:{revision:'r2'}});
+ lookAnswer=true; $('#abmm-render-mode').val('').trigger('input').trigger('change');
+ assert.equal(lookAsked,2); assert.equal($('#abmm-render-mode').val(),'','saying yes changes it');
+ $('.abmm-save-menu').trigger('click');
+ assert.equal(payload(f.requests[f.requests.length-1]).settings.render_mode,undefined,'and that is what is saved');
+ f.close();
+ // A menu that is not on the site changes look without a question.
+ f=await fixture(false,false,null,'demo',{...menu,settings:{render_mode:'emm-classic'}},classic); $=f.$;
+ lookAsked=0; f.window.confirm=()=>{lookAsked++;return false;};
+ $('#abmm-render-mode').val('').trigger('input').trigger('change');
+ assert.equal(lookAsked,0); assert.equal($('#abmm-render-mode').val(),'');
+ f.close();
  // An ordinary menu gains no Classic settings.
  f=await fixture(); $=f.$; $('#abmm-menu-title').val('Changed').trigger('input'); $('.abmm-save-menu').trigger('click');
  assert.ok(!Object.keys(payload(f.requests[f.requests.length-1]).settings).some(key=>/classic|render_mode/.test(key)),'other menus keep exactly their data');
@@ -891,6 +912,15 @@ async function simplicityRegressions(){
  assert.equal($('.abmm-save-status__placement').text(),'Live where placed','a placed menu says the save is live');
  assert.equal($('.abmm-save-status__placement').hasClass('is-live'),true);
  assert.match($('.abmm-save-status').text(),/savedState/,'next to the usual saved message');
+ assert.equal($('.abmm-save-status__cache').length,0,'no cache note on a site with no page cache');
+ $('#abmm-menu-title').val('Cache one').trigger('input'); $('.abmm-save-menu').trigger('click');
+ f.requests[2].d.resolve({success:true,data:{revision:'revision-4',cache_cleared:true}});
+ assert.equal($('.abmm-save-status__cache').text(),'cacheCleared','the save status says the cache was cleared');
+ $('#abmm-menu-title').val('Cache two').trigger('input');
+ assert.equal($('.abmm-save-status__cache').length,0,'the note goes as soon as there is an unsaved change');
+ $('.abmm-save-menu').trigger('click');
+ f.requests[3].d.resolve({success:true,data:{revision:'revision-5',cache_cleared:false}});
+ assert.equal($('.abmm-save-status__cache').text(),'cacheFailed','and says so when clearing failed');
  // The button already says Saved, so the CSS hides those words and never the placement.
  const brandCss=fs.readFileSync('assets/css/brand-admin.css','utf8');
  assert.match(brandCss,/\.abmm-save-status\.is-saved \.abmm-save-status__message \{position:absolute/);

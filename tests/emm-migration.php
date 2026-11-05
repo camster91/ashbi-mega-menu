@@ -3,7 +3,8 @@
  * Switching from Easy Mega Menu: the importer only reads Easy Mega Menu's data,
  * keeps menu IDs, respects existing Ashbi menus, copies product navigation and
  * the site's styles and icons, survives an Ashbi export/import round trip, and
- * the [easy_mega_menu] takeover only answers while Easy Mega Menu is inactive.
+ * old [easy_mega_menu] codes are answered whenever Easy Mega Menu is not running,
+ * and Finish switching rewrites them with a backup and an undo.
  */
 define( 'ABSPATH', __DIR__ . '/wordpress/' );
 define( 'ABMM_OPTION_KEY', 'abmm_menus' );
@@ -43,12 +44,50 @@ class ABMM_Test_DB {
 			}
 			return null;
 		}
+		if ( 0 === strpos( $query, 'SELECT post_content' ) ) {
+			return $GLOBALS['abmm_test_posts'][ $GLOBALS['abmm_last_args'][0] ] ?? null;
+		}
+		if ( 0 === strpos( $query, 'SELECT meta_value' ) ) {
+			return $GLOBALS['abmm_test_elementor_rows'][ $GLOBALS['abmm_last_args'][0] ]['value'] ?? null;
+		}
 		return false !== strpos( $query, ' LIKE ' ) ? ( $GLOBALS['abmm_content_uses_shortcode'] ? '7' : null ) : '1';
 	}
 	public function get_col( $query ) {
 		return $GLOBALS['abmm_test_elementor'] ?? array();
 	}
+	public function update( $table, $data, $where ) {
+		if ( ! empty( $GLOBALS['abmm_test_write_fails'] ) ) {
+			return false;
+		}
+		if ( $this->posts === $table ) {
+			$GLOBALS['abmm_test_posts'][ $where['ID'] ] = $data['post_content'];
+		} else {
+			$GLOBALS['abmm_test_elementor_rows'][ $where['meta_id'] ]['value'] = $data['meta_value'];
+		}
+		return 1;
+	}
 	public function get_results( $query ) {
+		if ( false !== strpos( $query, 'SELECT ID, post_content' ) ) {
+			$rows = array();
+			foreach ( $GLOBALS['abmm_test_posts'] ?? array() as $id => $content ) {
+				if ( false !== strpos( $content, 'easy_mega_menu' ) ) {
+					$rows[] = array( 'ID' => $id, 'post_content' => $content );
+				}
+			}
+			return $rows;
+		}
+		if ( false !== strpos( $query, 'pm.meta_id' ) ) {
+			$rows = array();
+			foreach ( $GLOBALS['abmm_test_elementor_rows'] ?? array() as $id => $row ) {
+				if ( false !== strpos( $row['value'], 'easy_mega_menu' ) ) {
+					$rows[] = array( 'meta_id' => $id, 'post_id' => $row['post'], 'meta_value' => $row['value'] );
+				}
+			}
+			return $rows;
+		}
+		if ( false !== strpos( $query, 'SELECT option_name' ) ) {
+			return array_map( function ( $name ) { return array( 'option_name' => $name ); }, $GLOBALS['abmm_test_widgets'] ?? array() );
+		}
 		$rows = array();
 		foreach ( $GLOBALS['abmm_meta'] as $post_id => $meta ) {
 			if ( isset( $meta['_emm_product_profile'] ) ) {
@@ -116,7 +155,13 @@ function wp_add_inline_script() {}
 function wp_cache_delete() {}
 function is_wp_error( $value ) { return $value instanceof WP_Error; }
 function get_option( $key, $default = false ) { return $GLOBALS['abmm_options'][ $key ] ?? $default; }
-function update_option( $key, $value ) {
+function delete_option( $key ) { unset( $GLOBALS['abmm_options'][ $key ] ); return true; }
+function delete_transient( $key ) { unset( $GLOBALS['abmm_transients'][ $key ] ); return true; }
+function clean_post_cache( $id ) { $GLOBALS['abmm_cleaned_posts'][] = $id; }
+function add_submenu_page( $parent, $title, $label, $cap, $slug ) { $GLOBALS['abmm_pages'][] = array( $parent, $label ); }
+function add_management_page( $title, $label, $cap, $slug ) { $GLOBALS['abmm_pages'][] = array( 'tools.php', $label ); }
+function update_option( $key, $value, $autoload = null ) {
+	if ( ! empty( $GLOBALS['abmm_test_backup_fails'] ) && ABMM_EMM_Migration::BACKUP_OPTION === $key ) { return false; }
 	if ( isset( $GLOBALS['abmm_options'][ $key ] ) && $GLOBALS['abmm_options'][ $key ] === $value ) { return false; }
 	$GLOBALS['abmm_options'][ $key ] = $value;
 	return true;
@@ -271,15 +316,13 @@ $GLOBALS['abmm_options'][ ABMM_OPTION_KEY ] = array();
 ABMM_Import_Export::instance()->import_json( json_decode( wp_json_encode( $exported ), true ), 'merge' );
 verify_migration( $before === $GLOBALS['abmm_options'][ ABMM_OPTION_KEY ], 'Classic menus survive an Ashbi export and import unchanged.' );
 
-// Takeover: off by default; never while Easy Mega Menu is active.
-$migration->maybe_take_over();
-verify_migration( ! shortcode_exists( 'easy_mega_menu' ), 'The takeover is off by default.' );
-update_option( ABMM_EMM_Migration::TAKEOVER_OPTION, true );
+// Old codes: never while Easy Mega Menu is active, always otherwise, with no switch to manage.
 $GLOBALS['abmm_shortcodes']['easy_mega_menu'] = 'emm_original';
-$migration->maybe_take_over();
+$migration->answer_old_shortcodes();
 verify_migration( 'emm_original' === $GLOBALS['abmm_shortcodes']['easy_mega_menu'], 'An active Easy Mega Menu keeps its own shortcode.' );
 unset( $GLOBALS['abmm_shortcodes']['easy_mega_menu'] );
-$migration->maybe_take_over();
+verify_migration( ! get_option( ABMM_EMM_Migration::TAKEOVER_OPTION ), 'No old setting is on.' );
+$migration->answer_old_shortcodes();
 verify_migration( array( $migration, 'shortcode' ) === $GLOBALS['abmm_shortcodes']['easy_mega_menu'] && function_exists( 'emm_render_menu' ) && function_exists( 'emm_get_menu' ), 'With Easy Mega Menu inactive, Ashbi answers [easy_mega_menu] and the theme helpers.' );
 $html = $migration->shortcode( array( 'id' => 'main_nav', 'context' => 'page', 'presentation' => 'unified', 'review_post_id' => '7' ) );
 verify_migration( 0 === strpos( trim( $html ), '<header class="emm-header' ) && false !== strpos( $html, 'data-emm-id="main_nav"' ), 'The shortcode renders the classic header.' );
@@ -300,29 +343,20 @@ $GLOBALS['abmm_options']['emm_menus'] = $saved_menus;
 $GLOBALS['abmm_can'] = false;
 try { $migration->handle_import(); verify_migration( false, 'unreachable' ); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( 'die' === $stop->getMessage(), 'Import requires manage_options.' ); }
 $GLOBALS['abmm_can'] = true;
-$_POST = array( '_wpnonce' => 'stale', 'takeover' => '' );
-try { $migration->handle_takeover(); verify_migration( false, 'unreachable' ); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( 'nonce' === $stop->getMessage() && ABMM_EMM_Migration::takeover_enabled(), 'The takeover setting requires a valid nonce.' ); }
+$_POST = array( '_wpnonce' => 'stale' );
+foreach ( array( 'handle_finish', 'handle_undo' ) as $abmm_handler ) {
+	try { $migration->$abmm_handler(); verify_migration( false, 'unreachable' ); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( 'nonce' === $stop->getMessage(), $abmm_handler . ' requires a valid nonce.' ); }
+	$GLOBALS['abmm_can'] = false;
+	try { $migration->$abmm_handler(); verify_migration( false, 'unreachable' ); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( 'die' === $stop->getMessage(), $abmm_handler . ' requires manage_options.' ); }
+	$GLOBALS['abmm_can'] = true;
+}
 $_POST = array( '_wpnonce' => 'valid' );
-try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( ! ABMM_EMM_Migration::takeover_enabled(), 'The takeover can be turned off again.' ); }
 
-// With Easy Mega Menu inactive and the takeover off, its shortcode would print as text: warn administrators.
+// Nothing warns about a code that is answered; only a menu that was never copied matters.
 class ABMM_Test_Screen { public $id; public function __construct( $id ) { $this->id = $id; } }
 function get_current_screen() { return new ABMM_Test_Screen( $GLOBALS['abmm_screen'] ); }
-$notice = function ( $screen ) use ( $migration ) { $GLOBALS['abmm_screen'] = $screen; ob_start(); $migration->unanswered_shortcode_notice(); return ob_get_clean(); };
-$GLOBALS['abmm_can'] = true;
-unset( $GLOBALS['abmm_shortcodes']['easy_mega_menu'] ); // Registered by the takeover checks above.
-verify_migration( ! ABMM_EMM_Migration::takeover_enabled() && false !== strpos( $notice( 'dashboard' ), 'show the shortcode as text' ), 'The dashboard warns that [easy_mega_menu] is unanswered.' );
-verify_migration( '' === $notice( 'edit-post' ) && '' === $notice( 'mega-menu_page_' . ABMM_EMM_Migration::PAGE_SLUG ), 'Other screens and the import screen stay quiet.' );
-$GLOBALS['abmm_can'] = false;
-verify_migration( '' === $notice( 'dashboard' ), 'Only administrators see the warning.' );
-$GLOBALS['abmm_can'] = true;
-// Once no content uses [easy_mega_menu] any more, the warning goes away (the check is cached).
-$GLOBALS['abmm_content_uses_shortcode'] = false;
-verify_migration( false !== strpos( $notice( 'dashboard' ), 'show the shortcode as text' ), 'The content check is cached for an hour.' );
-unset( $GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] );
-verify_migration( '' === $notice( 'dashboard' ), 'No warning when no content uses [easy_mega_menu].' );
-$GLOBALS['abmm_content_uses_shortcode'] = true;
-unset( $GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] );
+$notice = function ( $screen ) use ( $migration ) { $GLOBALS['abmm_screen'] = $screen; ob_start(); $migration->missing_menus_notice(); return ob_get_clean(); };
+verify_migration( '' === $notice( 'dashboard' ), 'No warning when every placed menu is copied.' );
 
 // The import screen names the menus pages really use; menu_demo must not match menu_demo-copy.
 $GLOBALS['abmm_test_content'] = '[easy_mega_menu id="menu_demo-copy"] [easy_mega_menu id=\\"product_nav\\"]';
@@ -358,22 +392,180 @@ try { $migration->handle_import(); } catch ( ABMM_Test_Redirect $stop ) { verify
 verify_migration( 'My edits' !== ABMM_Data::instance()->get_all()['main_nav']['title'], 'A ticked row replaces the edits.' );
 verify_migration( 'My edits' === ( ABMM_Data::instance()->menu_versions( 'main_nav' )[0]['title'] ?? '' ), 'The replaced menu keeps a saved version.' );
 
-// The switch will not blank a placed header without being told to.
+// Finish switching will not blank a placed header.
 $GLOBALS['abmm_test_content'] = '[easy_mega_menu id="not_imported"]';
 $saved_source                 = $GLOBALS['abmm_options']['emm_menus'];
 $GLOBALS['abmm_options']['emm_menus']['not_imported'] = $saved_source['main_nav'];
 unset( $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
 verify_migration( array( 'not_imported' ) === $migration->placed_but_not_imported( true ), 'Placed menus that were not imported are found.' );
 verify_migration( $migration->is_source_menu( 'not_imported' ) && ! $migration->is_source_menu( 'unknown_id' ), 'Easy Mega Menu IDs are recognised.' );
-$_POST = array( '_wpnonce' => 'valid', 'takeover' => '1' );
-try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( false !== strpos( $stop->getMessage(), 'abmm_notice=takeover_blocked' ) && ! ABMM_EMM_Migration::takeover_enabled(), 'The switch stays off when placed menus are missing.' ); }
-$_POST = array( '_wpnonce' => 'valid', 'takeover' => '1', 'confirm_missing' => '1' );
-try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( ABMM_EMM_Migration::takeover_enabled(), 'An explicit confirmation turns it on.' ); }
-verify_migration( false !== strpos( $notice( 'dashboard' ), 'not_imported' ), 'With the switch on, administrators are told which headers are empty.' );
-$_POST = array( '_wpnonce' => 'valid' );
-try { $migration->handle_takeover(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( ! ABMM_EMM_Migration::takeover_enabled(), 'The switch turns off again.' ); }
+verify_migration( is_wp_error( $migration->finish_switching() ) && ! get_option( ABMM_EMM_Migration::BACKUP_OPTION ), 'Finish switching stops while a placed menu is not copied.' );
+verify_migration( false !== strpos( $notice( 'dashboard' ), 'not_imported' ), 'Administrators are told which headers are empty.' );
+verify_migration( '' === $notice( 'edit-post' ) && '' === $notice( 'mega-menu_page_' . ABMM_EMM_Migration::PAGE_SLUG ), 'Other screens and the import screen stay quiet.' );
+$GLOBALS['abmm_can'] = false;
+verify_migration( '' === $notice( 'dashboard' ), 'Only administrators see the warning.' );
+$GLOBALS['abmm_can'] = true;
 $GLOBALS['abmm_options']['emm_menus'] = $saved_source;
 unset( $GLOBALS['abmm_test_content'], $GLOBALS['abmm_transients']['abmm_emm_menus_in_use'] );
+
+// The rewrite changes the shortcode's name and nothing else, in every form it is stored.
+$abmm_rewrites = array(
+	'[easy_mega_menu id="a"]'                                  => '[ashbi_mega_menu id="a"]',
+	'[easy_mega_menu]'                                         => '[ashbi_mega_menu]',
+	'[easy_mega_menu/]'                                        => '[ashbi_mega_menu/]',
+	"[easy_mega_menu\tid='a']"                                => "[ashbi_mega_menu\tid='a']",
+	'[easy_mega_menu id=\\"a\\" context=\\"page\\"]'   => '[ashbi_mega_menu id=\\"a\\" context=\\"page\\"]',
+	'[easy_mega_menu id="a"]x[\/easy_mega_menu]'              => '[ashbi_mega_menu id="a"]x[\/ashbi_mega_menu]',
+	'[easy_mega_menu id="a"]x[/easy_mega_menu]'                => '[ashbi_mega_menu id="a"]x[/ashbi_mega_menu]',
+	'{"shortcode":"[easy_mega_menu id=\\"a\\"]"}'          => '{"shortcode":"[ashbi_mega_menu id=\\"a\\"]"}',
+	'[easy_mega_menu_extra id="a"]'                            => '[easy_mega_menu_extra id="a"]',
+	'easy_mega_menu is a word in a sentence'                   => 'easy_mega_menu is a word in a sentence',
+	'[ashbi_mega_menu id="a"]'                                 => '[ashbi_mega_menu id="a"]',
+);
+foreach ( $abmm_rewrites as $abmm_from => $abmm_to ) {
+	verify_migration( $abmm_to === ABMM_EMM_Migration::rewrite_codes( $abmm_from ), 'Rewrite: ' . $abmm_from );
+}
+
+// A real run over posts, Elementor data and widgets, with a backup and an undo.
+$abmm_posts = array(
+	5 => 'Intro [easy_mega_menu id="main_nav"] outro',
+	6 => 'No menu here, just the words easy_mega_menu.',
+);
+$abmm_elementor = array(
+	21 => array( 'post' => 5, 'value' => '[{"settings":{"shortcode":"[easy_mega_menu id=\\"main_nav\\"]"}}]' ),
+	22 => array( 'post' => 8, 'value' => '[{"settings":{"title":"Other"}}]' ),
+);
+$abmm_widget_value = array( 2 => array( 'text' => 'Menu [easy_mega_menu id="main_nav"]' ), '_multiwidget' => 1 );
+$GLOBALS['abmm_test_posts']          = $abmm_posts;
+$GLOBALS['abmm_test_elementor_rows'] = $abmm_elementor;
+$GLOBALS['abmm_test_widgets']        = array( 'widget_text' );
+$GLOBALS['abmm_options']['widget_text'] = $abmm_widget_value;
+
+$GLOBALS['abmm_test_backup_fails'] = true;
+$abmm_failed = $migration->finish_switching();
+unset( $GLOBALS['abmm_test_backup_fails'] );
+verify_migration( is_wp_error( $abmm_failed ) && $abmm_posts === $GLOBALS['abmm_test_posts'] && $abmm_elementor === $GLOBALS['abmm_test_elementor_rows'] && $abmm_widget_value === $GLOBALS['abmm_options']['widget_text'], 'Nothing is changed when the backup cannot be saved.' );
+
+$GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] = 'yes';
+$abmm_done = $migration->finish_switching();
+verify_migration( 1 === $abmm_done['posts'] && 1 === $abmm_done['elementor'] && 1 === $abmm_done['widgets'] && 0 === $abmm_done['failed'], 'Finish switching counts what it changed.' );
+verify_migration( 'Intro [ashbi_mega_menu id="main_nav"] outro' === $GLOBALS['abmm_test_posts'][5], 'Post content is rewritten.' );
+verify_migration( $abmm_posts[6] === $GLOBALS['abmm_test_posts'][6], 'A post with only the words is left alone.' );
+verify_migration( '[{"settings":{"shortcode":"[ashbi_mega_menu id=\\"main_nav\\"]"}}]' === $GLOBALS['abmm_test_elementor_rows'][21]['value'], 'Elementor data keeps its escaped quotes.' );
+verify_migration( $abmm_elementor[22] === $GLOBALS['abmm_test_elementor_rows'][22], 'Other Elementor data is left alone.' );
+verify_migration( 'Menu [ashbi_mega_menu id="main_nav"]' === $GLOBALS['abmm_options']['widget_text'][2]['text'], 'Widgets are rewritten.' );
+verify_migration( array( 5 ) === $GLOBALS['abmm_cleaned_posts'], 'The rewritten post leaves the cache.' );
+verify_migration( ! isset( $GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] ), 'The next check for old codes searches again.' );
+verify_migration( ABMM_EMM_Migration::instance()->has_backup(), 'A backup is kept.' );
+verify_migration( true === get_option( ABMM_EMM_Migration::TAKEOVER_OPTION ), 'A rollback to an older version keeps answering any code left.' );
+
+$abmm_rendered = $migration->shortcode( array( 'id' => 'main_nav', 'context' => 'page', 'presentation' => 'unified', 'review_post_id' => '7' ) );
+require_once dirname( __DIR__ ) . '/includes/class-abmm-shortcode.php';
+$abmm_new_code = ABMM_Shortcode::instance()->shortcode( array( 'id' => 'main_nav', 'context' => 'page', 'presentation' => 'unified', 'review_post_id' => '7' ) );
+verify_migration( $same( $abmm_rendered ) === $same( $abmm_new_code ), 'Both codes render the same header, with every option.' );
+$abmm_same_any = function ( $markup ) { return trim( preg_replace( '/emm-[a-z0-9_-]+-\d+/', 'emm-N', $markup ) ); };
+verify_migration( '' !== $migration->shortcode( array() ) && $abmm_same_any( $migration->shortcode( array() ) ) === $abmm_same_any( ABMM_Shortcode::instance()->shortcode( array() ) ), 'Both codes pick the same menu with no ID.' );
+
+// A second run with nothing to do keeps the backup. Undo leaves edited places alone.
+$abmm_again = $migration->finish_switching();
+verify_migration( 0 === $abmm_again['posts'] + $abmm_again['elementor'] + $abmm_again['widgets'] && $migration->has_backup(), 'Running it again changes nothing and keeps the backup.' );
+$GLOBALS['abmm_test_elementor_rows'][21]['value'] = 'edited after the switch';
+$abmm_undone = $migration->undo_switching();
+verify_migration( 2 === $abmm_undone['restored'] && 1 === $abmm_undone['skipped'], 'Undo counts what it restored and what it left.' );
+verify_migration( $abmm_posts === $GLOBALS['abmm_test_posts'], 'Undo restores post content exactly.' );
+verify_migration( 'edited after the switch' === $GLOBALS['abmm_test_elementor_rows'][21]['value'], 'Undo keeps a later edit.' );
+verify_migration( $abmm_widget_value === $GLOBALS['abmm_options']['widget_text'], 'Undo restores widgets exactly.' );
+verify_migration( ! $migration->has_backup() && is_wp_error( $migration->undo_switching() ), 'Undo works once, then there is nothing to undo.' );
+
+// Undo restores Elementor data byte for byte too, through the handlers.
+$GLOBALS['abmm_test_elementor_rows'] = $abmm_elementor;
+$_POST = array( '_wpnonce' => 'valid' );
+try { $migration->handle_finish(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( false !== strpos( $stop->getMessage(), 'abmm_notice=finished' ), 'The button reports it finished.' ); }
+verify_migration( false === strpos( $GLOBALS['abmm_test_elementor_rows'][21]['value'], 'easy_mega_menu' ), 'The button rewrites Elementor data.' );
+try { $migration->handle_undo(); } catch ( ABMM_Test_Redirect $stop ) { verify_migration( false !== strpos( $stop->getMessage(), 'abmm_notice=undone' ), 'The undo button reports it undid.' ); }
+verify_migration( $abmm_elementor === $GLOBALS['abmm_test_elementor_rows'], 'Undo restores Elementor data exactly.' );
+unset( $GLOBALS['abmm_test_posts'], $GLOBALS['abmm_test_elementor_rows'], $GLOBALS['abmm_test_widgets'], $GLOBALS['abmm_options']['widget_text'] );
+
+// Where the page is listed: in the plugin's menu until switching is done, then under Tools, and nowhere on a site that never used it.
+$abmm_listed = function () use ( $migration ) {
+	$GLOBALS['abmm_pages'] = array();
+	unset( $GLOBALS['abmm_transients']['abmm_emm_source_installed'], $GLOBALS['abmm_transients']['abmm_emm_shortcode_in_use'] );
+	$migration->register_page();
+	return $GLOBALS['abmm_pages'][0][0] ?? '';
+};
+verify_migration( 'ashbi-mega-menu' === $abmm_listed(), 'The page is in the plugin menu while Easy Mega Menu is installed.' );
+$abmm_saved_plugins      = $GLOBALS['abmm_plugins'];
+$GLOBALS['abmm_plugins'] = array();
+verify_migration( 'ashbi-mega-menu' === $abmm_listed(), 'It stays there while old codes remain.' );
+$GLOBALS['abmm_content_uses_shortcode'] = false;
+verify_migration( 'tools.php' === $abmm_listed(), 'With Easy Mega Menu gone and no codes left it moves under Tools.' );
+verify_migration( false !== strpos( $migration->page_url(), 'tools.php?page=' ), 'Links follow it.' );
+$abmm_saved_options = $GLOBALS['abmm_options'];
+unset( $GLOBALS['abmm_options']['emm_menus'], $GLOBALS['abmm_options']['emm_product_profiles'], $GLOBALS['abmm_options'][ ABMM_EMM_Migration::ORIGIN_OPTION ], $GLOBALS['abmm_options'][ ABMM_EMM_Migration::BACKUP_OPTION ] );
+verify_migration( '' === $abmm_listed(), 'A site with nothing from Easy Mega Menu lists nothing.' );
+$GLOBALS['abmm_options']                = $abmm_saved_options;
+$GLOBALS['abmm_content_uses_shortcode'] = true;
+$GLOBALS['abmm_plugins']                = $abmm_saved_plugins;
+unset( $GLOBALS['abmm_transients']['abmm_emm_source_installed'] );
+
+// Deleting Easy Mega Menu takes nothing the site needs.
+$abmm_id_source = (string) array_key_first( $GLOBALS['abmm_options']['emm_menus'] );
+$migration->upgrade();
+$abmm_saved_options = $GLOBALS['abmm_options'];
+$abmm_asset_keys    = ABMM_Classic::instance()->site_assets();
+$GLOBALS['abmm_plugins'] = array();
+unset( $GLOBALS['abmm_options']['emm_menus'], $GLOBALS['abmm_options']['emm_product_profiles'], $GLOBALS['abmm_options']['emm_product_branding'] );
+$GLOBALS['abmm_transients'] = array();
+verify_migration( $migration->is_source_menu( $abmm_id_source ), 'A menu is still known to have started in Easy Mega Menu.' );
+verify_migration( $abmm_asset_keys === ABMM_Classic::instance()->site_assets() && $migration->assets_copied(), 'The copied styles and icons stay in place.' );
+verify_migration( true === $migration->copy_assets()['copied'] && $migration->assets_copied(), 'Copying again with the plugin gone keeps them.' );
+verify_migration( 0 === strpos( trim( $migration->shortcode( array( 'id' => 'main_nav' ) ) ), '<header class="emm-header' ), 'The old code still renders the header.' );
+$GLOBALS['abmm_options'] = $abmm_saved_options;
+$GLOBALS['abmm_plugins'] = $abmm_saved_plugins;
+$GLOBALS['abmm_transients'] = array();
+
+// The upgrade copies missing styles, and an assignment made after the import, but never replaces anything.
+$abmm_assets = $GLOBALS['abmm_options'][ ABMM_Classic::ASSETS_OPTION ];
+unset( $GLOBALS['abmm_options'][ ABMM_Classic::ASSETS_OPTION ], $GLOBALS['abmm_options'][ ABMM_EMM_Migration::ORIGIN_OPTION ] );
+$GLOBALS['abmm_meta'][901] = array( '_emm_product_profile' => 'product_a' );
+$GLOBALS['abmm_meta'][902] = array( '_emm_product_profile' => 'product_a', ABMM_Page_Context::META_KEY => 'product_b' );
+$GLOBALS['abmm_meta'][903] = array( '_emm_product_profile' => 'not_an_ashbi_profile' );
+$migration->upgrade();
+verify_migration( $migration->assets_copied(), 'The upgrade copies styles and icons that are missing.' );
+verify_migration( $migration->is_source_menu( $abmm_id_source ), 'The upgrade records which menus came from Easy Mega Menu.' );
+verify_migration( 'product_a' === get_post_meta( 901, ABMM_Page_Context::META_KEY ), 'The upgrade copies a page assignment made after the import.' );
+verify_migration( 'product_b' === get_post_meta( 902, ABMM_Page_Context::META_KEY ), 'The upgrade keeps a page assignment made in Ashbi.' );
+verify_migration( '' === get_post_meta( 903, ABMM_Page_Context::META_KEY ), 'The upgrade skips a profile Ashbi does not have.' );
+$GLOBALS['abmm_meta'][901][ ABMM_Page_Context::META_KEY ] = '';
+$migration->upgrade();
+verify_migration( '' === get_post_meta( 901, ABMM_Page_Context::META_KEY ), 'An assignment removed afterwards stays removed.' );
+unset( $GLOBALS['abmm_meta'][901], $GLOBALS['abmm_meta'][902], $GLOBALS['abmm_meta'][903] );
+
+// Archiving is the safe way to remove a menu: it leaves the choices and comes back whole.
+$abmm_archive_id = 'main_nav';
+$abmm_before     = ABMM_Data::instance()->get_all()[ $abmm_archive_id ];
+verify_migration( true === ABMM_Data::instance()->archive( $abmm_archive_id ), 'A menu can be archived.' );
+verify_migration( ! isset( ABMM_Data::instance()->get_all()[ $abmm_archive_id ] ) && isset( ABMM_Data::instance()->get_archived()[ $abmm_archive_id ] ), 'An archived menu is not an active choice.' );
+verify_migration( '' === $migration->shortcode( array( 'id' => $abmm_archive_id ) ), 'An archived menu does not render.' );
+verify_migration( true === ABMM_Data::instance()->restore( $abmm_archive_id ), 'An archived menu can be restored.' );
+verify_migration( $abmm_before === ABMM_Data::instance()->get_all()[ $abmm_archive_id ], 'A restored menu comes back unchanged.' );
+
+// Backups with no menus are not made, not listed and cannot be restored.
+$abmm_io       = ABMM_Import_Export::instance();
+$abmm_active   = $GLOBALS['abmm_options'][ ABMM_OPTION_KEY ];
+$abmm_real     = array( 'id' => 'real', 'created_at' => '2026-01-01T00:00:00Z', 'menus' => $abmm_active );
+$abmm_empty    = array( 'id' => 'empty', 'created_at' => '2026-01-02T00:00:00Z', 'menus' => array() );
+$GLOBALS['abmm_options']['abmm_import_backups'] = array( $abmm_empty, $abmm_real );
+verify_migration( array( 'real' ) === array_column( $abmm_io->get_backups(), 'id' ), 'A backup with no menus is not listed.' );
+$abmm_refused = $abmm_io->restore_backup( 'empty', ABMM_Data::instance()->revision( ABMM_Data::instance()->get_all() ) );
+verify_migration( is_wp_error( $abmm_refused ) && $abmm_active === $GLOBALS['abmm_options'][ ABMM_OPTION_KEY ], 'A backup with no menus cannot be restored.' );
+verify_migration( is_wp_error( $abmm_io->export_backup( 'empty' ) ), 'A backup with no menus cannot be downloaded.' );
+$abmm_make = new ReflectionMethod( $abmm_io, 'backup_current_menus' );
+$abmm_make->setAccessible( true );
+$GLOBALS['abmm_options'][ ABMM_OPTION_KEY ] = array();
+verify_migration( true === $abmm_make->invoke( $abmm_io ) && 2 === count( $GLOBALS['abmm_options']['abmm_import_backups'] ), 'No backup is made when there are no menus.' );
+$GLOBALS['abmm_options'][ ABMM_OPTION_KEY ] = $abmm_active;
+verify_migration( true === $abmm_make->invoke( $abmm_io ) && array( 'real' ) === array_slice( array_column( $GLOBALS['abmm_options']['abmm_import_backups'], 'id' ), 1 ), 'The next backup also clears out empty ones.' );
 
 // The plugin's own Elementor widget counts as a placement, nested at any depth.
 $abmm_widget_tree = json_encode(
@@ -404,4 +596,4 @@ unset( $GLOBALS['abmm_test_elementor'], $GLOBALS['abmm_transients']['abmm_emm_me
 define( 'EMM_VERSION', '1.6.76' );
 verify_migration( array( 'page' ) === ABMM_Product_Branding::instance()->body_class( array( 'page' ) ) && array( 'page' ) === ABMM_Classic::instance()->body_class( array( 'page' ) ), 'No Ashbi body classes while Easy Mega Menu is active.' );
 
-echo "Easy Mega Menu migration: read-only import, ID conflicts, product navigation, asset copy, round trip and takeover passed.\n";
+echo "Easy Mega Menu migration: read-only import, ID conflicts, product navigation, asset copy, round trip, old codes, finish switching and undo passed.\n";
