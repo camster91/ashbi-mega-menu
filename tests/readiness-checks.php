@@ -118,4 +118,48 @@ check( true === $checker->restore_version( 'versioned', $versions[0]['id'], $now
 check( $versions[0]['title'] === $checker->get_all()['versioned']['title'], 'The menu is back to that version' );
 check( 'Second' === $checker->menu_versions( 'versioned' )[0]['title'], 'The replaced version is kept, so a restore can be undone' );
 
+// A row can have no link on purpose. The flag never hides a problem with a real address.
+$menu = array(
+	'title' => 'Main',
+	'items' => array(
+		array( 'type' => 'link', 'label' => 'Home', 'url' => '/home' ),
+		array( 'type' => 'link', 'label' => 'Soon', 'url' => '#', 'no_link' => true ),
+		array( 'type' => 'link', 'label' => 'Dead', 'url' => '#' ),
+		array( 'type' => 'link', 'label' => 'Typed', 'url' => 'http://typed', 'no_link' => true ),
+		array( 'type' => 'link', 'label' => 'Text flag', 'url' => '#', 'no_link' => 'yes' ),
+		array(
+			'type'       => 'mega',
+			'label'      => 'Panel',
+			'mega_style' => 'features',
+			'links'      => array(
+				array( 'label' => 'Real', 'url' => '/real' ),
+				array( 'label' => 'Coming', 'url' => '', 'no_link' => true ),
+			),
+		),
+		array(
+			'type'       => 'mega',
+			'label'      => 'Empty panel',
+			'mega_style' => 'features',
+			'links'      => array( array( 'label' => 'Only soon', 'url' => '#', 'no_link' => true ) ),
+		),
+		array(
+			'type'       => 'mega',
+			'label'      => 'Columns',
+			'mega_style' => 'platforms',
+			'categories' => array( array( 'groups' => array( array( 'links' => array(
+				array( 'label' => 'Column real', 'url' => '/column' ),
+				array( 'label' => 'Column soon', 'url' => '#', 'no_link' => true ),
+			) ) ) ) ),
+		),
+	),
+);
+$messages = implode( "\n", array_column( $checker->readiness( $menu )['issues'], 'message' ) );
+check( false === strpos( $messages, 'Add a link for "Soon"' ), 'A top link with no link on purpose raises no issue' );
+check( false === strpos( $messages, 'Add a link for "Coming"' ), 'A dropdown link with no link on purpose raises no issue' );
+check( false === strpos( $messages, 'Add a link for "Column soon"' ), 'A column link with no link on purpose raises no issue' );
+check( false !== strpos( $messages, 'Add a link for "Dead"' ), 'Other rows are still flagged' );
+check( false !== strpos( $messages, 'Add a link for "Text flag"' ), 'Only a real true counts' );
+check( false !== strpos( $messages, 'Check the link for "Typed"' ), 'A real address is still checked, whatever the flag says' );
+check( false !== strpos( $messages, 'real destination to Empty panel' ), 'A dropdown still needs one real link' );
+
 echo "Readiness flags plain-text links and long labels.\n";

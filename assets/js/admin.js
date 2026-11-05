@@ -95,18 +95,34 @@
 	var popoverSeq = 0;
 
 	function linkHasOptions(link) {
-		return !!(link && (link.target === '_blank' || String(link.rel || '').trim() || String(link.class || '').trim()));
+		return !!(link && (link.target === '_blank' || String(link.rel || '').trim() || String(link.class || '').trim() || link.no_link === true));
+	}
+
+	// An owner can say a row has no link on purpose. A real address always wins.
+	function hasNoLinkOnPurpose(link) {
+		var url = String((link && link.url) || '').trim();
+		return !!(link && link.no_link === true && (!url || url === '#'));
+	}
+
+	function noLinkFieldHtml(link) {
+		return (
+			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-no-link"' +
+			(link.no_link === true ? ' checked' : '') +
+			' /> ' + esc(__('No link on purpose', 'ashbi-mega-menu')) + '</label>' +
+			'<p class="abmm-popover__hint">' + esc(__('For a label that should not go anywhere. The checklist stops asking for a link. If you add a link later, it works as usual.', 'ashbi-mega-menu')) + '</p>'
+		);
 	}
 
 	// Relationship and CSS classes are rarely needed, so they sit behind "More options",
 	// which starts open when either has a value: nothing in use is ever out of sight.
-	function linkMoreOptionsHtml(link) {
+	function linkMoreOptionsHtml(link, offerNoLink) {
 		link = link || {};
-		var inUse = String(link.rel || '').trim() !== '' || String(link.class || '').trim() !== '';
+		var inUse = String(link.rel || '').trim() !== '' || String(link.class || '').trim() !== '' || (offerNoLink && link.no_link === true);
 		return (
 			'<details class="abmm-more-options abmm-popover__more"' + (inUse ? ' open' : '') + '>' +
 			'<summary>' + esc(__('More options', 'ashbi-mega-menu')) + '</summary>' +
 			'<div class="abmm-more-options__fields">' +
+			(offerNoLink ? noLinkFieldHtml(link) : '') +
 			'<label class="abmm-popover__field"><span class="abmm-popover__label">' + esc(__('Relationship', 'ashbi-mega-menu')) + '</span><input type="text" class="abmm-link-rel" value="' +
 			esc(link.rel || '') +
 			'" placeholder="nofollow sponsored" /></label>' +
@@ -130,7 +146,8 @@
 			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
 			(link.target === '_blank' ? ' checked' : '') +
 			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
-			linkMoreOptionsHtml(link) +
+			// Only a plain menu item: a dropdown's own page is optional, and the button has its own check.
+			linkMoreOptionsHtml(link, link.type === 'link') +
 			'</div></div>'
 		);
 	}
@@ -236,7 +253,8 @@
 			var $popover = $(this).closest('.abmm-link-options');
 			$popover.toggleClass('has-options', $popover.find('.abmm-link-target').is(':checked') ||
 				String($popover.find('.abmm-link-rel').val() || '').trim() !== '' ||
-				String($popover.find('.abmm-link-class').val() || '').trim() !== '');
+				String($popover.find('.abmm-link-class').val() || '').trim() !== '' ||
+				$popover.find('.abmm-link-no-link').is(':checked'));
 		});
 		$(document).on('input change', '.abmm-link-edit input', function () {
 			syncLinkChip($(this).closest('.abmm-link-edit'));
@@ -304,6 +322,11 @@
 		link.target = $scope.find('.abmm-link-target').is(':checked') ? '_blank' : '';
 		link.rel = $scope.find('.abmm-link-rel').val() || '';
 		link.class = $scope.find('.abmm-link-class').val() || '';
+		var $noLink = $scope.find('.abmm-link-no-link');
+		if ($noLink.length) {
+			if ($noLink.is(':checked')) link.no_link = true;
+			else delete link.no_link;
+		}
 	}
 
 	function initWpLink() {
@@ -753,7 +776,7 @@
 		menuLinkEntries(menu).forEach(function (entry) {
 			if (entry.kind === 'cta') return;
 			var url = String(entry.link.url || '').trim();
-			if (!url || url === '#') {
+			if ((!url || url === '#') && !hasNoLinkOnPurpose(entry.link)) {
 				/* translators: %s: link label. */
 				issues.push($.extend(issuePath(entry), { message: sprintf(__('Add a link for "%s", or remove it. It goes nowhere yet.', 'ashbi-mega-menu'), String(entry.link.label || '').trim() || S.untitled) }));
 			}
@@ -3132,7 +3155,7 @@
 			setUndoStatus(__('Navigation item removed.', 'ashbi-mega-menu'), function () { getMenu().items.splice(index, 0, removed); renderNavItems(); renderPreview(); setStatus(__('Navigation item restored.', 'ashbi-mega-menu'), false); });
 		});
 
-		$('#abmm-nav-items').on('change input', '.abmm-nav-label, .abmm-nav-url, .abmm-nav-type, .abmm-link-target, .abmm-link-rel, .abmm-link-class', function () {
+		$('#abmm-nav-items').on('change input', '.abmm-nav-label, .abmm-nav-url, .abmm-nav-type, .abmm-link-target, .abmm-link-rel, .abmm-link-class, .abmm-link-no-link', function () {
 			var $row = $(this).closest('.abmm-nav-item-row');
 			var id = $row.data('id');
 			var item = getMenu().items.find(function (it) {
@@ -3148,7 +3171,7 @@
 				readLinkOptions($row, item);
 			}
 			$row.find('.abmm-nav-item-row__title').text(item.label || __('Untitled item', 'ashbi-mega-menu'));
-			$row.find('.abmm-nav-item-row__url').text(navSummaryText(item));
+			$row.find('.abmm-nav-item-row__url').text(navSummaryText(item)).toggleClass('is-no-link', hasNoLinkOnPurpose(item));
 			$row.find('.abmm-nav-item-row__toggle').attr('aria-label', navToggleLabel(item, $row.index()));
 			var navName = navItemName(item, $row.index());
 			relabelRowControls($row, '.abmm-nav-item-row', sprintf(__('navigation item %s', 'ashbi-mega-menu'), navName), {
@@ -3276,7 +3299,7 @@
 			setUndoStatus(__('Feature link removed.', 'ashbi-mega-menu'), function () { item.links.splice(index, 0, removed); renderFeaturesLinkList(); renderPreview(); setStatus(__('Feature link restored.', 'ashbi-mega-menu'), false); });
 		});
 
-		$('#abmm-features-link-list').on('input change', '.abmm-link-label, .abmm-link-description, .abmm-link-url, .abmm-link-target, .abmm-link-rel, .abmm-link-class', function () {
+		$('#abmm-features-link-list').on('input change', '.abmm-link-label, .abmm-link-description, .abmm-link-url, .abmm-link-target, .abmm-link-rel, .abmm-link-class, .abmm-link-no-link', function () {
 			var item = getMenu().items[state.editingItemIndex];
 			var $row = $(this).closest('.abmm-link-row');
 			var id = $row.data('id');
@@ -3585,7 +3608,7 @@
 			/* translators: 1: number of categories, for example "3 categories", 2: number of links, for example "12 links". */
 			return sprintf(__('%1$s · %2$s', 'ashbi-mega-menu'), /* translators: %s: number of categories. */ sprintf(_n('%s category', '%s categories', cats, 'ashbi-mega-menu'), cats), linksText);
 		}
-		return linkPathText(item.url) || __('No link yet', 'ashbi-mega-menu');
+		return linkPathText(item.url) || (item.no_link === true ? __('No link', 'ashbi-mega-menu') : __('No link yet', 'ashbi-mega-menu'));
 	}
 
 	function setNavRowExpanded($row, expanded) {
@@ -3650,7 +3673,7 @@
 				'<span class="abmm-nav-type-chip">' + esc(isMega ? __('Dropdown', 'ashbi-mega-menu') : __('Link', 'ashbi-mega-menu')) + '</span>' +
 				(isMega
 					? '<span class="abmm-mega-style-badge">' + esc(navSummaryText(item)) + '</span>'
-					: '<span class="abmm-nav-item-row__url">' + esc(navSummaryText(item)) + '</span>') +
+					: '<span class="abmm-nav-item-row__url' + (hasNoLinkOnPurpose(item) ? ' is-no-link' : '') + '">' + esc(navSummaryText(item)) + '</span>') +
 				'</span>' +
 				'</span>' +
 				/* translators: %s: menu item name. */
@@ -4241,7 +4264,7 @@
 			setUndoStatus(__('Link removed.', 'ashbi-mega-menu'), function () { group.links.splice(index, 0, removed); renderCatDetail(); renderPreview(); setStatus(__('Link restored.', 'ashbi-mega-menu'), false); });
 		});
 
-		$detail.on('input.abmmCatDetail change.abmmCatDetail', '.abmm-link-label, .abmm-link-description, .abmm-link-url, .abmm-link-target, .abmm-link-rel, .abmm-link-class', function () {
+		$detail.on('input.abmmCatDetail change.abmmCatDetail', '.abmm-link-label, .abmm-link-description, .abmm-link-url, .abmm-link-target, .abmm-link-rel, .abmm-link-class, .abmm-link-no-link', function () {
 			var $row = $(this).closest('.abmm-link-row');
 			var $block = $(this).closest('.abmm-group-block');
 			var gid = $block.data('id');
@@ -4349,7 +4372,7 @@
 		return (
 			'<div class="abmm-link-edit abmm-popover' + (linkHasOptions(link) ? ' has-options' : '') + '">' +
 			'<button type="button" class="abmm-link-edit__toggle abmm-popover__toggle" aria-expanded="false" aria-controls="' + id + '" title="' + esc(__('Edit link', 'ashbi-mega-menu')) + '">' +
-			linkChipContent(link.url) +
+			linkChipContent(link.url, link.no_link === true) +
 			'</button>' +
 			'<div class="abmm-link-edit__panel abmm-popover__panel" id="' + id + '" role="group" aria-label="' + esc(__('Link', 'ashbi-mega-menu')) + '" hidden>' +
 			'<p class="abmm-popover__title" aria-hidden="true">' + esc(__('Link', 'ashbi-mega-menu')) + '</p>' +
@@ -4358,26 +4381,28 @@
 			'<label class="abmm-popover__check"><input type="checkbox" class="abmm-link-target"' +
 			(link.target === '_blank' ? ' checked' : '') +
 			' /> ' + esc(__('Open in new tab', 'ashbi-mega-menu')) + '</label>' +
-			linkMoreOptionsHtml(link) +
+			linkMoreOptionsHtml(link, true) +
 			'</div></div>'
 		);
 	}
 
-	function linkChipContent(url) {
+	function linkChipContent(url, noLink) {
 		var path = linkPathText(url);
 		return '<span class="dashicons dashicons-admin-links" aria-hidden="true"></span>' +
-			'<span class="abmm-link-edit__url' + (path ? '' : ' is-empty') + '">' + esc(path || __('Add a link', 'ashbi-mega-menu')) + '</span>' +
+			'<span class="abmm-link-edit__url' + (path ? '' : (noLink ? ' is-no-link' : ' is-empty')) + '">' + esc(path || (noLink ? __('No link', 'ashbi-mega-menu') : __('Add a link', 'ashbi-mega-menu'))) + '</span>' +
 			'<span class="screen-reader-text">' + esc(__('Edit link', 'ashbi-mega-menu')) + '</span>';
 	}
 
 	function syncLinkChip($popover) {
 		var url = String($popover.find('.abmm-link-url').val() || '');
 		var path = linkPathText(url);
-		$popover.find('.abmm-link-edit__url').toggleClass('is-empty', !path).text(path || __('Add a link', 'ashbi-mega-menu'));
+		var noLink = $popover.find('.abmm-link-no-link').is(':checked');
+		$popover.find('.abmm-link-edit__url').toggleClass('is-empty', !path && !noLink).toggleClass('is-no-link', !path && noLink).text(path || (noLink ? __('No link', 'ashbi-mega-menu') : __('Add a link', 'ashbi-mega-menu')));
 		$popover.find('.abmm-link-edit__toggle').attr('title', url.trim() ? url.trim() : __('Edit link', 'ashbi-mega-menu'));
 		$popover.toggleClass('has-options', $popover.find('.abmm-link-target').is(':checked') ||
 			String($popover.find('.abmm-link-rel').val() || '').trim() !== '' ||
-			String($popover.find('.abmm-link-class').val() || '').trim() !== '');
+			String($popover.find('.abmm-link-class').val() || '').trim() !== '' ||
+			noLink);
 	}
 
 	function linkRowHtml(link, linkIndex, linkLength, withDescription) {

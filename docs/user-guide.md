@@ -190,8 +190,9 @@ Click the gear next to a link to see its options.
 
 - **Open in new tab.** Opens the link in a new tab. Use it for links to other sites. Screen readers will say that it opens a new tab. Default: off.
 
-Most people never need the next two, so they sit under **More options**. If one has a value, **More options** opens by itself. The button shows them without that step.
+Most people never need the next three, so they sit under **More options**. If one has a value, **More options** opens by itself. The button shows them without that step.
 
+- **No link on purpose.** Use this for a label that shouldn't go anywhere. The checklist stops asking for a link. If you add a link later, it works as usual. Default: off.
 - **Relationship.** Tells search engines about a link. For example, type `nofollow sponsored` for a paid link. Default: empty.
 - **CSS classes.** Extra names for styling with your own code. Leave this empty unless a developer asks you to fill it in. Default: empty.
 

@@ -791,6 +791,40 @@ async function auditRegressions(){
 async function simplicityRegressions(){
  const builderView=fs.readFileSync('admin/views/builder.php','utf8');
  const listView=fs.readFileSync('admin/views/list.php','utf8');
+
+ // A row can have no link on purpose: the checklist stops asking, the row says so, and it saves.
+ {
+  const stored={title:'Main',items:[{id:'home',label:'Home',type:'link',url:'/h'},{id:'soon',label:'Soon',type:'link',url:'#',no_link:true},{id:'dead',label:'Dead',type:'link',url:'#'},{id:'real',label:'Real',type:'link',url:'/r',no_link:true},{id:'prod',label:'Prod',type:'mega',url:'',mega_style:'features',columns:2,links:[{id:'l1',label:'A',url:'/a'}],categories:[]}],cta:{show:false,label:'',url:''},brand:{show:false},settings:{presentation:'stacked'}};
+  const dom=new JSDOM('<body><span class="abmm-save-status"></span><button class="abmm-save-menu">Save</button><button class="abmm-undo">Undo</button><div id="abmm-builder" data-menu-id="demo" data-menu-revision="r" data-menu-placed="1"><input id="abmm-menu-title" value="Main"><ul class="abmm-readiness-issues"></ul><div id="abmm-nav-items"></div><main class="abmm-builder__main"><div class="abmm-preview-shell" data-abmm-preview-viewport="desktop"><div id="abmm-preview"></div></div></main></div><script id="abmm-menu-data" type="application/json">'+JSON.stringify(stored)+'</script></body>',{url:'http://localhost/',runScripts:'outside-only'});
+  const w=dom.window; const jq=require('jquery')(w); w.jQuery=jq; w.matchMedia=()=>({matches:false}); jq.fn.wpColorPicker=jq.fn.sortable=function(){return this;};
+  jq.expr.pseudos.visible=el=>!el.hidden&&!el.closest('[hidden]');
+  w.abmmAdmin={ajaxUrl:'/ajax',nonce:'test',strings:new Proxy({},{get:(_,key)=>String(key)}),icons:[]};
+  const posts=[]; jq.post=(_,data)=>{const d=jq.Deferred();posts.push({data,d});return d.promise();};
+  w.eval(source); w.document.dispatchEvent(new w.Event('DOMContentLoaded')); await new Promise(resolve=>setTimeout(resolve,30));
+  const issues=()=>jq('.abmm-readiness-issues').text();
+  const row=id=>jq('.abmm-nav-item-row[data-id="'+id+'"]');
+  assert.ok(!/"Soon"/.test(issues()),'no link on purpose raises no issue');
+  assert.match(issues(),/"Dead"/,'other rows are still flagged');
+  assert.equal(row('soon').find('.abmm-nav-item-row__url').text(),'No link','the row says it has no link');
+  assert.ok(row('soon').find('.abmm-nav-item-row__url').hasClass('is-no-link'),'the row shows a chip');
+  assert.ok(row('soon').find('.abmm-more-options').prop('open'),'More options opens when this is on');
+  assert.ok(!row('dead').find('.abmm-nav-item-row__url').hasClass('is-no-link'),'an ordinary empty row has no chip');
+  assert.ok(!row('real').find('.abmm-nav-item-row__url').hasClass('is-no-link'),'a real address wins over the flag');
+  assert.equal(row('prod').find('.abmm-link-no-link').length,0,'a dropdown has no such option: its own page is optional');
+  assert.match(source,/linkMoreOptionsHtml\(link, true\)/,'links inside a dropdown offer it too');
+  row('dead').find('.abmm-link-no-link').prop('checked',true).trigger('change');
+  assert.ok(!/"Dead"/.test(issues()),'ticking it clears the issue');
+  assert.ok(row('dead').find('.abmm-nav-item-row__url').hasClass('is-no-link'),'ticking it shows the chip');
+  row('soon').find('.abmm-link-no-link').prop('checked',false).trigger('change');
+  assert.match(issues(),/"Soon"/,'unticking it brings the issue back');
+  jq('.abmm-save-menu').first().trigger('click');
+  const sent=JSON.parse(posts.filter(p=>p.data.action==='abmm_save_menu').pop().data.menu_data);
+  const saved=id=>sent.items.find(i=>i.id===id);
+  assert.strictEqual(saved('dead').no_link,true,'it saves as true');
+  assert.ok(!('no_link' in saved('soon')),'it is removed when off, not stored as false');
+  assert.ok(!('no_link' in saved('home')),'rows that never had it stay without it');
+  w.close();
+ }
  const panelOf=id=>{
   const at=builderView.indexOf('id="'+id+'"');
   assert.ok(at>=0,id+' is still in the editor');

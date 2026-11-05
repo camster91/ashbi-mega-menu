@@ -381,4 +381,17 @@ for (const file of ['emm-frontend.js', 'emm-frontend.css', 'emm-fixes.css', 'emm
 	released(ctx, 'Closed with a clone on the page');
 })().catch((error) => { console.error(error); process.exit(1); });
 
+// A labelled phone button stays on one row and on screen, whatever a theme forces on buttons.
+{
+	const fixes = fs.readFileSync(path.join(__dirname, '..', 'assets', 'classic', 'emm-fixes.css'), 'utf8');
+	const labelled = fixes.match(/\.emm-nav__toggle:has\(\.emm-nav__toggle-label\) \{([^}]*)\}/)[1];
+	for (const rule of [/display: inline-flex !important;/, /align-items: center;/, /width: auto !important;/, /max-width: clamp\(/, /height: 40px !important;/, /padding: 0 0\.25rem !important;/]) {
+		assert.match(labelled, rule, 'The labelled button beats a forced button rule.');
+	}
+	assert.match(fixes, /\.emm-nav__toggle-label \{[^}]*text-overflow: ellipsis;[^}]*white-space: nowrap;/, 'A long label truncates.');
+	assert.match(fixes, /:not\(:has\(\.emm-nav__brand\)\) \.emm-nav__bar:has\(\.emm-nav__toggle-label\) \{\s*justify-content: flex-end;/, 'With no logo beside it, the button grows to the left.');
+	assert.match(fixes, /@media \(max-width: 480px\) \{\s*\.emm-header:has\(\.emm-nav__toggle-label\) \.emm-nav__brand:has\(\.emm-nav__brand-logo\) \.emm-nav__brand-title \{\s*display: none;/, 'The logo title is only hidden where space requires it.');
+	assert.ok(!/\.emm-nav__toggle \{[^}]*inline-flex/.test(fixes), 'Unlabelled buttons are left alone.');
+}
+
 console.log('Classic script: single binding, open/close, measurable phone header, hover and rail timing, drawer links, inert page, labels, ids, bleed config and clean bundled assets passed.');

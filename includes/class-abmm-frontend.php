@@ -66,8 +66,14 @@ class ABMM_Frontend {
 		return self::$instance;
 	}
 
+	/**
+	 * Runs in the page head. Only remembers the tap: the menu script acts on it.
+	 */
+	const EARLY_TAP_SCRIPT = '(function(d){d.addEventListener("click",function(e){var t=e.target,b=t&&t.closest&&t.closest(".emm-nav__toggle,.abmm-nav__toggle"),h=b&&b.closest(".emm-header,.abmm-header");if(h&&!h.__easyMegaMenuInitialized&&!h.__ashbiMegaMenuInitialized){h.__abmmEarlyTap=b;}},true);})(document);';
+
 	private function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
+		add_action( 'wp_head', array( $this, 'print_early_tap_script' ), 1 );
 		add_filter( 'script_loader_tag', array( $this, 'add_nitropack_exclusion_attribute' ), 10, 3 );
 		add_action( 'admin_bar_menu', array( $this, 'admin_bar_edit_link' ), 85 );
 		// Just before the toolbar's own wp_footer fallback at 1000.
@@ -153,6 +159,19 @@ class ABMM_Frontend {
 			);
 		}
 		return $nodes;
+	}
+
+	/**
+	 * Keep a tap on the phone menu button made before the menu script has run.
+	 * The button shows long before a slow phone runs the footer script, and the
+	 * tap was lost. The menu script replays it once when it sets the header up.
+	 *
+	 * @return void
+	 */
+	public function print_early_tap_script() {
+		if ( ABMM_Data::instance()->get_all() ) {
+			wp_print_inline_script_tag( self::EARLY_TAP_SCRIPT, array( 'nitro-exclude' => true ) );
+		}
 	}
 
 	/**
