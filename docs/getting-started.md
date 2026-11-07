@@ -47,7 +47,7 @@ The editor has four steps along the top: **Content**, **Design**, **Place** and 
 
 To change the order, drag a row. Or click its **⋯** button and choose **Move up** or **Move down**.
 
-The preview shows your menu as you work. Click the phone button above it to see the phone menu.
+On desktop, the editor shows your settings on the left and the preview on the right. The preview updates as you work. Choose **Mobile** in the preview toolbar to see the phone menu.
 
 ## Step 4: Pick a look
 
