@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.11
+
+- Tested with WordPress 7.2.
+
 ## 1.2.10
 
 - Preserve edits made during Save and leave or conflict recovery, and keep drafts from different tabs separate.
