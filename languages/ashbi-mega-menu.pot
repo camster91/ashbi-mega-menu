@@ -2641,8 +2641,16 @@ msgstr ""
 msgid "Bold"
 msgstr ""
 
-#: includes/class-abmm-data.php:889
+#: includes/class-abmm-data.php:896
 msgid "Minimal"
+msgstr ""
+
+#: includes/class-abmm-data.php:915
+msgid "Editorial"
+msgstr ""
+
+#: includes/class-abmm-data.php:933
+msgid "Glass"
 msgstr ""
 
 #: includes/class-abmm-data.php:973
