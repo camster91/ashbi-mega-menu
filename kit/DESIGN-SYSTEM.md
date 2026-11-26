@@ -100,13 +100,14 @@ Use the same attribute names in every plugin:
 | `layout` | `grid`, `masonry`, `slider`, `list` (plugin picks a subset) |
 | `columns` | `1`–`6` |
 | `limit` | number (`-1` = all) |
+| `look` | `minimal`, `editorial`, `bold`, `glass` (the four presets; plugins may add `classic` as the empty default) |
 | `theme` | `light`, `dark`, `auto` |
 | `accent` | hex color |
 | `filters` | `show`, `hide` |
 | `heading` | text |
 | `class` | extra CSS classes |
 
-Keep any older attribute names working as aliases.
+Keep any older attribute names working as aliases. Don't use `preset` for looks: Ashbi Testimonials already uses `preset` for saved designs.
 
 ## 7. Directory listing
 

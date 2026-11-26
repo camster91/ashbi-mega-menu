@@ -43,7 +43,7 @@
 }
 
 /* ---- Presets: shape and depth only, never fonts or text colors -------- */
-:where(.__P__-ui[data-__P__-preset="editorial"]) {
+:where(.__P__-ui[data-__P__-look="editorial"]) {
 	--__P__-card-border: 0;
 	--__P__-card-radius: 0;
 	--__P__-card-pad: 18px 0 0;
@@ -51,11 +51,11 @@
 	--__P__-pill-border: 0;
 }
 
-:where(.__P__-ui[data-__P__-preset="editorial"]) :where(.__P__-card) {
+:where(.__P__-ui[data-__P__-look="editorial"]) :where(.__P__-card) {
 	border-top: 2px solid var(--__P__-accent);
 }
 
-:where(.__P__-ui[data-__P__-preset="bold"]) {
+:where(.__P__-ui[data-__P__-look="bold"]) {
 	--__P__-card-bg: var(--__P__-accent);
 	--__P__-card-ink: var(--__P__-accent-ink);
 	--__P__-card-border: 0;
@@ -64,7 +64,7 @@
 	--__P__-pill-border: 1px solid transparent;
 }
 
-:where(.__P__-ui[data-__P__-preset="glass"]) {
+:where(.__P__-ui[data-__P__-look="glass"]) {
 	--__P__-card-bg: color-mix(in srgb, Canvas 78%, transparent);
 	--__P__-card-border: 1px solid color-mix(in srgb, Canvas 90%, transparent);
 	--__P__-card-radius: 18px;
@@ -78,18 +78,18 @@
 	--__P__-card-bg: rgb(255 255 255 / 0.04);
 }
 
-:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-preset="glass"]) {
+:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-look="glass"]) {
 	--__P__-card-bg: rgb(255 255 255 / 0.07);
 	--__P__-card-border: 1px solid rgb(255 255 255 / 0.14);
 	--__P__-card-shadow: 0 10px 30px rgb(0 0 0 / 0.3);
 }
 
-:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-preset="bold"]),
-:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-preset="editorial"]) {
+:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-look="bold"]),
+:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-look="editorial"]) {
 	--__P__-card-bg: transparent;
 }
 
-:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-preset="bold"]) {
+:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-look="bold"]) {
 	--__P__-card-bg: var(--__P__-accent);
 }
 
@@ -209,7 +209,7 @@
 	letter-spacing: 0.12em;
 }
 
-:where(.__P__-ui[data-__P__-preset="bold"]) :where(.__P__-card .__P__-stars) {
+:where(.__P__-ui[data-__P__-look="bold"]) :where(.__P__-card .__P__-stars) {
 	color: inherit;
 }
 
@@ -262,7 +262,7 @@
 	color: var(--__P__-accent-ink);
 }
 
-:where(.__P__-ui[data-__P__-preset="editorial"]) :where(.__P__-pill[aria-pressed="true"], .__P__-pill.is-active) {
+:where(.__P__-ui[data-__P__-look="editorial"]) :where(.__P__-pill[aria-pressed="true"], .__P__-pill.is-active) {
 	background: transparent;
 	border-bottom: 2px solid var(--__P__-accent);
 	border-radius: 0;

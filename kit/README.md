@@ -23,12 +23,12 @@ Each plugin ships its own prefixed copy. With two Ashbi plugins active, `.ashbpg
 
 ### Front end
 
-Wrap the output in the kit class, then set the preset, theme and accent:
+Wrap the output in the kit class, then set the look, theme and accent:
 
 ```php
 printf(
-	'<div class="ashbpg-ui" data-ashbpg-preset="%s" data-ashbpg-theme="%s" style="--ashbpg-accent:%s;--ashbpg-cols:%d">',
-	esc_attr( $preset ), esc_attr( $theme ), esc_attr( $accent ), (int) $columns
+	'<div class="ashbpg-ui" data-ashbpg-look="%s" data-ashbpg-theme="%s" style="--ashbpg-accent:%s;--ashbpg-cols:%d">',
+	esc_attr( $look ), esc_attr( $theme ), esc_attr( $accent ), (int) $columns
 );
 ```
 
@@ -41,7 +41,7 @@ window.ashbpgStudio.init(document.getElementById('ashbpg-studio'), {
 	shortcode: 'ashbi_portfolio',
 	fields: [
 		{ key: 'layout', type: 'seg', label: 'Layout', options: [['grid', 'Grid'], ['bento', 'Bento'], ['list', 'List']], default: 'grid' },
-		{ key: 'preset', type: 'preset', label: 'Preset', default: 'minimal' },
+		{ key: 'look', type: 'preset', label: 'Look', default: 'minimal' },
 		{ key: 'accent', type: 'swatch', label: 'Accent', default: '#2457ff' }
 	],
 	preview: { url: ajaxurl, action: 'ashbpg_preview', nonce: '…' }
@@ -52,7 +52,7 @@ The preview endpoint must check a nonce and the user's capability, sanitize ever
 
 ## Shared shortcode attributes
 
-Use the same names in every plugin: `layout`, `columns`, `limit`, `preset`, `theme`, `accent`, `filters`, `heading`, `class`. Keep older names working as aliases.
+Use the same names in every plugin: `layout`, `columns`, `limit`, `look`, `theme`, `accent`, `filters`, `heading`, `class`. Keep older names working as aliases.
 
 ## Test
 
