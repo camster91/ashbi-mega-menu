@@ -1,0 +1,340 @@
+/*!
+ * Ashbi UI kit: front end (__VERSION__)
+ * Shared look for every free Ashbi plugin. Built for one plugin with the
+ * "__P__" prefix, so two Ashbi plugins on one site never clash.
+ *
+ * Rules: inherit the theme's font and text color, add one accent, keep
+ * every selector inside :where() so a theme can override with one rule.
+ */
+
+/* ---- Tokens ---------------------------------------------------------- */
+:where(.__P__-ui) {
+	--__P__-accent: #2457ff;
+	--__P__-accent-ink: #ffffff;
+	--__P__-radius: 12px;
+	--__P__-radius-lg: 16px;
+	--__P__-pill: 999px;
+	--__P__-gap: clamp(16px, 2.5vw, 24px);
+	--__P__-pad: clamp(16px, 3vw, 24px);
+	--__P__-cols: 3;
+	--__P__-cols-now: var(--__P__-cols);
+	--__P__-surface: color-mix(in srgb, currentColor 4%, transparent);
+	--__P__-border: color-mix(in srgb, currentColor 14%, transparent);
+	--__P__-muted: color-mix(in srgb, currentColor 68%, transparent);
+	--__P__-focus: #ffb568;
+	--__P__-card-bg: transparent;
+	--__P__-card-ink: inherit;
+	--__P__-card-border: 1px solid var(--__P__-border);
+	--__P__-card-radius: var(--__P__-radius);
+	--__P__-card-shadow: none;
+	--__P__-card-pad: var(--__P__-pad);
+	--__P__-quote-size: 1em;
+	--__P__-pill-bg: transparent;
+	--__P__-pill-border: 1px solid var(--__P__-border);
+	box-sizing: border-box;
+	color: inherit;
+	font-family: inherit;
+}
+
+:where(.__P__-ui) *,
+:where(.__P__-ui) *::before,
+:where(.__P__-ui) *::after {
+	box-sizing: inherit;
+}
+
+/* ---- Presets: shape and depth only, never fonts or text colors -------- */
+:where(.__P__-ui[data-__P__-look="editorial"]) {
+	--__P__-card-border: 0;
+	--__P__-card-radius: 0;
+	--__P__-card-pad: 18px 0 0;
+	--__P__-quote-size: 1.25em;
+	--__P__-pill-border: 0;
+}
+
+:where(.__P__-ui[data-__P__-look="editorial"]) :where(.__P__-card) {
+	border-top: 2px solid var(--__P__-accent);
+}
+
+:where(.__P__-ui[data-__P__-look="bold"]) {
+	--__P__-card-bg: var(--__P__-accent);
+	--__P__-card-ink: var(--__P__-accent-ink);
+	--__P__-card-border: 0;
+	--__P__-card-radius: 18px;
+	--__P__-pill-bg: var(--__P__-surface);
+	--__P__-pill-border: 1px solid transparent;
+}
+
+:where(.__P__-ui[data-__P__-look="glass"]) {
+	--__P__-card-bg: color-mix(in srgb, Canvas 78%, transparent);
+	--__P__-card-border: 1px solid color-mix(in srgb, Canvas 90%, transparent);
+	--__P__-card-radius: 18px;
+	--__P__-card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 10px 30px rgb(0 0 0 / 0.08);
+}
+
+/* ---- Theme: light inherits the page; dark and auto paint their own ---- */
+:where(.__P__-ui[data-__P__-theme="dark"]) {
+	color-scheme: dark;
+	color: #eceef2;
+	--__P__-card-bg: rgb(255 255 255 / 0.04);
+}
+
+:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-look="glass"]) {
+	--__P__-card-bg: rgb(255 255 255 / 0.07);
+	--__P__-card-border: 1px solid rgb(255 255 255 / 0.14);
+	--__P__-card-shadow: 0 10px 30px rgb(0 0 0 / 0.3);
+}
+
+:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-look="bold"]),
+:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-look="editorial"]) {
+	--__P__-card-bg: transparent;
+}
+
+:where(.__P__-ui[data-__P__-theme="dark"][data-__P__-look="bold"]) {
+	--__P__-card-bg: var(--__P__-accent);
+}
+
+@media (prefers-color-scheme: dark) {
+	:where(.__P__-ui[data-__P__-theme="auto"]) {
+		color-scheme: dark;
+		--__P__-card-bg: rgb(255 255 255 / 0.04);
+	}
+}
+
+/* ---- Layouts ---------------------------------------------------------- */
+:where(.__P__-layout-grid) {
+	display: grid;
+	gap: var(--__P__-gap);
+	grid-template-columns: repeat(var(--__P__-cols-now), minmax(0, 1fr));
+}
+
+:where(.__P__-layout-masonry) {
+	column-count: var(--__P__-cols-now);
+	column-gap: var(--__P__-gap);
+}
+
+:where(.__P__-layout-masonry) > * {
+	break-inside: avoid;
+	margin-block-end: var(--__P__-gap);
+}
+
+:where(.__P__-layout-bento) {
+	display: grid;
+	gap: var(--__P__-gap);
+	grid-auto-flow: dense;
+	grid-auto-rows: minmax(160px, auto);
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+:where(.__P__-layout-bento) > :nth-child(6n + 1) {
+	grid-column: span 2;
+	grid-row: span 2;
+}
+
+:where(.__P__-layout-bento) > :nth-child(6n + 2),
+:where(.__P__-layout-bento) > :nth-child(6n + 5) {
+	grid-column: span 2;
+}
+
+:where(.__P__-layout-slider) {
+	display: flex;
+	gap: var(--__P__-gap);
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	padding-block-end: 8px;
+	scroll-snap-type: x mandatory;
+}
+
+:where(.__P__-layout-slider) > * {
+	flex: 0 0 min(320px, 85%);
+	scroll-snap-align: start;
+}
+
+:where(.__P__-layout-list) {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--__P__-gap) / 2);
+}
+
+@media (max-width: 1024px) {
+	:where(.__P__-ui) {
+		--__P__-cols-now: min(var(--__P__-cols), 2);
+	}
+
+	:where(.__P__-layout-bento) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	:where(.__P__-ui) {
+		--__P__-cols-now: 1;
+	}
+
+	:where(.__P__-layout-bento) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	:where(.__P__-layout-bento) > * {
+		grid-column: auto !important;
+		grid-row: auto !important;
+	}
+}
+
+/* ---- Components -------------------------------------------------------- */
+:where(.__P__-card) {
+	background: var(--__P__-card-bg);
+	border: var(--__P__-card-border);
+	border-radius: var(--__P__-card-radius);
+	box-shadow: var(--__P__-card-shadow);
+	color: var(--__P__-card-ink);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin: 0;
+	padding: var(--__P__-card-pad);
+}
+
+:where(.__P__-quote) {
+	font-size: var(--__P__-quote-size);
+	line-height: 1.5;
+	margin: 0;
+}
+
+:where(.__P__-muted) {
+	color: var(--__P__-muted);
+}
+
+:where(.__P__-stars) {
+	color: var(--__P__-accent);
+	letter-spacing: 0.12em;
+}
+
+:where(.__P__-ui[data-__P__-look="bold"]) :where(.__P__-card .__P__-stars) {
+	color: inherit;
+}
+
+:where(.__P__-avatar) {
+	align-items: center;
+	background: color-mix(in srgb, var(--__P__-accent) 14%, transparent);
+	border-radius: 50%;
+	color: var(--__P__-accent);
+	display: inline-grid;
+	flex: none;
+	font-size: 0.8em;
+	font-weight: 700;
+	height: 2.4em;
+	justify-content: center;
+	overflow: hidden;
+	width: 2.4em;
+}
+
+:where(.__P__-avatar) img {
+	height: 100%;
+	object-fit: cover;
+	width: 100%;
+}
+
+:where(.__P__-pills) {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	list-style: none;
+	margin: 0 0 var(--__P__-gap);
+	padding: 0;
+}
+
+:where(.__P__-pill) {
+	background: var(--__P__-pill-bg);
+	border: var(--__P__-pill-border);
+	border-radius: var(--__P__-pill);
+	color: inherit;
+	cursor: pointer;
+	font: inherit;
+	font-size: 0.875em;
+	line-height: 1.2;
+	min-height: 36px;
+	padding: 8px 14px;
+}
+
+:where(.__P__-pill[aria-pressed="true"], .__P__-pill.is-active) {
+	background: var(--__P__-accent);
+	border-color: var(--__P__-accent);
+	color: var(--__P__-accent-ink);
+}
+
+:where(.__P__-ui[data-__P__-look="editorial"]) :where(.__P__-pill[aria-pressed="true"], .__P__-pill.is-active) {
+	background: transparent;
+	border-bottom: 2px solid var(--__P__-accent);
+	border-radius: 0;
+	color: inherit;
+	font-weight: 600;
+}
+
+:where(.__P__-button) {
+	align-items: center;
+	background: var(--__P__-accent);
+	border: 1px solid var(--__P__-accent);
+	border-radius: calc(var(--__P__-radius) - 2px);
+	color: var(--__P__-accent-ink);
+	cursor: pointer;
+	display: inline-flex;
+	font: inherit;
+	font-weight: 600;
+	gap: 8px;
+	justify-content: center;
+	min-height: 44px;
+	padding: 10px 18px;
+	text-decoration: none;
+}
+
+:where(.__P__-button.is-quiet) {
+	background: transparent;
+	color: inherit;
+	border-color: var(--__P__-border);
+}
+
+:where(.__P__-badge) {
+	align-items: center;
+	border: 1px solid var(--__P__-border);
+	border-radius: var(--__P__-pill);
+	display: inline-flex;
+	font-size: 0.875em;
+	gap: 8px;
+	padding: 6px 12px;
+}
+
+:where(.__P__-ui) :focus-visible {
+	outline: 3px solid var(--__P__-focus);
+	outline-offset: 3px;
+}
+
+/* Page-builder placeholder, used inside Elementor and editor previews. */
+:where(.__P__-placeholder) {
+	border: 1px dashed var(--__P__-border);
+	border-radius: var(--__P__-radius);
+	color: var(--__P__-muted);
+	padding: 32px;
+	text-align: center;
+}
+
+:where(.__P__-placeholder) strong {
+	color: var(--__P__-accent);
+	display: block;
+	margin-block-end: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:where(.__P__-ui) *,
+	:where(.__P__-ui) *::before,
+	:where(.__P__-ui) *::after {
+		animation-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+@media (forced-colors: active) {
+	:where(.__P__-card, .__P__-pill, .__P__-button) {
+		border: 1px solid CanvasText;
+	}
+}
