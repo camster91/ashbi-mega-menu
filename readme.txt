@@ -17,7 +17,7 @@ Ashbi Mega Menu helps you build a clear menu for your site, with no code. Start 
 **Simple to start**
 
 * Build your menu from pages you already have, from a template or from nothing.
-* Pick one of five styles. They are made to work together.
+* Pick one of seven styles. Editorial and Glass match the looks in every Ashbi plugin.
 * See your menu on a computer, tablet and phone as you work.
 * Follow a short guide that recommends the best way to add the menu to your theme.
 

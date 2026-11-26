@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- New Editorial and Glass style presets. They match the shared looks in every Ashbi plugin: Editorial adds an accent rule over the dropdown, and Glass frosts it, with a solid fallback for browsers or users that turn off transparency.
+
 ## 1.2.11
 
 - Tested with WordPress 7.2.

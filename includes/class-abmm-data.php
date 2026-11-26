@@ -910,6 +910,43 @@ class ABMM_Data {
 					'border_radius'   => 0,
 				),
 			),
+			// Editorial and Glass complete the four looks shared by every Ashbi plugin.
+			'editorial' => array(
+				'label'  => __( 'Editorial', 'ashbi-mega-menu' ),
+				'values' => array(
+					'sidebar_bg'      => '#faf8f4',
+					'active_bg'       => '#ffffff',
+					'panel_bg'        => '#ffffff',
+					'header_bg'       => '#ffffff',
+					'accent'          => '#2457ff',
+					'text_color'      => '#1d1b18',
+					'nav_link_color'  => '#1d1b18',
+					'nav_hover_color' => '#2457ff',
+					'muted_color'     => '#66615a',
+					'border_color'    => '#ebe6dd',
+					'cta_text'        => '#ffffff',
+					'shadow'          => 'none',
+					'border_radius'   => 0,
+				),
+			),
+			'glass'     => array(
+				'label'  => __( 'Glass', 'ashbi-mega-menu' ),
+				'values' => array(
+					'sidebar_bg'      => '#f3f5fa',
+					'active_bg'       => '#ffffff',
+					'panel_bg'        => '#ffffff',
+					'header_bg'       => '#ffffff',
+					'accent'          => '#2457ff',
+					'text_color'      => '#192238',
+					'nav_link_color'  => '#192238',
+					'nav_hover_color' => '#2457ff',
+					'muted_color'     => '#57657e',
+					'border_color'    => '#e3e8f2',
+					'cta_text'        => '#ffffff',
+					'shadow'          => 'strong',
+					'border_radius'   => 16,
+				),
+			),
 		);
 	}
 

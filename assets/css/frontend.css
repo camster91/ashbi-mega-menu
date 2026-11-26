@@ -4080,3 +4080,47 @@ html.abmm-drawer-open {
 		position: static !important;
 	}
 }
+
+/* ---- Shared Ashbi looks: Editorial and Glass ----------------------------
+ * The Editorial and Glass style presets add shape and depth on top of their
+ * colors, matching the same looks in every Ashbi plugin.
+ */
+.abmm-look--editorial .abmm-mega__inner {
+	border-top: 2px solid var(--abmm-accent);
+}
+
+.abmm-look--editorial .abmm-mega__col-title {
+	letter-spacing: 0.08em;
+}
+
+.abmm-look--glass .abmm-mega__inner {
+	border-color: color-mix(in srgb, var(--abmm-border) 60%, transparent);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	/* Resolved on the header, then reused inside the panel, so the panel's own
+	 * backgrounds turn translucent and the blur shows through. */
+	.abmm-header.abmm-look--glass {
+		--abmm-glass-panel: color-mix(in srgb, var(--abmm-panel-bg) 76%, transparent);
+		--abmm-glass-sidebar: color-mix(in srgb, var(--abmm-sidebar-bg) 70%, transparent);
+	}
+
+	.abmm-look--glass .abmm-mega__inner {
+		--abmm-panel-bg: var(--abmm-glass-panel);
+		--abmm-sidebar-bg: var(--abmm-glass-sidebar);
+		-webkit-backdrop-filter: blur(18px) saturate(1.4);
+		backdrop-filter: blur(18px) saturate(1.4);
+	}
+}
+
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+	.abmm-header.abmm-look--glass {
+		--abmm-glass-panel: var(--abmm-panel-bg);
+		--abmm-glass-sidebar: var(--abmm-sidebar-bg);
+	}
+
+	.abmm-look--glass .abmm-mega__inner {
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}

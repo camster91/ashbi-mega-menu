@@ -289,4 +289,14 @@ verify_style( false !== strpos( $out, 'class="abmm-header' ), 'The widget render
 $widget->settings = array( 'menu_id' => 'main' );
 verify_style( false === strpos( $widget->test_render(), '<style>' ), 'No widget CSS without a height choice.' );
 
+// Shared Ashbi looks: Editorial and Glass presets carry full value sets and a look class.
+$abmm_presets = ABMM_Data::design_presets();
+foreach ( array( 'editorial', 'glass' ) as $abmm_look ) {
+	verify_style( isset( $abmm_presets[ $abmm_look ] ) && array_keys( $abmm_presets['classic']['values'] ) === array_keys( $abmm_presets[ $abmm_look ]['values'] ), ucfirst( $abmm_look ) . ' sets every preset value.' );
+}
+$abmm_source = file_get_contents( dirname( __DIR__ ) . '/includes/class-abmm-frontend.php' );
+verify_style( false !== strpos( $abmm_source, "array( 'editorial', 'glass' )" ) && false !== strpos( $abmm_source, "'abmm-look--' . \$settings['preset']" ), 'Only the Editorial and Glass presets add a look class.' );
+$abmm_css = file_get_contents( dirname( __DIR__ ) . '/assets/css/frontend.css' );
+verify_style( false !== strpos( $abmm_css, 'prefers-reduced-transparency' ) && false !== strpos( $abmm_css, '@supports ((backdrop-filter' ), 'Glass falls back to a solid panel.' );
+
 echo "Style settings: sanitizing, exact CSS, unchanged markup, both looks, toolbar link and Elementor widget passed.\n";

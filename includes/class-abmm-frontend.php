@@ -391,6 +391,10 @@ class ABMM_Frontend {
 			'abmm-cta--' . sanitize_html_class( $settings['cta_style'] ),
 			'abmm-title--' . sanitize_html_class( $settings['panel_title_align'] ),
 		);
+		if ( in_array( $settings['preset'] ?? '', array( 'editorial', 'glass' ), true ) ) {
+			// Shape and depth for the shared Ashbi looks; colors stay in the settings.
+			$classes[] = 'abmm-look--' . $settings['preset'];
+		}
 		if ( ! empty( $settings['uppercase_cats'] ) ) {
 			$classes[] = 'abmm-cats-upper';
 		}
